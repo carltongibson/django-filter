@@ -1,6 +1,8 @@
+from copy import deepcopy
+
 from django.utils.datastructures import SortedDict
 
-from filter.filters import Filter
+from filter.filters import Filter, CharFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = [(filter_name, attrs.pop(filter_name)) for filter_name, obj in attrs.iteritems() if isinstance(obj, Filter)]
@@ -61,16 +63,27 @@ class FilterSetMetaclass(type):
         return new_class
 
 class BaseFilterSet(object):
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, data=None, queryset=None):
+        self.data = data or {}
+        self.queryset = queryset
+        
+        self.filters = deepcopy(self.base_filters)
+    
+    def filter(self):
+        qs = self.queryset.all()
+        for name, filter in self.filters.iteritems():
+            qs = filter.filter(qs, name, self.data.get(name))
+        return qs
         
     @classmethod
     def filter_for_field(cls, f):
         from django.db import models
         FILTERS = {
-            models.CharField: Filter,
+            models.CharField: CharFilter,
         }
-        return FILTERS.get(f.__class__)
+        f = FILTERS.get(f.__class__)
+        if f is not None:
+            return f()
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass
