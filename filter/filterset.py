@@ -1,6 +1,8 @@
 from copy import deepcopy
 
+from django import forms
 from django.utils.datastructures import SortedDict
+from django.utils.text import capfirst
 
 from filter.filters import Filter, CharFilter
 
@@ -69,11 +71,22 @@ class BaseFilterSet(object):
         
         self.filters = deepcopy(self.base_filters)
     
+    def __iter__(self):
+        for obj in self.filter():
+            yield obj
+    
     def filter(self):
         qs = self.queryset.all()
         for name, filter in self.filters.iteritems():
             qs = filter.filter(qs, name, self.data.get(name))
         return qs
+    
+    @property
+    def form(self):
+        if not hasattr(self, '_form'):
+            fields = SortedDict([(f[0], f[1].field) for f in self.filters.iteritems()])
+            Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
+            return Form(self.data)
         
     @classmethod
     def filter_for_field(cls, f):
@@ -81,9 +94,9 @@ class BaseFilterSet(object):
         FILTERS = {
             models.CharField: CharFilter,
         }
-        f = FILTERS.get(f.__class__)
-        if f is not None:
-            return f()
+        filter = FILTERS.get(f.__class__)
+        if filter is not None:
+            return filter(label=capfirst(f.verbose_name))
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass

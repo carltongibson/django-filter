@@ -4,10 +4,9 @@ class Filter(object):
     creation_counter = 0
     field = forms.Field
     
-    def __init__(self, label=None, help_text=None, widget=None, action=None):
+    def __init__(self, label=None, widget=None, action=None):
         self.label = label
-        self.help_text = help_text
-        self.field = self.field(widget=widget)
+        self.field = self.field(label=label, widget=widget)
         self.action = action
         
         self.creation_counter = Filter.creation_counter

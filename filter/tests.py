@@ -39,5 +39,8 @@ __test__ = {"filterset": """
 >>> f = F({'username': 'alex'}, queryset=User.objects.all())
 >>> f.filter()
 [<User: alex>]
+>>> print f.form
+<tr><th><label for="id_username">Username:</label></th><td><input type="text" name="username" value="alex" id="id_username" /></td></tr>
+
 """}
 
