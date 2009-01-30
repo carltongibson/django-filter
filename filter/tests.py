@@ -100,12 +100,21 @@ __test__ = {"filterset": """
 [<User: alex>, <User: aaron>, <User: jacob>]
 
 >>> class F(FilterSet):
-...  class Meta:
-...     model = Comment
-...     fields = ['date']
+...     class Meta:
+...         model = Comment
+...         fields = ['date']
 
 >>> f = F({'date': '01/30/09'}, queryset=Comment.objects.all())
 >>> f.qs
 [<Comment: alex said super awesome!>]
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = Comment
+...         fields = ['author']
+
+>>> f = F({'author': '2'}, queryset=Comment.objects.all())
+>>> f.qs
+[<Comment: aaron said psycadelic!>]
 """}
 

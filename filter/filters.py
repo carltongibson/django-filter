@@ -14,6 +14,7 @@ class Filter(object):
         self.name = name
         self.label = label
         self.field = self.field(required=False, label=label, widget=widget, **kwargs)
+        self.extra = kwargs
         if action:
             self.filter = action
         
