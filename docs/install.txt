@@ -1,0 +1,5 @@
+Installing django-filter
+------------------------
+
+To install, simply place the ``filter`` directory somehwere on your ``PYTHONPATH``,
+and then add ``'filter'`` to your ``INSTALLED_APPS`.
