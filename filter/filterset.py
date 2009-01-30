@@ -69,6 +69,10 @@ class FilterSetMetaclass(type):
         new_class.base_filters = filters
         return new_class
 
+FILTER_FOR_DBFIELD_DEFAULTS = {
+    
+}
+
 class BaseFilterSet(object):
     def __init__(self, data=None, queryset=None):
         self.data = data or {}
@@ -85,7 +89,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_qs'):            
             qs = self.queryset.all()
             for name, filter_ in self.filters.iteritems():
-                qs = filter_.filter(qs, self.form[name].data)
+                qs = filter_.filter(qs, self.form.cleaned_data[name])
             self._qs = qs
         return self._qs
     
@@ -95,6 +99,7 @@ class BaseFilterSet(object):
             fields = SortedDict([(f[0], f[1].field) for f in self.filters.iteritems()])
             Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
             self._form = Form(self.data)
+            self._form.is_valid()
         return self._form
         
     @classmethod
@@ -104,9 +109,9 @@ class BaseFilterSet(object):
             models.CharField: CharFilter,
             models.BooleanField: BooleanFilter
         }
-        filter = FILTERS.get(f.__class__)
-        if filter is not None:
-            return filter(name=name, label=capfirst(f.verbose_name))
+        filter_ = FILTERS.get(f.__class__)
+        if filter_ is not None:
+            return filter_(name=name, label=capfirst(f.verbose_name))
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass

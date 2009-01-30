@@ -9,7 +9,7 @@ class Filter(object):
     def __init__(self, name=None, label=None, widget=None, action=None):
         self.name = name
         self.label = label
-        self.field = self.field(label=label, widget=widget)
+        self.field = self.field(required=False, label=label, widget=widget)
         if action:
             self.filter = action
         
