@@ -3,7 +3,8 @@ from django.db.models import Q
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 
-    'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter',
+    'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'ModelChoiceFilter',
+    'ModelMultipleChoiceFilter'
 ]
 
 class Filter(object):
@@ -43,7 +44,7 @@ class MultipleChoiceFilter(Filter):
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})
-        return qs.filter(q)
+        return qs.filter(q).distinct()
 
 class DateFilter(Filter):
     field = forms.DateField
@@ -53,3 +54,6 @@ class DateTimeFilter(Filter):
 
 class ModelChoiceFilter(Filter):
     field = forms.ModelChoiceField
+
+class ModelMultipleChoiceFilter(MultipleChoiceFilter):
+    field = forms.ModelMultipleChoiceField

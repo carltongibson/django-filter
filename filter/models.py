@@ -16,6 +16,8 @@ class User(models.Model):
     
     is_active = models.BooleanField()
     
+    favorite_books = models.ManyToManyField('Book')
+    
     def __unicode__(self):
         return self.username
 
@@ -27,3 +29,9 @@ class Comment(models.Model):
     
     def __unicode__(self):
         return "%s said %s" % (self.author, self.text[:25])
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    
+    def __unicode__(self):
+        return self.title

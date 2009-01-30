@@ -3,18 +3,16 @@ __test__ = {"filterset": """
 >>> from django.core.management import call_command
 >>> import filter
 >>> from filter import FilterSet
->>> from filter.models import User, Comment, STATUS_CHOICES
+>>> from filter.models import User, Comment, Book, STATUS_CHOICES
 
->>> call_command('loaddata', 'test_users', verbosity=0)
->>> call_command('loaddata', 'test_comments', verbosity=0)
+>>> call_command('loaddata', 'test_data', verbosity=0)
 
 >>> class F(FilterSet):
 ...     class Meta:
 ...         model = User
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name', 'status', 'is_active']
-
+['username', 'first_name', 'last_name', 'status', 'is_active', 'favorite_books']
 
 >>> class F(FilterSet):
 ...     class Meta:
@@ -22,7 +20,7 @@ __test__ = {"filterset": """
 ...         exclude = ['is_active']
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name', 'status']
+['username', 'first_name', 'last_name', 'status', 'favorite_books']
 
 >>> class F(FilterSet):
 ...     class Meta:
@@ -116,5 +114,24 @@ __test__ = {"filterset": """
 >>> f = F({'author': '2'}, queryset=Comment.objects.all())
 >>> f.qs
 [<Comment: aaron said psycadelic!>]
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['favorite_books']
+>>> f = F(queryset=User.objects.all())
+>>> f.qs
+[<User: alex>, <User: aaron>, <User: jacob>]
+
+>>> f = F({'favorite_books': ['1']}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>, <User: aaron>]
+>>> f = F({'favorite_books': ['1', '3']}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>, <User: aaron>]
+>>> f = F({'favorite_books': ['2']}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>]
+
 """}
 

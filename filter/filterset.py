@@ -6,7 +6,7 @@ from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
 from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
-    DateFilter, DateTimeFilter, ModelChoiceFilter
+    DateFilter, DateTimeFilter, ModelChoiceFilter, ModelMultipleChoiceFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
@@ -88,7 +88,13 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': ModelChoiceFilter, 
         'extra': lambda f: {
             'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
-             'to_field_name': f.rel.field_name
+            'to_field_name': f.rel.field_name
+        }
+    },
+    models.ManyToManyField: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
         }
     },
 }
