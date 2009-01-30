@@ -1,7 +1,7 @@
 __test__ = {"filterset": """
 >>> import filter
 >>> from filter import FilterSet
->>> from django.contrib.auth.models import User
+>>> from filter.models import User
 
 >>> User.objects.all()
 []
@@ -16,16 +16,16 @@ __test__ = {"filterset": """
 ...         model = User
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name', 'password', 'is_staff', 'is_active', 'is_superuser']
+['username', 'first_name', 'last_name', 'is_active']
 
 
 >>> class F(FilterSet):
 ...     class Meta:
 ...         model = User
-...         exclude = ['password']
+...         exclude = ['is_active']
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_superuser']
+['username', 'first_name', 'last_name']
 
 >>> class F(FilterSet):
 ...     class Meta:
