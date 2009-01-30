@@ -8,12 +8,12 @@ from filter.filters import Filter, CharFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
-    for filter_name, obj in attrs.iteritems():
+    for filter_name, obj in attrs.items():
         if isinstance(obj, Filter):
             obj = attrs.pop(filter_name)
             obj.name = filter_name
             filters.append((filter_name, obj))
-    filters.sort(key=lambda x: x.creation_counter)
+    filters.sort(key=lambda x: x[1].creation_counter)
     
     if with_base_filters:
         for base in bases[::-1]:

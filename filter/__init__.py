@@ -1,2 +1,2 @@
 from filter.filterset import FilterSet
-from filter.filters import Filter
+from filter.filters import *

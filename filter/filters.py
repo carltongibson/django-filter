@@ -1,5 +1,7 @@
 from django import forms
 
+__all__ = ['Filter', 'CharFilter']
+
 class Filter(object):
     creation_counter = 0
     field = forms.Field
