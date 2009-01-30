@@ -1,7 +1,10 @@
 from django import forms
 from django.db.models import Q
 
-__all__ = ['Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 'MultipleChoiceFilter']
+__all__ = [
+    'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 
+    'MultipleChoiceFilter', 'DateFilter'
+]
 
 class Filter(object):
     creation_counter = 0
@@ -40,3 +43,6 @@ class MultipleChoiceFilter(Filter):
         for v in value:
             q |= Q(**{self.name: v})
         return qs.filter(q)
+
+class DateFilter(Filter):
+    field = forms.DateField

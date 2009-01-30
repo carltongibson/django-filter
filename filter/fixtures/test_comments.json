@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "filter.comment", "fields": {"date": "2009-01-30", "text": "super awesome!", "author": 1}}, {"pk": 2, "model": "filter.comment", "fields": {"date": "2009-01-27", "text": "psycadelic!", "author": 2}}, {"pk": 3, "model": "filter.comment", "fields": {"date": "2008-12-31", "text": "funky fresh!", "author": 3}}]

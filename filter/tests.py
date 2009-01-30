@@ -3,9 +3,10 @@ __test__ = {"filterset": """
 >>> from django.core.management import call_command
 >>> import filter
 >>> from filter import FilterSet
->>> from filter.models import User, STATUS_CHOICES
+>>> from filter.models import User, Comment, STATUS_CHOICES
 
 >>> call_command('loaddata', 'test_users', verbosity=0)
+>>> call_command('loaddata', 'test_comments', verbosity=0)
 
 >>> class F(FilterSet):
 ...     class Meta:
@@ -98,5 +99,13 @@ __test__ = {"filterset": """
 >>> f.qs
 [<User: alex>, <User: aaron>, <User: jacob>]
 
+>>> class F(FilterSet):
+...  class Meta:
+...     model = Comment
+...     fields = ['date']
+
+>>> f = F({'date': '01/30/09'}, queryset=Comment.objects.all())
+>>> f.qs
+[<Comment: alex said super awesome!>]
 """}
 

@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
-from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter
+from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, DateFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
@@ -73,6 +73,7 @@ class FilterSetMetaclass(type):
 FILTER_FOR_DBFIELD_DEFAULTS = {
     models.CharField: CharFilter,
     models.BooleanField: BooleanFilter,
+    models.DateField: DateFilter,
 }
 
 class BaseFilterSet(object):
