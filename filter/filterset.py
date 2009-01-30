@@ -94,7 +94,9 @@ class BaseFilterSet(object):
             qs = self.queryset.all()
             for name, filter_ in self.filters.iteritems():
                 try:
-                    qs = filter_.filter(qs, self.form.fields[name].clean(self.form[name].data))
+                    val = self.form.fields[name].clean(self.form[name].data)
+                    if val:
+                        qs = filter_.filter(qs, val)
                 except forms.ValidationError:
                     pass
             self._qs = qs

@@ -1,7 +1,8 @@
 __test__ = {"filterset": """
+>>> from django import forms
 >>> import filter
 >>> from filter import FilterSet
->>> from filter.models import User
+>>> from filter.models import User, STATUS_CHOICES
 
 >>> User.objects.all()
 []
@@ -27,9 +28,32 @@ __test__ = {"filterset": """
 >>> F.base_filters.keys()
 ['username', 'first_name', 'last_name', 'status']
 
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['status']
+
 >>> f = F({'status': '1'}, queryset=User.objects.all())
 >>> f.qs
 [<User: alex>]
+>>> print f.form
+<tr><th><label for="id_status">Status:</label></th><td><select name="status" id="id_status">
+<option value="0">Regular</option>
+<option value="1" selected="selected">Admin</option>
+</select></td></tr>
+
+>>> class F(FilterSet):
+...     status = filter.ChoiceFilter(widget=forms.RadioSelect, choices=STATUS_CHOICES)
+...     class Meta:
+...         model = User
+...         fields = ['status']
+
+>>> f = F(queryset=User.objects.all())
+>>> print f.form
+<tr><th><label for="id_status_0">Status:</label></th><td><ul>
+<li><label for="id_status_0"><input type="radio" id="id_status_0" value="0" name="status" /> Regular</label></li>
+<li><label for="id_status_1"><input type="radio" id="id_status_1" value="1" name="status" /> Admin</label></li>
+</ul></td></tr>
 
 >>> class F(FilterSet):
 ...     class Meta:

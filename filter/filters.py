@@ -17,10 +17,8 @@ class Filter(object):
         Filter.creation_counter += 1
     
     def filter(self, qs, value):
-        if value:
-            return qs.filter(**{self.name: value})
-        return qs
-    
+        return qs.filter(**{self.name: value})
+        
 class CharFilter(Filter):
     field = forms.CharField
 
@@ -29,4 +27,6 @@ class BooleanFilter(Filter):
 
 class ChoiceFilter(Filter):
     field = forms.ChoiceField
-    
+
+class MultipleChoiceFilter(Filter):
+    pass
