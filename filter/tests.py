@@ -5,7 +5,7 @@ __test__ = {"filterset": """
 
 >>> User.objects.all()
 []
->>> _ = User.objects.create(username='alex')
+>>> _ = User.objects.create(username='alex', status=1)
 >>> _ = User.objects.create(username='aaron')
 >>> _ = User.objects.create(username='jacob')
 >>> User.objects.count()
@@ -16,7 +16,7 @@ __test__ = {"filterset": """
 ...         model = User
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name', 'is_active']
+['username', 'first_name', 'last_name', 'status', 'is_active']
 
 
 >>> class F(FilterSet):
@@ -25,7 +25,11 @@ __test__ = {"filterset": """
 ...         exclude = ['is_active']
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name']
+['username', 'first_name', 'last_name', 'status']
+
+>>> f = F({'status': '1'}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>]
 
 >>> class F(FilterSet):
 ...     class Meta:
@@ -53,5 +57,6 @@ __test__ = {"filterset": """
 >>> f = F({'username': 'a'}, queryset=User.objects.all())
 >>> f.qs
 [<User: alex>, <User: aaron>]
+
 """}
 
