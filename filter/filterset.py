@@ -81,10 +81,12 @@ class BaseFilterSet(object):
             yield obj
     
     def filter(self):
-        qs = self.queryset.all()
-        for name, filter_ in self.filters.iteritems():
-            qs = filter_.filter(qs, self.form[name].data)
-        return qs
+        if not hasattr(self, '_qs'):            
+            qs = self.queryset.all()
+            for name, filter_ in self.filters.iteritems():
+                qs = filter_.filter(qs, self.form[name].data)
+            self._qs = qs
+        return self._qs
     
     @property
     def form(self):

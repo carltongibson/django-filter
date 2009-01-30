@@ -36,7 +36,7 @@ __test__ = {"filterset": """
 
 >>> f = F(queryset=User.objects.all())
 >>> f.filter()
-[]
+[<User: alex>, <User: aaron>, <User: jacob>]
 >>> f = F({'username': 'alex'}, queryset=User.objects.all())
 >>> f.filter()
 [<User: alex>]
