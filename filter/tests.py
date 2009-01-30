@@ -82,5 +82,26 @@ __test__ = {"filterset": """
 >>> f.qs
 [<User: alex>, <User: aaron>]
 
+>>> class F(FilterSet):
+...     status = filter.MultipleChoiceFilter(choices=STATUS_CHOICES)
+...     class Meta:
+...         model = User
+...         fields = ['status']
+
+>>> f = F(queryset=User.objects.all())
+>>> print f.form
+<tr><th><label for="id_status">Status:</label></th><td><select multiple="multiple" name="status" id="id_status">
+<option value="0">Regular</option>
+<option value="1">Admin</option>
+</select></td></tr>
+>>> f.qs
+[<User: alex>, <User: aaron>, <User: jacob>]
+>>> f = F({'status': ['0']}, queryset=User.objects.all())
+>>> f.qs
+[<User: aaron>, <User: jacob>]
+>>> f = F({'status': ['0', '1']}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>, <User: aaron>, <User: jacob>]
+
 """}
 
