@@ -5,4 +5,3 @@ To-Do List
 2) Implement the rest of the basic filters
 3) Implement more advanced/interesting filters
     * Range Filter
-4) Enable order_by

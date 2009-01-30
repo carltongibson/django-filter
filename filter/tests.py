@@ -133,5 +133,40 @@ __test__ = {"filterset": """
 >>> f.qs
 [<User: alex>]
 
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['name', 'status']
+...         order_by = ['status']
+>>> f = F({'o': 'status'}, queryset=User.objects.all())
+>>> f.qs
+[<User: aaron>, <User: jacob>, <User: alex>]
+>>> print f.form
+<tr><th><label for="id_status">Status:</label></th><td><select name="status" id="id_status">
+<option value="0">Regular</option>
+<option value="1">Admin</option>
+</select></td></tr>
+<tr><th><label for="id_o">Ordering:</label></th><td><select name="o" id="id_o">
+<option value="status" selected="selected">Status</option>
+</select></td></tr>
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['username', 'status']
+...         order_by = True
+>>> f = F({'o': 'username'}, queryset=User.objects.all())
+>>> f.qs
+[<User: aaron>, <User: alex>, <User: jacob>]
+>>> print f.form
+<tr><th><label for="id_username">Username:</label></th><td><input type="text" name="username" id="id_username" /></td></tr>
+<tr><th><label for="id_status">Status:</label></th><td><select name="status" id="id_status">
+<option value="0">Regular</option>
+<option value="1">Admin</option>
+</select></td></tr>
+<tr><th><label for="id_o">Ordering:</label></th><td><select name="o" id="id_o">
+<option value="username" selected="selected">Username</option>
+<option value="status">Status</option>
+</select></td></tr>
+
 """}
 

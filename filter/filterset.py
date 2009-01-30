@@ -8,6 +8,8 @@ from django.utils.text import capfirst
 from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
     DateFilter, DateTimeFilter, ModelChoiceFilter, ModelMultipleChoiceFilter
 
+ORDER_BY_FIELD = 'o'
+
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
     for filter_name, obj in attrs.items():
@@ -46,6 +48,8 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
+        
+        self.order_by = getattr(options, 'order_by', False)
 
 class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
@@ -123,13 +127,24 @@ class BaseFilterSet(object):
                         qs = filter_.filter(qs, val)
                 except forms.ValidationError:
                     pass
-            self._qs = qs
+            if self._meta.order_by:
+                try:
+                    qs = qs.order_by(self.form.fields[ORDER_BY_FIELD].clean(self.form[ORDER_BY_FIELD].data))
+                except forms.ValidationError:
+                    pass
+            self._qs = qs                
         return self._qs
     
     @property
     def form(self):
         if not hasattr(self, '_form'):
             fields = SortedDict([(f[0], f[1].field) for f in self.filters.iteritems()])
+            if self._meta.order_by:
+                if isinstance(self._meta.order_by, (list, tuple)):
+                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
+                else:
+                    choices = [(f, capfirst(f)) for f in self.filters]
+                fields[ORDER_BY_FIELD] = forms.ChoiceField(label="Ordering", required=False, choices=choices)
             Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
             self._form = Form(self.data)
         return self._form

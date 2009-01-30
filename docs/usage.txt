@@ -49,3 +49,9 @@ And lastly we need a template::
 And that's all there is to it!  The ``form`` attribute contains a normal 
 Django form, and when we iterate over the ``FilterSet`` we get the objects in 
 the resulting queryset.
+
+You can also allow the user to control ordering, this is done by providing the
+``order_by`` argument in the Filter's Meta class.  ``order_by`` can be either a 
+``list`` or ``tuple`` of field names, in which case those are the options, or 
+it can be a ``bool`` which, if True, indicates that all fields that have 
+the user can filter on can also be sorted on.
