@@ -29,7 +29,7 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
             continue
         if exclude and f.name in exclude:
             continue
-        filter_ = filter_for_field(f)
+        filter_ = filter_for_field(f, f.name)
         if filter_:
             field_list.append((f.name, filter_))
     return SortedDict(field_list)
@@ -77,8 +77,8 @@ class BaseFilterSet(object):
     
     def filter(self):
         qs = self.queryset.all()
-        for name, filter in self.filters.iteritems():
-            qs = filter.filter(qs, name, self.data.get(name))
+        for name, filter_ in self.filters.iteritems():
+            qs = filter_.filter(qs, self.form[name].data)
         return qs
     
     @property
@@ -86,17 +86,18 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = SortedDict([(f[0], f[1].field) for f in self.filters.iteritems()])
             Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
-            return Form(self.data)
+            self._form = Form(self.data)
+        return self._form
         
     @classmethod
-    def filter_for_field(cls, f):
+    def filter_for_field(cls, f, name):
         from django.db import models
         FILTERS = {
             models.CharField: CharFilter,
         }
         filter = FILTERS.get(f.__class__)
         if filter is not None:
-            return filter(label=capfirst(f.verbose_name))
+            return filter(name=name, label=capfirst(f.verbose_name))
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass
