@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from django import forms
+from django.db import models
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
@@ -70,16 +71,19 @@ class FilterSetMetaclass(type):
         return new_class
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
-    
+    models.CharField: CharFilter,
+    models.BooleanField: BooleanFilter,
 }
 
 class BaseFilterSet(object):
+    filter_overrides = {}
+    
     def __init__(self, data=None, queryset=None):
         self.data = data or {}
         self.queryset = queryset
         
         self.filters = deepcopy(self.base_filters)
-    
+            
     def __iter__(self):
         for obj in self.qs:
             yield obj
@@ -106,12 +110,9 @@ class BaseFilterSet(object):
         
     @classmethod
     def filter_for_field(cls, f, name):
-        from django.db import models
-        FILTERS = {
-            models.CharField: CharFilter,
-            models.BooleanField: BooleanFilter
-        }
-        filter_ = FILTERS.get(f.__class__)
+        filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
+
+        filter_ = filter_for_field.get(f.__class__)
         if filter_ is not None:
             return filter_(name=name, label=capfirst(f.verbose_name))
 
