@@ -3,7 +3,7 @@ from django.db.models import Q
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 
-    'MultipleChoiceFilter', 'DateFilter'
+    'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter',
 ]
 
 class Filter(object):
@@ -46,3 +46,9 @@ class MultipleChoiceFilter(Filter):
 
 class DateFilter(Filter):
     field = forms.DateField
+
+class DateTimeFilter(Filter):
+    field = forms.DateTimeField
+
+class ModelChoiceFilter(Filter):
+    field = forms.ModelChoiceField

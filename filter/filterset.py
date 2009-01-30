@@ -5,7 +5,8 @@ from django.db import models
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
-from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, DateFilter
+from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
+    DateFilter, DateTimeFilter, ModelChoiceFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
@@ -71,9 +72,25 @@ class FilterSetMetaclass(type):
         return new_class
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
-    models.CharField: CharFilter,
-    models.BooleanField: BooleanFilter,
-    models.DateField: DateFilter,
+    models.CharField: {
+        'filter_class': CharFilter
+    },
+    models.BooleanField: {
+        'filter_class': BooleanFilter
+    },
+    models.DateField: {
+        'filter_class': DateFilter
+    },
+    models.DateTimeField: {
+        'filter_class': DateTimeFilter
+    },
+    models.ForeignKey: {
+        'filter_class': ModelChoiceFilter, 
+        'extra': lambda f: {
+            'queryset': f.rel.to._default_manager.filter(f.rel.limit_choices_to),
+             'to_field_name': f.rel.field_name
+        }
+    },
 }
 
 class BaseFilterSet(object):
@@ -114,13 +131,23 @@ class BaseFilterSet(object):
     @classmethod
     def filter_for_field(cls, f, name):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
+
+        default = {
+            'name': name,
+            'label': capfirst(f.verbose_name)
+        }
         
         if f.choices:
-            return ChoiceFilter(name=name, label=capfirst(f.verbose_name), choices=f.choices)
+            default['choices'] = f.choices
+            return ChoiceFilter(**default)
 
-        filter_ = filter_for_field.get(f.__class__)
-        if filter_ is not None:
-            return filter_(name=name, label=capfirst(f.verbose_name))
+        data = filter_for_field.get(f.__class__)
+        if data is None:
+            return
+        filter_class = data.get('filter_class')
+        default.update(data.get('extra', lambda f: {})(f))
+        if filter_class is not None:
+            return filter_class(**default)
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass
