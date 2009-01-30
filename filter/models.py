@@ -18,3 +18,11 @@ class User(models.Model):
     
     def __unicode__(self):
         return self.username
+
+class Comment(models.Model):
+    text = models.TextField()
+    
+    author = models.ForeignKey(User)
+    
+    def __unicode__(self):
+        return "%s said %s" % (self.author, self.text[:25])

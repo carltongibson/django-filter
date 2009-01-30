@@ -1,16 +1,11 @@
 __test__ = {"filterset": """
 >>> from django import forms
+>>> from django.core.management import call_command
 >>> import filter
 >>> from filter import FilterSet
 >>> from filter.models import User, STATUS_CHOICES
 
->>> User.objects.all()
-[]
->>> _ = User.objects.create(username='alex', status=1)
->>> _ = User.objects.create(username='aaron')
->>> _ = User.objects.create(username='jacob')
->>> User.objects.count()
-3
+>>> call_command('loaddata', 'test_users', verbosity=0)
 
 >>> class F(FilterSet):
 ...     class Meta:
