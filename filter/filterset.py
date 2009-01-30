@@ -4,7 +4,7 @@ from django import forms
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
-from filter.filters import Filter, CharFilter
+from filter.filters import Filter, CharFilter, BooleanFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
@@ -101,6 +101,7 @@ class BaseFilterSet(object):
         from django.db import models
         FILTERS = {
             models.CharField: CharFilter,
+            models.BooleanField: BooleanFilter
         }
         filter = FILTERS.get(f.__class__)
         if filter is not None:

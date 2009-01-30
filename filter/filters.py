@@ -1,6 +1,6 @@
 from django import forms
 
-__all__ = ['Filter', 'CharFilter']
+__all__ = ['Filter', 'CharFilter', 'BooleanFilter']
 
 class Filter(object):
     creation_counter = 0
@@ -23,4 +23,6 @@ class Filter(object):
     
 class CharFilter(Filter):
     field = forms.CharField
-    
+
+class BooleanFilter(Filter):
+    field = forms.BooleanField

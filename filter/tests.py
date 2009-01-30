@@ -16,7 +16,8 @@ __test__ = {"filterset": """
 ...         model = User
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name', 'password']
+['username', 'first_name', 'last_name', 'password', 'is_staff', 'is_active', 'is_superuser']
+
 
 >>> class F(FilterSet):
 ...     class Meta:
@@ -24,7 +25,7 @@ __test__ = {"filterset": """
 ...         exclude = ['password']
 
 >>> F.base_filters.keys()
-['username', 'first_name', 'last_name']
+['username', 'first_name', 'last_name', 'is_staff', 'is_active', 'is_superuser']
 
 >>> class F(FilterSet):
 ...     class Meta:
