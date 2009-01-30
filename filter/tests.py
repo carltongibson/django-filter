@@ -36,10 +36,10 @@ __test__ = {"filterset": """
 ['username']
 
 >>> f = F(queryset=User.objects.all())
->>> f.filter()
+>>> f.qs
 [<User: alex>, <User: aaron>, <User: jacob>]
 >>> f = F({'username': 'alex'}, queryset=User.objects.all())
->>> f.filter()
+>>> f.qs
 [<User: alex>]
 >>> print f.form
 <tr><th><label for="id_username">Username:</label></th><td><input type="text" name="username" value="alex" id="id_username" /></td></tr>
@@ -51,7 +51,7 @@ __test__ = {"filterset": """
 ...         fields = ['username']
 
 >>> f = F({'username': 'a'}, queryset=User.objects.all())
->>> f.filter()
+>>> f.qs
 [<User: alex>, <User: aaron>]
 """}
 

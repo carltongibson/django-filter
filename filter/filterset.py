@@ -77,10 +77,11 @@ class BaseFilterSet(object):
         self.filters = deepcopy(self.base_filters)
     
     def __iter__(self):
-        for obj in self.filter():
+        for obj in self.qs:
             yield obj
     
-    def filter(self):
+    @property
+    def qs(self):
         if not hasattr(self, '_qs'):            
             qs = self.queryset.all()
             for name, filter_ in self.filters.iteritems():
