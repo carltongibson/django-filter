@@ -1,15 +1,15 @@
 from django import forms
 
-__all__ = ['Filter', 'CharFilter', 'BooleanFilter']
+__all__ = ['Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter']
 
 class Filter(object):
     creation_counter = 0
     field = forms.Field
     
-    def __init__(self, name=None, label=None, widget=None, action=None):
+    def __init__(self, name=None, label=None, widget=None, action=None, **kwargs):
         self.name = name
         self.label = label
-        self.field = self.field(required=False, label=label, widget=widget)
+        self.field = self.field(required=False, label=label, widget=widget, **kwargs)
         if action:
             self.filter = action
         
@@ -26,3 +26,7 @@ class CharFilter(Filter):
 
 class BooleanFilter(Filter):
     field = forms.BooleanField
+
+class ChoiceFilter(Filter):
+    field = forms.ChoiceField
+    

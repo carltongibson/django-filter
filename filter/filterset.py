@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
-from filter.filters import Filter, CharFilter, BooleanFilter
+from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
@@ -111,6 +111,9 @@ class BaseFilterSet(object):
     @classmethod
     def filter_for_field(cls, f, name):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
+        
+        if f.choices:
+            return ChoiceFilter(name=name, label=capfirst(f.verbose_name), choices=f.choices)
 
         filter_ = filter_for_field.get(f.__class__)
         if filter_ is not None:
