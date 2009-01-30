@@ -7,7 +7,12 @@ from django.utils.text import capfirst
 from filter.filters import Filter, CharFilter
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
-    filters = [(filter_name, attrs.pop(filter_name)) for filter_name, obj in attrs.iteritems() if isinstance(obj, Filter)]
+    filters = []
+    for filter_name, obj in attrs.iteritems():
+        if isinstance(obj, Filter):
+            obj = attrs.pop(filter_name)
+            obj.name = filter_name
+            filters.append((filter_name, obj))
     filters.sort(key=lambda x: x.creation_counter)
     
     if with_base_filters:
