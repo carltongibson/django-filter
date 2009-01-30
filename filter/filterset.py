@@ -89,7 +89,10 @@ class BaseFilterSet(object):
         if not hasattr(self, '_qs'):            
             qs = self.queryset.all()
             for name, filter_ in self.filters.iteritems():
-                qs = filter_.filter(qs, self.form.cleaned_data[name])
+                try:
+                    qs = filter_.filter(qs, self.form.fields[name].clean(self.form[name].data))
+                except forms.ValidationError:
+                    pass
             self._qs = qs
         return self._qs
     
@@ -99,7 +102,6 @@ class BaseFilterSet(object):
             fields = SortedDict([(f[0], f[1].field) for f in self.filters.iteritems()])
             Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
             self._form = Form(self.data)
-            self._form.is_valid()
         return self._form
         
     @classmethod
