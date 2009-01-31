@@ -6,7 +6,8 @@ from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
 from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
-    DateFilter, DateTimeFilter, ModelChoiceFilter, ModelMultipleChoiceFilter
+    DateFilter, DateTimeFilter, ModelChoiceFilter, ModelMultipleChoiceFilter, \
+    DecimalFilter
 
 ORDER_BY_FIELD = 'o'
 
@@ -101,6 +102,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
             'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
         }
     },
+    models.DecimalField: {
+        'filter_class': DecimalFilter,
+    }
 }
 
 class BaseFilterSet(object):

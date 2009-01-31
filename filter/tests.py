@@ -168,5 +168,14 @@ __test__ = {"filterset": """
 <option value="status">Status</option>
 </select></td></tr>
 
+>>> class F(FilterSet):
+...     price = filter.DecimalFilter(lookup_type='lt')
+...     class Meta:
+...         model = Book
+...         fields = ['price']
+
+>>> f = F({'price': 15}, queryset=Book.objects.all())
+>>> f.qs
+[<Book: Ender's Game>]
 """}
 
