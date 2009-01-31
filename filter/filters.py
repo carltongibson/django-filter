@@ -4,7 +4,7 @@ from django.db.models import Q
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'ModelChoiceFilter',
-    'ModelMultipleChoiceFilter', 'DecimalFilter'
+    'ModelMultipleChoiceFilter', 'NumberFilter'
 ]
 
 class Filter(object):
@@ -68,5 +68,5 @@ class ModelChoiceFilter(Filter):
 class ModelMultipleChoiceFilter(MultipleChoiceFilter):
     field = forms.ModelMultipleChoiceField
 
-class DecimalFilter(Filter):
+class NumberFilter(Filter):
     field = forms.DecimalField

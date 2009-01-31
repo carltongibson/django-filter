@@ -170,7 +170,7 @@ __test__ = {"filterset": """
 </select></td></tr>
 
 >>> class F(FilterSet):
-...     price = filter.DecimalFilter(lookup_type='lt')
+...     price = filter.NumberFilter(lookup_type='lt')
 ...     class Meta:
 ...         model = Book
 ...         fields = ['price']
@@ -191,5 +191,14 @@ __test__ = {"filterset": """
 >>> f = F({'is_active': '3'}, queryset=User.objects.all())
 >>> f.qs
 [<User: alex>, <User: aaron>]
+>>> class F(FilterSet):
+...     average_rating = filter.NumberFilter(lookup_type='gt')
+...     class Meta:
+...         model = Book
+...         fields = ['average_rating']
+
+>>> f = F({'average_rating': '4.5'}, queryset=Book.objects.all())
+>>> f.qs
+[<Book: Ender's Game>, <Book: Rainbox Six>]
 """}
 

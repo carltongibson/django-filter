@@ -7,7 +7,7 @@ from django.utils.text import capfirst
 
 from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
     DateFilter, DateTimeFilter, ModelChoiceFilter, ModelMultipleChoiceFilter, \
-    DecimalFilter
+    NumberFilter
 
 ORDER_BY_FIELD = 'o'
 
@@ -103,8 +103,14 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         }
     },
     models.DecimalField: {
-        'filter_class': DecimalFilter,
-    }
+        'filter_class': NumberFilter,
+    },
+    models.IntegerField: {
+        'filter_class': NumberFilter,
+    },
+    models.FloatField: {
+        'filter_class': NumberFilter,
+    },
 }
 
 class BaseFilterSet(object):
