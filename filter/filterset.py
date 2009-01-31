@@ -127,8 +127,7 @@ class BaseFilterSet(object):
             for name, filter_ in self.filters.iteritems():
                 try:
                     val = self.form.fields[name].clean(self.form[name].data)
-                    if val:
-                        qs = filter_.filter(qs, val)
+                    qs = filter_.filter(qs, val)
                 except forms.ValidationError:
                     pass
             if self._meta.order_by:

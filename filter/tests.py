@@ -49,6 +49,7 @@ __test__ = {"filterset": """
 <li><label for="id_status_1"><input type="radio" id="id_status_1" value="1" name="status" /> Admin</label></li>
 </ul></td></tr>
 
+
 >>> class F(FilterSet):
 ...     class Meta:
 ...         model = User
@@ -177,5 +178,18 @@ __test__ = {"filterset": """
 >>> f = F({'price': 15}, queryset=Book.objects.all())
 >>> f.qs
 [<Book: Ender's Game>]
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['is_active']
+
+'2' and '3' are how the field expects the data from the browser
+>>> f = F({'is_active': '2'}, queryset=User.objects.all())
+>>> f.qs
+[<User: jacob>]
+>>> f = F({'is_active': '3'}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>, <User: aaron>]
 """}
 

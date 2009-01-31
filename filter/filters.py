@@ -26,13 +26,20 @@ class Filter(object):
         Filter.creation_counter += 1
     
     def filter(self, qs, value):
-        return qs.filter(**{'%s__%s' % (self.name, self.lookup_type): value})
+        if value:
+            return qs.filter(**{'%s__%s' % (self.name, self.lookup_type): value})
+        return qs
         
 class CharFilter(Filter):
     field = forms.CharField
 
 class BooleanFilter(Filter):
-    field = forms.BooleanField
+    field = forms.NullBooleanField
+    
+    def filter(self, qs, value):
+        if value is not None:
+            return qs.filter(**{self.name: value})
+        return qs
 
 class ChoiceFilter(Filter):
     field = forms.ChoiceField
