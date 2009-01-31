@@ -40,7 +40,9 @@ And lastly we need a template::
     {% extends "base.html" %}
     
     {% block content %}
-        {{ f.form }}
+        <form action="" method="get">
+            {{ f.form.as_p }}
+        </form>
         {% for obj in f %}
             {{ obj.name }} - ${{ obj.price }}
         {% endfor %}
