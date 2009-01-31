@@ -27,7 +27,19 @@ price or the release_date.  We create a ``FilterSet`` for this::
 
 As you can see this uses a very similar API to Django's ``ModelForm``.  Just 
 like with a ``ModelForm`` we can also overide filters, or add new ones using a 
-declarative syntax.
+declarative syntax::
+     
+    import filter
+     
+    class ProductFilter(FilterSet):
+        price = filter.NumberFilter(lookup_type='lt')
+        class Meta:
+            model = Product
+            fields = ['price', 'release_date']
+
+Filters take a ``lookup_type`` argument which specifies what lookup type to 
+use with Django's ORM.  So here when a user entered a price it would show all 
+Products with a price less than that.
 
 Now we need to write a view::
     
