@@ -191,6 +191,9 @@ __test__ = {"filterset": """
 >>> f = F({'is_active': '3'}, queryset=User.objects.all())
 >>> f.qs
 [<User: alex>, <User: aaron>]
+>>> f = F({'is_active': '1'}, queryset=User.objects.all())
+>>> f.qs
+[<User: alex>, <User: aaron>, <User: jacob>]
 >>> class F(FilterSet):
 ...     average_rating = filter.NumberFilter(lookup_type='gt')
 ...     class Meta:
