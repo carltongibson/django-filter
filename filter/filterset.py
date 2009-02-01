@@ -92,6 +92,13 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.TimeField: {
         'filter_class': TimeFilter
     },
+    models.OneToOneField: {
+        'filter_class': ModelChoiceFilter,
+        'extra': lambda f: {
+            'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
+            'to_field_name': f.rel.field_name,
+        }
+    },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter, 
         'extra': lambda f: {
@@ -108,12 +115,21 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.DecimalField: {
         'filter_class': NumberFilter,
     },
+    models.SmallIntegerField: {
+        'filter_class': NumberFilter,
+    },
     models.IntegerField: {
         'filter_class': NumberFilter,
     },
     models.FloatField: {
         'filter_class': NumberFilter,
     },
+    models.NullBooleanField: {
+        'filter_class': BooleanFilter,
+    },
+    models.SlugField: {
+        'filter_class': CharFilter,
+    }
 }
 
 class BaseFilterSet(object):
