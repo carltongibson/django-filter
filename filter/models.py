@@ -26,6 +26,7 @@ class Comment(models.Model):
     author = models.ForeignKey(User)
     
     date = models.DateField()
+    time = models.TimeField()
     
     def __unicode__(self):
         return "%s said %s" % (self.author, self.text[:25])

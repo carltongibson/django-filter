@@ -200,5 +200,14 @@ __test__ = {"filterset": """
 >>> f = F({'average_rating': '4.5'}, queryset=Book.objects.all())
 >>> f.qs
 [<Book: Ender's Game>, <Book: Rainbox Six>]
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = Comment
+...         fields = ['time']
+
+>>> f = F({'time': '12:55'}, queryset=Comment.objects.all())
+>>> f.qs
+[<Comment: jacob said funky fresh!>]
 """}
 

@@ -6,8 +6,8 @@ from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
 from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
-    DateFilter, DateTimeFilter, ModelChoiceFilter, ModelMultipleChoiceFilter, \
-    NumberFilter
+    DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
+    ModelMultipleChoiceFilter, NumberFilter
 
 ORDER_BY_FIELD = 'o'
 
@@ -88,6 +88,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     },
     models.DateTimeField: {
         'filter_class': DateTimeFilter
+    },
+    models.TimeField: {
+        'filter_class': TimeFilter
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter, 
