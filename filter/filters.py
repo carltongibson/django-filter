@@ -1,10 +1,13 @@
 from django import forms
 from django.db.models import Q
 
+from filter.fields import RangeField
+
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter', 
-    'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter'
+    'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter', 
+    'RangeFilter'
 ]
 
 class Filter(object):
@@ -73,3 +76,11 @@ class ModelMultipleChoiceFilter(MultipleChoiceFilter):
 
 class NumberFilter(Filter):
     field = forms.DecimalField
+
+class RangeFilter(Filter):
+    field = RangeField
+    
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+        return qs

@@ -2,5 +2,4 @@ To-Do List
 ==========
 
 1) Implement more advanced/interesting filters
-    * Range Filter
     * Dynamic lookup_type

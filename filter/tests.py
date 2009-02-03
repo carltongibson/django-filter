@@ -212,5 +212,19 @@ __test__ = {"filterset": """
 >>> f = F({'time': '12:55'}, queryset=Comment.objects.all())
 >>> f.qs
 [<Comment: jacob said funky fresh!>]
+
+>>> class F(FilterSet):
+...     price = filter.RangeFilter()
+...     class Meta:
+...         model = Book
+...         fields = ['price']
+>>> f = F(queryset=Book.objects.all())
+>>> print f.form
+<tr><th><label for="id_price_0">Price:</label></th><td><input type="text" name="price_0" id="id_price_0" />-<input type="text" name="price_1" id="id_price_1" /></td></tr>
+>>> f.qs
+[<Book: Ender's Game>, <Book: Rainbox Six>, <Book: Snowcrash>]
+>>> f = F({'price_0': '5', 'price_1': '15'}, queryset=Book.objects.all())
+>>> f.qs
+[<Book: Ender's Game>, <Book: Rainbox Six>]
 """}
 
