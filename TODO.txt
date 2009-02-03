@@ -1,8 +1,6 @@
 To-Do List
 ==========
 
-1) Docs!
-2) Implement the rest of the basic filters
-3) Implement more advanced/interesting filters
+1) Implement more advanced/interesting filters
     * Range Filter
     * Dynamic lookup_type
