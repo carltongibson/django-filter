@@ -12,3 +12,4 @@ Contents:
 
     install.txt
     usage.txt
+    ref/filters.txt

@@ -16,7 +16,8 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
     for filter_name, obj in attrs.items():
         if isinstance(obj, Filter):
             obj = attrs.pop(filter_name)
-            obj.name = filter_name
+            if not hasattr(obj, 'name'):
+                obj.name = filter_name
             filters.append((filter_name, obj))
     filters.sort(key=lambda x: x[1].creation_counter)
     
@@ -78,6 +79,9 @@ class FilterSetMetaclass(type):
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
     models.CharField: {
+        'filter_class': CharFilter
+    },
+    models.TextField: {
         'filter_class': CharFilter
     },
     models.BooleanField: {
