@@ -9,7 +9,8 @@ queryset based on a models fields, and displaying the form to let them do this.
 Contents:
 
 .. toctree::
-
-    install.txt
-    usage.txt
-    ref/filters.txt
+    :maxdepth: 1
+    
+    install
+    usage
+    ref/filters
