@@ -99,7 +99,11 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ~~~~~~~~~~~~~~~
 
 The type of lookup that should be preformed using the Django ORM.  All the 
-normal options are allowed, and should be provided as a string.
+normal options are allowed, and should be provided as a string.  You can also 
+provide either ``None`` or a ``list`` or ``tuple``, if ``None`` is provided 
+then user can select the lookup_type from all the ones available in the Django 
+ORM, and if a ``list`` or ``tuple`` is provided the user can select from those 
+options.
 
 ``**kwargs``
 ~~~~~~~~~~~~

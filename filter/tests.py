@@ -226,5 +226,50 @@ __test__ = {"filterset": """
 >>> f = F({'price_0': '5', 'price_1': '15'}, queryset=Book.objects.all())
 >>> f.qs
 [<Book: Ender's Game>, <Book: Rainbox Six>]
+
+>>> class F(FilterSet):
+...     price = filter.NumberFilter(lookup_type=None)
+...     class Meta:
+...         model = Book
+...         fields = ['price']
+>>> f = F(queryset=Book.objects.all())
+>>> print f.form
+<tr><th><label for="id_price_0">Price:</label></th><td><input type="text" name="price_0" id="id_price_0" /><select name="price_1" id="id_price_1">
+<option value="regex">regex</option>
+<option value="startswith">startswith</option>
+<option value="search">search</option>
+<option value="gt">gt</option>
+<option value="gte">gte</option>
+<option value="iregex">iregex</option>
+<option value="contains">contains</option>
+<option value="year">year</option>
+<option value="endswith">endswith</option>
+<option value="iendswith">iendswith</option>
+<option value="icontains">icontains</option>
+<option value="iexact">iexact</option>
+<option value="isnull">isnull</option>
+<option value="lt">lt</option>
+<option value="istartswith">istartswith</option>
+<option value="lte">lte</option>
+<option value="in">in</option>
+<option value="range">range</option>
+<option value="month">month</option>
+<option value="exact">exact</option>
+<option value="day">day</option>
+</select></td></tr>
+>>> class F(FilterSet):
+...     price = filter.NumberFilter(lookup_type=['lt', 'gt'])
+...     class Meta:
+...         model = Book
+...         fields = ['price']
+>>> f = F(queryset=Book.objects.all())
+>>> print f.form
+<tr><th><label for="id_price_0">Price:</label></th><td><input type="text" name="price_0" id="id_price_0" /><select name="price_1" id="id_price_1">
+<option value="gt">gt</option>
+<option value="lt">lt</option>
+</select></td></tr>
+>>> f = F({'price_0': '15', 'price_1': 'lt'}, queryset=Book.objects.all())
+>>> f.qs
+[<Book: Ender's Game>]
 """}
 

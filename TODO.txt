@@ -1,5 +1,0 @@
-To-Do List
-==========
-
-1) Implement more advanced/interesting filters
-    * Dynamic lookup_type

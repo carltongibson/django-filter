@@ -12,3 +12,7 @@ class RangeWidget(forms.MultiWidget):
     
     def format_output(self, rendered_widgets):
         return u'-'.join(rendered_widgets)
+
+class LookupTypeWidget(forms.MultiWidget):
+    def decompress(self, value):
+        return value
