@@ -11,7 +11,7 @@ __all__ = [
     'RangeFilter'
 ]
 
-LOOKUP_TYPES = QUERY_TERMS.keys()
+LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
 
 class Filter(object):
     creation_counter = 0
