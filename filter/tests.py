@@ -3,6 +3,7 @@ __test__ = {"filterset": """
 >>> from django.core.management import call_command
 >>> import filter
 >>> from filter import FilterSet
+>>> from filter.widgets import LinkWidget
 >>> from filter.models import User, Comment, Book, STATUS_CHOICES
 
 >>> call_command('loaddata', 'test_data', verbosity=0)
@@ -275,5 +276,27 @@ __test__ = {"filterset": """
 >>> f= F({'price_0': '15', 'price_1': 'lt'})
 >>> f.qs
 [<Book: Ender's Game>]
+>>> class F(FilterSet):
+...     status = filter.ChoiceFilter(widget=LinkWidget, choices=STATUS_CHOICES)
+...     class Meta:
+...         model = User
+...         fields = ['status']
+>>> f = F()
+>>> f.qs
+[<User: alex>, <User: aaron>, <User: jacob>]
+>>> print f.form
+<tr><th><label for="id_status">Status:</label></th><td><ul id="id_status">
+<a href="?status=0">Regular</a>
+<a href="?status=1">Admin</a>
+</ul></td></tr>
+>>> f = F({'status': '1'})
+>>> f.qs
+[<User: alex>]
+>>> print f.form
+<tr><th><label for="id_status">Status:</label></th><td><ul id="id_status">
+<a href="?status=0">Regular</a>
+<a href="?status=1">Admin</a>
+</ul></td></tr>
+
 """}
 
