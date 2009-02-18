@@ -286,16 +286,16 @@ __test__ = {"filterset": """
 [<User: alex>, <User: aaron>, <User: jacob>]
 >>> print f.form
 <tr><th><label for="id_status">Status:</label></th><td><ul id="id_status">
-<a href="?status=0">Regular</a>
-<a href="?status=1">Admin</a>
+<li><a href="?status=0">Regular</a></li>
+<li><a href="?status=1">Admin</a></li>
 </ul></td></tr>
 >>> f = F({'status': '1'})
 >>> f.qs
 [<User: alex>]
 >>> print f.form
 <tr><th><label for="id_status">Status:</label></th><td><ul id="id_status">
-<a href="?status=0">Regular</a>
-<a href="?status=1">Admin</a>
+<li><a href="?status=0">Regular</a></li>
+<li><a href="?status=1">Admin</a></li>
 </ul></td></tr>
 
 """}

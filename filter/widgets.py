@@ -37,7 +37,7 @@ class LinkWidget(forms.Widget):
                 url = data.urlencode()
             except AttributeError:
                 url = urlencode(data)
-            return '<a href="?%s">%s</a>' % (url, option_label)
+            return '<li><a href="?%s">%s</a></li>' % (url, option_label)
         selected_choices = set(force_unicode(v) for v in selected_choices)
         output = []
         for option_value, option_label in chain(self.choices, choices):
