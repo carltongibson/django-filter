@@ -272,5 +272,8 @@ __test__ = {"filterset": """
 >>> f = F({'price_0': '15', 'price_1': 'lt'}, queryset=Book.objects.all())
 >>> f.qs
 [<Book: Ender's Game>]
+>>> f= F({'price_0': '15', 'price_1': 'lt'})
+>>> f.qs
+[<Book: Ender's Game>]
 """}
 

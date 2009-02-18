@@ -44,8 +44,11 @@ Products with a price less than that.
 Now we need to write a view::
     
     def product_list(request):
-        f = ProductFilter(request.GET)
+        f = ProductFilter(request.GET, queryset=Product.objects.all())
         return render_to_response('my_app/templtae.html', {'f': f})
+
+If a queryset argument isn't provided then all the items in the default manager 
+of the model will be used.
 
 And lastly we need a template::
     

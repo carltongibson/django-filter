@@ -141,7 +141,7 @@ class BaseFilterSet(object):
     
     def __init__(self, data=None, queryset=None):
         self.data = data or {}
-        self.queryset = queryset
+        self.queryset = queryset or self._meta.model._default_manager.all()
         
         self.filters = deepcopy(self.base_filters)
             
