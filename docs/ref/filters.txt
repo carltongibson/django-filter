@@ -68,6 +68,12 @@ and ``DecimalField`` by default.
 
 Filters where a value is between two numerical values.
 
+``DateRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+Filter similar to the admin changelist date one, it has a number of common 
+selections for working with date fields.
+
 Core Arguments
 --------------
 

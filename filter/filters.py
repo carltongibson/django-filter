@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
+
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
+from django.utils.translation import ugettext as _
 
 from filter.fields import RangeField, LookupTypeField
 
@@ -8,7 +11,7 @@ __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter', 
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter', 
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter', 
-    'RangeFilter'
+    'RangeFilter', 'DateRangeFilter'
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -101,3 +104,31 @@ class RangeFilter(Filter):
         if value:
             return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
         return qs
+
+class DateRangeFilter(ChoiceFilter):
+    options = {
+        1: (_('Any Date'), lambda qs, name: qs.all()),
+        2: (_('Today'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: datetime.today().year, 
+            '%s__month' % name: datetime.today().month, 
+            '%s__day' % name: datetime.today().day
+        })),
+        3: (_('Past 7 days'), lambda qs, name: qs.filter(**{
+            '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
+            '%s__lte' % name: datetime.today().strftime('%Y-%m-%d'),
+        })),
+        4: (_('This month'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: datetime.today().year,
+            '%s__month' % name: datetime.today().month
+        })),
+        5: (_('This year'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: datetime.today().year,
+        })),
+    }
+    
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = [(key, value[0]) for key, value in self.options.iteritems()]
+        super(DateRangeFilter, self).__init__(*args, **kwargs)
+    
+    def filter(self, qs, value):
+        return self.options[int(value)][1](qs, self.name)

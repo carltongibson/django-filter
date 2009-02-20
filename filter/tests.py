@@ -1,4 +1,5 @@
 __test__ = {"filterset": """
+>>> from datetime import datetime
 >>> from django import forms
 >>> from django.core.management import call_command
 >>> import filter
@@ -298,5 +299,26 @@ __test__ = {"filterset": """
 <li><a href="?status=1">Admin</a></li>
 </ul></td></tr>
 
+>>> class F(FilterSet):
+...     date = filter.DateRangeFilter(widget=LinkWidget)
+...     class Meta:
+...         model = Comment
+...         fields = ['date']
+>>> f = F()
+>>> print f.form
+<tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
+<li><a href="?date=1">Any Date</a></li>
+<li><a href="?date=2">Today</a></li>
+<li><a href="?date=3">Past 7 days</a></li>
+<li><a href="?date=4">This month</a></li>
+<li><a href="?date=5">This year</a></li>
+</ul></td></tr>
+>>> f = F({'date': '5'})
+>>> f.qs
+[<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>]
+>>> _ = Comment.objects.create(text="Wowa", author = User.objects.get(username="alex"), date=datetime.today(), time="12:30")
+>>> f = F({'date': '2'})
+>>> f.qs
+[<Comment: alex said Wowa>]
 """}
 
