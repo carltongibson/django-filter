@@ -2,9 +2,11 @@ from itertools import chain
 from urllib import urlencode
 
 from django import forms
+from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext as _
 
 class LinkWidget(forms.Widget):
     def __init__(self, attrs=None, choices=()):
@@ -31,6 +33,8 @@ class LinkWidget(forms.Widget):
     def render_options(self, choices, selected_choices, name):
         def render_option(option_value, option_label):
             option_value = force_unicode(option_value)
+            if option_label == BLANK_CHOICE_DASH[0][1]:
+                option_label = _("All")
             data = self.data.copy()
             data[name] = option_value
             try:
