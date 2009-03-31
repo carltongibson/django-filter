@@ -20,7 +20,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
                 obj.name = filter_name
             filters.append((filter_name, obj))
     filters.sort(key=lambda x: x[1].creation_counter)
-    
+
     if with_base_filters:
         for base in bases[::-1]:
             if hasattr(base, 'base_filters'):
@@ -29,7 +29,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
         for base in bases[::-1]:
             if hasattr(base, 'declared_filters'):
                 filters = base.declared_fields.items() + filters
-    
+
     return SortedDict(filters)
 
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
@@ -50,7 +50,7 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
-        
+
         self.order_by = getattr(options, 'order_by', False)
 
 class FilterSetMetaclass(type):
@@ -62,17 +62,17 @@ class FilterSetMetaclass(type):
             parents = None
         declared_filters = get_declared_filters(bases, attrs, False)
         new_class = super(FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
-        
+
         if not parents:
             return new_class
-        
+
         opts = new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
         if opts.model:
             filters = filters_for_model(opts.model, opts.fields, opts.exclude, new_class.filter_for_field)
             filters.update(declared_filters)
         else:
             filters = declared_filters
-        
+
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
         return new_class
@@ -104,7 +104,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         }
     },
     models.ForeignKey: {
-        'filter_class': ModelChoiceFilter, 
+        'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
             'to_field_name': f.rel.field_name
@@ -125,6 +125,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.IntegerField: {
         'filter_class': NumberFilter,
     },
+    models.PositiveIntegerField: {
+        'filter_class': NumberFilter,
+    },
     models.FloatField: {
         'filter_class': NumberFilter,
     },
@@ -138,22 +141,22 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 
 class BaseFilterSet(object):
     filter_overrides = {}
-    
+
     def __init__(self, data=None, queryset=None):
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
-        
+
         self.filters = deepcopy(self.base_filters)
-            
+
     def __iter__(self):
         for obj in self.qs:
             yield obj
-    
+
     @property
     def qs(self):
-        if not hasattr(self, '_qs'):            
+        if not hasattr(self, '_qs'):
             qs = self.queryset.all()
             for name, filter_ in self.filters.iteritems():
                 try:
@@ -166,9 +169,9 @@ class BaseFilterSet(object):
                     qs = qs.order_by(self.form.fields[ORDER_BY_FIELD].clean(self.form[ORDER_BY_FIELD].data))
                 except forms.ValidationError:
                     pass
-            self._qs = qs                
+            self._qs = qs
         return self._qs
-    
+
     @property
     def form(self):
         if not hasattr(self, '_form'):
@@ -182,7 +185,7 @@ class BaseFilterSet(object):
             Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
             self._form = Form(self.data)
         return self._form
-        
+
     @classmethod
     def filter_for_field(cls, f, name):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
@@ -191,7 +194,7 @@ class BaseFilterSet(object):
             'name': name,
             'label': capfirst(f.verbose_name)
         }
-        
+
         if f.choices:
             default['choices'] = f.choices
             return ChoiceFilter(**default)
@@ -206,4 +209,3 @@ class BaseFilterSet(object):
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass
-    
