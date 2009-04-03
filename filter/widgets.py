@@ -11,14 +11,14 @@ from django.utils.translation import ugettext as _
 class LinkWidget(forms.Widget):
     def __init__(self, attrs=None, choices=()):
         super(LinkWidget, self).__init__(attrs)
-        
+
         self.choices = list(choices)
-    
+
     def value_from_datadict(self, data, files, name):
         value = super(LinkWidget, self).value_from_datadict(data, files, name)
         self.data = data
         return value
-        
+
     def render(self, name, value, attrs=None, choices=()):
         if value is None:
             value = ''
@@ -29,7 +29,7 @@ class LinkWidget(forms.Widget):
             output.append(options)
         output.append('</ul>')
         return mark_safe(u'\n'.join(output))
-    
+
     def render_options(self, choices, selected_choices, name):
         def render_option(option_value, option_label):
             option_value = force_unicode(option_value)
@@ -37,11 +37,14 @@ class LinkWidget(forms.Widget):
                 option_label = _("All")
             data = self.data.copy()
             data[name] = option_value
+            selected = False
+            if data == self.data:
+                selected = True
             try:
                 url = data.urlencode()
             except AttributeError:
                 url = urlencode(data)
-            return '<li><a href="?%s">%s</a></li>' % (url, option_label)
+            return '<li><a %s href="?%s">%s</a></li>' % (selected and 'class="selected"' or '', url, option_label)
         selected_choices = set(force_unicode(v) for v in selected_choices)
         output = []
         for option_value, option_label in chain(self.choices, choices):
@@ -56,12 +59,12 @@ class RangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
         widgets = (forms.TextInput(attrs=attrs), forms.TextInput(attrs=attrs))
         super(RangeWidget, self).__init__(widgets, attrs)
-    
+
     def decompress(self, value):
         if value:
             return [value.start, value.stop]
         return value
-    
+
     def format_output(self, rendered_widgets):
         return u'-'.join(rendered_widgets)
 
