@@ -12,7 +12,7 @@ class LinkWidget(forms.Widget):
     def __init__(self, attrs=None, choices=()):
         super(LinkWidget, self).__init__(attrs)
 
-        self.choices = list(choices)
+        self.choices = choices
 
     def value_from_datadict(self, data, files, name):
         value = super(LinkWidget, self).value_from_datadict(data, files, name)
@@ -31,29 +31,35 @@ class LinkWidget(forms.Widget):
         return mark_safe(u'\n'.join(output))
 
     def render_options(self, choices, selected_choices, name):
-        def render_option(option_value, option_label):
-            option_value = force_unicode(option_value)
-            if option_label == BLANK_CHOICE_DASH[0][1]:
-                option_label = _("All")
-            data = self.data.copy()
-            data[name] = option_value
-            selected = False
-            if data == self.data:
-                selected = True
-            try:
-                url = data.urlencode()
-            except AttributeError:
-                url = urlencode(data)
-            return '<li><a %s href="?%s">%s</a></li>' % (selected and 'class="selected"' or '', url, option_label)
         selected_choices = set(force_unicode(v) for v in selected_choices)
         output = []
         for option_value, option_label in chain(self.choices, choices):
             if isinstance(option_label, (list, tuple)):
                 for option in option_label:
-                    output.append(render_option(*option))
+                    output.append(self.render_option(name, *option))
             else:
-                output.append(render_option(option_value, option_label))
+                output.append(self.render_option(name, option_value, option_label))
         return u'\n'.join(output)
+
+    def render_option(self, name, option_value, option_label):
+        option_value = force_unicode(option_value)
+        if option_label == BLANK_CHOICE_DASH[0][1]:
+            option_label = _("All")
+        data = self.data.copy()
+        data[name] = option_value
+        selected = data == self.data
+        try:
+            url = data.urlencode()
+        except AttributeError:
+            url = urlencode(data)
+        return self.option_string() % {
+             'attrs': selected and 'class="selected"' or '',
+             'query_string': url,
+             'label': option_label
+        }
+
+    def option_string(self):
+        return '<li><a %(attrs)s href="?%(query_string)s">%(label)s</a></li>'
 
 class RangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
