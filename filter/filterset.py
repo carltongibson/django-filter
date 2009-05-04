@@ -53,6 +53,8 @@ class FilterSetOptions(object):
 
         self.order_by = getattr(options, 'order_by', False)
 
+        self.form = getattr(options, 'form', forms.Form)
+
 class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
         try:
@@ -182,7 +184,7 @@ class BaseFilterSet(object):
                 else:
                     choices = [(f, capfirst(f)) for f in self.filters]
                 fields[ORDER_BY_FIELD] = forms.ChoiceField(label="Ordering", required=False, choices=choices)
-            Form =  type('%sForm' % self.__class__.__name__, (forms.Form,), fields)
+            Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             self._form = Form(self.data)
         return self._form
 

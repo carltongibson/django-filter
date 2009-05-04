@@ -320,4 +320,16 @@ __test__ = {"filterset": """
 >>> f = F({'date': '2'})
 >>> f.qs
 [<Comment: alex said Wowa>]
+
+>>> class MyForm(forms.Form):
+...     def as_table(self):
+...         return "lol string"
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = Comment
+...         form = MyForm
+
+>>> print F().form
+lol string
 """}

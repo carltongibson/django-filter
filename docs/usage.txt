@@ -1,59 +1,59 @@
 Using django-filter
 -------------------
 
-Django-filter provides a simple way to filter down a queryset based on 
-parameters a user provides.  Say we have a ``Product`` model and we want to let 
+Django-filter provides a simple way to filter down a queryset based on
+parameters a user provides.  Say we have a ``Product`` model and we want to let
 our users filter which products they see on a list page.  Let's start with our
 model::
-    
+
     from django.db import models
-    
+
     class Product(models.Model):
         name = models.CharField(max_length=255)
         price = models.DecimalField()
         description = models.TextField()
         release_date = models.DateField()
 
-We have a number of fields and we want to let our users filter based on the 
+We have a number of fields and we want to let our users filter based on the
 price or the release_date.  We create a ``FilterSet`` for this::
-    
+
     import filter
-    
+
     class ProductFilter(FilterSet):
         class Meta:
             model = Product
             fields = ['price', 'release_date']
 
 
-As you can see this uses a very similar API to Django's ``ModelForm``.  Just 
-like with a ``ModelForm`` we can also overide filters, or add new ones using a 
+As you can see this uses a very similar API to Django's ``ModelForm``.  Just
+like with a ``ModelForm`` we can also overide filters, or add new ones using a
 declarative syntax::
-     
+
     import filter
-     
+
     class ProductFilter(FilterSet):
         price = filter.NumberFilter(lookup_type='lt')
         class Meta:
             model = Product
             fields = ['price', 'release_date']
 
-Filters take a ``lookup_type`` argument which specifies what lookup type to 
-use with Django's ORM.  So here when a user entered a price it would show all 
+Filters take a ``lookup_type`` argument which specifies what lookup type to
+use with Django's ORM.  So here when a user entered a price it would show all
 Products with a price less than that.
 
 Now we need to write a view::
-    
+
     def product_list(request):
         f = ProductFilter(request.GET, queryset=Product.objects.all())
         return render_to_response('my_app/templtae.html', {'f': f})
 
-If a queryset argument isn't provided then all the items in the default manager 
+If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
 
 And lastly we need a template::
-    
+
     {% extends "base.html" %}
-    
+
     {% block content %}
         <form action="" method="get">
             {{ f.form.as_p }}
@@ -63,12 +63,16 @@ And lastly we need a template::
         {% endfor %}
     {% endblock %}
 
-And that's all there is to it!  The ``form`` attribute contains a normal 
-Django form, and when we iterate over the ``FilterSet`` we get the objects in 
+And that's all there is to it!  The ``form`` attribute contains a normal
+Django form, and when we iterate over the ``FilterSet`` we get the objects in
 the resulting queryset.
 
 You can also allow the user to control ordering, this is done by providing the
-``order_by`` argument in the Filter's Meta class.  ``order_by`` can be either a 
-``list`` or ``tuple`` of field names, in which case those are the options, or 
-it can be a ``bool`` which, if True, indicates that all fields that have 
+``order_by`` argument in the Filter's Meta class.  ``order_by`` can be either a
+``list`` or ``tuple`` of field names, in which case those are the options, or
+it can be a ``bool`` which, if True, indicates that all fields that have
 the user can filter on can also be sorted on.
+
+The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
+form class from which ``FilterSet.form`` will subclass.  This works similar to
+the ``form`` option on a ``ModelAdmin.``
