@@ -139,12 +139,13 @@ __test__ = {"filterset": """
 >>> class F(FilterSet):
 ...     class Meta:
 ...         model = User
-...         fields = ['name', 'status']
+...         fields = ['username', 'status']
 ...         order_by = ['status']
 >>> f = F({'o': 'status'}, queryset=User.objects.all())
 >>> f.qs
 [<User: aaron>, <User: jacob>, <User: alex>]
 >>> print f.form
+<tr><th><label for="id_username">Username:</label></th><td><input type="text" name="username" id="id_username" /></td></tr>
 <tr><th><label for="id_status">Status:</label></th><td><select name="status" id="id_status">
 <option value="0">Regular</option>
 <option value="1">Admin</option>
@@ -332,4 +333,24 @@ __test__ = {"filterset": """
 
 >>> print F().form
 lol string
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['status', 'username']
+
+>>> print F().form
+<tr><th><label for="id_status">Status:</label></th><td><select name="status" id="id_status">
+<option value="0">Regular</option>
+<option value="1">Admin</option>
+</select></td></tr>
+<tr><th><label for="id_username">Username:</label></th><td><input type="text" name="username" id="id_username" /></td></tr>
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         fields = ['name']
+Traceback (most recent call last):
+...
+TypeError: Meta.fields contains a field that isn't defined on this FilterSet
 """}

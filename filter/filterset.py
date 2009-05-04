@@ -35,7 +35,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
     field_list = []
     opts = model._meta
-    for f in opts.fields + opts.many_to_many:
+    for f in sorted(opts.fields + opts.many_to_many):
         if fields and f.name not in fields:
             continue
         if exclude and f.name in exclude:
@@ -43,7 +43,11 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
         filter_ = filter_for_field(f, f.name)
         if filter_:
             field_list.append((f.name, filter_))
-    return SortedDict(field_list)
+    field_dict = SortedDict(field_list)
+    if fields:
+        field_dict = SortedDict([(f, field_dict.get(f)) for f in fields if
+            (not exclude) or (exclude and f not in exclude)])
+    return field_dict
 
 class FilterSetOptions(object):
     def __init__(self, options=None):
@@ -74,6 +78,10 @@ class FilterSetMetaclass(type):
             filters.update(declared_filters)
         else:
             filters = declared_filters
+
+        if any(filter_ is None for filter_ in filters.values()):
+            raise TypeError("Meta.fields contains a field that isn't defined "
+                "on this FilterSet")
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
@@ -177,7 +185,7 @@ class BaseFilterSet(object):
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = SortedDict([(f[0], f[1].field) for f in self.filters.iteritems()])
+            fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
             if self._meta.order_by:
                 if isinstance(self._meta.order_by, (list, tuple)):
                     choices = [(f, capfirst(f)) for f in self._meta.order_by]
