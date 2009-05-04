@@ -308,16 +308,24 @@ __test__ = {"filterset": """
 >>> f = F()
 >>> print f.form
 <tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
-<li><a class="selected" href="?date=1">Any Date</a></li>
-<li><a href="?date=2">Today</a></li>
-<li><a href="?date=3">Past 7 days</a></li>
-<li><a href="?date=4">This month</a></li>
-<li><a href="?date=5">This year</a></li>
+<li><a class="selected" href="?date=">Any Date</a></li>
+<li><a href="?date=1">Today</a></li>
+<li><a href="?date=2">Past 7 days</a></li>
+<li><a href="?date=3">This month</a></li>
+<li><a href="?date=4">This year</a></li>
 </ul></td></tr>
->>> f = F({'date': '5'})
+>>> f = F({'date': '4'})
 >>> f.qs
 [<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>]
 >>> f = F({})
+>>> print f.form
+<tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
+<li><a class="selected" href="?date=">Any Date</a></li>
+<li><a href="?date=1">Today</a></li>
+<li><a href="?date=2">Past 7 days</a></li>
+<li><a href="?date=3">This month</a></li>
+<li><a href="?date=4">This year</a></li>
+</ul></td></tr>
 >>> f.qs
 [<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>, <Comment: jacob said funky fresh!>]
 >>> _ = Comment.objects.create(text="Wowa", author = User.objects.get(username="alex"), date=datetime.today(), time="12:30")

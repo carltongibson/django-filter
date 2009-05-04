@@ -113,33 +113,32 @@ class RangeFilter(Filter):
 
 class DateRangeFilter(ChoiceFilter):
     options = {
-        1: (_('Any Date'), lambda qs, name: qs.all()),
-        2: (_('Today'), lambda qs, name: qs.filter(**{
+        '': (_('Any Date'), lambda qs, name: qs.all()),
+        1: (_('Today'), lambda qs, name: qs.filter(**{
             '%s__year' % name: datetime.today().year,
             '%s__month' % name: datetime.today().month,
             '%s__day' % name: datetime.today().day
         })),
-        3: (_('Past 7 days'), lambda qs, name: qs.filter(**{
+        2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
             '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
             '%s__lte' % name: datetime.today().strftime('%Y-%m-%d'),
         })),
-        4: (_('This month'), lambda qs, name: qs.filter(**{
+        3: (_('This month'), lambda qs, name: qs.filter(**{
             '%s__year' % name: datetime.today().year,
             '%s__month' % name: datetime.today().month
         })),
-        5: (_('This year'), lambda qs, name: qs.filter(**{
+        4: (_('This year'), lambda qs, name: qs.filter(**{
             '%s__year' % name: datetime.today().year,
         })),
     }
 
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = [(key, value[0]) for key, value in self.options.iteritems()]
-        kwargs['initial'] = 1
         super(DateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         try:
             value = int(value)
         except (ValueError, TypeError):
-            value = 1
-        return self.options[int(value)][1](qs, self.name)
+            value = ''
+        return self.options[value][1](qs, self.name)
