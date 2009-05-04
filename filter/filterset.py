@@ -153,6 +153,7 @@ class BaseFilterSet(object):
     filter_overrides = {}
 
     def __init__(self, data=None, queryset=None):
+        self.is_bound = data is not None
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
@@ -193,7 +194,10 @@ class BaseFilterSet(object):
                     choices = [(f, capfirst(f)) for f in self.filters]
                 fields[ORDER_BY_FIELD] = forms.ChoiceField(label="Ordering", required=False, choices=choices)
             Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
-            self._form = Form(self.data)
+            if self.is_bound:
+                self._form = Form(self.data)
+            else:
+                self._form = Form()
         return self._form
 
     @classmethod

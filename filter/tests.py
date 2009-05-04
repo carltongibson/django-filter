@@ -308,7 +308,7 @@ __test__ = {"filterset": """
 >>> f = F()
 >>> print f.form
 <tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
-<li><a href="?date=1">Any Date</a></li>
+<li><a class="selected" href="?date=1">Any Date</a></li>
 <li><a href="?date=2">Today</a></li>
 <li><a href="?date=3">Past 7 days</a></li>
 <li><a href="?date=4">This month</a></li>
