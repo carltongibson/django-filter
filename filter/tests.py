@@ -353,4 +353,18 @@ lol string
 Traceback (most recent call last):
 ...
 TypeError: Meta.fields contains a field that isn't defined on this FilterSet
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = Comment
+...         fields = ['author', 'text']
+
+>>> print F().form
+<tr><th><label for="id_author">Author:</label></th><td><select name="author" id="id_author">
+<option value="" selected="selected">---------</option>
+<option value="1">alex</option>
+<option value="2">aaron</option>
+<option value="3">jacob</option>
+</select></td></tr>
+<tr><th><label for="id_text">Text:</label></th><td><input type="text" name="text" id="id_text" /></td></tr>
 """}
