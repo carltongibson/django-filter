@@ -317,6 +317,9 @@ __test__ = {"filterset": """
 >>> f = F({'date': '5'})
 >>> f.qs
 [<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>]
+>>> f = F({})
+>>> f.qs
+[<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>, <Comment: jacob said funky fresh!>]
 >>> _ = Comment.objects.create(text="Wowa", author = User.objects.get(username="alex"), date=datetime.today(), time="12:30")
 >>> f = F({'date': '2'})
 >>> f.qs

@@ -138,4 +138,8 @@ class DateRangeFilter(ChoiceFilter):
         super(DateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
+        try:
+            value = int(value)
+        except (ValueError, TypeError):
+            value = 1
         return self.options[int(value)][1](qs, self.name)
