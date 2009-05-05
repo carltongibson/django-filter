@@ -177,7 +177,9 @@ class BaseFilterSet(object):
                     pass
             if self._meta.order_by:
                 try:
-                    qs = qs.order_by(self.form.fields[ORDER_BY_FIELD].clean(self.form[ORDER_BY_FIELD].data))
+                    value = self.form.fields[ORDER_BY_FIELD].clean(self.form[ORDER_BY_FIELD].data)
+                    if value:
+                        qs = qs.order_by(value)
                 except forms.ValidationError:
                     pass
             self._qs = qs

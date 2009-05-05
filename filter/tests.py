@@ -378,4 +378,13 @@ TypeError: Meta.fields contains a field that isn't defined on this FilterSet
 <option value="3">jacob</option>
 </select></td></tr>
 <tr><th><label for="id_text">Text:</label></th><td><input type="text" name="text" id="id_text" /></td></tr>
+
+>>> class F(FilterSet):
+...     class Meta:
+...         model = User
+...         order_by = ['username']
+
+>>> f = F({})
+>>> f.qs
+[<User: alex>, <User: aaron>, <User: jacob>]
 """}
