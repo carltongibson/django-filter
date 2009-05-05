@@ -189,18 +189,27 @@ class BaseFilterSet(object):
     def form(self):
         if not hasattr(self, '_form'):
             fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
-            if self._meta.order_by:
-                if isinstance(self._meta.order_by, (list, tuple)):
-                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
-                else:
-                    choices = [(f, capfirst(f)) for f in self.filters]
-                fields[ORDER_BY_FIELD] = forms.ChoiceField(label="Ordering", required=False, choices=choices)
+            fields[ORDER_BY_FIELD] = self.ordering_field
             Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data)
             else:
                 self._form = Form()
         return self._form
+
+    def get_ordering_field(self):
+        if self._meta.order_by:
+            if isinstance(self._meta.order_by, (list, tuple)):
+                choices = [(f, capfirst(f)) for f in self._meta.order_by]
+            else:
+                choices = [(f, capfirst(f)) for f in self.filters]
+            return forms.ChoiceField(label="Ordering", required=False, choices=choices)
+
+    @property
+    def ordering_field(self):
+        if not hasattr(self, '_ordering_field'):
+            self._ordering_field = self.get_ordering_field()
+        return self._ordering_field
 
     @classmethod
     def filter_for_field(cls, f, name):

@@ -76,3 +76,7 @@ the user can filter on can also be sorted on.
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
+
+If you want to use a custom widget, or in any other way overide the ordering
+field you can overide the ``get_ordering_field()`` method on a ``FilterSet``.
+This method just needs to return a Form Field.
