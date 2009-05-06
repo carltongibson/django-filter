@@ -387,4 +387,14 @@ TypeError: Meta.fields contains a field that isn't defined on this FilterSet
 >>> f = F({})
 >>> f.qs
 [<User: alex>, <User: aaron>, <User: jacob>]
+
+>>> class F(FilterSet):
+...     price = filter.NumberFilter(lookup_type=['lt', 'gt', 'exact'])
+...     class Meta:
+...         model = Book
+...         fields = ['price']
+
+>>> f = F({'price_0': '15'})
+>>> f.qs
+[<Book: Rainbox Six>]
 """}

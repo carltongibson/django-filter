@@ -53,6 +53,8 @@ class Filter(object):
         if value:
             if isinstance(value, (list, tuple)):
                 lookup = str(value[1])
+                if not lookup:
+                    lookup = 'exact' # we fallback to exact if no choice for lookup is provided
                 value = value[0]
             else:
                 lookup = self.lookup_type
