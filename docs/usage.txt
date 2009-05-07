@@ -80,3 +80,11 @@ the ``form`` option on a ``ModelAdmin.``
 If you want to use a custom widget, or in any other way overide the ordering
 field you can overide the ``get_ordering_field()`` method on a ``FilterSet``.
 This method just needs to return a Form Field.
+
+Generic View
+============
+
+In addition to the above usage there is also a generic view included in
+django-filter, which lives at ``filter.view.object_filter``.  You must provide
+either a ``model`` or ``filter_class`` argument, similar to the
+``create_update`` view in Django itself.

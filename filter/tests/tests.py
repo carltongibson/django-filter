@@ -1,4 +1,29 @@
-__test__ = {"filterset": """
+import os
+
+from django.conf import settings
+from django.test import TestCase
+
+
+class GenericViewTests(TestCase):
+    urls = 'filter.tests.test_urls'
+    fixtures = ['test_data']
+    template_dirs = [
+        os.path.join(os.path.dirname(__file__), 'templates'),
+    ]
+
+    def setUp(self):
+        self.old_template_dir = settings.TEMPLATE_DIRS
+        settings.TEMPLATE_DIRS = self.template_dirs
+
+    def tearDown(self):
+        settings.TEMPLATE_DIRS = self.old_template_dir
+
+    def test_generic_view(self):
+        response = self.client.get('/books/')
+        for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
+filter_tests = """
 >>> from datetime import datetime
 >>> from django import forms
 >>> from django.core.management import call_command
@@ -397,4 +422,4 @@ TypeError: Meta.fields contains a field that isn't defined on this FilterSet
 >>> f = F({'price_0': '15'})
 >>> f.qs
 [<Book: Rainbox Six>]
-"""}
+"""
