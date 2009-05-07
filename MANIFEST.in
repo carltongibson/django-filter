@@ -1,0 +1,4 @@
+include COPYRIGHT
+recursive-include docs *
+recursive-include filter/fixtures *
+recursive-include filter/tests/templates/filter *
