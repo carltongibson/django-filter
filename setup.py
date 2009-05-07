@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-filter',
-    version='0.1.1',
+    version='0.1.0',
     description='Django-filter is a reusable Django application for allowing users to filter queryset dynamically.',
     author='Alex Gaynor',
     author_email='alex.gaynor@gmail.com',
