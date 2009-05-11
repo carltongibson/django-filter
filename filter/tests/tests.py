@@ -300,9 +300,13 @@ filter_tests = """
 >>> f = F({'price_0': '15', 'price_1': 'lt'}, queryset=Book.objects.all())
 >>> f.qs
 [<Book: Ender's Game>]
->>> f= F({'price_0': '15', 'price_1': 'lt'})
+>>> f = F({'price_0': '15', 'price_1': 'lt'})
 >>> f.qs
 [<Book: Ender's Game>]
+>>> f = F({'price_0': '', 'price_1': 'lt'})
+>>> f.qs
+[<Book: Ender's Game>, <Book: Rainbox Six>, <Book: Snowcrash>]
+
 >>> class F(FilterSet):
 ...     status = filter.ChoiceFilter(widget=LinkWidget, choices=STATUS_CHOICES)
 ...     class Meta:

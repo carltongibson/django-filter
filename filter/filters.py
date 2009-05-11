@@ -50,14 +50,14 @@ class Filter(object):
         return self._field
 
     def filter(self, qs, value):
+        if isinstance(value, (list, tuple)):
+            lookup = str(value[1])
+            if not lookup:
+                lookup = 'exact' # we fallback to exact if no choice for lookup is provided
+            value = value[0]
+        else:
+            lookup = self.lookup_type
         if value:
-            if isinstance(value, (list, tuple)):
-                lookup = str(value[1])
-                if not lookup:
-                    lookup = 'exact' # we fallback to exact if no choice for lookup is provided
-                value = value[0]
-            else:
-                lookup = self.lookup_type
             return qs.filter(**{'%s__%s' % (self.name, lookup): value})
         return qs
 
