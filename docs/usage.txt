@@ -19,7 +19,7 @@ price or the release_date.  We create a ``FilterSet`` for this::
 
     import filter
 
-    class ProductFilter(FilterSet):
+    class ProductFilter(filter.FilterSet):
         class Meta:
             model = Product
             fields = ['price', 'release_date']
@@ -31,7 +31,7 @@ declarative syntax::
 
     import filter
 
-    class ProductFilter(FilterSet):
+    class ProductFilter(filter.FilterSet):
         price = filter.NumberFilter(lookup_type='lt')
         class Meta:
             model = Product
@@ -57,9 +57,10 @@ And lastly we need a template::
     {% block content %}
         <form action="" method="get">
             {{ f.form.as_p }}
+            <input type="submit">
         </form>
         {% for obj in f %}
-            {{ obj.name }} - ${{ obj.price }}
+            {{ obj.name }} - ${{ obj.price }}<br>
         {% endfor %}
     {% endblock %}
 
