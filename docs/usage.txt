@@ -57,10 +57,10 @@ And lastly we need a template::
     {% block content %}
         <form action="" method="get">
             {{ f.form.as_p }}
-            <input type="submit">
+            <input type="submit" />
         </form>
         {% for obj in f %}
-            {{ obj.name }} - ${{ obj.price }}<br>
+            {{ obj.name }} - ${{ obj.price }}<br />
         {% endfor %}
     {% endblock %}
 
