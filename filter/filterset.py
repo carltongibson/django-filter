@@ -79,7 +79,7 @@ class FilterSetMetaclass(type):
         else:
             filters = declared_filters
 
-        if any(filter_ is None for filter_ in filters.values()):
+        if None in filters.values():
             raise TypeError("Meta.fields contains a field that isn't defined "
                 "on this FilterSet")
 
