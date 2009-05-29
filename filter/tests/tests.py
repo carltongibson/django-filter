@@ -3,6 +3,9 @@ import os
 from django.conf import settings
 from django.test import TestCase
 
+import filter
+from filter.models import User, Comment, Book, STATUS_CHOICES
+
 
 class GenericViewTests(TestCase):
     urls = 'filter.tests.test_urls'
@@ -22,6 +25,16 @@ class GenericViewTests(TestCase):
         response = self.client.get('/books/')
         for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
             self.assertContains(response, b)
+
+class InheritanceTest(TestCase):
+    def test_inheritance(self):
+        class F(filter.FilterSet):
+            class Meta:
+                model = Book
+
+        class G(F):
+            pass
+        self.assertEqual(set(F.base_filters), set(G.base_filters))
 
 filter_tests = """
 >>> from datetime import datetime

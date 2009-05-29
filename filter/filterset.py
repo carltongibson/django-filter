@@ -28,7 +28,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
     else:
         for base in bases[::-1]:
             if hasattr(base, 'declared_filters'):
-                filters = base.declared_fields.items() + filters
+                filters = base.declared_filters.items() + filters
 
     return SortedDict(filters)
 
