@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from filter.fields import RangeField, LookupTypeField
 

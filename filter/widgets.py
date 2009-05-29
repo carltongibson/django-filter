@@ -57,7 +57,7 @@ class LinkWidget(forms.Widget):
         return self.option_string() % {
              'attrs': selected and ' class="selected"' or '',
              'query_string': url,
-             'label': option_label
+             'label': force_unicode(option_label)
         }
 
     def option_string(self):
