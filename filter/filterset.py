@@ -138,6 +138,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.PositiveIntegerField: {
         'filter_class': NumberFilter,
     },
+    models.PositiveSmallIntegerField: {
+        'filter_class': NumberFilter,
+    },
     models.FloatField: {
         'filter_class': NumberFilter,
     },
@@ -146,7 +149,25 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     },
     models.SlugField: {
         'filter_class': CharFilter,
-    }
+    },
+    models.EmailField: {
+        'filter_class': CharFilter,
+    },
+    models.FilePathField: {
+        'filter_class': CharFilter,
+    },
+    models.URLField: {
+        'filter_class': CharFilter,
+    },
+    models.XMLField: {
+        'filter_class': CharFilter,
+    },
+    models.IPAddressField: {
+        'filter_class': CharFilter,
+    },
+    models.CommaSeparatedIntegerField: {
+        'filter_class': CharFilter,
+    },
 }
 
 class BaseFilterSet(object):
