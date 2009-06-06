@@ -4,7 +4,7 @@ from django.conf import settings
 from django.test import TestCase
 
 import filter
-from filter.models import User, Comment, Book, STATUS_CHOICES
+from filter.models import User, Comment, Book, Restaurant, STATUS_CHOICES
 
 
 class GenericViewTests(TestCase):
@@ -35,6 +35,21 @@ class InheritanceTest(TestCase):
         class G(F):
             pass
         self.assertEqual(set(F.base_filters), set(G.base_filters))
+
+class ModelInheritanceTest(TestCase):
+    def test_abstract(self):
+        class F(filter.FilterSet):
+            class Meta:
+                model = Restaurant
+
+        self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
+
+        class F(filter.FilterSet):
+            class Meta:
+                model = Restaurant
+                fields = ['name', 'serves_pizza']
+
+        self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
 
 filter_tests = """
 >>> from datetime import datetime
