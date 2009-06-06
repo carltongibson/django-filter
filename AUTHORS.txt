@@ -1,0 +1,10 @@
+Authors
+=======
+
+Thanks to the following people for contributing to django-filter.
+
+Ben Firshman
+Alex Gaynor
+Jannis Leidel
+Martin Mahner
+Adam Vandenberg
