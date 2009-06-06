@@ -1,10 +1,11 @@
+import datetime
 import os
 
 from django.conf import settings
 from django.test import TestCase
 
 import filter
-from filter.models import User, Comment, Book, Restaurant, STATUS_CHOICES
+from filter.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
 
 class GenericViewTests(TestCase):
@@ -50,6 +51,16 @@ class ModelInheritanceTest(TestCase):
                 fields = ['name', 'serves_pizza']
 
         self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
+
+class DateRangeFilterTest(TestCase):
+    def filter_test(self):
+        a = Article.objects.create(published=datetime.datetime.today())
+        class F(filter.FilterSet):
+            published = filter.DateRangeFilter()
+            class Meta:
+                model = Article
+        f = F({'published': '2'})
+        self.assertEqual(list(f), [a])
 
 filter_tests = """
 >>> from datetime import datetime

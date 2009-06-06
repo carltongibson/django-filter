@@ -123,7 +123,7 @@ class DateRangeFilter(ChoiceFilter):
         })),
         2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
             '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
-            '%s__lte' % name: datetime.today().strftime('%Y-%m-%d'),
+            '%s__lt' % name: (datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'),
         })),
         3: (_('This month'), lambda qs, name: qs.filter(**{
             '%s__year' % name: datetime.today().year,

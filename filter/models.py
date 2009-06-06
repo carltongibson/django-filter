@@ -31,6 +31,9 @@ class Comment(models.Model):
     def __unicode__(self):
         return "%s said %s" % (self.author, self.text[:25])
 
+class Article(models.Model):
+    published = models.DateTimeField()
+
 class Book(models.Model):
     title = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=6, decimal_places=2)
