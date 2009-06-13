@@ -173,12 +173,13 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     filter_overrides = {}
 
-    def __init__(self, data=None, queryset=None):
+    def __init__(self, data=None, queryset=None, prefix=None):
         self.is_bound = data is not None
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
+        self.form_prefix = prefix
 
         self.filters = deepcopy(self.base_filters)
 
@@ -213,9 +214,9 @@ class BaseFilterSet(object):
             fields[ORDER_BY_FIELD] = self.ordering_field
             Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             if self.is_bound:
-                self._form = Form(self.data)
+                self._form = Form(self.data, prefix=self.form_prefix)
             else:
-                self._form = Form()
+                self._form = Form(prefix=self.form_prefix)
         return self._form
 
     def get_ordering_field(self):

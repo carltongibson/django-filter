@@ -52,8 +52,9 @@ class ModelInheritanceTest(TestCase):
 
         self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
 
+
 class DateRangeFilterTest(TestCase):
-    def filter_test(self):
+    def test_filter(self):
         a = Article.objects.create(published=datetime.datetime.today())
         class F(filter.FilterSet):
             published = filter.DateRangeFilter()
@@ -61,6 +62,16 @@ class DateRangeFilterTest(TestCase):
                 model = Article
         f = F({'published': '2'})
         self.assertEqual(list(f), [a])
+
+
+class FilterSetForm(TestCase):
+    def test_prefix(self):
+        class F(filter.FilterSet):
+            class Meta:
+                model = Restaurant
+                fields = ['name']
+        self.assert_('blah-prefix' in unicode(F(prefix='blah-prefix').form))
+
 
 filter_tests = """
 >>> from datetime import datetime
