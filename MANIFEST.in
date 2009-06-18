@@ -1,4 +1,6 @@
+include AUTHORS.txt
 include COPYRIGHT
+include README.txt
 recursive-include docs *
 recursive-include filter/fixtures *
 recursive-include filter/tests/templates/filter *
