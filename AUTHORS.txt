@@ -7,4 +7,5 @@ Ben Firshman
 Alex Gaynor
 Jannis Leidel
 Martin Mahner
+Brian Rosner
 Adam Vandenberg

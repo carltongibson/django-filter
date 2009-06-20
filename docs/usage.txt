@@ -13,6 +13,7 @@ model::
         price = models.DecimalField()
         description = models.TextField()
         release_date = models.DateField()
+        manufacturer = models.ForeignKey(Manufacturer)
 
 We have a number of fields and we want to let our users filter based on the
 price or the release_date.  We create a ``FilterSet`` for this::
@@ -40,6 +41,22 @@ declarative syntax::
 Filters take a ``lookup_type`` argument which specifies what lookup type to
 use with Django's ORM.  So here when a user entered a price it would show all
 Products with a price less than that.
+
+Filters also take any arbitrary keyword arguments which get passed onto the
+``django.forms.Field`` constructor.  These extra keyword arguments get stored
+in ``Filter.extra``, so it's possible to overide the constructor of a
+``FilterSet`` to add extra ones::
+
+    class ProductFilterSet(filter.FilterSet):
+        class Meta:
+            model = Product
+            fields = ['manufacturer']
+
+        def __init__(self, *args, **kwargs):
+            super(ProductFilterSet, self).__init__(*args, **kwargs)
+            self.filters['manufacturer'].extra.update(
+                {'empty_label': u'All Manufacturers'})
+
 
 Now we need to write a view::
 
