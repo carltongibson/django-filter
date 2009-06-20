@@ -9,7 +9,7 @@ filterset for it with the code::
 
     import filter
 
-    class ProductFilterSet(Filter.FilterSet):
+    class ProductFilterSet(filter.FilterSet):
         class Meta:
             model = Product
             fields = ['name', 'price', 'manufacturer']
