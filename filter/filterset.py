@@ -36,9 +36,9 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
     field_list = []
     opts = model._meta
     for f in sorted(opts.fields + opts.many_to_many):
-        if fields and f.name not in fields:
+        if fields is not None and f.name not in fields:
             continue
-        if exclude and f.name in exclude:
+        if exclude is not None and f.name in exclude:
             continue
         filter_ = filter_for_field(f, f.name)
         if filter_:
