@@ -28,6 +28,7 @@ class Filter(object):
             self.filter = action
         self.lookup_type = lookup_type
         self.widget = widget
+        self.initial = kwargs.get('initial')
         self.extra = kwargs
 
         self.creation_counter = Filter.creation_counter
@@ -57,8 +58,8 @@ class Filter(object):
             value = value[0]
         else:
             lookup = self.lookup_type
-        if value:
-            return qs.filter(**{'%s__%s' % (self.name, lookup): value})
+        if value or self.initial:
+            return qs.filter(**{'%s__%s' % (self.name, lookup): value or self.initial})
         return qs
 
 class CharFilter(Filter):
@@ -83,7 +84,7 @@ class MultipleChoiceFilter(Filter):
 
     def filter(self, qs, value):
         q = Q()
-        for v in value:
+        for v in (value or self.initial or ()):
             q |= Q(**{self.name: v})
         return qs.filter(q).distinct()
 
