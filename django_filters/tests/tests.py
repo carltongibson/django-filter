@@ -4,12 +4,12 @@ import os
 from django.conf import settings
 from django.test import TestCase
 
-import filter
-from filter.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
+import django_filters
+from django_filters.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
 
 class GenericViewTests(TestCase):
-    urls = 'filter.tests.test_urls'
+    urls = 'django_filters.tests.test_urls'
     fixtures = ['test_data']
     template_dirs = [
         os.path.join(os.path.dirname(__file__), 'templates'),
@@ -29,7 +29,7 @@ class GenericViewTests(TestCase):
 
 class InheritanceTest(TestCase):
     def test_inheritance(self):
-        class F(filter.FilterSet):
+        class F(django_filters.FilterSet):
             class Meta:
                 model = Book
 
@@ -39,13 +39,13 @@ class InheritanceTest(TestCase):
 
 class ModelInheritanceTest(TestCase):
     def test_abstract(self):
-        class F(filter.FilterSet):
+        class F(django_filters.FilterSet):
             class Meta:
                 model = Restaurant
 
         self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
 
-        class F(filter.FilterSet):
+        class F(django_filters.FilterSet):
             class Meta:
                 model = Restaurant
                 fields = ['name', 'serves_pizza']
@@ -56,8 +56,8 @@ class ModelInheritanceTest(TestCase):
 class DateRangeFilterTest(TestCase):
     def test_filter(self):
         a = Article.objects.create(published=datetime.datetime.today())
-        class F(filter.FilterSet):
-            published = filter.DateRangeFilter()
+        class F(django_filters.FilterSet):
+            published = django_filters.DateRangeFilter()
             class Meta:
                 model = Article
         f = F({'published': '2'})
@@ -66,7 +66,7 @@ class DateRangeFilterTest(TestCase):
 
 class FilterSetForm(TestCase):
     def test_prefix(self):
-        class F(filter.FilterSet):
+        class F(django_filters.FilterSet):
             class Meta:
                 model = Restaurant
                 fields = ['name']
@@ -77,10 +77,10 @@ filter_tests = """
 >>> from datetime import datetime
 >>> from django import forms
 >>> from django.core.management import call_command
->>> import filter
->>> from filter import FilterSet
->>> from filter.widgets import LinkWidget
->>> from filter.models import User, Comment, Book, STATUS_CHOICES
+>>> import django_filters
+>>> from django_filters import FilterSet
+>>> from django_filters.widgets import LinkWidget
+>>> from django_filters.models import User, Comment, Book, STATUS_CHOICES
 
 >>> call_command('loaddata', 'test_data', verbosity=0)
 
@@ -114,7 +114,7 @@ filter_tests = """
 </select></td></tr>
 
 >>> class F(FilterSet):
-...     status = filter.ChoiceFilter(widget=forms.RadioSelect, choices=STATUS_CHOICES)
+...     status = django_filters.ChoiceFilter(widget=forms.RadioSelect, choices=STATUS_CHOICES)
 ...     class Meta:
 ...         model = User
 ...         fields = ['status']
@@ -145,7 +145,7 @@ filter_tests = """
 <tr><th><label for="id_username">Username:</label></th><td><input type="text" name="username" value="alex" id="id_username" /></td></tr>
 
 >>> class F(FilterSet):
-...     username = filter.CharFilter(action=lambda qs, value: qs.filter(**{'username__startswith': value}))
+...     username = django_filters.CharFilter(action=lambda qs, value: qs.filter(**{'username__startswith': value}))
 ...     class Meta:
 ...         model = User
 ...         fields = ['username']
@@ -155,7 +155,7 @@ filter_tests = """
 [<User: alex>, <User: aaron>]
 
 >>> class F(FilterSet):
-...     status = filter.MultipleChoiceFilter(choices=STATUS_CHOICES)
+...     status = django_filters.MultipleChoiceFilter(choices=STATUS_CHOICES)
 ...     class Meta:
 ...         model = User
 ...         fields = ['status']
@@ -248,7 +248,7 @@ filter_tests = """
 </select></td></tr>
 
 >>> class F(FilterSet):
-...     price = filter.NumberFilter(lookup_type='lt')
+...     price = django_filters.NumberFilter(lookup_type='lt')
 ...     class Meta:
 ...         model = Book
 ...         fields = ['price']
@@ -273,7 +273,7 @@ filter_tests = """
 >>> f.qs
 [<User: alex>, <User: aaron>, <User: jacob>]
 >>> class F(FilterSet):
-...     average_rating = filter.NumberFilter(lookup_type='gt')
+...     average_rating = django_filters.NumberFilter(lookup_type='gt')
 ...     class Meta:
 ...         model = Book
 ...         fields = ['average_rating']
@@ -292,7 +292,7 @@ filter_tests = """
 [<Comment: jacob said funky fresh!>]
 
 >>> class F(FilterSet):
-...     price = filter.RangeFilter()
+...     price = django_filters.RangeFilter()
 ...     class Meta:
 ...         model = Book
 ...         fields = ['price']
@@ -306,7 +306,7 @@ filter_tests = """
 [<Book: Ender's Game>, <Book: Rainbox Six>]
 
 >>> class F(FilterSet):
-...     price = filter.NumberFilter(lookup_type=None)
+...     price = django_filters.NumberFilter(lookup_type=None)
 ...     class Meta:
 ...         model = Book
 ...         fields = ['price']
@@ -337,7 +337,7 @@ filter_tests = """
 <option value="year">year</option>
 </select></td></tr>
 >>> class F(FilterSet):
-...     price = filter.NumberFilter(lookup_type=['lt', 'gt'])
+...     price = django_filters.NumberFilter(lookup_type=['lt', 'gt'])
 ...     class Meta:
 ...         model = Book
 ...         fields = ['price']
@@ -358,7 +358,7 @@ filter_tests = """
 [<Book: Ender's Game>, <Book: Rainbox Six>, <Book: Snowcrash>]
 
 >>> class F(FilterSet):
-...     status = filter.ChoiceFilter(widget=LinkWidget, choices=STATUS_CHOICES)
+...     status = django_filters.ChoiceFilter(widget=LinkWidget, choices=STATUS_CHOICES)
 ...     class Meta:
 ...         model = User
 ...         fields = ['status']
@@ -380,7 +380,7 @@ filter_tests = """
 </ul></td></tr>
 
 >>> class F(FilterSet):
-...     date = filter.DateRangeFilter(widget=LinkWidget)
+...     date = django_filters.DateRangeFilter(widget=LinkWidget)
 ...     class Meta:
 ...         model = Comment
 ...         fields = ['date']
@@ -468,7 +468,7 @@ TypeError: Meta.fields contains a field that isn't defined on this FilterSet
 [<User: alex>, <User: aaron>, <User: jacob>]
 
 >>> class F(FilterSet):
-...     price = filter.NumberFilter(lookup_type=['lt', 'gt', 'exact'])
+...     price = django_filters.NumberFilter(lookup_type=['lt', 'gt', 'exact'])
 ...     class Meta:
 ...         model = Book
 ...         fields = ['price']

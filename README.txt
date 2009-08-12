@@ -7,9 +7,9 @@ admin's ``list_filter`` interface.  It has an API very similar to Django's
 ``ModelForms``.  For example if you had a Product model you could have a
 filterset for it with the code::
 
-    import filter
+    import django_filters
 
-    class ProductFilterSet(filter.FilterSet):
+    class ProductFilterSet(django_filters.FilterSet):
         class Meta:
             model = Product
             fields = ['name', 'price', 'manufacturer']

@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from filter.filterset import FilterSet
+from django_filters.filterset import FilterSet
 
 def object_filter(request, model=None, queryset=None, template_name=None, extra_context=None,
     context_processors=None, filter_class=None):

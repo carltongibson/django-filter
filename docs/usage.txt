@@ -18,9 +18,9 @@ model::
 We have a number of fields and we want to let our users filter based on the
 price or the release_date.  We create a ``FilterSet`` for this::
 
-    import filter
+    import django_filters
 
-    class ProductFilter(filter.FilterSet):
+    class ProductFilter(django_filters.FilterSet):
         class Meta:
             model = Product
             fields = ['price', 'release_date']
@@ -30,10 +30,10 @@ As you can see this uses a very similar API to Django's ``ModelForm``.  Just
 like with a ``ModelForm`` we can also overide filters, or add new ones using a
 declarative syntax::
 
-    import filter
+    import django_filters
 
-    class ProductFilter(filter.FilterSet):
-        price = filter.NumberFilter(lookup_type='lt')
+    class ProductFilter(django_filters.FilterSet):
+        price = django_filters.NumberFilter(lookup_type='lt')
         class Meta:
             model = Product
             fields = ['price', 'release_date']
@@ -47,7 +47,7 @@ Filters also take any arbitrary keyword arguments which get passed onto the
 in ``Filter.extra``, so it's possible to overide the constructor of a
 ``FilterSet`` to add extra ones::
 
-    class ProductFilterSet(filter.FilterSet):
+    class ProductFilterSet(django_filters.FilterSet):
         class Meta:
             model = Product
             fields = ['manufacturer']
@@ -103,6 +103,6 @@ Generic View
 ============
 
 In addition to the above usage there is also a generic view included in
-django-filter, which lives at ``filter.view.object_filter``.  You must provide
-either a ``model`` or ``filter_class`` argument, similar to the
+django-filter, which lives at ``django_filters.view.object_filter``.  You must
+provide either a ``model`` or ``filter_class`` argument, similar to the
 ``create_update`` view in Django itself.

@@ -5,8 +5,8 @@ from django.db import models
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
-from filter.filters import Filter, CharFilter, BooleanFilter, ChoiceFilter, \
-    DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
+from django_filters.filters import Filter, CharFilter, BooleanFilter, \
+    ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
     ModelMultipleChoiceFilter, NumberFilter
 
 ORDER_BY_FIELD = 'o'

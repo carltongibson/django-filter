@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
 
-from filter.fields import RangeField, LookupTypeField
+from django_filters.fields import RangeField, LookupTypeField
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
