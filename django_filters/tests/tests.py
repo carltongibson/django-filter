@@ -72,6 +72,24 @@ class FilterSetForm(TestCase):
                 fields = ['name']
         self.assert_('blah-prefix' in unicode(F(prefix='blah-prefix').form))
 
+class AllValuesFilterTest(TestCase):
+    fixtures = ['test_data']
+
+    def test_filter(self):
+        class F(django_filters.FilterSet):
+            username = django_filters.AllValuesFilter()
+            class Meta:
+                model = User
+                fields = ['username']
+        form_html = ('<tr><th><label for="id_username">Username:</label></th>'
+            '<td><select name="username" id="id_username">\n'
+            '<option value="aaron">aaron</option>\n<option value="alex">alex'
+            '</option>\n<option value="jacob">jacob</option>\n</select></td>'
+            '</tr>')
+        self.assertEqual(unicode(F().form), form_html)
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'alex'})), [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': 'jose'})), list(User.objects.all()))
 
 filter_tests = """
 >>> from datetime import datetime

@@ -11,7 +11,7 @@ __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter'
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -145,3 +145,10 @@ class DateRangeFilter(ChoiceFilter):
         except (ValueError, TypeError):
             value = ''
         return self.options[value][1](qs, self.name)
+
+class AllValuesFilter(ChoiceFilter):
+    @property
+    def field(self):
+        qs = self.model._default_manager.distinct().order_by(self.name).values_list(self.name, flat=True)
+        self.extra['choices'] = [(o, o) for o in qs]
+        return super(AllValuesFilter, self).field
