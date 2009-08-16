@@ -5,7 +5,7 @@ from django.conf import settings
 from django.test import TestCase
 
 import django_filters
-from django_filters.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
+from django_filters.tests.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
 
 class GenericViewTests(TestCase):
@@ -98,7 +98,7 @@ filter_tests = """
 >>> import django_filters
 >>> from django_filters import FilterSet
 >>> from django_filters.widgets import LinkWidget
->>> from django_filters.models import User, Comment, Book, STATUS_CHOICES
+>>> from django_filters.tests.models import User, Comment, Book, STATUS_CHOICES
 
 >>> call_command('loaddata', 'test_data', verbosity=0)
 
