@@ -1,0 +1,7 @@
+Running the django-filter tests
+===============================
+
+In order to run the django-filter tests you must not only add
+``'django_filters'`` to your ``INSTALLED_APPS`` settings, but also
+``'django_filters.tests'``, which tells Django to setup the test models.  This
+step is only necessary if you want to run the django-filter regression tests.
