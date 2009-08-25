@@ -6,7 +6,7 @@ f.close()
 
 setup(
     name='django-filter',
-    version='0.5.0',
+    version='0.5.1',
     description='Django-filter is a reusable Django application for allowing users to filter queryset dynamically.',
     long_description=readme,
     author='Alex Gaynor',
