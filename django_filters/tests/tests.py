@@ -91,6 +91,18 @@ class AllValuesFilterTest(TestCase):
         self.assertEqual(list(F({'username': 'alex'})), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})), list(User.objects.all()))
 
+class InitialValueTest(TestCase):
+    fixtures = ['test_data']
+
+    def test_initial(self):
+        class F(django_filters.FilterSet):
+            status = django_filters.ChoiceFilter(choices=STATUS_CHOICES, initial=1)
+            class Meta:
+                model = User
+                fields = ['status']
+        self.assertEqual(list(F().qs), [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'status': 0})), list(User.objects.filter(status=0)))
+
 filter_tests = """
 >>> from datetime import datetime
 >>> from django import forms

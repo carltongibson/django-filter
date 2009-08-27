@@ -196,7 +196,11 @@ class BaseFilterSet(object):
             qs = self.queryset.all()
             for name, filter_ in self.filters.iteritems():
                 try:
-                    val = self.form.fields[name].clean(self.form[name].data)
+                    if self.is_bound:
+                        data = self.form[name].data
+                    else:
+                        data = self.form.initial.get(name, self.form[name].field.initial)
+                    val = self.form.fields[name].clean(data)
                     qs = filter_.filter(qs, val)
                 except forms.ValidationError:
                     pass
