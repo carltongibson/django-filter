@@ -13,7 +13,7 @@ def object_filter(request, model=None, queryset=None, template_name=None, extra_
         meta = type('Meta', (object,), {'model': model})
         filter_class = type('%sFilterSet' % model._meta.object_name, (FilterSet,),
             {'Meta': meta})
-    filterset = filter_class(request.GET, queryset=queryset)
+    filterset = filter_class(request.GET or None, queryset=queryset)
 
     if not template_name:
         template_name = '%s/%s_filter.html' % (model._meta.app_label, model._meta.object_name.lower())
