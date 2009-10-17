@@ -21,13 +21,14 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', **kwargs):
+        lookup_type='exact', required=False, **kwargs):
         self.name = name
         self.label = label
         if action:
             self.filter = action
         self.lookup_type = lookup_type
         self.widget = widget
+        self.required = required
         self.extra = kwargs
 
         self.creation_counter = Filter.creation_counter
@@ -41,12 +42,12 @@ class Filter(object):
                     lookup = [(x, x) for x in LOOKUP_TYPES]
                 else:
                     lookup = [(x, x) for x in LOOKUP_TYPES if x in self.lookup_type]
-                self._field = LookupTypeField(self.field_class(required=False,
-                    widget=self.widget, **self.extra), lookup, required=False,
-                    label=self.label)
+                self._field = LookupTypeField(self.field_class(
+                    required=self.required, widget=self.widget, **self.extra),
+                    lookup, required=self.required, label=self.label)
             else:
-                self._field = self.field_class(required=False, label=self.label,
-                    widget=self.widget, **self.extra)
+                self._field = self.field_class(required=self.required,
+                    label=self.label, widget=self.widget, **self.extra)
         return self._field
 
     def filter(self, qs, value):
