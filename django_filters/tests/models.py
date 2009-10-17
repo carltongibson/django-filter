@@ -2,6 +2,7 @@
 
 from django.db import models
 
+
 STATUS_CHOICES = (
     (0, 'Regular'),
     (1, 'Admin'),
@@ -31,8 +32,11 @@ class Comment(models.Model):
     def __unicode__(self):
         return "%s said %s" % (self.author, self.text[:25])
 
+
 class Article(models.Model):
     published = models.DateTimeField()
+    author = models.ForeignKey(User, null=True)
+
 
 class Book(models.Model):
     title = models.CharField(max_length=100)

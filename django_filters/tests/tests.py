@@ -103,6 +103,24 @@ class InitialValueTest(TestCase):
         self.assertEqual(list(F().qs), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'status': 0})), list(User.objects.filter(status=0)))
 
+
+class RelatedObjectTest(TestCase):
+    fixtures = ['test_data']
+    
+    def test_foreignkey(self):
+        class F(django_filters.FilterSet):
+            class Meta:
+                model = Article
+                fields = ['author__username']
+        self.assertEqual(F.base_filters.keys(), ['author__username'])
+        form_html = ('<tr><th><label for="id_author__username">Username:</label>'
+            '</th><td><input type="text" name="author__username" '
+            'id="id_author__username" /></td></tr>')
+        self.assertEqual(str(F().form), form_html)
+        self.assertEqual(F({'author__username': 'alex'}).qs.count(), 2)
+        self.assertEqual(F({'author__username': 'jacob'}).qs.count(), 1)
+
+
 filter_tests = """
 >>> from datetime import datetime
 >>> from django import forms

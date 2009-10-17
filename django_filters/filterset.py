@@ -2,6 +2,9 @@ from copy import deepcopy
 
 from django import forms
 from django.db import models
+from django.db.models.fields import FieldDoesNotExist
+from django.db.models.related import RelatedObject
+from django.db.models.sql.constants import LOOKUP_SEP
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
@@ -32,21 +35,43 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
 
     return SortedDict(filters)
 
-def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
-    field_list = []
+def get_model_field(model, f):
+    parts = f.split(LOOKUP_SEP)
     opts = model._meta
-    for f in sorted(opts.fields + opts.many_to_many):
-        if fields is not None and f.name not in fields:
+    for name in parts[:-1]:
+        try:
+            rel = opts.get_field_by_name(name)[0]
+        except FieldDoesNotExist:
+            return None
+        if isinstance(rel, RelatedObject):
+            model = rel.model
+            opts = rel.opts
+        else:
+            model = rel.rel.to
+            opts = model._meta
+    try:
+        rel, model, direct, m2m = opts.get_field_by_name(parts[-1])
+    except FieldDoesNotExist:
+        return None
+    if not direct:
+        return rel.field.rel.to_field
+    return rel
+
+def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
+    field_dict = SortedDict()
+    opts = model._meta
+    if fields is None:
+        fields = [f.name for f in sorted(opts.fields + opts.many_to_many)]
+    for f in fields:
+        if exclude is not None and f in exclude:
             continue
-        if exclude is not None and f.name in exclude:
+        field = get_model_field(model, f)
+        if field is None:
+            field_dict[f] = None
             continue
-        filter_ = filter_for_field(f, f.name)
+        filter_ = filter_for_field(field, f)
         if filter_:
-            field_list.append((f.name, filter_))
-    field_dict = SortedDict(field_list)
-    if fields:
-        field_dict = SortedDict([(f, field_dict.get(f)) for f in fields if
-            (not exclude) or (exclude and f not in exclude)])
+            field_dict[f] = filter_
     return field_dict
 
 class FilterSetOptions(object):
