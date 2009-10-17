@@ -120,6 +120,18 @@ class RelatedObjectTest(TestCase):
         self.assertEqual(F({'author__username': 'alex'}).qs.count(), 2)
         self.assertEqual(F({'author__username': 'jacob'}).qs.count(), 1)
 
+        class F(django_filters.FilterSet):
+            author__username = django_filters.AllValuesFilter()
+            class Meta:
+                model = Article
+                fields = ['author__username']
+            
+        form_html = ('<tr><th><label for="id_author__username">Author  '
+            'username:</label></th><td><select name="author__username" '
+            'id="id_author__username">\n<option value="alex">alex</option>\n'
+            '<option value="jacob">jacob</option>\n</select></td></tr>')
+        self.assertEqual(str(F().form), form_html)
+
 
 filter_tests = """
 >>> from datetime import datetime
