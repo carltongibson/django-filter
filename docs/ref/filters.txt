@@ -51,7 +51,7 @@ Matches on a time.  Used with ``TimeField`` by default.
 Similar to a ``ChoiceFilter`` except it works with related models, used for
 ``ForeignKey`` by default.
 
-``MultipleModelChoiceFilter``
+``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Similar to a ``MultipleChoiceFilter`` except it works with related models, uesd

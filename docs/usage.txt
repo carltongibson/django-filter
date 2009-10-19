@@ -107,6 +107,6 @@ Generic View
 ============
 
 In addition to the above usage there is also a generic view included in
-django-filter, which lives at ``django_filters.view.object_filter``.  You must
+django-filter, which lives at ``django_filters.views.object_filter``.  You must
 provide either a ``model`` or ``filter_class`` argument, similar to the
 ``create_update`` view in Django itself.
