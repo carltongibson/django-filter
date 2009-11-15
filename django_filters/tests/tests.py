@@ -133,6 +133,18 @@ class RelatedObjectTest(TestCase):
         self.assertEqual(str(F().form), form_html)
 
 
+class MultipleChoiceFilterTest(TestCase):
+    fixtures = ['test_data']
+
+    def test_all_choices_selected(self):
+        class F(django_filters.FilterSet):
+            class Meta:
+                model = User
+                fields = ["status"]
+        
+        self.assertEqual(list(F({"status": [0, 1]}).qs), list(User.objects.all()))
+
+
 filter_tests = """
 >>> from datetime import datetime
 >>> from django import forms
