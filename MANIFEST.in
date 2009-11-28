@@ -3,4 +3,4 @@ include COPYRIGHT
 include README.txt
 recursive-include docs *
 recursive-include django_filters/tests/fixtures *
-recursive-include django_filters/tests/templates/django_filters *
+recursive-include django_filters/tests/templates/tests *

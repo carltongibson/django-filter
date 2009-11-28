@@ -25,7 +25,7 @@ setup(
     package_data = {
         'django_filters.tests': [
             'fixtures/*.json',
-            'templates/django_filters/*.html',
+            'templates/tests/*.html',
         ]
     },
     zip_safe=False,
