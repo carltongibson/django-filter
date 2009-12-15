@@ -23,4 +23,7 @@ And then in your view you could do::
             {'filterset': filterset})
 
 
-See the docs directory for more information,
+See the docs directory for more information.
+
+If you have questions about usage or development you can join the
+mailing list at: http://groups.google.com/group/django-filter?msg=new&lnk=gcis
