@@ -62,7 +62,7 @@ Now we need to write a view::
 
     def product_list(request):
         f = ProductFilter(request.GET, queryset=Product.objects.all())
-        return render_to_response('my_app/template.html', {'f': f})
+        return render_to_response('my_app/template.html', {'filter': f})
 
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
@@ -73,10 +73,10 @@ And lastly we need a template::
 
     {% block content %}
         <form action="" method="get">
-            {{ f.form.as_p }}
+            {{ filter.form.as_p }}
             <input type="submit" />
         </form>
-        {% for obj in f %}
+        {% for obj in filter %}
             {{ obj.name }} - ${{ obj.price }}<br />
         {% endfor %}
     {% endblock %}
@@ -109,4 +109,11 @@ Generic View
 In addition to the above usage there is also a generic view included in
 django-filter, which lives at ``django_filters.views.object_filter``.  You must
 provide either a ``model`` or ``filter_class`` argument, similar to the
-``create_update`` view in Django itself.
+``create_update`` view in Django itself::
+
+     url(r'^auftraege2/$', 
+         'django_filters.views.object_filter',
+         {'model': Product}),
+
+You must provide a template at ``app/model_filter.html`` which gets the
+context parameter ``filter``.
