@@ -111,9 +111,9 @@ django-filter, which lives at ``django_filters.views.object_filter``.  You must
 provide either a ``model`` or ``filter_class`` argument, similar to the
 ``create_update`` view in Django itself::
 
-     url(r'^auftraege2/$', 
+     url(r'^list/$', 
          'django_filters.views.object_filter',
          {'model': Product}),
 
-You must provide a template at ``app/model_filter.html`` which gets the
+You must provide a template at ``<app>/<model>_filter.html`` which gets the
 context parameter ``filter``.
