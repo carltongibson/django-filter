@@ -252,7 +252,7 @@ filter_tests = """
 ...         model = Comment
 ...         fields = ['date']
 
->>> f = F({'date': '01/30/09'}, queryset=Comment.objects.all())
+>>> f = F({'date': '01/30/10'}, queryset=Comment.objects.all())
 >>> f.qs
 [<Comment: alex said super awesome!>]
 
