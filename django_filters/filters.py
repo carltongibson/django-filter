@@ -51,6 +51,8 @@ class Filter(object):
         return self._field
 
     def filter(self, qs, value):
+        if not value:
+            return qs
         if isinstance(value, (list, tuple)):
             lookup = str(value[1])
             if not lookup:

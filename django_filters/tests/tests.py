@@ -144,6 +144,17 @@ class MultipleChoiceFilterTest(TestCase):
         
         self.assertEqual(list(F({"status": [0, 1]}).qs), list(User.objects.all()))
 
+class MultipleLookupTypesTest(TestCase):
+    fixtures = ['test_data']
+    
+    def test_no_GET_params(self):
+        class F(django_filters.FilterSet):
+            published = django_filters.DateTimeFilter(lookup_type=['gt', 'lt'])
+            class Meta:
+                model = Article
+                fields = ['published']
+        
+        self.assertEqual(list(F({}).qs), list(Article.objects.all()))
 
 filter_tests = """
 >>> from datetime import datetime
