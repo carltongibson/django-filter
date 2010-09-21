@@ -88,7 +88,7 @@ the resulting queryset.
 You can also allow the user to control ordering, this is done by providing the
 ``order_by`` argument in the Filter's Meta class.  ``order_by`` can be either a
 ``list`` or ``tuple`` of field names, in which case those are the options, or
-it can be a ``bool`` which, if True, indicates that all fields that have
+it can be a ``bool`` which, if True, indicates that all fields that
 the user can filter on can also be sorted on.
 
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
