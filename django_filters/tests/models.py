@@ -1,7 +1,7 @@
 ### these models are for testing
 
 from django.db import models
-
+from django_filters.tests.fields import ChildOfCharField, GrandChildOfCharField
 
 STATUS_CHOICES = (
     (0, 'Regular'),
@@ -10,8 +10,8 @@ STATUS_CHOICES = (
 
 class User(models.Model):
     username = models.CharField(max_length=255)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    first_name = ChildOfCharField(max_length=100)
+    last_name = GrandChildOfCharField(max_length=100)
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=0)
 
