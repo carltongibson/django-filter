@@ -281,10 +281,13 @@ class BaseFilterSet(object):
         data = filter_for_field.get(f.__class__)
         if data is None:
             # probably a derived field, inspect parents
-            for _class in f.__class__.__bases__:
-                data = filter_for_field.get(_class)
+            bases = list(f.__class__.__bases__)
+            while bases:
+                class_ = bases.pop()
+                data = filter_for_field.get(class_)
                 if data:
                     break
+                bases.extend(class_.__bases__)
             if data is None:
                 return
         filter_class = data.get('filter_class')
