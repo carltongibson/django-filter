@@ -478,7 +478,7 @@ filter_tests = """
 </ul></td></tr>
 >>> f = F({'date': '4'})
 >>> f.qs
-[<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>]
+[]
 >>> f = F({})
 >>> print f.form
 <tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
