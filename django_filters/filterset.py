@@ -184,9 +184,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.URLField: {
         'filter_class': CharFilter,
     },
-    models.XMLField: {
-        'filter_class': CharFilter,
-    },
     models.IPAddressField: {
         'filter_class': CharFilter,
     },
@@ -194,6 +191,10 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': CharFilter,
     },
 }
+if hasattr(models, "XMLField"):
+    FILTER_FOR_DBFIELD_DEFAULTS[models.XMLField] = {
+        'filter_class': CharFilter,
+    }
 
 class BaseFilterSet(object):
     filter_overrides = {}
