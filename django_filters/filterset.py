@@ -280,7 +280,13 @@ class BaseFilterSet(object):
 
         data = filter_for_field.get(f.__class__)
         if data is None:
-            return
+            # probably a derived field, inspect parents
+            for _class in f.__class__.__bases__:
+                data = filter_for_field.get(_class)
+                if data:
+                    break
+            if data is None:
+                return
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:

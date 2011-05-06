@@ -5,13 +5,14 @@ from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
 
-from django_filters.fields import RangeField, LookupTypeField
+from django_filters.fields import NumericRangeField, DateRangeField, TimeRangeField, LookupTypeField
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
     'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'OpenRangeNumericFilter', 'OpenRangeDateFilter', 'OpenRangeTimeFilter'
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -115,7 +116,7 @@ class NumberFilter(Filter):
     field_class = forms.DecimalField
 
 class RangeFilter(Filter):
-    field_class = RangeField
+    field_class = NumericRangeField
 
     def filter(self, qs, value):
         if value:
@@ -160,3 +161,26 @@ class AllValuesFilter(ChoiceFilter):
         qs = self.model._default_manager.distinct().order_by(self.name).values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
+
+class BaseOpenRangeFilter(Filter):
+    """
+    Abstract class similar to RangeFilter but allows open ended ranges.
+    Inheriting classes must define field_class attribute.
+    """
+    
+    def filter(self, qs, value):
+        if value:
+            if value.start:
+                qs = qs.filter(**{'%s__gte' % self.name: value.start})
+            if value.stop:
+                qs = qs.filter(**{'%s__lte' % self.name: value.stop})
+        return qs
+
+class OpenRangeNumericFilter(BaseOpenRangeFilter):
+    field_class = NumericRangeField
+
+class OpenRangeDateFilter(BaseOpenRangeFilter):
+    field_class = DateRangeField
+
+class OpenRangeTimeFilter(BaseOpenRangeFilter):
+    field_class = TimeRangeField
