@@ -2,11 +2,43 @@ import datetime
 import os
 
 from django.conf import settings
-from django.test import TestCase
 
 import django_filters
 from django_filters.tests.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
+
+from django.conf import settings
+from django.core.management import call_command
+from django.db.models import loading
+from django import test
+
+class TestCase(test.TestCase):
+    installed_apps = ['django_filters.tests']
+
+    def _get_installed_apps(self):
+        _installed_apps = list(settings.INSTALLED_APPS)
+        for app in self.installed_apps:
+            if app not in _installed_apps:
+                _installed_apps.append(app)
+        return _installed_apps
+
+    def _pre_setup(self):
+        # store original installed apps
+        self._original_installed_apps = list(settings.INSTALLED_APPS)
+        # get extra required apps
+        settings.INSTALLED_APPS = self._get_installed_apps()
+        # Call syncdb to create db for extra apps (migrate=False for South)
+        loading.cache.loaded = False
+        call_command('syncdb', interactive=False, verbosity=0, migrate=False)
+        # Call the original method that does the fixtures etc.
+        super(TestCase, self)._pre_setup()
+
+    def _post_teardown(self):
+        # Call the original method
+        super(TestCase, self)._post_teardown()
+        # Restore the settings
+        settings.INSTALLED_APPS = self._original_installed_apps
+        loading.cache.loaded = False
 
 class GenericViewTests(TestCase):
     urls = 'django_filters.tests.test_urls'
@@ -22,8 +54,12 @@ class GenericViewTests(TestCase):
     def tearDown(self):
         settings.TEMPLATE_DIRS = self.old_template_dir
 
-    def test_generic_view(self):
-        response = self.client.get('/books/')
+    def test_functional_generic_view(self):
+        response = self.client.get('/books_functional/')
+        for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
+            self.assertContains(response, b)
+    def test_classbased_generic_view(self):
+        response = self.client.get('/books_classbased/')
         for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
             self.assertContains(response, b)
 
@@ -476,9 +512,10 @@ filter_tests = """
 <li><a href="?date=3">This month</a></li>
 <li><a href="?date=4">This year</a></li>
 </ul></td></tr>
+>>> _ = Comment.objects.create(text="This year", author = User.objects.get(username="alex"), date=datetime.today(), time="12:30")
 >>> f = F({'date': '4'})
 >>> f.qs
-[<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>]
+[<Comment: alex said This year>]
 >>> f = F({})
 >>> print f.form
 <tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
@@ -489,11 +526,11 @@ filter_tests = """
 <li><a href="?date=4">This year</a></li>
 </ul></td></tr>
 >>> f.qs
-[<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>, <Comment: jacob said funky fresh!>]
+[<Comment: alex said super awesome!>, <Comment: aaron said psycadelic!>, <Comment: jacob said funky fresh!>, <Comment: alex said This year>]
 >>> _ = Comment.objects.create(text="Wowa", author = User.objects.get(username="alex"), date=datetime.today(), time="12:30")
 >>> f = F({'date': '2'})
 >>> f.qs
-[<Comment: alex said Wowa>]
+[<Comment: alex said This year>, <Comment: alex said Wowa>]
 
 >>> class MyForm(forms.Form):
 ...     def as_table(self):
