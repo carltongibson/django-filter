@@ -21,7 +21,7 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', required=False, **kwargs):
+        lookup_type='exact', required=False, anded=False, **kwargs):
         self.name = name
         self.label = label
         if action:
@@ -29,6 +29,7 @@ class Filter(object):
         self.lookup_type = lookup_type
         self.widget = widget
         self.required = required
+        self.anded = anded
         self.extra = kwargs
 
         self.creation_counter = Filter.creation_counter
@@ -86,14 +87,21 @@ class MultipleChoiceFilter(Filter):
 
     def filter(self, qs, value):
         value = value or ()
+        # use `self.anded` if you want the filter to include only the items that have all the related models
+        if self.anded:
+            for v in value:
+                qs = qs.filter(**{self.name: v})
         # TODO: this is a bit of a hack, but ModelChoiceIterator doesn't have a
         # __len__ method
         if len(value) == len(list(self.field.choices)):
             return qs
+
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})
         return qs.filter(q).distinct()
+
+
 
 class DateFilter(Filter):
     field_class = forms.DateField
