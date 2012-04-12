@@ -5,13 +5,14 @@ from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
 
-from django_filters.fields import RangeField, LookupTypeField
+from django_filters.fields import RangeField, LookupTypeField, DateRangeField, DateTimeRangeField
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', 
+    'CustomDateRangeFilter', 'CustomDateTimeRangeFilter'
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -152,6 +153,22 @@ class DateRangeFilter(ChoiceFilter):
         except (ValueError, TypeError):
             value = ''
         return self.options[value][1](qs, self.name)
+
+class CustomDateRangeFilter(Filter):
+    field_class = DateRangeField
+
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+        return qs
+        
+class CustomDateTimeRangeFilter(Filter):
+    field_class = DateTimeRangeField
+
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+        return qs
 
 class AllValuesFilter(ChoiceFilter):
     @property
