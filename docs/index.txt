@@ -4,7 +4,7 @@ django-filter
 
 Django-filter is a generic, reusable application to alleviate some of the more
 mundane bits of view code.  Specifically allowing the users to filter down a
-queryset based on a models fields, and displaying the form to let them do this.
+queryset based on a model's fields and displaying the form to let them do this.
 
 Contents:
 
