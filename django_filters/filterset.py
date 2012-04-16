@@ -4,7 +4,7 @@ from django import forms
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.related import RelatedObject
-from django.db.models.sql.constants import LOOKUP_SEP
+from django.db.models.sql.constants import QUERY_TERMS, LOOKUP_SEP
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
@@ -65,11 +65,17 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
     for f in fields:
         if exclude is not None and f in exclude:
             continue
+
+        if f.split(LOOKUP_SEP)[-1] in QUERY_TERMS.keys():
+            lookup_type = f.split(LOOKUP_SEP)[-1]
+            f = LOOKUP_SEP.join(f.split(LOOKUP_SEP)[:-1])
+        else:
+            lookup_type = None
         field = get_model_field(model, f)
         if field is None:
             field_dict[f] = None
             continue
-        filter_ = filter_for_field(field, f)
+        filter_ = filter_for_field(field, f, lookup_type)
         if filter_:
             field_dict[f] = filter_
     return field_dict
@@ -267,7 +273,7 @@ class BaseFilterSet(object):
         return self._ordering_field
 
     @classmethod
-    def filter_for_field(cls, f, name):
+    def filter_for_field(cls, f, name, lookup_type=None):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
 
         default = {
