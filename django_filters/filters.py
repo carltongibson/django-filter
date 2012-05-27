@@ -14,7 +14,12 @@ __all__ = [
     'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
 ]
 
-LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
+# in django 1.5 QUERY_TERMS type is set instead of dict
+if type(QUERY_TERMS) == set:
+    LOOKUP_TYPES = sorted(QUERY_TERMS)
+else:
+    LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
+
 
 class Filter(object):
     creation_counter = 0
