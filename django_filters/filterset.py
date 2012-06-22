@@ -284,15 +284,56 @@ class BaseFilterSet(object):
 
         if f.choices:
             default['choices'] = f.choices
+            if '' not in [ f[0] for f in default['choices']]:
+                default['choices'] = (('', u'----'),) + default['choices']
             return ChoiceFilter(**default)
 
         data = filter_for_field.get(f.__class__)
         if data is None:
             return
-        filter_class = data.get('filter_class')
-        default.update(data.get('extra', lambda f: {})(f))
+
+        if lookup_type and data.get('filter_class_' + lookup_type):
+            filter_class = data.get('filter_class_' + lookup_type)
+            default.update(data.get('extra_' + lookup_type, lambda f: {})(f))
+        else:
+            filter_class = data.get('filter_class')
+            if lookup_type :
+                default.update({'lookup_type':lookup_type})
+            default.update(data.get('extra', lambda f: {})(f))
+
         if filter_class is not None:
             return filter_class(**default)
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass
+
+def modelfilter_factory(model, filter=FilterSet, fields=None, exclude=None,
+                       prefix=None, order_by=None, form=forms.Form):
+    attrs = {'model': model, 'form':form}
+
+    if fields is not None:
+        attrs['fields'] = fields
+    if exclude is not None:
+        attrs['exclude'] = exclude
+    if prefix is not None:
+        attrs['prefix'] = prefix
+    if order_by is not None:
+        attrs['order_by'] = order_by
+
+    parent = (object,)
+    if hasattr(filter, 'Meta'):
+        parent = (store.Meta, object)
+    Meta = type('Meta', parent, attrs)
+
+    class_name = model.__name__ + 'Filter'
+
+    filter_class_attrs = {
+        'Meta': Meta,
+    }
+
+    filter_metaclass = FilterSetMetaclass
+
+    if issubclass(filter, BaseFilterSet) and hasattr(filter, '__metaclass__'):
+        filter_metaclass = filter.__metaclass__
+
+    return filter_metaclass(class_name, (filter,), filter_class_attrs)
