@@ -85,6 +85,7 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
+        self.prefix = getattr(options, 'prefix', None)
 
         self.order_by = getattr(options, 'order_by', False)
 
@@ -211,7 +212,7 @@ class BaseFilterSet(object):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
-        self.form_prefix = prefix
+        self.form_prefix = self._meta.prefix if prefix is None else prefix
 
         self.filters = deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -251,7 +252,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
             fields[ORDER_BY_FIELD] = self.ordering_field
-            Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
+            Form = type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
