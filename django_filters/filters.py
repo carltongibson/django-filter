@@ -56,7 +56,8 @@ class Filter(object):
         if isinstance(value, (list, tuple)):
             lookup = str(value[1])
             if not lookup:
-                lookup = 'exact' # we fallback to exact if no choice for lookup is provided
+                # default lookup type
+                lookup = 'exact'
             value = value[0]
         else:
             lookup = self.lookup_type
@@ -131,7 +132,7 @@ class DateRangeFilter(ChoiceFilter):
         })),
         2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
             '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
-            '%s__lt' % name: (datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'),
+            '%s__lt' % name: (datetime.today() + timedelta(days=1)).strftime('%Y-%m-%d'),
         })),
         3: (_('This month'), lambda qs, name: qs.filter(**{
             '%s__year' % name: datetime.today().year,
