@@ -9,7 +9,7 @@ arguments.
 
 This widget renders each option as a link, intead of an actual <input>.  It has
 one method that you can overide for additional customizability.
-``option_string()`` should return a string with 3 Python keyword arugment
+``option_string()`` should return a string with 3 Python keyword argument
 placeholders::
 
     1. ``attrs``: This is a string with all the attributes that will be on the

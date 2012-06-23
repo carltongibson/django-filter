@@ -54,7 +54,7 @@ Similar to a ``ChoiceFilter`` except it works with related models, used for
 ``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Similar to a ``MultipleChoiceFilter`` except it works with related models, uesd
+Similar to a ``MultipleChoiceFilter`` except it works with related models, used
 for ``ManyToManyField`` by default.
 
 ``NumberFilter``
@@ -77,7 +77,7 @@ selections for working with date fields.
 ``AllValuesFilter``
 ~~~~~~~~~~~~~~~~~~~
 
-This is a ``ChoiceFilter`` who's choices are the current values in the
+This is a ``ChoiceFilter`` whose choices are the current values in the
 database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
@@ -102,7 +102,7 @@ argument.
 
 The django.form Widget class which will represent the ``Filter``.  In addition
 to the widgets that are included with Django that you can use there are
-additional ones that django-filte provides which may be useful:
+additional ones that django-filter provides which may be useful:
     * ``django_filters.widgets.LinkWidget`` -- this displays the options in a
       mannner similar to the way the Django Admin does, as a series of links.
       The link for the selected option will have ``class="selected"``.
@@ -117,11 +117,11 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ``lookup_type``
 ~~~~~~~~~~~~~~~
 
-The type of lookup that should be preformed using the Django ORM.  All the
+The type of lookup that should be performed using the Django ORM.  All the
 normal options are allowed, and should be provided as a string.  You can also
-provide either ``None`` or a ``list`` or ``tuple``, if ``None`` is provided
-then user can select the lookup_type from all the ones available in the Django
-ORM, and if a ``list`` or ``tuple`` is provided the user can select from those
+provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
+then the user can select the lookup type from all the ones available in the Django
+ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from those
 options.
 
 ``**kwargs``

@@ -81,3 +81,29 @@ class LookupTypeWidget(forms.MultiWidget):
         if value is None:
             return [None, None]
         return value
+
+class DateRangeWidget(forms.MultiWidget):
+    def __init__(self, attrs=None):
+        widgets = (forms.DateInput(attrs=attrs), forms.DateInput(attrs=attrs))
+        super(DateRangeWidget, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value.start, value.stop]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        return u'-'.join(rendered_widgets)
+
+class DateTimeRangeWidget(forms.MultiWidget):
+    def __init__(self, attrs=None):
+        widgets = (forms.DateTimeInput(attrs=attrs), forms.DateTimeInput(attrs=attrs))
+        super(DateTimeRangeWidget, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value.start, value.stop]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        return u'-'.join(rendered_widgets)
