@@ -5,13 +5,14 @@ from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
 
-from django_filters.fields import RangeField, LookupTypeField
+from django_filters.fields import RangeField, LookupTypeField, DateRangeField, DateTimeRangeField
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'SelectDateRangeFilter', 'AllValuesFilter',
+    'DateRangeFilter', 'DateTimeRangeFilter'
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -56,7 +57,8 @@ class Filter(object):
         if isinstance(value, (list, tuple)):
             lookup = str(value[1])
             if not lookup:
-                lookup = 'exact' # we fallback to exact if no choice for lookup is provided
+                # default lookup type
+                lookup = 'exact'
             value = value[0]
         else:
             lookup = self.lookup_type
@@ -121,7 +123,7 @@ class RangeFilter(Filter):
             return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
         return qs
 
-class DateRangeFilter(ChoiceFilter):
+class SelectDateRangeFilter(ChoiceFilter):
     options = {
         '': (_('Any Date'), lambda qs, name: qs.all()),
         1: (_('Today'), lambda qs, name: qs.filter(**{
@@ -131,7 +133,7 @@ class DateRangeFilter(ChoiceFilter):
         })),
         2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
             '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
-            '%s__lt' % name: (datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'),
+            '%s__lt' % name: (datetime.today() + timedelta(days=1)).strftime('%Y-%m-%d'),
         })),
         3: (_('This month'), lambda qs, name: qs.filter(**{
             '%s__year' % name: datetime.today().year,
@@ -152,6 +154,22 @@ class DateRangeFilter(ChoiceFilter):
         except (ValueError, TypeError):
             value = ''
         return self.options[value][1](qs, self.name)
+
+class DateRangeFilter(Filter):
+    field_class = DateRangeField
+
+    def filter(self, qs, value):
+        if value:
+            if value.start and value.stop:
+                return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+            elif value.start:
+                return qs.filter(**{'%s__gte' % self.name: value.start})
+            elif value.stop:
+                return qs.filter(**{'%s__lte' % self.name: value.stop})
+        return qs
+
+class DateTimeRangeFilter(DateRangeFilter):
+    field_class = DateTimeRangeField
 
 class AllValuesFilter(ChoiceFilter):
     @property
