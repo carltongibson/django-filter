@@ -10,7 +10,7 @@ from django.utils.text import capfirst
 
 from django_filters.filters import Filter, CharFilter, BooleanFilter, \
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
-    ModelMultipleChoiceFilter, NumberFilter
+    ModelMultipleChoiceFilter, NumberFilter, DateRangeFilter, DateTimeRangeFilter
 
 ORDER_BY_FIELD = 'o'
 
@@ -130,13 +130,15 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': BooleanFilter
     },
     models.DateField: {
-        'filter_class': DateFilter
+        'filter_class': DateFilter,
+        'filter_class_range': DateRangeFilter
     },
     models.DateTimeField: {
         'filter_class': DateTimeFilter
     },
     models.TimeField: {
-        'filter_class': TimeFilter
+        'filter_class': TimeFilter,
+        'filter_class_range': DateTimeRangeFilter
     },
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,

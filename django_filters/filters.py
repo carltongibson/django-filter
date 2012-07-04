@@ -11,8 +11,8 @@ __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', 
-    'CustomDateRangeFilter', 'CustomDateTimeRangeFilter'
+    'RangeFilter', 'SelectDateRangeFilter', 'AllValuesFilter',
+    'DateRangeFilter', 'DateTimeRangeFilter'
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -123,7 +123,7 @@ class RangeFilter(Filter):
             return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
         return qs
 
-class DateRangeFilter(ChoiceFilter):
+class SelectDateRangeFilter(ChoiceFilter):
     options = {
         '': (_('Any Date'), lambda qs, name: qs.all()),
         1: (_('Today'), lambda qs, name: qs.filter(**{
@@ -155,21 +155,21 @@ class DateRangeFilter(ChoiceFilter):
             value = ''
         return self.options[value][1](qs, self.name)
 
-class CustomDateRangeFilter(Filter):
+class DateRangeFilter(Filter):
     field_class = DateRangeField
 
     def filter(self, qs, value):
         if value:
-            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+            if value.start and value.stop:
+                return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+            elif value.start:
+                return qs.filter(**{'%s__gte' % self.name: value.start})
+            elif value.stop:
+                return qs.filter(**{'%s__lte' % self.name: value.stop})
         return qs
-        
-class CustomDateTimeRangeFilter(Filter):
-    field_class = DateTimeRangeField
 
-    def filter(self, qs, value):
-        if value:
-            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
-        return qs
+class DateTimeRangeFilter(DateRangeFilter):
+    field_class = DateTimeRangeField
 
 class AllValuesFilter(ChoiceFilter):
     @property
