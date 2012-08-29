@@ -4,13 +4,13 @@ from django import forms
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.related import RelatedObject
-from django.db.models.sql.constants import LOOKUP_SEP
+from django.db.models.sql.constants import QUERY_TERMS, LOOKUP_SEP
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
 from django_filters.filters import Filter, CharFilter, BooleanFilter, \
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
-    ModelMultipleChoiceFilter, NumberFilter
+    ModelMultipleChoiceFilter, NumberFilter, DateRangeFilter, DateTimeRangeFilter
 
 ORDER_BY_FIELD = 'o'
 
@@ -65,11 +65,17 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
     for f in fields:
         if exclude is not None and f in exclude:
             continue
+
+        if f.split(LOOKUP_SEP)[-1] in QUERY_TERMS.keys():
+            lookup_type = f.split(LOOKUP_SEP)[-1]
+            f = LOOKUP_SEP.join(f.split(LOOKUP_SEP)[:-1])
+        else:
+            lookup_type = None
         field = get_model_field(model, f)
         if field is None:
             field_dict[f] = None
             continue
-        filter_ = filter_for_field(field, f)
+        filter_ = filter_for_field(field, f, lookup_type)
         if filter_:
             field_dict[f] = filter_
     return field_dict
@@ -79,6 +85,7 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
+        self.prefix = getattr(options, 'prefix', None)
 
         self.order_by = getattr(options, 'order_by', False)
 
@@ -123,13 +130,15 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': BooleanFilter
     },
     models.DateField: {
-        'filter_class': DateFilter
+        'filter_class': DateFilter,
+        'filter_class_range': DateRangeFilter
     },
     models.DateTimeField: {
         'filter_class': DateTimeFilter
     },
     models.TimeField: {
-        'filter_class': TimeFilter
+        'filter_class': TimeFilter,
+        'filter_class_range': DateTimeRangeFilter
     },
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
@@ -205,7 +214,7 @@ class BaseFilterSet(object):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
-        self.form_prefix = prefix
+        self.form_prefix = self._meta.prefix if prefix is None else prefix
 
         self.filters = deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -245,7 +254,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
             fields[ORDER_BY_FIELD] = self.ordering_field
-            Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
+            Form = type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
@@ -255,7 +264,10 @@ class BaseFilterSet(object):
     def get_ordering_field(self):
         if self._meta.order_by:
             if isinstance(self._meta.order_by, (list, tuple)):
-                choices = [(f, capfirst(f)) for f in self._meta.order_by]
+                if isinstance(self._meta.order_by[0], (list, tuple)):
+                    choices = [(f[0], f[1]) for f in self._meta.order_by]
+                else:
+                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
             else:
                 choices = [(f, capfirst(f)) for f in self.filters]
             return forms.ChoiceField(label="Ordering", required=False, choices=choices)
@@ -267,7 +279,7 @@ class BaseFilterSet(object):
         return self._ordering_field
 
     @classmethod
-    def filter_for_field(cls, f, name):
+    def filter_for_field(cls, f, name, lookup_type=None):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
 
         default = {
@@ -277,15 +289,56 @@ class BaseFilterSet(object):
 
         if f.choices:
             default['choices'] = f.choices
+            if '' not in [ f[0] for f in default['choices']]:
+                default['choices'] = (('', u'----'),) + default['choices']
             return ChoiceFilter(**default)
 
         data = filter_for_field.get(f.__class__)
         if data is None:
             return
-        filter_class = data.get('filter_class')
-        default.update(data.get('extra', lambda f: {})(f))
+
+        if lookup_type and data.get('filter_class_' + lookup_type):
+            filter_class = data.get('filter_class_' + lookup_type)
+            default.update(data.get('extra_' + lookup_type, lambda f: {})(f))
+        else:
+            filter_class = data.get('filter_class')
+            if lookup_type :
+                default.update({'lookup_type':lookup_type})
+            default.update(data.get('extra', lambda f: {})(f))
+
         if filter_class is not None:
             return filter_class(**default)
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass
+
+def modelfilter_factory(model, filter=FilterSet, fields=None, exclude=None,
+                       prefix=None, order_by=None, form=forms.Form):
+    attrs = {'model': model, 'form':form}
+
+    if fields is not None:
+        attrs['fields'] = fields
+    if exclude is not None:
+        attrs['exclude'] = exclude
+    if prefix is not None:
+        attrs['prefix'] = prefix
+    if order_by is not None:
+        attrs['order_by'] = order_by
+
+    parent = (object,)
+    if hasattr(filter, 'Meta'):
+        parent = (store.Meta, object)
+    Meta = type('Meta', parent, attrs)
+
+    class_name = model.__name__ + 'Filter'
+
+    filter_class_attrs = {
+        'Meta': Meta,
+    }
+
+    filter_metaclass = FilterSetMetaclass
+
+    if issubclass(filter, BaseFilterSet) and hasattr(filter, '__metaclass__'):
+        filter_metaclass = filter.__metaclass__
+
+    return filter_metaclass(class_name, (filter,), filter_class_attrs)
