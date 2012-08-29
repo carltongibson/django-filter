@@ -146,7 +146,7 @@ class SelectDateRangeFilter(ChoiceFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = [(key, value[0]) for key, value in self.options.iteritems()]
-        super(DateRangeFilter, self).__init__(*args, **kwargs)
+        super(SelectDateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         try:
