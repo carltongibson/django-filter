@@ -12,7 +12,7 @@ __all__ = [
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
     'RangeFilter', 'SelectDateRangeFilter', 'AllValuesFilter',
-    'DateRangeFilter', 'DateTimeRangeFilter'
+    'DateRangeFilter', 'DateTimeRangeFilter', 'CustomDateRangeFilter', 'CustomDateTimeRangeFilter'
 ]
 
 LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
@@ -170,6 +170,22 @@ class DateRangeFilter(Filter):
 
 class DateTimeRangeFilter(DateRangeFilter):
     field_class = DateTimeRangeField
+    
+class CustomDateRangeFilter(Filter):
+    field_class = DateRangeField
+
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+        return qs
+        
+class CustomDateTimeRangeFilter(Filter):
+    field_class = DateTimeRangeField
+
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+        return qs
 
 class AllValuesFilter(ChoiceFilter):
     @property
