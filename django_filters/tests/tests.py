@@ -106,7 +106,7 @@ class InitialValueTest(TestCase):
 
 class RelatedObjectTest(TestCase):
     fixtures = ['test_data']
-    
+
     def test_foreignkey(self):
         class F(django_filters.FilterSet):
             class Meta:
@@ -125,7 +125,7 @@ class RelatedObjectTest(TestCase):
             class Meta:
                 model = Article
                 fields = ['author__username']
-            
+
         form_html = ('<tr><th><label for="id_author__username">Author  '
             'username:</label></th><td><select name="author__username" '
             'id="id_author__username">\n<option value="alex">alex</option>\n'
@@ -141,19 +141,19 @@ class MultipleChoiceFilterTest(TestCase):
             class Meta:
                 model = User
                 fields = ["status"]
-        
+
         self.assertEqual(list(F({"status": [0, 1]}).qs), list(User.objects.all()))
 
 class MultipleLookupTypesTest(TestCase):
     fixtures = ['test_data']
-    
+
     def test_no_GET_params(self):
         class F(django_filters.FilterSet):
             published = django_filters.DateTimeFilter(lookup_type=['gt', 'lt'])
             class Meta:
                 model = Article
                 fields = ['published']
-        
+
         self.assertEqual(list(F({}).qs), list(Article.objects.all()))
 
 filter_tests = """

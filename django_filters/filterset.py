@@ -4,9 +4,13 @@ from django import forms
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.related import RelatedObject
-from django.db.models.sql.constants import LOOKUP_SEP
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
+
+try:
+    from django.db.models.constants import LOOKUP_SEP
+except ImportError:  # Django < 1.5 fallback
+    from django.db.models.sql.constants import LOOKUP_SEP
 
 from django_filters.filters import Filter, CharFilter, BooleanFilter, \
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
