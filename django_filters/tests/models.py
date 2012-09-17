@@ -8,6 +8,7 @@ STATUS_CHOICES = (
     (1, 'Admin'),
 )
 
+
 class User(models.Model):
     username = models.CharField(max_length=255)
     first_name = models.CharField(max_length=100)
@@ -21,6 +22,7 @@ class User(models.Model):
 
     def __unicode__(self):
         return self.username
+
 
 class Comment(models.Model):
     text = models.TextField()
@@ -46,11 +48,13 @@ class Book(models.Model):
     def __unicode__(self):
         return self.title
 
+
 class Place(models.Model):
     name = models.CharField(max_length=100)
 
     class Meta:
         abstract = True
+
 
 class Restaurant(Place):
     serves_pizza = models.BooleanField()

@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
+from django.utils.timezone import now
 
 from django_filters.fields import RangeField, LookupTypeField
 
@@ -14,7 +15,8 @@ __all__ = [
     'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
 ]
 
-LOOKUP_TYPES = sorted(QUERY_TERMS.keys())
+LOOKUP_TYPES = sorted(QUERY_TERMS)
+
 
 class Filter(object):
     creation_counter = 0
@@ -56,7 +58,7 @@ class Filter(object):
         if isinstance(value, (list, tuple)):
             lookup = str(value[1])
             if not lookup:
-                lookup = 'exact' # we fallback to exact if no choice for lookup is provided
+                lookup = 'exact'  # we fallback to exact if no choice for lookup is provided
             value = value[0]
         else:
             lookup = self.lookup_type
@@ -64,8 +66,10 @@ class Filter(object):
             return qs.filter(**{'%s__%s' % (self.name, lookup): value})
         return qs
 
+
 class CharFilter(Filter):
     field_class = forms.CharField
+
 
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
@@ -75,8 +79,10 @@ class BooleanFilter(Filter):
             return qs.filter(**{self.name: value})
         return qs
 
+
 class ChoiceFilter(Filter):
     field_class = forms.ChoiceField
+
 
 class MultipleChoiceFilter(Filter):
     """
@@ -95,23 +101,30 @@ class MultipleChoiceFilter(Filter):
             q |= Q(**{self.name: v})
         return qs.filter(q).distinct()
 
+
 class DateFilter(Filter):
     field_class = forms.DateField
+
 
 class DateTimeFilter(Filter):
     field_class = forms.DateTimeField
 
+
 class TimeFilter(Filter):
     field_class = forms.TimeField
+
 
 class ModelChoiceFilter(Filter):
     field_class = forms.ModelChoiceField
 
+
 class ModelMultipleChoiceFilter(MultipleChoiceFilter):
     field_class = forms.ModelMultipleChoiceField
 
+
 class NumberFilter(Filter):
     field_class = forms.DecimalField
+
 
 class RangeFilter(Filter):
     field_class = RangeField
@@ -121,24 +134,28 @@ class RangeFilter(Filter):
             return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
         return qs
 
+
+_truncate = lambda dt: dt.replace(hour=0, minute=0, second=0)
+
+
 class DateRangeFilter(ChoiceFilter):
     options = {
         '': (_('Any Date'), lambda qs, name: qs.all()),
         1: (_('Today'), lambda qs, name: qs.filter(**{
-            '%s__year' % name: datetime.today().year,
-            '%s__month' % name: datetime.today().month,
-            '%s__day' % name: datetime.today().day
+            '%s__year' % name: now().year,
+            '%s__month' % name: now().month,
+            '%s__day' % name: now().day
         })),
         2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
-            '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
-            '%s__lt' % name: (datetime.today()+timedelta(days=1)).strftime('%Y-%m-%d'),
+            '%s__gte' % name: _truncate(now() - timedelta(days=7)),
+            '%s__lt' % name: _truncate(now() + timedelta(days=1)),
         })),
         3: (_('This month'), lambda qs, name: qs.filter(**{
-            '%s__year' % name: datetime.today().year,
-            '%s__month' % name: datetime.today().month
+            '%s__year' % name: now().year,
+            '%s__month' % name: now().month
         })),
         4: (_('This year'), lambda qs, name: qs.filter(**{
-            '%s__year' % name: datetime.today().year,
+            '%s__year' % name: now().year,
         })),
     }
 
@@ -152,6 +169,7 @@ class DateRangeFilter(ChoiceFilter):
         except (ValueError, TypeError):
             value = ''
         return self.options[value][1](qs, self.name)
+
 
 class AllValuesFilter(ChoiceFilter):
     @property
