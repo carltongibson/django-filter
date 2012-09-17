@@ -1,12 +1,15 @@
-import datetime
 import os
 
 from django import forms
 from django.conf import settings
 from django.test import TestCase
+from django.utils.timezone import now
 
-from django_filters import *
-from django_filters.widgets import *
+from django_filters.filterset import FilterSet
+from django_filters.filters import (AllValuesFilter, CharFilter, ChoiceFilter,
+    DateRangeFilter, DateTimeFilter, MultipleChoiceFilter, NumberFilter,
+    RangeFilter)
+from django_filters.widgets import LinkWidget
 
 from django_filters.tests.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
@@ -30,6 +33,7 @@ class GenericViewTests(TestCase):
         for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
             self.assertContains(response, b)
 
+
 class InheritanceTest(TestCase):
     def test_inheritance(self):
         class F(FilterSet):
@@ -39,6 +43,7 @@ class InheritanceTest(TestCase):
         class G(F):
             pass
         self.assertEqual(set(F.base_filters), set(G.base_filters))
+
 
 class ModelInheritanceTest(TestCase):
     def test_abstract(self):
@@ -58,11 +63,14 @@ class ModelInheritanceTest(TestCase):
 
 class DateRangeFilterTest(TestCase):
     def test_filter(self):
-        a = Article.objects.create(published=datetime.datetime.today())
+        a = Article.objects.create(published=now())
+
         class F(FilterSet):
             published = DateRangeFilter()
+
             class Meta:
                 model = Article
+
         f = F({'published': '2'})
         self.assertEqual(list(f), [a])
 
@@ -70,10 +78,13 @@ class DateRangeFilterTest(TestCase):
 class FilterSetForm(TestCase):
     def test_prefix(self):
         class F(FilterSet):
+
             class Meta:
                 model = Restaurant
                 fields = ['name']
+
         self.assert_('blah-prefix' in unicode(F(prefix='blah-prefix').form))
+
 
 class AllValuesFilterTest(TestCase):
     fixtures = ['test_data']
@@ -81,9 +92,11 @@ class AllValuesFilterTest(TestCase):
     def test_filter(self):
         class F(FilterSet):
             username = AllValuesFilter()
+
             class Meta:
                 model = User
                 fields = ['username']
+
         form_html = ('<tr><th><label for="id_username">Username:</label></th>'
             '<td><select name="username" id="id_username">\n'
             '<option value="aaron">aaron</option>\n<option value="alex">alex'
@@ -94,15 +107,18 @@ class AllValuesFilterTest(TestCase):
         self.assertEqual(list(F({'username': 'alex'})), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})), list(User.objects.all()))
 
+
 class InitialValueTest(TestCase):
     fixtures = ['test_data']
 
     def test_initial(self):
         class F(FilterSet):
             status = ChoiceFilter(choices=STATUS_CHOICES, initial=1)
+
             class Meta:
                 model = User
                 fields = ['status']
+
         self.assertEqual(list(F().qs), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'status': 0})), list(User.objects.filter(status=0)))
 
@@ -125,6 +141,7 @@ class RelatedObjectTest(TestCase):
 
         class F(FilterSet):
             author__username = AllValuesFilter()
+
             class Meta:
                 model = Article
                 fields = ['author__username']
@@ -147,12 +164,14 @@ class MultipleChoiceFilterTest(TestCase):
 
         self.assertEqual(list(F({"status": [0, 1]}).qs), list(User.objects.all()))
 
+
 class MultipleLookupTypesTest(TestCase):
     fixtures = ['test_data']
 
     def test_no_GET_params(self):
         class F(FilterSet):
             published = DateTimeFilter(lookup_type=['gt', 'lt'])
+
             class Meta:
                 model = Article
                 fields = ['published']
@@ -209,6 +228,7 @@ class FilterSetTest(TestCase):
 
         class F(FilterSet):
             status = ChoiceFilter(widget=forms.RadioSelect, choices=STATUS_CHOICES)
+
             class Meta:
                 model = User
                 fields = ['status', 'username']
@@ -225,17 +245,19 @@ class FilterSetTest(TestCase):
     def test_char_filter(self):
         class F(FilterSet):
             username = CharFilter(action=lambda qs, value: qs.filter(**{'username__startswith': value}))
+
             class Meta:
                 model = User
                 fields = ['username']
 
-        users = User.objects.filter(username__startswith = 'a').values_list('pk', flat=True)
+        users = User.objects.filter(username__startswith='a').values_list('pk', flat=True)
         f = F({'username': 'a'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, users, lambda o: o.pk, False)
 
     def test_multiple_choice_filter(self):
         class F(FilterSet):
             status = MultipleChoiceFilter(choices=STATUS_CHOICES)
+
             class Meta:
                 model = User
                 fields = ['status']
@@ -320,7 +342,6 @@ class FilterSetTest(TestCase):
         f = F({'price': 15}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
 
-
         f = F({'average_rating': '4.5'}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six'], lambda o: o.title)
 
@@ -354,6 +375,7 @@ class FilterSetTest(TestCase):
 
         class F(FilterSet):
             price = NumberFilter(lookup_type=['lt', 'gt', 'exact'])
+
             class Meta:
                 model = Book
                 fields = ['price']
@@ -364,9 +386,11 @@ class FilterSetTest(TestCase):
     def test_range_filter(self):
         class F(FilterSet):
             price = RangeFilter()
+
             class Meta:
                 model = Book
                 fields = ['price']
+
         f = F(queryset=Book.objects.all())
         self.assertEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" />-<input type="text" name="price_1" id="id_price_1" />')
 
@@ -377,9 +401,11 @@ class FilterSetTest(TestCase):
     def test_choice_filter(self):
         class F(FilterSet):
             status = ChoiceFilter(widget=LinkWidget, choices=STATUS_CHOICES)
+
             class Meta:
                 model = User
                 fields = ['status']
+
         f = F()
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username, False)
 
@@ -411,9 +437,11 @@ class FilterSetTest(TestCase):
     def test_date_range_filter(self):
         class F(FilterSet):
             date = DateRangeFilter(widget=LinkWidget)
+
             class Meta:
                 model = Comment
                 fields = ['date']
+
         f = F()
         self.assertEqual(str(f.form), """<tr><th><label for="id_date">Date:</label></th><td><ul id="id_date">
 <li><a class="selected" href="?date=">Any Date</a></li>
@@ -428,7 +456,9 @@ class FilterSetTest(TestCase):
         #self.assertQuerysetEqual(f.qs, [], lambda o: o.pk, False)
         #f = F({})
         #self.assertQuerysetEqual(f.qs, [], lambda o: o.pk, False)
-        #_ = Comment.objects.create(text="Wowa", author = User.objects.get(username="alex"), date=datetime.today(), time="12:30")
+        #user = User.objects.get(username="alex")
+        #_ = Comment.objects.create(text="Wowa", author=user,
+        #    date=now(), time="12:30")
         #f = F({'date': '2'})
         #self.assertQuerysetEqual(f.qs, [], lambda o: o.pk, False)
 
@@ -450,4 +480,3 @@ class FilterSetTest(TestCase):
                 class Meta:
                     model = User
                     fields = ['name']
-

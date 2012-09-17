@@ -18,6 +18,7 @@ from django_filters.filters import Filter, CharFilter, BooleanFilter, \
 
 ORDER_BY_FIELD = 'o'
 
+
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
     for filter_name, obj in attrs.items():
@@ -38,6 +39,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
                 filters = base.declared_filters.items() + filters
 
     return SortedDict(filters)
+
 
 def get_model_field(model, f):
     parts = f.split(LOOKUP_SEP)
@@ -61,6 +63,7 @@ def get_model_field(model, f):
         return rel.field.rel.to_field
     return rel
 
+
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
     field_dict = SortedDict()
     opts = model._meta
@@ -78,6 +81,7 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
             field_dict[f] = filter_
     return field_dict
 
+
 class FilterSetOptions(object):
     def __init__(self, options=None):
         self.model = getattr(options, 'model', None)
@@ -87,6 +91,7 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
 
         self.form = getattr(options, 'form', forms.Form)
+
 
 class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
@@ -115,6 +120,7 @@ class FilterSetMetaclass(type):
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
         return new_class
+
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
     models.CharField: {
@@ -200,6 +206,7 @@ if hasattr(models, "XMLField"):
         'filter_class': CharFilter,
     }
 
+
 class BaseFilterSet(object):
     filter_overrides = {}
 
@@ -249,7 +256,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
             fields[ORDER_BY_FIELD] = self.ordering_field
-            Form =  type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
+            Form = type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
@@ -290,6 +297,7 @@ class BaseFilterSet(object):
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
             return filter_class(**default)
+
 
 class FilterSet(BaseFilterSet):
     __metaclass__ = FilterSetMetaclass

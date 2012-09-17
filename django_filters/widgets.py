@@ -8,6 +8,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
+
 class LinkWidget(forms.Widget):
     def __init__(self, attrs=None, choices=()):
         super(LinkWidget, self).__init__(attrs)
@@ -63,6 +64,7 @@ class LinkWidget(forms.Widget):
     def option_string(self):
         return '<li><a%(attrs)s href="?%(query_string)s">%(label)s</a></li>'
 
+
 class RangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
         widgets = (forms.TextInput(attrs=attrs), forms.TextInput(attrs=attrs))
@@ -75,6 +77,7 @@ class RangeWidget(forms.MultiWidget):
 
     def format_output(self, rendered_widgets):
         return u'-'.join(rendered_widgets)
+
 
 class LookupTypeWidget(forms.MultiWidget):
     def decompress(self, value):

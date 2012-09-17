@@ -7,7 +7,8 @@ f.close()
 setup(
     name='django-filter',
     version='0.5.3',
-    description='Django-filter is a reusable Django application for allowing users to filter queryset dynamically.',
+    description=('Django-filter is a reusable Django application for allowing'
+                 ' users to filter queryset dynamically.'),
     long_description=readme,
     author='Alex Gaynor',
     author_email='alex.gaynor@gmail.com',
@@ -22,7 +23,7 @@ setup(
         'Programming Language :: Python',
         'Framework :: Django',
     ],
-    package_data = {
+    package_data={
         'django_filters.tests': [
             'fixtures/*.json',
             'templates/tests/*.html',
