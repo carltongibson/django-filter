@@ -226,6 +226,14 @@ class BaseFilterSet(object):
     def __iter__(self):
         for obj in self.qs:
             yield obj
+    
+    def __len__(self):
+        # compatibility with django-pagination
+        return len(self.qs)
+
+    def __getitem__(self, key):
+        # compatibility with django-pagination
+        return self.qs[key]
 
     def __len__(self):
         return len(self.qs)
