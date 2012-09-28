@@ -227,6 +227,12 @@ class BaseFilterSet(object):
         for obj in self.qs:
             yield obj
 
+    def __len__(self):
+        return len(self.qs)
+
+    def __getitem__(self, key):
+        return self.qs[key]
+
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
