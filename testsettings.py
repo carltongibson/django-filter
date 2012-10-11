@@ -13,3 +13,5 @@ INSTALLED_APPS = (
 ROOT_URLCONF = None
 
 USE_TZ = True
+
+SECRET_KEY = 'foobar'
