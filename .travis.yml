@@ -1,0 +1,15 @@
+language: python
+
+python:
+  - "2.6"
+  - "2.7"
+
+env:
+  - DJANGO=https://github.com/django/django/zipball/master
+  - DJANGO=django==1.4.1 --use-mirrors
+
+install:
+  - pip install $DJANGO
+
+script:
+  - python ./manage.py test -v 2
