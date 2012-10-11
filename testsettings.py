@@ -7,7 +7,7 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'django_filters',
-    'django_filters.tests'
+    'django_filters.tests',
 )
 
 ROOT_URLCONF = None
