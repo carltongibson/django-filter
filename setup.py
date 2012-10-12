@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-f = open('README.md')
+f = open('README.rst')
 readme = f.read()
 f.close()
 

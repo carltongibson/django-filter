@@ -1,31 +1,35 @@
-# Django Filter
+Django Filter
+=============
 
 Django-filter is a reusable Django application for allowing users to filter
 querysets dynamically.
 
-Full documentation on [read the docs][docs].
+Full documentation on `read the docs`_.
 
-## Requirements
+Requirements
+------------
 
 * Python 2.6+
 * Django 1.4+
 
-## Installation
+Installation
+------------
 
-Install using pip.
+Install using pip::
 
     pip install -e git+https://github.com/alex/django-filter.git#egg=django-filter
 
-Or clone the repo and add to your PYTHONPATH.
+Or clone the repo and add to your PYTHONPATH::
 
     git clone git@github.com:alex/django-filter.git
 
-## Usage
+Usage
+-----
 
 Django-filter can be used for generating interfaces similar to the Django
 admin's ``list_filter`` interface.  It has an API very similar to Django's
 ``ModelForms``.  For example, if you had a Product model you could have a
-filterset for it with the code:
+filterset for it with the code::
 
     import django_filters
 
@@ -35,18 +39,20 @@ filterset for it with the code:
             fields = ['name', 'price', 'manufacturer']
 
 
-And then in your view you could do:
+And then in your view you could do::
 
     def product_list(request):
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
         return render_to_response('my_app/template.html', {'filter': filter})
 
-## Support
+Support
+-------
 
 If you have questions about usage or development you can join the
-[mailing list][mailing-list].
+`mailing list`_.
 
-## License
+License
+-------
 
 Copyright (c) 2009-2012, Alex Gaynor
 All rights reserved.
@@ -73,5 +79,5 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-[docs]: https://django-filter.readthedocs.org/en/latest/
-[mailing-list]: http://groups.google.com/group/django-filter
+.. _`read the docs`: https://django-filter.readthedocs.org/en/latest/
+.. _`mailing list`: http://groups.google.com/group/django-filter
