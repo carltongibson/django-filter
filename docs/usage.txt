@@ -91,6 +91,14 @@ You can also allow the user to control ordering, this is done by providing the
 it can be a ``bool`` which, if True, indicates that all fields that
 the user can filter on can also be sorted on.
 
+If ``order_by`` is a list of lists, the inner lists must be in name/label 
+pairs. This lets you override the display names of your ordering fields::
+
+    order_by = (
+        ('name', 'Company Name'),
+        ('average_rating', 'Stars'),
+        )
+
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
