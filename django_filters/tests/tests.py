@@ -3,12 +3,13 @@ import os
 from django import forms
 from django.conf import settings
 from django.test import TestCase
+
 # timezone support is new in Django 1.4
 try:
-    from django.utils import timezone as datetime
+    from django.utils.timezone import now
 except ImportError:
     from datetime import datetime
-
+    now = datetime.now
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import (AllValuesFilter, CharFilter, ChoiceFilter,
@@ -89,7 +90,7 @@ class ModelInheritanceTest(TestCase):
 
 class DateRangeFilterTest(TestCase):
     def test_filter(self):
-        a = Article.objects.create(published=datetime.now())
+        a = Article.objects.create(published=now())
 
         class F(FilterSet):
             published = DateRangeFilter()

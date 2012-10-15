@@ -5,11 +5,12 @@ from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
 
-import django
-if django.VERSION[:2] >= (1,4):
+# timezone support is new in Django 1.4.
+try:
     from django.utils.timezone import now
-else:
+except ImportError:
     from datetime import datetime
+    now = datetime.now
 
 from django_filters.fields import RangeField, LookupTypeField
 
@@ -144,47 +145,25 @@ _truncate = lambda dt: dt.replace(hour=0, minute=0, second=0)
 
 
 class DateRangeFilter(ChoiceFilter):
-    if django.VERSION[:2] >= (1,4):
-        options = {
-            '': (_('Any Date'), lambda qs, name: qs.all()),
-            1: (_('Today'), lambda qs, name: qs.filter(**{
-                '%s__year' % name: now().year,
-                '%s__month' % name: now().month,
-                '%s__day' % name: now().day
-            })),
-            2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
-                '%s__gte' % name: _truncate(now() - timedelta(days=7)),
-                '%s__lt' % name: _truncate(now() + timedelta(days=1)),
-            })),
-            3: (_('This month'), lambda qs, name: qs.filter(**{
-                '%s__year' % name: now().year,
-                '%s__month' % name: now().month
-            })),
-            4: (_('This year'), lambda qs, name: qs.filter(**{
-                '%s__year' % name: now().year,
-            })),
-        }
-    else:
-        options = {
-            '': (_('Any Date'), lambda qs, name: qs.all()),
-            1: (_('Today'), lambda qs, name: qs.filter(**{
-                '%s__year' % name: datetime.today().year,
-                '%s__month' % name: datetime.today().month,
-                '%s__day' % name: datetime.today().day
-            })),
-            2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
-                '%s__gte' % name: (datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
-                '%s__lt' % name: (datetime.today() + timedelta(days=1)).strftime('%Y-%m-%d'),
-                })),
-            3: (_('This month'), lambda qs, name: qs.filter(**{
-                '%s__year' % name: datetime.today().year,
-                '%s__month' % name: datetime.today().month
-            })),
-            4: (_('This year'), lambda qs, name: qs.filter(**{
-                '%s__year' % name: datetime.today().year,
-                })),
-            }
-
+    options = {
+        '': (_('Any Date'), lambda qs, name: qs.all()),
+        1: (_('Today'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: now().year,
+            '%s__month' % name: now().month,
+            '%s__day' % name: now().day
+        })),
+        2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
+            '%s__gte' % name: _truncate(now() - timedelta(days=7)),
+            '%s__lt' % name: _truncate(now() + timedelta(days=1)),
+        })),
+        3: (_('This month'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: now().year,
+            '%s__month' % name: now().month
+        })),
+        4: (_('This year'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: now().year,
+        })),
+    }
 
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = [(key, value[0]) for key, value in self.options.iteritems()]
