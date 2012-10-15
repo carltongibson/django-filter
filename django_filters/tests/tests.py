@@ -25,6 +25,20 @@ else:
     # Same as test_data except that datetime values don't have timezones.
     test_fixture_name = 'test_data_django_13'
 
+
+    class TestCase(TestCase):
+        """
+        Redefined TestCase to add assertQuerysetEqual() with an 'ordered' parameter.
+        The 'ordered' parameter was added in Django 1.4.
+        """
+
+        def assertQuerysetEqual(self, qs, values, transform=repr, ordered=True):
+            items = map(transform, qs)
+            if not ordered:
+                return self.assertEqual(set(items), set(values))
+            return self.assertEqual(list(items), values)
+
+
 class GenericViewTests(TestCase):
     urls = 'django_filters.tests.test_urls'
 
