@@ -10,3 +10,9 @@ Martin Mahner
 Brian Rosner
 Adam Vandenberg
 Florian Apolloner
+Andrew Ball
+Tino de Bruijn
+Maximillian Dornseif
+Marc Fargas
+Vladimir Sidorenko
+Tom Christie
