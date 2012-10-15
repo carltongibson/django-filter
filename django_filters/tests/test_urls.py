@@ -1,4 +1,4 @@
-# timezone support is new in Django 1.4
+# The patterns method moved in Django 1.4.
 try:
     from django.conf.urls import patterns
 except ImportError:

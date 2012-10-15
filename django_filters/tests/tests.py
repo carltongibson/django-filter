@@ -22,6 +22,7 @@ import django
 if django.VERSION[:2] >= (1,4):
     test_fixture_name = 'test_data'
 else:
+    # Same as test_data except that datetime values don't have timezones.
     test_fixture_name = 'test_data_django_13'
 
 class GenericViewTests(TestCase):
