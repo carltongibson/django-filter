@@ -13,3 +13,6 @@ install:
 
 script:
   - python ./runtests.py
+
+notifications:
+  email: false
