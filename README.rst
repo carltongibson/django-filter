@@ -6,6 +6,9 @@ querysets dynamically.
 
 Full documentation on `read the docs`_.
 
+.. image:: https://secure.travis-ci.org/alex/django-filter.png?branch=master
+   :target: http://travis-ci.org/alex/django-filter
+
 Requirements
 ------------
 
