@@ -3,7 +3,13 @@ import os
 from django import forms
 from django.conf import settings
 from django.test import TestCase
-from django.utils.timezone import now
+
+# timezone support is new in Django 1.4
+try:
+    from django.utils.timezone import now
+except ImportError:
+    from datetime import datetime
+    now = datetime.now
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import (AllValuesFilter, CharFilter, ChoiceFilter,
@@ -13,10 +19,31 @@ from django_filters.widgets import LinkWidget
 
 from django_filters.tests.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
+import django
+if django.VERSION[:2] >= (1,4):
+    test_fixture_name = 'test_data'
+else:
+    # Same as test_data except that datetime values don't have timezones.
+    test_fixture_name = 'test_data_django_13'
+
+
+    class TestCase(TestCase):
+        """
+        Redefined TestCase to add assertQuerysetEqual() with an 'ordered' parameter.
+        The 'ordered' parameter was added in Django 1.4.
+        """
+
+        def assertQuerysetEqual(self, qs, values, transform=repr, ordered=True):
+            items = map(transform, qs)
+            if not ordered:
+                return self.assertEqual(set(items), set(values))
+            return self.assertEqual(list(items), values)
+
 
 class GenericViewTests(TestCase):
     urls = 'django_filters.tests.test_urls'
-    fixtures = ['test_data']
+
+    fixtures = [test_fixture_name]
     template_dirs = [
         os.path.join(os.path.dirname(__file__), 'templates'),
     ]
@@ -87,7 +114,7 @@ class FilterSetForm(TestCase):
 
 
 class AllValuesFilterTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = [test_fixture_name]
 
     def test_filter(self):
         class F(FilterSet):
@@ -109,7 +136,7 @@ class AllValuesFilterTest(TestCase):
 
 
 class InitialValueTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = [test_fixture_name]
 
     def test_initial(self):
         class F(FilterSet):
@@ -124,7 +151,7 @@ class InitialValueTest(TestCase):
 
 
 class RelatedObjectTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = [test_fixture_name]
 
     def test_foreignkey(self):
         class F(FilterSet):
@@ -154,7 +181,7 @@ class RelatedObjectTest(TestCase):
 
 
 class MultipleChoiceFilterTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = [test_fixture_name]
 
     def test_all_choices_selected(self):
         class F(FilterSet):
@@ -166,7 +193,7 @@ class MultipleChoiceFilterTest(TestCase):
 
 
 class MultipleLookupTypesTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = [test_fixture_name]
 
     def test_no_GET_params(self):
         class F(FilterSet):
@@ -180,7 +207,7 @@ class MultipleLookupTypesTest(TestCase):
 
 
 class FilterSetTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = [test_fixture_name]
 
     def test_base_filters(self):
         class F(FilterSet):

@@ -4,7 +4,13 @@ from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.translation import ugettext_lazy as _
-from django.utils.timezone import now
+
+# timezone support is new in Django 1.4.
+try:
+    from django.utils.timezone import now
+except ImportError:
+    from datetime import datetime
+    now = datetime.now
 
 from django_filters.fields import RangeField, LookupTypeField
 
