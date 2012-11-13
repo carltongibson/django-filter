@@ -357,6 +357,37 @@ class FilterSetTest(TestCase):
         self.assertEqual(f.form.fields['o'].choices,
             [('username', u'Username'), ('status', u'Status')])
 
+    def test_ordering_with_overridden_field_name(self):
+        """
+        Set the `order_by_field` on the queryset and ensure that the
+        field name is respected.
+        """
+        class F(FilterSet):
+            order_by_field = 'order'
+
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+        f = F({'order': 'status'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
+
+        self.assertIn('order', f.form.fields)
+        self.assertEqual(f.form.fields['order'].choices, [('status', u'Status')])
+
+        class F(FilterSet):
+            order_by_field = 'order'
+
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+        f = F({'order': 'username'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertIn('order', f.form.fields)
+        self.assertEqual(f.form.fields['order'].choices,
+            [('username', u'Username'), ('status', u'Status')])
+
     def test_number_filter(self):
         class F(FilterSet):
             price = NumberFilter(lookup_type='lt')

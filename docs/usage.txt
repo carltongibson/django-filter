@@ -91,6 +91,10 @@ You can also allow the user to control ordering, this is done by providing the
 it can be a ``bool`` which, if True, indicates that all fields that
 the user can filter on can also be sorted on.
 
+Note that the default query parameter name used for ordering is ``o``.  You
+can override this by setting an ``order_by_field`` attribute on the
+``FilterSet`` class to the string value you would like to use.
+
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
