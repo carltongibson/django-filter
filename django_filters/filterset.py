@@ -209,6 +209,7 @@ if hasattr(models, "XMLField"):
 
 class BaseFilterSet(object):
     filter_overrides = {}
+    order_by_field = ORDER_BY_FIELD
 
     def __init__(self, data=None, queryset=None, prefix=None):
         self.is_bound = data is not None
@@ -249,7 +250,7 @@ class BaseFilterSet(object):
                     pass
             if self._meta.order_by:
                 try:
-                    value = self.form.fields[ORDER_BY_FIELD].clean(self.form[ORDER_BY_FIELD].data)
+                    value = self.form.fields[self.order_by_field].clean(self.form[self.order_by_field].data)
                     if value:
                         qs = qs.order_by(value)
                 except forms.ValidationError:
@@ -261,7 +262,7 @@ class BaseFilterSet(object):
     def form(self):
         if not hasattr(self, '_form'):
             fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
-            fields[ORDER_BY_FIELD] = self.ordering_field
+            fields[self.order_by_field] = self.ordering_field
             Form = type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
