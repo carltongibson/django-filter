@@ -1,8 +1,13 @@
+
+from __future__ import unicode_literals
+
 import os
 
 from django import forms
 from django.conf import settings
 from django.test import TestCase
+
+from six import text_type
 
 # timezone support is new in Django 1.4
 try:
@@ -110,7 +115,7 @@ class FilterSetForm(TestCase):
                 model = Restaurant
                 fields = ['name']
 
-        self.assert_('blah-prefix' in unicode(F(prefix='blah-prefix').form))
+        self.assert_('blah-prefix' in text_type(F(prefix='blah-prefix').form))
 
 
 class AllValuesFilterTest(TestCase):
@@ -129,7 +134,7 @@ class AllValuesFilterTest(TestCase):
             '<option value="aaron">aaron</option>\n<option value="alex">alex'
             '</option>\n<option value="jacob">jacob</option>\n</select></td>'
             '</tr>')
-        self.assertEqual(unicode(F().form), form_html)
+        self.assertEqual(text_type(F().form), form_html)
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'})), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})), list(User.objects.all()))
@@ -158,7 +163,7 @@ class RelatedObjectTest(TestCase):
             class Meta:
                 model = Article
                 fields = ['author__username']
-        self.assertEqual(F.base_filters.keys(), ['author__username'])
+        self.assertEqual(list(F.base_filters.keys()), ['author__username'])
         form_html = ('<tr><th><label for="id_author__username">Username:</label>'
             '</th><td><input type="text" name="author__username" '
             'id="id_author__username" /></td></tr>')
@@ -214,7 +219,7 @@ class FilterSetTest(TestCase):
             class Meta:
                 model = User
 
-        self.assertEqual(F.base_filters.keys(), ['username', 'first_name',
+        self.assertEqual(list(F.base_filters.keys()), ['username', 'first_name',
             'last_name', 'status', 'is_active', 'favorite_books'])
 
         class F(FilterSet):
@@ -222,7 +227,7 @@ class FilterSetTest(TestCase):
                 model = User
                 exclude = ['is_active']
 
-        self.assertEqual(F.base_filters.keys(), ['username', 'first_name',
+        self.assertEqual(list(F.base_filters.keys()), ['username', 'first_name',
             'last_name', 'status', 'favorite_books'])
 
     def test_filter_qs(self):
@@ -344,7 +349,7 @@ class FilterSetTest(TestCase):
         self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
 
         self.assertIn('o', f.form.fields)
-        self.assertEqual(f.form.fields['o'].choices, [('status', u'Status')])
+        self.assertEqual(f.form.fields['o'].choices, [('status', 'Status')])
 
         class F(FilterSet):
             class Meta:
@@ -355,7 +360,7 @@ class FilterSetTest(TestCase):
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
         self.assertIn('o', f.form.fields)
         self.assertEqual(f.form.fields['o'].choices,
-            [('username', u'Username'), ('status', u'Status')])
+            [('username', 'Username'), ('status', 'Status')])
 
     def test_ordering_with_overridden_field_name(self):
         """
@@ -373,7 +378,7 @@ class FilterSetTest(TestCase):
         self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
 
         self.assertIn('order', f.form.fields)
-        self.assertEqual(f.form.fields['order'].choices, [('status', u'Status')])
+        self.assertEqual(f.form.fields['order'].choices, [('status', 'Status')])
 
         class F(FilterSet):
             order_by_field = 'order'
@@ -386,7 +391,7 @@ class FilterSetTest(TestCase):
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
         self.assertIn('order', f.form.fields)
         self.assertEqual(f.form.fields['order'].choices,
-            [('username', u'Username'), ('status', u'Status')])
+            [('username', 'Username'), ('status', 'Status')])
 
     def test_number_filter(self):
         class F(FilterSet):
