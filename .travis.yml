@@ -6,13 +6,14 @@ python:
   - "3.2"
 
 env:
-  #  - DJANGO=https://github.com/django/django/zipball/master
+  # - DJANGO=https://github.com/django/django/zipball/master
   - DJANGO=https://www.djangoproject.com/download/1.5b2/tarball/
   - DJANGO=django==1.4.3 --use-mirrors
   - DJANGO=django==1.3.5 --use-mirrors
 
 install:
   - pip install $DJANGO
+  - pip install six
 
 script:
   - python ./runtests.py
