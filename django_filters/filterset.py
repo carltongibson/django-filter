@@ -1,3 +1,7 @@
+from __future__ import unicode_literals
+import six
+from six import with_metaclass
+
 from copy import deepcopy
 
 from django import forms
@@ -21,7 +25,7 @@ ORDER_BY_FIELD = 'o'
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
-    for filter_name, obj in attrs.items():
+    for filter_name, obj in list(attrs.items()):
         if isinstance(obj, Filter):
             obj = attrs.pop(filter_name)
             if getattr(obj, 'name', None) is None:
@@ -32,11 +36,11 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
     if with_base_filters:
         for base in bases[::-1]:
             if hasattr(base, 'base_filters'):
-                filters = base.base_filters.items() + filters
+                filters = list(base.base_filters.items()) + filters
     else:
         for base in bases[::-1]:
             if hasattr(base, 'declared_filters'):
-                filters = base.declared_filters.items() + filters
+                filters = list(base.declared_filters.items()) + filters
 
     return SortedDict(filters)
 
@@ -238,7 +242,7 @@ class BaseFilterSet(object):
     def qs(self):
         if not hasattr(self, '_qs'):
             qs = self.queryset.all()
-            for name, filter_ in self.filters.iteritems():
+            for name, filter_ in six.iteritems(self.filters):
                 try:
                     if self.is_bound:
                         data = self.form[name].data
@@ -261,9 +265,9 @@ class BaseFilterSet(object):
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = SortedDict([(name, filter_.field) for name, filter_ in self.filters.iteritems()])
+            fields = SortedDict([(name, filter_.field) for name, filter_ in six.iteritems(self.filters)])
             fields[self.order_by_field] = self.ordering_field
-            Form = type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
+            Form = type(str('%sForm' % self.__class__.__name__), (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
@@ -306,5 +310,5 @@ class BaseFilterSet(object):
             return filter_class(**default)
 
 
-class FilterSet(BaseFilterSet):
-    __metaclass__ = FilterSetMetaclass
+class FilterSet(with_metaclass(FilterSetMetaclass, BaseFilterSet)):
+    pass

@@ -1,4 +1,8 @@
+from __future__ import unicode_literals
+
 from datetime import timedelta
+
+import six
 
 from django import forms
 from django.db.models import Q
@@ -166,7 +170,7 @@ class DateRangeFilter(ChoiceFilter):
     }
 
     def __init__(self, *args, **kwargs):
-        kwargs['choices'] = [(key, value[0]) for key, value in self.options.iteritems()]
+        kwargs['choices'] = [(key, value[0]) for key, value in six.iteritems(self.options)]
         super(DateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):

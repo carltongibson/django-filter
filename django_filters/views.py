@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
@@ -11,8 +13,9 @@ def object_filter(request, model=None, queryset=None, template_name=None, extra_
     if model is None:
         model = filter_class._meta.model
     if filter_class is None:
-        meta = type('Meta', (object,), {'model': model})
-        filter_class = type('%sFilterSet' % model._meta.object_name, (FilterSet,),
+        meta = type(str('Meta'), (object,), {'model': model})
+        filter_class = type(str('%sFilterSet' % model._meta.object_name),
+            (FilterSet,),
             {'Meta': meta})
     filterset = filter_class(request.GET or None, queryset=queryset)
 
