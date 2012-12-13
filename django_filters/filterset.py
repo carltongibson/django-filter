@@ -267,7 +267,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = SortedDict([(name, filter_.field) for name, filter_ in six.iteritems(self.filters)])
             fields[self.order_by_field] = self.ordering_field
-            Form = type('%sForm' % self.__class__.__name__, (self._meta.form,), fields)
+            Form = type(str('%sForm' % self.__class__.__name__), (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
