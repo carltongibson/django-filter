@@ -1,6 +1,4 @@
 from __future__ import unicode_literals
-import six
-from six import with_metaclass
 
 from copy import deepcopy
 
@@ -8,6 +6,7 @@ from django import forms
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.related import RelatedObject
+from django.utils import six
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 
@@ -19,6 +18,7 @@ except ImportError:  # Django < 1.5 fallback
 from django_filters.filters import Filter, CharFilter, BooleanFilter, \
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
     ModelMultipleChoiceFilter, NumberFilter
+
 
 ORDER_BY_FIELD = 'o'
 
@@ -310,5 +310,5 @@ class BaseFilterSet(object):
             return filter_class(**default)
 
 
-class FilterSet(with_metaclass(FilterSetMetaclass, BaseFilterSet)):
+class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
     pass

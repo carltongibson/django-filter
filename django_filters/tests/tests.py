@@ -1,4 +1,3 @@
-
 from __future__ import unicode_literals
 
 import os
@@ -6,15 +5,8 @@ import os
 from django import forms
 from django.conf import settings
 from django.test import TestCase
-
-from six import text_type
-
-# timezone support is new in Django 1.4
-try:
-    from django.utils.timezone import now
-except ImportError:
-    from datetime import datetime
-    now = datetime.now
+from django.utils import six
+from django.utils.timezone import now
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import (AllValuesFilter, CharFilter, ChoiceFilter,
@@ -24,31 +16,11 @@ from django_filters.widgets import LinkWidget
 
 from django_filters.tests.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
 
-import django
-if django.VERSION[:2] >= (1,4):
-    test_fixture_name = 'test_data'
-else:
-    # Same as test_data except that datetime values don't have timezones.
-    test_fixture_name = 'test_data_django_13'
-
-
-    class TestCase(TestCase):
-        """
-        Redefined TestCase to add assertQuerysetEqual() with an 'ordered' parameter.
-        The 'ordered' parameter was added in Django 1.4.
-        """
-
-        def assertQuerysetEqual(self, qs, values, transform=repr, ordered=True):
-            items = map(transform, qs)
-            if not ordered:
-                return self.assertEqual(set(items), set(values))
-            return self.assertEqual(list(items), values)
-
 
 class GenericViewTests(TestCase):
     urls = 'django_filters.tests.test_urls'
 
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
     template_dirs = [
         os.path.join(os.path.dirname(__file__), 'templates'),
     ]
@@ -115,11 +87,11 @@ class FilterSetForm(TestCase):
                 model = Restaurant
                 fields = ['name']
 
-        self.assert_('blah-prefix' in text_type(F(prefix='blah-prefix').form))
+        self.assert_('blah-prefix' in six.text_type(F(prefix='blah-prefix').form))
 
 
 class AllValuesFilterTest(TestCase):
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
 
     def test_filter(self):
         class F(FilterSet):
@@ -134,14 +106,14 @@ class AllValuesFilterTest(TestCase):
             '<option value="aaron">aaron</option>\n<option value="alex">alex'
             '</option>\n<option value="jacob">jacob</option>\n</select></td>'
             '</tr>')
-        self.assertEqual(text_type(F().form), form_html)
+        self.assertHTMLEqual(six.text_type(F().form), form_html)
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'})), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})), list(User.objects.all()))
 
 
 class InitialValueTest(TestCase):
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
 
     def test_initial(self):
         class F(FilterSet):
@@ -156,7 +128,7 @@ class InitialValueTest(TestCase):
 
 
 class RelatedObjectTest(TestCase):
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
 
     def test_foreignkey(self):
         class F(FilterSet):
@@ -167,7 +139,7 @@ class RelatedObjectTest(TestCase):
         form_html = ('<tr><th><label for="id_author__username">Username:</label>'
             '</th><td><input type="text" name="author__username" '
             'id="id_author__username" /></td></tr>')
-        self.assertEqual(str(F().form), form_html)
+        self.assertHTMLEqual(str(F().form), form_html)
         self.assertEqual(F({'author__username': 'alex'}).qs.count(), 2)
         self.assertEqual(F({'author__username': 'jacob'}).qs.count(), 1)
 
@@ -182,11 +154,11 @@ class RelatedObjectTest(TestCase):
             'username:</label></th><td><select name="author__username" '
             'id="id_author__username">\n<option value="alex">alex</option>\n'
             '<option value="jacob">jacob</option>\n</select></td></tr>')
-        self.assertEqual(str(F().form), form_html)
+        self.assertHTMLEqual(str(F().form), form_html)
 
 
 class MultipleChoiceFilterTest(TestCase):
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
 
     def test_all_choices_selected(self):
         class F(FilterSet):
@@ -198,7 +170,7 @@ class MultipleChoiceFilterTest(TestCase):
 
 
 class MultipleLookupTypesTest(TestCase):
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
 
     def test_no_GET_params(self):
         class F(FilterSet):
@@ -212,7 +184,7 @@ class MultipleLookupTypesTest(TestCase):
 
 
 class FilterSetTest(TestCase):
-    fixtures = [test_fixture_name]
+    fixtures = ['test_data']
 
     def test_base_filters(self):
         class F(FilterSet):
@@ -240,7 +212,7 @@ class FilterSetTest(TestCase):
                 fields = ['status', 'username']
 
         f = F(queryset=User.objects.all())
-        self.assertQuerysetEqual(f.qs, user_ids, lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, user_ids, lambda o: o.pk, ordered=False)
         f = F({'username': 'alex'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, [alex.pk], lambda o: o.pk)
         f = F({'status': '1'}, queryset=User.objects.all())
@@ -294,16 +266,17 @@ class FilterSetTest(TestCase):
                 model = User
                 fields = ['status']
 
-        f = F(queryset=User.objects.all())
+        qs = User.objects.all().order_by('username')
+        f = F(queryset=qs)
         self.assertIn('status', f.form.fields)
         self.assertEqual(f.form.fields['status'].choices,
             [(0, 'Regular'), (1, 'Admin')])
         self.assertEqual(type(f.form.fields['status']), forms.MultipleChoiceField)
 
-        f = F({'status': ['0']}, queryset=User.objects.all())
+        f = F({'status': ['0']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'jacob'], lambda o: o.username)
-        f = F({'status': ['0', '1']}, queryset=User.objects.all())
-        self.assertQuerysetEqual(f.qs, ['alex', 'aaron', 'jacob'], lambda o: o.username)
+        f = F({'status': ['0', '1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
 
     def test_date_time_filter(self):
         class F(FilterSet):
@@ -332,11 +305,12 @@ class FilterSetTest(TestCase):
                 model = User
                 fields = ['favorite_books']
 
-        f = F({'favorite_books': ['1']}, queryset=User.objects.all())
-        self.assertQuerysetEqual(f.qs, ['alex', 'aaron'], lambda o: o.username)
-        f = F({'favorite_books': ['1', '3']}, queryset=User.objects.all())
-        self.assertQuerysetEqual(f.qs, ['alex', 'aaron'], lambda o: o.username)
-        f = F({'favorite_books': ['2']}, queryset=User.objects.all())
+        qs = User.objects.all().order_by('username')
+        f = F({'favorite_books': ['1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        f = F({'favorite_books': ['1', '3']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        f = F({'favorite_books': ['2']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
     def test_ordering(self):
@@ -402,10 +376,10 @@ class FilterSetTest(TestCase):
                 model = Book
                 fields = ['price', 'average_rating']
 
-        f = F({'price': 15}, queryset=Book.objects.all())
+        f = F({'price': 15}, queryset=Book.objects.all().order_by('title'))
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
 
-        f = F({'average_rating': '4.5'}, queryset=Book.objects.all())
+        f = F({'average_rating': '4.5'}, queryset=Book.objects.all().order_by('title').order_by('title'))
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six'], lambda o: o.title)
 
         class F(FilterSet):
@@ -415,9 +389,10 @@ class FilterSetTest(TestCase):
                 model = Book
                 fields = ['price']
 
-        f = F(queryset=Book.objects.all())
+        qs = Book.objects.all().order_by('title')
+        f = F(queryset=qs)
         # TODO
-        self.assertEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" /><select name="price_1" id="id_price_1">\n<option value="contains">contains</option>\n<option value="day">day</option>\n<option value="endswith">endswith</option>\n<option value="exact">exact</option>\n<option value="gt">gt</option>\n<option value="gte">gte</option>\n<option value="icontains">icontains</option>\n<option value="iendswith">iendswith</option>\n<option value="iexact">iexact</option>\n<option value="in">in</option>\n<option value="iregex">iregex</option>\n<option value="isnull">isnull</option>\n<option value="istartswith">istartswith</option>\n<option value="lt">lt</option>\n<option value="lte">lte</option>\n<option value="month">month</option>\n<option value="range">range</option>\n<option value="regex">regex</option>\n<option value="search">search</option>\n<option value="startswith">startswith</option>\n<option value="week_day">week_day</option>\n<option value="year">year</option>\n</select>')
+        self.assertHTMLEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" /><select name="price_1" id="id_price_1">\n<option value="contains">contains</option>\n<option value="day">day</option>\n<option value="endswith">endswith</option>\n<option value="exact">exact</option>\n<option value="gt">gt</option>\n<option value="gte">gte</option>\n<option value="icontains">icontains</option>\n<option value="iendswith">iendswith</option>\n<option value="iexact">iexact</option>\n<option value="in">in</option>\n<option value="iregex">iregex</option>\n<option value="isnull">isnull</option>\n<option value="istartswith">istartswith</option>\n<option value="lt">lt</option>\n<option value="lte">lte</option>\n<option value="month">month</option>\n<option value="range">range</option>\n<option value="regex">regex</option>\n<option value="search">search</option>\n<option value="startswith">startswith</option>\n<option value="week_day">week_day</option>\n<option value="year">year</option>\n</select>')
 
         class F(FilterSet):
             price = NumberFilter(lookup_type=['lt', 'gt'])
@@ -426,15 +401,16 @@ class FilterSetTest(TestCase):
                 model = Book
                 fields = ['price']
 
-        f = F(queryset=Book.objects.all())
-        self.assertEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" /><select name="price_1" id="id_price_1">\n<option value="gt">gt</option>\n<option value="lt">lt</option>\n</select>')
+        f = F(queryset=qs)
+        self.assertHTMLEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" /><select name="price_1" id="id_price_1">\n<option value="gt">gt</option>\n<option value="lt">lt</option>\n</select>')
 
-        f = F({'price_0': '15', 'price_1': 'lt'}, queryset=Book.objects.all())
+        f = F({'price_0': '15', 'price_1': 'lt'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
         f = F({'price_0': '15', 'price_1': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
         f = F({'price_0': '', 'price_1': 'lt'})
-        self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six', 'Snowcrash'], lambda o: o.title)
+        self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six', 'Snowcrash'],
+                                 lambda o: o.title, ordered=False)
 
         class F(FilterSet):
             price = NumberFilter(lookup_type=['lt', 'gt', 'exact'])
@@ -454,11 +430,12 @@ class FilterSetTest(TestCase):
                 model = Book
                 fields = ['price']
 
-        f = F(queryset=Book.objects.all())
-        self.assertEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" />-<input type="text" name="price_1" id="id_price_1" />')
+        qs = Book.objects.all().order_by('title')
+        f = F(queryset=qs)
+        self.assertHTMLEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" />-<input type="text" name="price_1" id="id_price_1" />')
 
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six', 'Snowcrash'], lambda o: o.title)
-        f = F({'price_0': '5', 'price_1': '15'}, queryset=Book.objects.all())
+        f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six'], lambda o: o.title)
 
     def test_choice_filter(self):

@@ -2,21 +2,16 @@ from __future__ import unicode_literals
 
 from datetime import timedelta
 
-import six
 
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
+from django.utils import six
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-# timezone support is new in Django 1.4.
-try:
-    from django.utils.timezone import now
-except ImportError:
-    from datetime import datetime
-    now = datetime.now
-
 from django_filters.fields import RangeField, LookupTypeField
+
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
@@ -24,6 +19,7 @@ __all__ = [
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
     'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
 ]
+
 
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
