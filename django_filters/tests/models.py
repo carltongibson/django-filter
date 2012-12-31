@@ -1,5 +1,6 @@
 ### these models are for testing
 
+from django import forms
 from django.db import models
 
 
@@ -16,6 +17,23 @@ class SubCharField(models.CharField):
 
 class SubSubCharField(SubCharField):
     pass
+
+
+class SubnetMaskField(models.Field):
+    empty_strings_allowed = False
+    description = "Subnet Mask"
+
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 15
+        models.Field.__init__(self, *args, **kwargs)
+
+    def get_internal_type(self):
+        return "IPAddressField"
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': forms.IPAddressField}
+        defaults.update(kwargs)
+        return super(SubnetMaskField, self).formfield(**defaults)
 
 
 class User(models.Model):
@@ -67,3 +85,10 @@ class Place(models.Model):
 
 class Restaurant(Place):
     serves_pizza = models.BooleanField()
+
+
+class NetworkSetting(models.Model):
+    ip = models.IPAddressField()
+    mask = SubnetMaskField()
+
+
