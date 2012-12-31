@@ -9,10 +9,19 @@ STATUS_CHOICES = (
 )
 
 
+# classes for testing filters with inherited fields
+class SubCharField(models.CharField):
+    pass
+
+
+class SubSubCharField(SubCharField):
+    pass
+
+
 class User(models.Model):
     username = models.CharField(max_length=255)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    first_name = SubCharField(max_length=100)
+    last_name = SubSubCharField(max_length=100)
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=0)
 
