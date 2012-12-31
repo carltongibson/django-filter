@@ -290,7 +290,8 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_field(cls, f, name):
-        filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
+        filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS)
+        filter_for_field.update(cls.filter_overrides)
 
         default = {
             'name': name,
