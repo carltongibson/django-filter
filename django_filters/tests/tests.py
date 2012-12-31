@@ -14,7 +14,8 @@ from django_filters.filters import (AllValuesFilter, CharFilter, ChoiceFilter,
     RangeFilter)
 from django_filters.widgets import LinkWidget
 
-from django_filters.tests.models import User, Comment, Book, Restaurant, Article, STATUS_CHOICES
+from django_filters.tests.models import (User, Comment, Book, Restaurant,
+    Article, NetworkSetting, SubnetMaskField, STATUS_CHOICES)
 
 
 class GenericViewTests(TestCase):
@@ -201,6 +202,22 @@ class FilterSetTest(TestCase):
 
         self.assertEqual(list(F.base_filters.keys()), ['username', 'first_name',
             'last_name', 'status', 'favorite_books'])
+
+    def test_custom_field_filters(self):
+        class F(FilterSet):
+            class Meta:
+                model = NetworkSetting
+
+        self.assertEqual(list(F.base_filters.keys()), ['ip'])
+
+        class F(FilterSet):
+            filter_overrides = {
+                SubnetMaskField: {'filter_class': CharFilter}
+            }
+            class Meta:
+                model = NetworkSetting
+
+        self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 
     def test_filter_qs(self):
         alex = User.objects.get(username='alex')

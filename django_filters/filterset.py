@@ -290,7 +290,8 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_field(cls, f, name):
-        filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS, **cls.filter_overrides)
+        filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS)
+        filter_for_field.update(cls.filter_overrides)
 
         default = {
             'name': name,
@@ -303,7 +304,17 @@ class BaseFilterSet(object):
 
         data = filter_for_field.get(f.__class__)
         if data is None:
-            return
+            # could be a derived field, inspect parents
+            for class_ in f.__class__.mro():
+                # skip if class_ is models.Field or object
+                # 1st item in mro() is original class
+                if class_ in (f.__class__, models.Field, object):
+                    continue
+                data = filter_for_field.get(class_)
+                if data:
+                    break
+            if data is None:
+                return
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
