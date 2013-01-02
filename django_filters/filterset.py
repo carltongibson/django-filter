@@ -304,16 +304,15 @@ class BaseFilterSet(object):
 
         data = filter_for_field.get(f.__class__)
         if data is None:
-            # probably a derived field, inspect parents
-            # TODO: should we track 'seen' classes to skip any already checked?
-            # TODO: should we just skip it class_ is models.Field?
-            bases = list(f.__class__.__bases__)
-            while bases:
-                class_ = bases.pop()
+            # could be a derived field, inspect parents
+            for class_ in f.__class__.mro():
+                # skip if class_ is models.Field or object
+                # 1st item in mro() is original class
+                if class_ in (f.__class__, models.Field, object):
+                    continue
                 data = filter_for_field.get(class_)
                 if data:
                     break
-                bases.extend(class_.__bases__)
             if data is None:
                 return
         filter_class = data.get('filter_class')
