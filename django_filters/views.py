@@ -25,7 +25,7 @@ class FilterMixin(object):
         elif self.model:
             return filterset_factory(self.model)
         else:
-            msg = u"'%s' must define 'filterset_class' or 'model'"
+            msg = "'%s' must define 'filterset_class' or 'model'"
             raise ImproperlyConfigured(msg % self.__class__.__name__)
 
     def get_filterset(self, filterset_class):
@@ -48,9 +48,9 @@ class FilterMixin(object):
             # ignore the error here if the filterset has a model defined
             # to acquire a queryset from
             if filterset_class._meta.model is None:
-                msg = (u"'%s' does not define a 'model' and the view '%s' does "
-                       u"not return a valid queryset from 'get_queryset'.  You "
-                       u"must fix one of them.")
+                msg = ("'%s' does not define a 'model' and the view '%s' does "
+                       "not return a valid queryset from 'get_queryset'.  You "
+                       "must fix one of them.")
                 raise ImproperlyConfigured(msg % self.__class__.__name__)
         return kwargs
 
@@ -63,7 +63,7 @@ class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
         self.object_list = self.filterset.qs
         # allow_empty = self.get_allow_empty()
         # if not allow_empty and len(self.object_list) == 0:
-        #     msg = _(u"Empty list and '%(class_name)s.allow_empty' is False.")
+        #     msg = _("Empty list and '%(class_name)s.allow_empty' is False.")
         #     raise Http404(msg % {'class_name': self.__class__.__name__})
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list)
