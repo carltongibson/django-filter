@@ -323,3 +323,10 @@ class BaseFilterSet(object):
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
     pass
+
+
+def filterset_factory(model):
+    meta = type(str('Meta'), (object,), {'model': model})
+    filterset = type(str('%sFilterSet' % model._meta.object_name),
+                     (FilterSet,), {'Meta': meta})
+    return filterset

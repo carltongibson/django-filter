@@ -38,6 +38,11 @@ class GenericViewTests(TestCase):
         for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
             self.assertContains(response, b)
 
+    def test_functional_generic_view(self):
+        response = self.client.get('/books-legacy/')
+        for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
 
 class InheritanceTest(TestCase):
     def test_inheritance(self):
