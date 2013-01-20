@@ -91,6 +91,15 @@ You can also allow the user to control ordering, this is done by providing the
 it can be a ``bool`` which, if True, indicates that all fields that
 the user can filter on can also be sorted on.
 
+If you want to control the display of items in ``order_by``, you can set it to
+a list or tuple of 2-tuples in the format ``(field_name, display_name)``.
+This lets you override the displayed names for your ordering fields::
+
+    order_by = (
+        ('name', 'Company Name'),
+        ('average_rating', 'Stars'),
+    )
+
 Note that the default query parameter name used for ordering is ``o``.  You
 can override this by setting an ``order_by_field`` attribute on the
 ``FilterSet`` class to the string value you would like to use.

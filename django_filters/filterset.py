@@ -277,7 +277,11 @@ class BaseFilterSet(object):
     def get_ordering_field(self):
         if self._meta.order_by:
             if isinstance(self._meta.order_by, (list, tuple)):
-                choices = [(f, capfirst(f)) for f in self._meta.order_by]
+                if isinstance(self._meta.order_by[0], (list, tuple)):
+                    # e.g. (('field', 'Display name'), ...)
+                    choices = [(f[0], f[1]) for f in self._meta.order_by]
+                else:
+                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
             else:
                 choices = [(f, capfirst(f)) for f in self.filters]
             return forms.ChoiceField(label="Ordering", required=False, choices=choices)

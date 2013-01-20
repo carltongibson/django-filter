@@ -383,6 +383,18 @@ class FilterSetTest(TestCase):
         self.assertIn('order', f.form.fields)
         self.assertEqual(f.form.fields['order'].choices,
             [('username', 'Username'), ('status', 'Status')])
+    
+    def test_ordering_with_custom_display_names(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = [('status', 'Current status')]
+        f = F({'o': 'status'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
+
+        self.assertIn('o', f.form.fields)
+        self.assertEqual(f.form.fields['o'].choices, [('status', 'Current status')])
 
     def test_number_filter(self):
         class F(FilterSet):
