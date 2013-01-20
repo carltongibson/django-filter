@@ -353,6 +353,32 @@ class FilterSetTest(TestCase):
         self.assertEqual(f.form.fields['o'].choices,
             [('username', 'Username'), ('status', 'Status')])
 
+    def test_ordering_uses_filter_label(self):
+        class F(FilterSet):
+            username = CharFilter(label='Account')
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+        f = F({'o': 'username'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertIn('o', f.form.fields)
+        self.assertEqual(f.form.fields['o'].choices,
+            [('username', 'Account'), ('status', 'Status')])
+
+    def test_ordering_uses_filter_name(self):
+        class F(FilterSet):
+            account = CharFilter(name='username')
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+        f = F({'o': 'username'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertIn('o', f.form.fields)
+        self.assertEqual(f.form.fields['o'].choices,
+            [('username', 'Account'), ('status', 'Status')])
+
     def test_ordering_with_overridden_field_name(self):
         """
         Set the `order_by_field` on the queryset and ensure that the

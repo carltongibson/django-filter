@@ -283,7 +283,9 @@ class BaseFilterSet(object):
                 else:
                     choices = [(f, capfirst(f)) for f in self._meta.order_by]
             else:
-                choices = [(f, capfirst(f)) for f in self.filters]
+                # use the filter's label if provided
+                choices = [(fltr.name or f, fltr.label or capfirst(f))
+                           for f, fltr in self.filters.items()]
             return forms.ChoiceField(label="Ordering", required=False, choices=choices)
 
     @property
