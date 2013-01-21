@@ -5,7 +5,9 @@ except ImportError:
     from django.conf.urls.defaults import patterns
 
 from django_filters.tests.models import Book
+from django_filters.views import FilterView
 
 urlpatterns = patterns('',
-    (r'^books/$', 'django_filters.views.object_filter', {'model': Book}),
+    (r'^books-legacy/$', 'django_filters.views.object_filter', {'model': Book}),
+    (r'^books/$', FilterView.as_view(model=Book)),
 )
