@@ -233,7 +233,7 @@ class BaseFilterSet(object):
             yield obj
 
     def __len__(self):
-        return self.qs.count()
+        return len(self.qs)
 
     def __getitem__(self, key):
         return self.qs[key]
@@ -261,6 +261,9 @@ class BaseFilterSet(object):
                     pass
             self._qs = qs
         return self._qs
+
+    def count(self):
+        return self.qs.count()
 
     @property
     def form(self):
