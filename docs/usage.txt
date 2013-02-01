@@ -91,6 +91,15 @@ You can also allow the user to control ordering, this is done by providing the
 it can be a ``bool`` which, if True, indicates that all fields that
 the user can filter on can also be sorted on.
 
+If you want to control the display of items in ``order_by``, you can set it to
+a list or tuple of 2-tuples in the format ``(field_name, display_name)``.
+This lets you override the displayed names for your ordering fields::
+
+    order_by = (
+        ('name', 'Company Name'),
+        ('average_rating', 'Stars'),
+    )
+
 Note that the default query parameter name used for ordering is ``o``.  You
 can override this by setting an ``order_by_field`` attribute on the
 ``FilterSet`` class to the string value you would like to use.
@@ -110,14 +119,36 @@ This method just needs to return a Form Field.
 Generic View
 ============
 
-In addition to the above usage there is also a generic view included in
-django-filter, which lives at ``django_filters.views.object_filter``.  You must
-provide either a ``model`` or ``filter_class`` argument, similar to the
-``create_update`` view in Django itself::
+In addition to the above usage there is also a class-based generic view
+included in django-filter, which lives at ``django_filters.views.FilterView``.
+You must provide either a ``model`` or ``filter_class`` argument, similar to
+``ListView`` in Django itself::
 
-     url(r'^list/$', 
-         'django_filters.views.object_filter',
-         {'model': Product}),
+    # urls.py
+    from django.conf.urls import patterns, url
+    from django_filters.views import FilterView
+    from myapp.models import Product
+    
+    urlpatterns = patterns('',
+        (r'^list/', FilterView.as_view(model=Product)),
+    )
 
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
-context parameter ``filter``.
+context parameter ``filter``.  Additionally, the context will contain 
+``object_list`` which holds the filtered queryset.
+
+A legacy functional generic view is still include in django-filter, although
+it's use is deprecated.  It can be found at 
+``django_filters.views.object_filter``.  You must provide the same arguments
+to it as the class based view::
+
+    # urls.py
+    from django.conf.urls import patterns, url
+    from myapp.models import Product
+
+    urlpatterns = patterns('',
+        (r'^list/', 'django_filters.views.object_filter', {'model': Product}),
+    )
+
+The needed template and it's context variables will also be the same as the
+class-based view above.
