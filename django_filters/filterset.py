@@ -277,9 +277,15 @@ class BaseFilterSet(object):
     def get_ordering_field(self):
         if self._meta.order_by:
             if isinstance(self._meta.order_by, (list, tuple)):
-                choices = [(f, capfirst(f)) for f in self._meta.order_by]
+                if isinstance(self._meta.order_by[0], (list, tuple)):
+                    # e.g. (('field', 'Display name'), ...)
+                    choices = [(f[0], f[1]) for f in self._meta.order_by]
+                else:
+                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
             else:
-                choices = [(f, capfirst(f)) for f in self.filters]
+                # use the filter's label if provided
+                choices = [(fltr.name or f, fltr.label or capfirst(f))
+                           for f, fltr in self.filters.items()]
             return forms.ChoiceField(label="Ordering", required=False, choices=choices)
 
     @property
@@ -323,3 +329,10 @@ class BaseFilterSet(object):
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
     pass
+
+
+def filterset_factory(model):
+    meta = type(str('Meta'), (object,), {'model': model})
+    filterset = type(str('%sFilterSet' % model._meta.object_name),
+                     (FilterSet,), {'Meta': meta})
+    return filterset

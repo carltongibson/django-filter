@@ -38,6 +38,11 @@ class GenericViewTests(TestCase):
         for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
             self.assertContains(response, b)
 
+    def test_functional_generic_view(self):
+        response = self.client.get('/books-legacy/')
+        for b in ['Ender&#39;s Game', 'Rainbox Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
 
 class InheritanceTest(TestCase):
     def test_inheritance(self):
@@ -353,6 +358,32 @@ class FilterSetTest(TestCase):
         self.assertEqual(f.form.fields['o'].choices,
             [('username', 'Username'), ('status', 'Status')])
 
+    def test_ordering_uses_filter_label(self):
+        class F(FilterSet):
+            username = CharFilter(label='Account')
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+        f = F({'o': 'username'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertIn('o', f.form.fields)
+        self.assertEqual(f.form.fields['o'].choices,
+            [('username', 'Account'), ('status', 'Status')])
+
+    def test_ordering_uses_filter_name(self):
+        class F(FilterSet):
+            account = CharFilter(name='username')
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+        f = F({'o': 'username'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertIn('o', f.form.fields)
+        self.assertEqual(f.form.fields['o'].choices,
+            [('username', 'Account'), ('status', 'Status')])
+
     def test_ordering_with_overridden_field_name(self):
         """
         Set the `order_by_field` on the queryset and ensure that the
@@ -383,6 +414,18 @@ class FilterSetTest(TestCase):
         self.assertIn('order', f.form.fields)
         self.assertEqual(f.form.fields['order'].choices,
             [('username', 'Username'), ('status', 'Status')])
+    
+    def test_ordering_with_custom_display_names(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = [('status', 'Current status')]
+        f = F({'o': 'status'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
+
+        self.assertIn('o', f.form.fields)
+        self.assertEqual(f.form.fields['o'].choices, [('status', 'Current status')])
 
     def test_number_filter(self):
         class F(FilterSet):
