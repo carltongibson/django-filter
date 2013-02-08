@@ -9,7 +9,7 @@ Filters
 ``CharFilter``
 ~~~~~~~~~~~~~~
 
-This filter does simple charecter matches, used with ``CharField`` and
+This filter does simple character matches, used with ``CharField`` and
 ``TextField`` by default.
 
 ``BooleanFilter``
