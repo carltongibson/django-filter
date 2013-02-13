@@ -262,6 +262,9 @@ class BaseFilterSet(object):
             self._qs = qs
         return self._qs
 
+    def count(self):
+        return self.qs.count()
+
     @property
     def form(self):
         if not hasattr(self, '_form'):
