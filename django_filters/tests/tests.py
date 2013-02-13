@@ -61,7 +61,7 @@ class ModelInheritanceTest(TestCase):
             class Meta:
                 model = Restaurant
 
-        self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
+        self.assertEquals(set(F.base_filters), set(['id', 'name', 'serves_pizza']))
 
         class F(FilterSet):
             class Meta:
@@ -197,7 +197,7 @@ class FilterSetTest(TestCase):
             class Meta:
                 model = User
 
-        self.assertEqual(list(F.base_filters.keys()), ['username', 'first_name',
+        self.assertEqual(list(F.base_filters.keys()), ['id', 'username', 'first_name',
             'last_name', 'status', 'is_active', 'favorite_books'])
 
         class F(FilterSet):
@@ -205,7 +205,7 @@ class FilterSetTest(TestCase):
                 model = User
                 exclude = ['is_active']
 
-        self.assertEqual(list(F.base_filters.keys()), ['username', 'first_name',
+        self.assertEqual(list(F.base_filters.keys()), ['id', 'username', 'first_name',
             'last_name', 'status', 'favorite_books'])
 
     def test_custom_field_filters(self):
@@ -213,7 +213,7 @@ class FilterSetTest(TestCase):
             class Meta:
                 model = NetworkSetting
 
-        self.assertEqual(list(F.base_filters.keys()), ['ip'])
+        self.assertEqual(list(F.base_filters.keys()), ['id', 'ip'])
 
         class F(FilterSet):
             filter_overrides = {
@@ -222,7 +222,7 @@ class FilterSetTest(TestCase):
             class Meta:
                 model = NetworkSetting
 
-        self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
+        self.assertEqual(list(F.base_filters.keys()), ['id', 'ip', 'mask'])
 
     def test_filter_qs(self):
         alex = User.objects.get(username='alex')
@@ -267,6 +267,15 @@ class FilterSetTest(TestCase):
         self.assertEqual(f.form.fields['status'].choices,
             [(0, 'Regular'), (1, 'Admin')])
         self.assertEqual(type(f.form.fields['status'].widget), forms.RadioSelect)
+
+    def test_autofield_filter(self):
+        class F(FilterSet):
+            class Meta:
+                model = Comment
+                fields = ['id']
+
+        f = F({'id': '1'}, queryset=Comment.objects.all())
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
 
     def test_char_filter(self):
         class F(FilterSet):

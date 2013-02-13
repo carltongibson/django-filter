@@ -127,6 +127,9 @@ class FilterSetMetaclass(type):
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
+    models.AutoField: {
+        'filter_class': NumberFilter
+    },
     models.CharField: {
         'filter_class': CharFilter
     },
