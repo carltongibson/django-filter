@@ -83,6 +83,8 @@ class DateRangeFilterTest(TestCase):
 
         f = F({'published': '2'})
         self.assertEqual(list(f), [a])
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
 
 class FilterSetForm(TestCase):
@@ -114,6 +116,8 @@ class AllValuesFilterTest(TestCase):
             '</tr>')
         self.assertHTMLEqual(six.text_type(F().form), form_html)
         self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(len(F().qs), len(User.objects.all()))
+        self.assertEqual(F().count(), len(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'})), [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})), list(User.objects.all()))
 
@@ -146,8 +150,8 @@ class RelatedObjectTest(TestCase):
             '</th><td><input type="text" name="author__username" '
             'id="id_author__username" /></td></tr>')
         self.assertHTMLEqual(str(F().form), form_html)
-        self.assertEqual(F({'author__username': 'alex'}).qs.count(), 2)
-        self.assertEqual(F({'author__username': 'jacob'}).qs.count(), 1)
+        self.assertEqual(F({'author__username': 'alex'}).count(), 2)
+        self.assertEqual(F({'author__username': 'jacob'}).count(), 1)
 
         class F(FilterSet):
             author__username = AllValuesFilter()
@@ -172,7 +176,10 @@ class MultipleChoiceFilterTest(TestCase):
                 model = User
                 fields = ["status"]
 
-        self.assertEqual(list(F({"status": [0, 1]}).qs), list(User.objects.all()))
+        f = F({"status": [0, 1]})
+        self.assertEqual(list(f.qs), list(User.objects.all()))
+        self.assertEqual(len(f), len(User.objects.all()))
+        self.assertEqual(f.count(), len(User.objects.all()))
 
 
 class MultipleLookupTypesTest(TestCase):
@@ -186,7 +193,10 @@ class MultipleLookupTypesTest(TestCase):
                 model = Article
                 fields = ['published']
 
-        self.assertEqual(list(F({}).qs), list(Article.objects.all()))
+        f = F({})
+        self.assertEqual(list(f.qs), list(Article.objects.all()))
+        self.assertEqual(len(f), len(Article.objects.all()))
+        self.assertEqual(f.count(), len(Article.objects.all()))
 
 
 class FilterSetTest(TestCase):
@@ -235,10 +245,18 @@ class FilterSetTest(TestCase):
 
         f = F(queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, user_ids, lambda o: o.pk, ordered=False)
+        self.assertEqual(len(f), len(user_ids))
+        self.assertEqual(f.count(), len(user_ids))
+
         f = F({'username': 'alex'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, [alex.pk], lambda o: o.pk)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
+
         f = F({'status': '1'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, [alex.pk], lambda o: o.pk)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
     def test_qs_count(self):
         class F(FilterSet):
@@ -289,6 +307,8 @@ class FilterSetTest(TestCase):
         users = User.objects.filter(username__startswith='a').values_list('pk', flat=True)
         f = F({'username': 'a'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, users, lambda o: o.pk, False)
+        self.assertEqual(len(f), len(users))
+        self.assertEqual(f.count(), len(users))
 
     def test_multiple_choice_filter(self):
         class F(FilterSet):
@@ -307,8 +327,13 @@ class FilterSetTest(TestCase):
 
         f = F({'status': ['0']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'jacob'], lambda o: o.username)
+        self.assertEqual(len(f), 2)
+        self.assertEqual(f.count(), 2)
+
         f = F({'status': ['0', '1']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
 
     def test_date_time_filter(self):
         class F(FilterSet):
@@ -318,9 +343,13 @@ class FilterSetTest(TestCase):
 
         f = F({'date': '01/30/10'}, queryset=Comment.objects.all())
         self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
         f = F({'time': '12:55'}, queryset=Comment.objects.all())
         self.assertQuerysetEqual(f.qs, [3], lambda o: o.pk)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
     def test_fk_filter(self):
         class F(FilterSet):
@@ -330,6 +359,8 @@ class FilterSetTest(TestCase):
 
         f = F({'author': '2'}, queryset=Comment.objects.all())
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
     def test_m2m_filter(self):
         class F(FilterSet):
@@ -340,10 +371,18 @@ class FilterSetTest(TestCase):
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books': ['1']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertEqual(len(f), 2)
+        self.assertEqual(f.count(), 2)
+
         f = F({'favorite_books': ['1', '3']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertEqual(len(f), 2)
+        self.assertEqual(f.count(), 2)
+
         f = F({'favorite_books': ['2']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
     def test_ordering(self):
         class F(FilterSet):
@@ -353,6 +392,8 @@ class FilterSetTest(TestCase):
                 order_by = ['status']
         f = F({'o': 'status'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
 
         self.assertIn('o', f.form.fields)
         self.assertEqual(f.form.fields['o'].choices, [('status', 'Status')])
@@ -364,6 +405,8 @@ class FilterSetTest(TestCase):
                 order_by = True
         f = F({'o': 'username'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
         self.assertIn('o', f.form.fields)
         self.assertEqual(f.form.fields['o'].choices,
             [('username', 'Username'), ('status', 'Status')])
@@ -408,7 +451,8 @@ class FilterSetTest(TestCase):
                 order_by = ['status']
         f = F({'order': 'status'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['aaron', 'jacob', 'alex'], lambda o: o.username)
-
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
         self.assertIn('order', f.form.fields)
         self.assertEqual(f.form.fields['order'].choices, [('status', 'Status')])
 
@@ -421,6 +465,8 @@ class FilterSetTest(TestCase):
                 order_by = True
         f = F({'order': 'username'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
         self.assertIn('order', f.form.fields)
         self.assertEqual(f.form.fields['order'].choices,
             [('username', 'Username'), ('status', 'Status')])
@@ -448,9 +494,13 @@ class FilterSetTest(TestCase):
 
         f = F({'price': 15}, queryset=Book.objects.all().order_by('title'))
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
         f = F({'average_rating': '4.5'}, queryset=Book.objects.all().order_by('title').order_by('title'))
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six'], lambda o: o.title)
+        self.assertEqual(len(f), 2)
+        self.assertEqual(f.count(), 2)
 
         class F(FilterSet):
             price = NumberFilter(lookup_type=None)
@@ -476,11 +526,19 @@ class FilterSetTest(TestCase):
 
         f = F({'price_0': '15', 'price_1': 'lt'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
+
         f = F({'price_0': '15', 'price_1': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
+
         f = F({'price_0': '', 'price_1': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six', 'Snowcrash'],
                                  lambda o: o.title, ordered=False)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
 
         class F(FilterSet):
             price = NumberFilter(lookup_type=['lt', 'gt', 'exact'])
@@ -491,6 +549,8 @@ class FilterSetTest(TestCase):
 
         f = F({'price_0': '15'})
         self.assertQuerysetEqual(f.qs, ['Rainbox Six'], lambda o: o.title)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
 
     def test_range_filter(self):
         class F(FilterSet):
@@ -503,10 +563,14 @@ class FilterSetTest(TestCase):
         qs = Book.objects.all().order_by('title')
         f = F(queryset=qs)
         self.assertHTMLEqual(str(f.form['price']), '<input type="text" name="price_0" id="id_price_0" />-<input type="text" name="price_1" id="id_price_1" />')
-
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six', 'Snowcrash'], lambda o: o.title)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
+
         f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game', 'Rainbox Six'], lambda o: o.title)
+        self.assertEqual(len(f), 2)
+        self.assertEqual(f.count(), 2)
 
     def test_choice_filter(self):
         class F(FilterSet):
@@ -518,6 +582,8 @@ class FilterSetTest(TestCase):
 
         f = F()
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username, False)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
 
         self.assertEqual(str(f.form), """<tr><th><label for="id_status">Status:</label></th><td><ul id="id_status">
 <li><a href="?status=0">Regular</a></li>
@@ -539,10 +605,18 @@ class FilterSetTest(TestCase):
         # '2' and '3' are how the field expects the data from the browser
         f = F({'is_active': '2'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['jacob'], lambda o: o.username, False)
+        self.assertEqual(len(f), 1)
+        self.assertEqual(f.count(), 1)
+
         f = F({'is_active': '3'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['alex', 'aaron'], lambda o: o.username, False)
+        self.assertEqual(len(f), 2)
+        self.assertEqual(f.count(), 2)
+
         f = F({'is_active': '1'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, ['alex', 'aaron', 'jacob'], lambda o: o.username, False)
+        self.assertEqual(len(f), 3)
+        self.assertEqual(f.count(), 3)
 
     def test_date_range_filter(self):
         class F(FilterSet):
