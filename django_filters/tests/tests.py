@@ -235,6 +235,16 @@ class FilterSetTest(TestCase):
         f = F({'status': '1'}, queryset=User.objects.all())
         self.assertQuerysetEqual(f.qs, [alex.pk], lambda o: o.pk)
 
+    def test_qs_count(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['status', 'username']
+
+        f = F({'status': '0'}, queryset=User.objects.all())
+        self.assertEqual(len(F().qs), 3)
+        self.assertEqual(F().count(), 3)
+
     def test_forms(self):
         class F(FilterSet):
             class Meta:
