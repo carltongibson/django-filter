@@ -1,7 +1,47 @@
 Running the django-filter tests
 ===============================
 
-In order to run the django-filter tests you must not only add
-``'django_filters'`` to your ``INSTALLED_APPS`` settings, but also
-``'django_filters.tests'``, which tells Django to setup the test models.  This
-step is only necessary if you want to run the django-filter regression tests.
+The easiest way to run the django-filter tests is to check out the source
+code into a virtualenv, where you can install the test dependencies.  
+django-filter uses a custom test runner to locate all of the tests, so a
+wrapper script is available to set up and run the test suite.
+
+.. note::
+
+    The following assumes you have `virtualenv`__ and `git`__ installed.
+
+__ http://www.virtualenv.org
+__ http://git-scm.com
+
+Set up a virtualenv for the test suite
+--------------------------------------
+
+Run the following to create a new virtualenv to run the test suite in::
+
+    virtualenv django-filter-tests
+    cd django-filter-tests
+    . bin/activate
+
+Get a copy of django-filter
+---------------------------
+
+Get the django-filter source code using the following command::
+
+    git clone https://github.com/alex/django-filter.git
+
+Switch to the django-filter directory::
+
+    cd django-filter
+
+Install the test dependencies
+-----------------------------
+
+Run the following to install the test dependencies within the
+virutalenv::
+
+    pip install -r requirements/test.txt
+
+Run the django-filter tests::
+
+    python runtests.py
+

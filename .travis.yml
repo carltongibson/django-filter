@@ -7,11 +7,12 @@ python:
   - "3.3"
 
 env:
-  - DJANGO=https://www.djangoproject.com/download/1.5b2/tarball/
+  - DJANGO=https://www.djangoproject.com/download/1.5c1/tarball/
   - DJANGO=django==1.4.3 --use-mirrors
 
 install:
   - pip install $DJANGO
+  - pip install -r requirements/travis-ci.txt --use-mirrors
 
 script:
   - python ./runtests.py

@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django import forms
 
-from django_filters.widgets import RangeWidget, LookupTypeWidget
+from .widgets import RangeWidget, LookupTypeWidget
 
 
 class RangeField(forms.MultiValueField):

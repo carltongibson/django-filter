@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic import View
 from django.views.generic.list import MultipleObjectMixin
 from django.views.generic.list import MultipleObjectTemplateResponseMixin
-from django_filters.filterset import filterset_factory
+from .filterset import filterset_factory
 
 
 class FilterMixin(object):

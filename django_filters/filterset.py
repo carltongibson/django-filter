@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from copy import deepcopy
@@ -13,11 +14,11 @@ from django.utils.text import capfirst
 try:
     from django.db.models.constants import LOOKUP_SEP
 except ImportError:  # Django < 1.5 fallback
-    from django.db.models.sql.constants import LOOKUP_SEP
+    from django.db.models.sql.constants import LOOKUP_SEP  # noqa
 
-from django_filters.filters import Filter, CharFilter, BooleanFilter, \
-    ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter, \
-    ModelMultipleChoiceFilter, NumberFilter
+from .filters import (Filter, CharFilter, BooleanFilter,
+    ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
+    ModelMultipleChoiceFilter, NumberFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -105,14 +106,17 @@ class FilterSetMetaclass(type):
             # We are defining FilterSet itself here
             parents = None
         declared_filters = get_declared_filters(bases, attrs, False)
-        new_class = super(FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
+        new_class = super(
+            FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
 
         if not parents:
             return new_class
 
-        opts = new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
+        opts = new_class._meta = FilterSetOptions(
+            getattr(new_class, 'Meta', None))
         if opts.model:
-            filters = filters_for_model(opts.model, opts.fields, opts.exclude, new_class.filter_for_field)
+            filters = filters_for_model(opts.model, opts.fields, opts.exclude,
+                                        new_class.filter_for_field)
             filters.update(declared_filters)
         else:
             filters = declared_filters
@@ -148,21 +152,24 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
+            'queryset': f.rel.to._default_manager.complex_filter(
+                f.rel.limit_choices_to),
             'to_field_name': f.rel.field_name,
         }
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
+            'queryset': f.rel.to._default_manager.complex_filter(
+                f.rel.limit_choices_to),
             'to_field_name': f.rel.field_name
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(f.rel.limit_choices_to),
+            'queryset': f.rel.to._default_manager.complex_filter(
+                f.rel.limit_choices_to),
         }
     },
     models.DecimalField: {
@@ -205,10 +212,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': CharFilter,
     },
 }
-if hasattr(models, "XMLField"):
-    FILTER_FOR_DBFIELD_DEFAULTS[models.XMLField] = {
-        'filter_class': CharFilter,
-    }
 
 
 class BaseFilterSet(object):
@@ -247,14 +250,17 @@ class BaseFilterSet(object):
                     if self.is_bound:
                         data = self.form[name].data
                     else:
-                        data = self.form.initial.get(name, self.form[name].field.initial)
+                        data = self.form.initial.get(
+                            name, self.form[name].field.initial)
                     val = self.form.fields[name].clean(data)
                     qs = filter_.filter(qs, val)
                 except forms.ValidationError:
                     pass
             if self._meta.order_by:
                 try:
-                    value = self.form.fields[self.order_by_field].clean(self.form[self.order_by_field].data)
+                    order_field = self.form.fields[self.order_by_field]
+                    data = self.form[self.order_by_field].data
+                    value = order_field.clean(data)
                     if value:
                         qs = qs.order_by(value)
                 except forms.ValidationError:
@@ -268,9 +274,12 @@ class BaseFilterSet(object):
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = SortedDict([(name, filter_.field) for name, filter_ in six.iteritems(self.filters)])
+            fields = SortedDict([
+                (name, filter_.field)
+                for name, filter_ in six.iteritems(self.filters)])
             fields[self.order_by_field] = self.ordering_field
-            Form = type(str('%sForm' % self.__class__.__name__), (self._meta.form,), fields)
+            Form = type(str('%sForm' % self.__class__.__name__),
+                        (self._meta.form,), fields)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
@@ -289,7 +298,8 @@ class BaseFilterSet(object):
                 # use the filter's label if provided
                 choices = [(fltr.name or f, fltr.label or capfirst(f))
                            for f, fltr in self.filters.items()]
-            return forms.ChoiceField(label="Ordering", required=False, choices=choices)
+            return forms.ChoiceField(label="Ordering", required=False,
+                                     choices=choices)
 
     @property
     def ordering_field(self):

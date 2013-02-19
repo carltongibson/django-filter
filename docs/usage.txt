@@ -55,7 +55,7 @@ in ``Filter.extra``, so it's possible to overide the constructor of a
         def __init__(self, *args, **kwargs):
             super(ProductFilterSet, self).__init__(*args, **kwargs)
             self.filters['manufacturer'].extra.update(
-                {'empty_label': u'All Manufacturers'})
+                {'empty_label': 'All Manufacturers'})
 
 
 Now we need to write a view::
