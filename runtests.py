@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 from django.conf import settings
-# from django.core.management import call_command
 from django.core.management import execute_from_command_line
 
 if not settings.configured:
@@ -25,7 +24,6 @@ if not settings.configured:
 
 
 def runtests():
-    # call_command('test', *sys.argv[1:], verbosity=2)
     argv = sys.argv[:1] + ['test'] + sys.argv[1:]
     execute_from_command_line(argv)
 

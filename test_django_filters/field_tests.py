@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import decimal
+
 from django import forms
 from django.test import TestCase
+
 from django_filters.widgets import RangeWidget
 from django_filters.fields import RangeField
 from django_filters.fields import LookupTypeField

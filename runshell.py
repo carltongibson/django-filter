@@ -24,7 +24,6 @@ if not settings.configured:
 
 def runshell():
     call_command('syncdb', interactive=False)
-    # call_command('shell')
     argv = sys.argv[:1] + ['shell'] + sys.argv[1:]
     execute_from_command_line(argv)
 

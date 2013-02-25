@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import mock
 import datetime
+
 from django.db import models
 from django.utils import unittest
 from django.test import TestCase
@@ -1105,7 +1106,7 @@ class FilterSetOrdering(TestCase):
                 fields = ['username', 'status']
                 order_by = ['status']
         
-        f = F({}, queryset=self.qs)
+        f = F(queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
 

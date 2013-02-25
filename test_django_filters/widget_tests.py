@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 from django.test import TestCase
+
 from django_filters.widgets import RangeWidget
 from django_filters.widgets import LinkWidget
 from django_filters.widgets import LookupTypeWidget
@@ -23,8 +25,8 @@ class LinkWidgetTests(TestCase):
     def test_widget(self):
         choices = (
             ('test-val1', 'test-label1'),
-            ('test-val2', 'test-label2')
-            )
+            ('test-val2', 'test-label2'),
+        )
         w = LinkWidget(choices=choices)
         self.assertEqual(len(w.choices), 2)
         self.assertHTMLEqual(w.render('price', ''), """
@@ -35,7 +37,8 @@ class LinkWidgetTests(TestCase):
 
         self.assertHTMLEqual(w.render('price', 'test-val1'), """
             <ul>
-                <li><a class="selected" href="?price=test-val1">test-label1</a></li>
+                <li><a class="selected"
+                       href="?price=test-val1">test-label1</a></li>
                 <li><a href="?price=test-val2">test-label2</a></li>
             </ul>""")
 

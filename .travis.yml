@@ -14,8 +14,9 @@ install:
   - pip install $DJANGO
   - pip install -r requirements/travis-ci.txt --use-mirrors
 
-script:
-  - python ./runtests.py
+script: 
+  - coverage run --source django_filters runtests.py
+  - coverage report
 
 notifications:
   email: false

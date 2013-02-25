@@ -1,3 +1,4 @@
 Django
 django-discover-runner
 mock
+coverage

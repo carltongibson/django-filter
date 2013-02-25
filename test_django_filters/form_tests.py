@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 from django import forms
 from django.utils import unittest
 from django.test import TestCase
 from django.utils import six
 from django.utils.timezone import now
+
 from django_filters.filterset import FilterSet
 from django_filters.filters import AllValuesFilter
 from django_filters.filters import CharFilter
@@ -15,6 +17,7 @@ from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import RangeFilter
 from django_filters.widgets import LinkWidget
+
 from .models import User
 from .models import Comment
 from .models import Book

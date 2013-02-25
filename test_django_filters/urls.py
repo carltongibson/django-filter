@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 
 from django.conf.urls import patterns
 
-from .models import Book
 from django_filters.views import FilterView
+from .models import Book
+
 
 urlpatterns = patterns('',
     (r'^books-legacy/$',

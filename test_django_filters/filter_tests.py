@@ -1,9 +1,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import mock
+
 from django import forms
 from django.utils import unittest
 from django.test import TestCase
+
 from django_filters.fields import RangeField
 from django_filters.fields import LookupTypeField
 from django_filters.filters import Filter
