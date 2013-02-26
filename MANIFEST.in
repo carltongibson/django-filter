@@ -2,5 +2,4 @@ include AUTHORS.txt
 include LICENSE
 include README.rst
 recursive-include docs *
-recursive-include django_filters/tests/fixtures *
-recursive-include django_filters/tests/templates/tests *
+recursive-include test_django_filters/templates/test_django_filters *

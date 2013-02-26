@@ -1,18 +1,19 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from itertools import chain
 try:
     from urllib.parse import urlencode
 except:
-    from urllib import urlencode
+    from urllib import urlencode  # noqa
 
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
 try:
     from django.utils.encoding import force_text
-except:
-    from django.utils.encoding import force_unicode as force_text
+except:  # pragma: nocover
+    from django.utils.encoding import force_unicode as force_text  # noqa
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
@@ -47,12 +48,16 @@ class LinkWidget(forms.Widget):
         for option_value, option_label in chain(self.choices, choices):
             if isinstance(option_label, (list, tuple)):
                 for option in option_label:
-                    output.append(self.render_option(name, selected_choices, *option))
+                    output.append(
+                        self.render_option(name, selected_choices, *option))
             else:
-                output.append(self.render_option(name, selected_choices, option_value, option_label))
+                output.append(
+                    self.render_option(name, selected_choices,
+                                       option_value, option_label))
         return '\n'.join(output)
 
-    def render_option(self, name, selected_choices, option_value, option_label):
+    def render_option(self, name, selected_choices,
+                      option_value, option_label):
         option_value = force_text(option_value)
         if option_label == BLANK_CHOICE_DASH[0][1]:
             option_label = _("All")

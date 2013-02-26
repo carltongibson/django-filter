@@ -7,14 +7,17 @@ python:
   - "3.3"
 
 env:
-  - DJANGO=https://www.djangoproject.com/download/1.5b2/tarball/
-  - DJANGO=django==1.4.3 --use-mirrors
+  - DJANGO=https://github.com/django/django/archive/master.tar.gz
+  - DJANGO=django==1.5 --use-mirrors
+  - DJANGO=django==1.4.5 --use-mirrors
 
 install:
   - pip install $DJANGO
+  - pip install -r requirements/travis-ci.txt --use-mirrors
 
-script:
-  - python ./runtests.py
+script: 
+  - coverage run --source django_filters runtests.py
+  - coverage report
 
 notifications:
   email: false
@@ -22,6 +25,6 @@ notifications:
 matrix:
   exclude:
     - python: "3.2"
-      env: DJANGO=django==1.4.3 --use-mirrors
+      env: DJANGO=django==1.4.5 --use-mirrors
     - python: "3.3"
-      env: DJANGO=django==1.4.3 --use-mirrors
+      env: DJANGO=django==1.4.5 --use-mirrors
