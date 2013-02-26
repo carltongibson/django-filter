@@ -48,7 +48,8 @@ class FilterMixin(object):
                 msg = ("'%s' does not define a 'model' and the view '%s' does "
                        "not return a valid queryset from 'get_queryset'.  You "
                        "must fix one of them.")
-                raise ImproperlyConfigured(msg % self.__class__.__name__)
+                args = (filterset_class.__name__, self.__class__.__name__)
+                raise ImproperlyConfigured(msg % args)
         return kwargs
 
 

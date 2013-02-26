@@ -53,6 +53,14 @@ class User(models.Model):
         return self.username
 
 
+class AdminUser(User):
+    class Meta:
+        proxy = True
+
+    def __unicode__(self):
+        return "%s (ADMIN)" % self.username
+
+
 class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey(User, related_name='comments')
@@ -112,4 +120,20 @@ class Location(models.Model):
 
     def __unicode__(self):
         return '%s: %s' % (self.company.name, self.name)
+
+
+class Account(models.Model):
+    name = models.CharField(max_length=100)
+    in_good_standing = models.BooleanField()
+    friendly = models.BooleanField()
+
+
+class Profile(models.Model):
+    account = models.OneToOneField(Account, related_name='profile')
+    likes_coffee = models.BooleanField()
+    likes_tea = models.BooleanField()
+
+
+class BankAccount(Account):
+    amount_saved = models.IntegerField(default=0)
 

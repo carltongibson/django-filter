@@ -12,7 +12,7 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
 try:
     from django.utils.encoding import force_text
-except:
+except:  # pragma: nocover
     from django.utils.encoding import force_unicode as force_text  # noqa
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _

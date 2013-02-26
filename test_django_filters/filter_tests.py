@@ -23,6 +23,7 @@ from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
 from django_filters.filters import DateRangeFilter
 from django_filters.filters import AllValuesFilter
+from django_filters.filters import LOOKUP_TYPES
 
 
 class FilterTests(TestCase):
@@ -41,15 +42,24 @@ class FilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.Field)
 
+    def test_field_with_single_lookup_type(self):
+        f = Filter(lookup_type='iexact')
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+
     def test_field_with_none_lookup_type(self):
         f = Filter(lookup_type=None)
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
+        choice_field = field.fields[1]
+        self.assertEqual(len(choice_field.choices), len(LOOKUP_TYPES))
 
     def test_field_with_list_lookup_type(self):
         f = Filter(lookup_type=('istartswith', 'iendswith'))
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
+        choice_field = field.fields[1]
+        self.assertEqual(len(choice_field.choices), 2)
 
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
@@ -267,6 +277,7 @@ class ModelChoiceFilterTests(TestCase):
         f = ModelChoiceFilter(queryset=qs)
         field = f.field
         self.assertIsInstance(field, forms.ModelChoiceField)
+        self.assertEqual(field.queryset, qs)
 
 
 class ModelMultipleChoiceFilterTests(TestCase):
@@ -281,6 +292,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = ModelMultipleChoiceFilter(queryset=qs)
         field = f.field
         self.assertIsInstance(field, forms.ModelMultipleChoiceField)
+        self.assertEqual(field.queryset, qs)
 
 
 class NumberFilterTests(TestCase):

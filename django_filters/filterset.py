@@ -13,7 +13,8 @@ from django.utils.text import capfirst
 
 try:
     from django.db.models.constants import LOOKUP_SEP
-except ImportError:  # Django < 1.5 fallback
+except ImportError:  # pragma: nocover
+    # Django < 1.5 fallback
     from django.db.models.sql.constants import LOOKUP_SEP  # noqa
 
 from .filters import (Filter, CharFilter, BooleanFilter,
