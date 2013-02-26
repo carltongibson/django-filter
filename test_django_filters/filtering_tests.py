@@ -169,7 +169,7 @@ class DateFilterTests(TestCase):
 
         f = F({'date': check_date}, queryset=Comment.objects.all())
         self.assertEqual(len(f.qs), 2)
-        self.assertQuerysetEqual(f.qs, [2, 4], lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, [2, 4], lambda o: o.pk, False)
 
 
 class TimeFilterTests(TestCase):
@@ -193,7 +193,7 @@ class TimeFilterTests(TestCase):
 
         f = F({'time': check_time}, queryset=Comment.objects.all())
         self.assertEqual(len(f.qs), 2)
-        self.assertQuerysetEqual(f.qs, [2, 4], lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, [2, 4], lambda o: o.pk, False)
 
 
 class DateTimeFilterTests(TestCase):
@@ -247,7 +247,7 @@ class ModelChoiceFilterTests(TestCase):
 
         qs = Comment.objects.all()
         f = F({'author': jacob.pk}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
 
 
 class ModelMultipleChoiceFilterTests(TestCase):
@@ -511,7 +511,7 @@ class O2ORelationshipTests(TestCase):
 
         f = F({'account__in_good_standing': '2'})
         self.assertEqual(f.qs.count(), 2)
-        self.assertQuerysetEqual(f.qs, [2, 3], lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, [2, 3], lambda o: o.pk, False)
 
     def test_o2o_relation_attribute2(self):
         class F(FilterSet):
@@ -537,7 +537,7 @@ class O2ORelationshipTests(TestCase):
 
         f = F({'profile__likes_coffee': '2'})
         self.assertEqual(f.qs.count(), 2)
-        self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
 
     def test_reverse_o2o_relation_attribute2(self):
         class F(FilterSet):
@@ -575,7 +575,7 @@ class FKRelationshipTests(TestCase):
 
         f = F({'company': 1})
         self.assertEqual(f.qs.count(), 2)
-        self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk)
+        self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
 
     def test_reverse_fk_relation(self):
         alex = User.objects.create(username='alex')

@@ -340,7 +340,7 @@ class FilterSetOrderingTests(TestCase):
         self.aaron = User.objects.create(username='aaron', status=2)
         self.carl = User.objects.create(username='carl', status=0)
         # user_ids = list(User.objects.all().values_list('pk', flat=True))
-        self.qs = User.objects.all()
+        self.qs = User.objects.all().order_by('id')
 
     def test_ordering_unset(self):
         class F(FilterSet):
