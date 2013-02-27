@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic import View
 from django.views.generic.list import MultipleObjectMixin
 from django.views.generic.list import MultipleObjectTemplateResponseMixin
-from django_filters.filterset import filterset_factory
+from .filterset import filterset_factory
 
 
 class FilterMixin(object):
@@ -47,7 +48,8 @@ class FilterMixin(object):
                 msg = ("'%s' does not define a 'model' and the view '%s' does "
                        "not return a valid queryset from 'get_queryset'.  You "
                        "must fix one of them.")
-                raise ImproperlyConfigured(msg % self.__class__.__name__)
+                args = (filterset_class.__name__, self.__class__.__name__)
+                raise ImproperlyConfigured(msg % args)
         return kwargs
 
 

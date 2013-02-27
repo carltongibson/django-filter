@@ -1,12 +1,14 @@
-### these models are for testing
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
+### these models are for testing
 from django import forms
 from django.db import models
 
-
 STATUS_CHOICES = (
     (0, 'Regular'),
-    (1, 'Admin'),
+    (1, 'Manager'),
+    (2, 'Admin'),
 )
 
 
@@ -45,15 +47,23 @@ class User(models.Model):
 
     is_active = models.BooleanField()
 
-    favorite_books = models.ManyToManyField('Book')
+    favorite_books = models.ManyToManyField('Book', related_name='lovers')
 
     def __unicode__(self):
         return self.username
 
 
+class AdminUser(User):
+    class Meta:
+        proxy = True
+
+    def __unicode__(self):
+        return "%s (ADMIN)" % self.username
+
+
 class Comment(models.Model):
     text = models.TextField()
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(User, related_name='comments')
 
     date = models.DateField()
     time = models.TimeField()
@@ -91,4 +101,39 @@ class NetworkSetting(models.Model):
     ip = models.IPAddressField()
     mask = SubnetMaskField()
 
+
+class Company(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
+class Location(models.Model):
+    company = models.ForeignKey(Company, related_name='locations')
+    name = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=10)
+    open_days = models.CharField(max_length=7)
+
+    def __unicode__(self):
+        return '%s: %s' % (self.company.name, self.name)
+
+
+class Account(models.Model):
+    name = models.CharField(max_length=100)
+    in_good_standing = models.BooleanField()
+    friendly = models.BooleanField()
+
+
+class Profile(models.Model):
+    account = models.OneToOneField(Account, related_name='profile')
+    likes_coffee = models.BooleanField()
+    likes_tea = models.BooleanField()
+
+
+class BankAccount(Account):
+    amount_saved = models.IntegerField(default=0)
 
