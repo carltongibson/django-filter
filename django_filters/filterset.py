@@ -66,6 +66,7 @@ def get_model_field(model, f):
     except FieldDoesNotExist:
         return None
     if not direct:
+        if not rel.field.rel.symmetrical: return rel.field
         return rel.field.rel.to_field
     return rel
 
