@@ -13,7 +13,7 @@ setup(
     author='Alex Gaynor',
     author_email='alex.gaynor@gmail.com',
     url='http://github.com/alex/django-filter/tree/master',
-    packages=find_packages(exclude=['test_django_filters']),
+    packages=find_packages(exclude=['tests']),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',

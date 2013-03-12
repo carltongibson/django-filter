@@ -12,8 +12,8 @@ from .models import Book
 
 
 class GenericViewTestCase(TestCase):
-    urls = 'test_django_filters.urls'
-    
+    urls = 'tests.urls'
+
     def setUp(self):
         Book.objects.create(
             title="Ender's Game", price='1.00', average_rating=3.0)

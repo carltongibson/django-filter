@@ -13,7 +13,7 @@ if not settings.configured:
         },
         INSTALLED_APPS=(
             'django_filters',
-            'test_django_filters',
+            'tests',
         ),
         ROOT_URLCONF=None,
         USE_TZ=True,
