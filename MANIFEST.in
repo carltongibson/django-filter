@@ -6,4 +6,4 @@ include runshell.py
 include runtests.py
 recursive-include docs *
 recursive-include requirements *
-recursive-include test_django_filters/templates/test_django_filters *
+recursive-include test_django_filters *
