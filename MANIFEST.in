@@ -1,5 +1,9 @@
 include AUTHORS.txt
+include CHANGES.rst
 include LICENSE
 include README.rst
+include runshell.py
+include runtests.py
 recursive-include docs *
+recursive-include requirements *
 recursive-include test_django_filters/templates/test_django_filters *

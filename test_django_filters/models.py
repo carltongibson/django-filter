@@ -137,3 +137,33 @@ class Profile(models.Model):
 class BankAccount(Account):
     amount_saved = models.IntegerField(default=0)
 
+
+class Node(models.Model):
+    name = models.CharField(max_length=20)
+    adjacents = models.ManyToManyField('self')
+
+
+class DirectedNode(models.Model):
+    name = models.CharField(max_length=20)
+    outbound_nodes = models.ManyToManyField('self',
+                                            symmetrical=False,
+                                            related_name='inbound_nodes')
+
+
+class Worker(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class HiredWorker(models.Model):
+    salary = models.IntegerField()
+    hired_on = models.DateField()
+    worker = models.ForeignKey(Worker)
+    business = models.ForeignKey('Business')
+
+
+class Business(models.Model):
+    name = models.CharField(max_length=100)
+    employees = models.ManyToManyField(Worker,
+                                       through=HiredWorker,
+                                       related_name='employers')
+
