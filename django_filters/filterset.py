@@ -65,12 +65,11 @@ def get_model_field(model, f):
         rel, model, direct, m2m = opts.get_field_by_name(parts[-1])
     except FieldDoesNotExist:
         return None
-    if not direct:
-        return rel.field.rel.to_field
     return rel
 
 
-def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
+def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
+                      filter_for_reverse_field=None):
     field_dict = SortedDict()
     opts = model._meta
     if fields is None:
@@ -82,7 +81,10 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None):
         if field is None:
             field_dict[f] = None
             continue
-        filter_ = filter_for_field(field, f)
+        if isinstance(field, RelatedObject):
+            filter_ = filter_for_reverse_field(field, f)
+        else:
+            filter_ = filter_for_field(field, f)
         if filter_:
             field_dict[f] = filter_
     return field_dict
@@ -117,7 +119,8 @@ class FilterSetMetaclass(type):
             getattr(new_class, 'Meta', None))
         if opts.model:
             filters = filters_for_model(opts.model, opts.fields, opts.exclude,
-                                        new_class.filter_for_field)
+                                        new_class.filter_for_field,
+                                        new_class.filter_for_reverse_field)
             filters.update(declared_filters)
         else:
             filters = declared_filters
@@ -339,6 +342,20 @@ class BaseFilterSet(object):
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
             return filter_class(**default)
+
+    @classmethod
+    def filter_for_reverse_field(cls, f, name):
+        rel = f.field.rel
+        queryset = f.model._default_manager.all()
+        default = {
+            'name': name,
+            'label': capfirst(rel.related_name),
+            'queryset': queryset,
+        }
+        if rel.multiple:
+            return ModelMultipleChoiceFilter(**default)
+        else:
+            return ModelChoiceFilter(**default)
 
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
