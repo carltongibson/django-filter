@@ -12,16 +12,23 @@ from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import get_model_field
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
+from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 
 from .models import User
 from .models import AdminUser
 from .models import Book
+from .models import Profile
+from .models import Comment
 from .models import Restaurant
 from .models import NetworkSetting
 from .models import SubnetMaskField
 from .models import Account
 from .models import BankAccount
+from .models import Node
+from .models import DirectedNode
+from .models import Worker
+from .models import Business
 
 
 class HelperMethodsTests(TestCase):
@@ -103,15 +110,16 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, 'id')
         self.assertIsNone(result)
 
-    def test_filter_for_field_with_extras(self):
+    def test_field_with_extras(self):
         f = User._meta.get_field('favorite_books')
         result = FilterSet.filter_for_field(f, 'favorite_books')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.name, 'favorite_books')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, Book)
 
-    def test_filter_for_field_with_choices(self):
+    def test_field_with_choices(self):
         f = User._meta.get_field('status')
         result = FilterSet.filter_for_field(f, 'status')
         self.assertIsInstance(result, ChoiceFilter)
@@ -119,14 +127,89 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertTrue('choices' in result.extra)
         self.assertIsNotNone(result.extra['choices'])
 
-    def test_filter_for_field_that_is_subclassed(self):
+    def test_field_that_is_subclassed(self):
         f = User._meta.get_field('first_name')
         result = FilterSet.filter_for_field(f, 'first_name')
         self.assertIsInstance(result, CharFilter)
 
+    def test_symmetrical_selfref_m2m_field(self):
+        f = Node._meta.get_field('adjacents')
+        result = FilterSet.filter_for_field(f, 'adjacents')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'adjacents')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, Node)
+
+    def test_non_symmetrical_selfref_m2m_field(self):
+        f = DirectedNode._meta.get_field('outbound_nodes')
+        result = FilterSet.filter_for_field(f, 'outbound_nodes')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'outbound_nodes')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, DirectedNode)
+
+    def test_m2m_field_with_through_model(self):
+        f = Business._meta.get_field('employees')
+        result = FilterSet.filter_for_field(f, 'employees')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'employees')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, Worker)
+
     @unittest.skip('todo')
     def test_filter_overrides(self):
         pass
+
+
+class FilterSetFilterForReverseFieldTests(TestCase):
+
+    def test_reverse_o2o_relationship(self):
+        f = Account._meta.get_field_by_name('profile')[0]
+        result = FilterSet.filter_for_reverse_field(f, 'profile')
+        self.assertIsInstance(result, ModelChoiceFilter)
+        self.assertEqual(result.name, 'profile')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, Profile)
+
+    def test_reverse_fk_relationship(self):
+        f = User._meta.get_field_by_name('comments')[0]
+        result = FilterSet.filter_for_reverse_field(f, 'comments')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'comments')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, Comment)
+
+    def test_reverse_m2m_relationship(self):
+        f = Book._meta.get_field_by_name('lovers')[0]
+        result = FilterSet.filter_for_reverse_field(f, 'lovers')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'lovers')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, User)
+
+    def test_reverse_non_symmetrical_selfref_m2m_field(self):
+        f = DirectedNode._meta.get_field_by_name('inbound_nodes')[0]
+        result = FilterSet.filter_for_reverse_field(f, 'inbound_nodes')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'inbound_nodes')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, DirectedNode)
+
+    def test_reverse_m2m_field_with_through_model(self):
+        f = Worker._meta.get_field_by_name('employers')[0]
+        result = FilterSet.filter_for_reverse_field(f, 'employers')
+        self.assertIsInstance(result, ModelMultipleChoiceFilter)
+        self.assertEqual(result.name, 'employers')
+        self.assertTrue('queryset' in result.extra)
+        self.assertIsNotNone(result.extra['queryset'])
+        self.assertEqual(result.extra['queryset'].model, Business)
 
 
 class FilterSetClassCreationTests(TestCase):

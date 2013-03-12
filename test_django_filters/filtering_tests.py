@@ -32,6 +32,8 @@ from .models import Company
 from .models import Location
 from .models import Account
 from .models import Profile
+from .models import Node
+from .models import DirectedNode
 from .models import STATUS_CHOICES
 
 
@@ -224,7 +226,9 @@ class DateTimeFilterTests(TestCase):
 
         # this is how it would come through a browser
         f = F({'published': check_dt}, queryset=qs)
-        self.assertEqual(len(f.qs), 1,
+        self.assertEqual(
+            len(f.qs),
+            1,
             "%s isn't matching %s when cleaned" % (check_dt, ten_min_ago))
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
 
@@ -494,11 +498,17 @@ class O2ORelationshipTests(TestCase):
         self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
 
     def test_reverse_o2o_relation(self):
-        with self.assertRaises(AttributeError):
-            class F(FilterSet):
-                class Meta:
-                    model = Account
-                    fields = ('profile',)
+        class F(FilterSet):
+            class Meta:
+                model = Account
+                fields = ('profile',)
+
+        f = F()
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'profile': 1})
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
 
     def test_o2o_relation_attribute(self):
         class F(FilterSet):
@@ -589,26 +599,24 @@ class FKRelationshipTests(TestCase):
         Comment.objects.create(text='comment 3',
                                author=jacob, time=time, date=date)
 
-        with self.assertRaises(AttributeError):
-            class F(FilterSet):
-                class Meta:
-                    model = User
-                    fields = ['comments']
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['comments']
 
-        # qs = User.objects.all()
-        # f = F({'comment': 2}, queryset=qs)
-        # self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        qs = User.objects.all()
+        f = F({'comments': [2]}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
-        with self.assertRaises(AttributeError):
-            class F(FilterSet):
-                comment = AllValuesFilter()
+        class F(FilterSet):
+            comments = AllValuesFilter()
 
-                class Meta:
-                    model = User
-                    fields = ['comments']
+            class Meta:
+                model = User
+                fields = ['comments']
 
-        # f = F({'comments': 2}, queryset=qs)
-        # self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        f = F({'comments': 2}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
     def test_fk_relation_attribute(self):
         now_dt = now()
@@ -728,28 +736,26 @@ class M2MRelationshipTests(TestCase):
         self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
     def test_reverse_m2m_relation(self):
-        with self.assertRaises(AttributeError):
-            class F(FilterSet):
-                class Meta:
-                    model = Book
-                    fields = ['lovers']
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = ['lovers']
 
-        # qs = User.objects.all()
-        # f = F({'lovers': [1]}, queryset=qs)
-        # self.assertQuerysetEqual(
-        #     f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)
+        qs = Book.objects.all()
+        f = F({'lovers': [1]}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)
 
-        with self.assertRaises(AttributeError):
-            class F(FilterSet):
-                lovers = AllValuesFilter()
+        class F(FilterSet):
+            lovers = AllValuesFilter()
 
-                class Meta:
-                    model = Book
-                    fields = ['lovers']
+            class Meta:
+                model = Book
+                fields = ['lovers']
 
-        # f = F({'lovers': 1}, queryset=qs)
-        # self.assertQuerysetEqual(
-        #     f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)
+        f = F({'lovers': 1}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)
 
     def test_m2m_relation_attribute(self):
         class F(FilterSet):
@@ -872,15 +878,60 @@ class M2MRelationshipTests(TestCase):
         pass
 
 
-class SelfReferentialRelationshipTests(TestCase):
+class SymmetricalSelfReferentialRelationshipTests(TestCase):
 
-    @unittest.skip('todo')
-    def test_self_referential_m2m_relation(self):
-        pass
+    def setUp(self):
+        n1 = Node.objects.create(name='one')
+        n2 = Node.objects.create(name='two')
+        n3 = Node.objects.create(name='three')
+        n4 = Node.objects.create(name='four')
+        n1.adjacents.add(n2)
+        n2.adjacents.add(n3)
+        n2.adjacents.add(n4)
+        n4.adjacents.add(n1)
 
-    @unittest.skip('todo')
-    def test_reverse_self_referential_m2m_relation(self):
-        pass
+    def test_relation(self):
+        class F(FilterSet):
+            class Meta:
+                model = Node
+                fields = ['adjacents']
+
+        qs = Node.objects.all().order_by('pk')
+        f = F({'adjacents': ['1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [2, 4], lambda o: o.pk)
+
+
+class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
+
+    def setUp(self):
+        n1 = DirectedNode.objects.create(name='one')
+        n2 = DirectedNode.objects.create(name='two')
+        n3 = DirectedNode.objects.create(name='three')
+        n4 = DirectedNode.objects.create(name='four')
+        n1.outbound_nodes.add(n2)
+        n2.outbound_nodes.add(n3)
+        n2.outbound_nodes.add(n4)
+        n4.outbound_nodes.add(n1)
+
+    def test_forward_relation(self):
+        class F(FilterSet):
+            class Meta:
+                model = DirectedNode
+                fields = ['outbound_nodes']
+
+        qs = DirectedNode.objects.all().order_by('pk')
+        f = F({'outbound_nodes': ['1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [4], lambda o: o.pk)
+
+    def test_reverse_relation(self):
+        class F(FilterSet):
+            class Meta:
+                model = DirectedNode
+                fields = ['inbound_nodes']
+
+        qs = DirectedNode.objects.all().order_by('pk')
+        f = F({'inbound_nodes': ['1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
 
 
 class MiscFilterSetTests(TestCase):
