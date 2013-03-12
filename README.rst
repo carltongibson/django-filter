@@ -20,7 +20,7 @@ Installation
 
 Install using pip::
 
-    pip install -e git+https://github.com/alex/django-filter.git#egg=django-filter
+    pip install django-filter
 
 Or clone the repo and add to your PYTHONPATH::
 
