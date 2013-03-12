@@ -741,7 +741,7 @@ class M2MRelationshipTests(TestCase):
                 model = Book
                 fields = ['lovers']
 
-        qs = Book.objects.all()
+        qs = Book.objects.all().order_by('title')
         f = F({'lovers': [1]}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)

@@ -35,7 +35,7 @@ class FilterTests(TestCase):
     def test_creation_order(self):
         f = Filter()
         f2 = Filter()
-        self.assert_(f2.creation_counter > f.creation_counter)
+        self.assertTrue(f2.creation_counter > f.creation_counter)
 
     def test_default_field(self):
         f = Filter()

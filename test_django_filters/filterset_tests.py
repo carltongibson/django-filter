@@ -324,14 +324,14 @@ class FilterSetClassCreationTests(TestCase):
             class Meta:
                 model = Restaurant
 
-        self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
+        self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
         class F(FilterSet):
             class Meta:
                 model = Restaurant
                 fields = ['name', 'serves_pizza']
 
-        self.assertEquals(set(F.base_filters), set(['name', 'serves_pizza']))
+        self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
     def test_custom_field_ignored(self):
         class F(FilterSet):
