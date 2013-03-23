@@ -13,7 +13,7 @@ Requirements
 ------------
 
 * Python 2.6+
-* Django 1.4.2+
+* Django 1.4.5+
 
 Installation
 ------------
