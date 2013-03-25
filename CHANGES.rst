@@ -14,7 +14,7 @@ Version 0.6 (Unreleased)
 * FEATURE: addition of class-based FilterView
 
 * FEATURE: addition of count() method on FilterSet to prevent pagination
-  from loading entire queryset 
+  from loading entire queryset
 
 * FIXED: attempts to filter on reverse side of m2m, o2o or fk would
   raise an error

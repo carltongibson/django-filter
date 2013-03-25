@@ -6,7 +6,7 @@ f.close()
 
 setup(
     name='django-filter',
-    version='0.6a2',
+    version='0.6',
     description=('Django-filter is a reusable Django application for allowing'
                  ' users to filter querysets dynamically.'),
     long_description=readme,
@@ -14,8 +14,9 @@ setup(
     author_email='alex.gaynor@gmail.com',
     url='http://github.com/alex/django-filter/tree/master',
     packages=find_packages(exclude=['tests']),
+    license='BSD',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
