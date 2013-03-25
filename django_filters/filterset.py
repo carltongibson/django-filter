@@ -250,16 +250,16 @@ class BaseFilterSet(object):
         if not hasattr(self, '_qs'):
             qs = self.queryset.all()
             for name, filter_ in six.iteritems(self.filters):
+                if self.is_bound:
+                    data = self.form[name].data
+                else:
+                    data = self.form.initial.get(name, self.form[name].field.initial)
                 try:
-                    if self.is_bound:
-                        data = self.form[name].data
-                    else:
-                        data = self.form.initial.get(
-                            name, self.form[name].field.initial)
                     val = self.form.fields[name].clean(data)
-                    qs = filter_.filter(qs, val)
                 except forms.ValidationError:
-                    pass
+                    qs = []
+                else:
+                    qs = filter_.filter(qs, val)
             if self._meta.order_by:
                 try:
                     order_field = self.form.fields[self.order_by_field]
