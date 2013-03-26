@@ -257,7 +257,7 @@ class BaseFilterSet(object):
                 try:
                     val = self.form.fields[name].clean(data)
                 except forms.ValidationError:
-                    qs = []
+                    qs = self.queryset.none()
                 else:
                     qs = filter_.filter(qs, val)
             if self._meta.order_by:
