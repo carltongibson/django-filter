@@ -463,8 +463,7 @@ class AllValuesFilterTests(TestCase):
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'})),
                          [User.objects.get(username='alex')])
-        self.assertEqual(list(F({'username': 'jose'})),
-                         list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'jose'})), list())
 
 
 class O2ORelationshipTests(TestCase):
@@ -645,6 +644,7 @@ class FKRelationshipTests(TestCase):
                 fields = ['author__username']
 
         self.assertEqual(F({'author__username': 'alex'}).qs.count(), 2)
+        self.assertEqual(F({'author__username': 'scott'}).qs.count(), 0)
 
     def test_reverse_fk_relation_attribute(self):
         alex = User.objects.create(username='alex')
