@@ -1,4 +1,4 @@
-include AUTHORS.txt
+include AUTHORS
 include CHANGES.rst
 include LICENSE
 include README.rst
