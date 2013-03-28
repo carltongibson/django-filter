@@ -18,7 +18,7 @@ def to_d(float_value):
 
 
 class RangeFieldTests(TestCase):
-    
+
     def test_field(self):
         f = RangeField()
         self.assertEqual(len(f.fields), 2)
@@ -26,14 +26,14 @@ class RangeFieldTests(TestCase):
     def test_clean(self):
         w = RangeWidget()
         f = RangeField(widget=w)
-        
+
         self.assertEqual(
             f.clean(['12.34', '55']),
             slice(to_d(12.34), to_d(55)))
 
 
 class LookupTypeFieldTests(TestCase):
-    
+
     def test_field(self):
         inner = forms.DecimalField()
         f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')])

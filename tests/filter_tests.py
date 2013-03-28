@@ -27,7 +27,7 @@ from django_filters.filters import LOOKUP_TYPES
 
 
 class FilterTests(TestCase):
-    
+
     def test_creation(self):
         f = Filter()
         self.assertEqual(f.lookup_type, 'exact')
@@ -202,7 +202,7 @@ class MultipleChoiceFilterTests(TestCase):
         f = MultipleChoiceFilter()
         with self.assertRaises(TypeError):
             f.filter(qs, ['value'])
-    
+
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
         f = MultipleChoiceFilter(name='somefield')
@@ -211,7 +211,7 @@ class MultipleChoiceFilterTests(TestCase):
             mockQclass.side_effect = [mockQ1, mockQ2]
 
             f.filter(qs, ['value'])
-            
+
             self.assertEqual(mockQclass.call_args_list,
                              [mock.call(), mock.call(somefield='value')])
             mockQ1.__ior__.assert_called_once_with(mockQ2)
@@ -242,7 +242,7 @@ class MultipleChoiceFilterTests(TestCase):
 
 
 class DateFilterTests(TestCase):
-    
+
     def test_default_field(self):
         f = DateFilter()
         field = f.field
@@ -250,7 +250,7 @@ class DateFilterTests(TestCase):
 
 
 class DateTimeFilterTests(TestCase):
-    
+
     def test_default_field(self):
         f = DateTimeFilter()
         field = f.field
@@ -258,7 +258,7 @@ class DateTimeFilterTests(TestCase):
 
 
 class TimeFilterTests(TestCase):
-    
+
     def test_default_field(self):
         f = TimeFilter()
         field = f.field
@@ -266,7 +266,7 @@ class TimeFilterTests(TestCase):
 
 
 class ModelChoiceFilterTests(TestCase):
-    
+
     def test_default_field_without_queryset(self):
         f = ModelChoiceFilter()
         with self.assertRaises(TypeError):
@@ -281,7 +281,7 @@ class ModelChoiceFilterTests(TestCase):
 
 
 class ModelMultipleChoiceFilterTests(TestCase):
-    
+
     def test_default_field_without_queryset(self):
         f = ModelMultipleChoiceFilter()
         with self.assertRaises(TypeError):
@@ -296,7 +296,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
 
 class NumberFilterTests(TestCase):
-    
+
     def test_default_field(self):
         f = NumberFilter()
         field = f.field
@@ -410,7 +410,7 @@ class DateRangeFilterTests(TestCase):
 
 
 class AllValuesFilterTests(TestCase):
-    
+
     def test_default_field_without_assigning_model(self):
         f = AllValuesFilter()
         with self.assertRaises(AttributeError):

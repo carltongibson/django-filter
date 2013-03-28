@@ -10,7 +10,7 @@ from django_filters.widgets import LookupTypeWidget
 
 
 class LookupTypeWidgetTests(TestCase):
-    
+
     def test_widget_requires_field(self):
         with self.assertRaises(TypeError):
             LookupTypeWidget()
@@ -41,7 +41,7 @@ class LookupTypeWidgetTests(TestCase):
 
 
 class LinkWidgetTests(TestCase):
-    
+
     def test_widget_without_choices(self):
         w = LinkWidget()
         self.assertEqual(len(w.choices), 0)
