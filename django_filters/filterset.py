@@ -23,6 +23,7 @@ from .filters import (Filter, CharFilter, BooleanFilter,
 
 
 ORDER_BY_FIELD = 'o'
+_SENTINEL = object()
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -221,14 +222,17 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     filter_overrides = {}
     order_by_field = ORDER_BY_FIELD
+    strict = False
 
-    def __init__(self, data=None, queryset=None, prefix=None):
+    def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
         self.form_prefix = prefix
+        if strict is not None:
+            self.strict = strict
 
         self.filters = deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -248,27 +252,42 @@ class BaseFilterSet(object):
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
+            valid = self.is_bound and self.form.is_valid()
+
+            if self.strict and self.is_bound and not valid:
+                self._qs = self.queryset.none()
+                return self._qs
+
+            def get_value(name):
+                value = _SENTINEL
+                if valid:
+                    value = self.form.cleaned_data[name]
+                else:
+                    data = self.form[name].value()
+                    try:
+                        value = self.form.fields[name].clean(data)
+                    except forms.ValidationError:
+                        pass
+                return value
+
             qs = self.queryset.all()
             for name, filter_ in six.iteritems(self.filters):
-                try:
-                    if self.is_bound:
-                        data = self.form[name].data
-                    else:
-                        data = self.form.initial.get(
-                            name, self.form[name].field.initial)
-                    val = self.form.fields[name].clean(data)
-                    qs = filter_.filter(qs, val)
-                except forms.ValidationError:
-                    pass
+                value = get_value(name)
+                if value is not _SENTINEL:  # valid & clean data
+                    qs = filter_.filter(qs, value)
+                elif self.strict:
+                    self._qs = self.queryset.none()
+                    return self._qs
+
             if self._meta.order_by:
-                try:
-                    order_field = self.form.fields[self.order_by_field]
-                    data = self.form[self.order_by_field].data
-                    value = order_field.clean(data)
-                    if value:
-                        qs = qs.order_by(value)
-                except forms.ValidationError:
-                    pass
+                value = get_value(self.order_by_field)
+                if value is _SENTINEL and self.strict:
+                    self._qs = self.queryset.none()
+                    return self._qs
+                if not value or value is _SENTINEL:
+                    value = self.form.fields[self.order_by_field].choices[0][0]
+                qs = qs.order_by(value)
+            
             self._qs = qs
         return self._qs
 

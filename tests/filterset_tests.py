@@ -425,7 +425,7 @@ class FilterSetOrderingTests(TestCase):
         # user_ids = list(User.objects.all().values_list('pk', flat=True))
         self.qs = User.objects.all().order_by('id')
 
-    def test_ordering_unset(self):
+    def test_ordering_when_unbound(self):
         class F(FilterSet):
             class Meta:
                 model = User
@@ -434,7 +434,7 @@ class FilterSetOrderingTests(TestCase):
         
         f = F(queryset=self.qs)
         self.assertQuerysetEqual(
-            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
     def test_ordering(self):
         class F(FilterSet):
@@ -447,7 +447,7 @@ class FilterSetOrderingTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
-    def test_ordering_on_unknown_value_is_ignored(self):
+    def test_ordering_on_unknown_value_results_in_default_ordering(self):
         class F(FilterSet):
             class Meta:
                 model = User
@@ -456,7 +456,7 @@ class FilterSetOrderingTests(TestCase):
         
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
-            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
     def test_ordering_on_differnt_field(self):
         class F(FilterSet):
