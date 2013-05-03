@@ -28,6 +28,7 @@ LOOKUP_TYPES = sorted(QUERY_TERMS)
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
+    allow_null_value = False
 
     def __init__(self, name=None, label=None, widget=None, action=None,
         lookup_type='exact', required=False, **kwargs):
@@ -62,7 +63,7 @@ class Filter(object):
         return self._field
 
     def filter(self, qs, value):
-        if not value:
+        if not value and not (self.allow_null_value and value is not None):
             return qs
         if isinstance(value, (list, tuple)):
             lookup = six.text_type(value[1])
@@ -71,7 +72,7 @@ class Filter(object):
             value = value[0]
         else:
             lookup = self.lookup_type
-        if value:
+        if value or (self.allow_null_value and value is not None):
             return qs.filter(**{'%s__%s' % (self.name, lookup): value})
         return qs
 
@@ -131,6 +132,7 @@ class ModelMultipleChoiceFilter(MultipleChoiceFilter):
 
 class NumberFilter(Filter):
     field_class = forms.DecimalField
+    allow_null_value = True
 
 
 class RangeFilter(Filter):
