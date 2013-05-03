@@ -31,6 +31,7 @@ from .models import Article
 from .models import Company
 from .models import Location
 from .models import Account
+from .models import BankAccount
 from .models import Profile
 from .models import Node
 from .models import DirectedNode
@@ -58,6 +59,28 @@ class CharFilterTests(TestCase):
                                  lambda o: o.pk, ordered=False)
         f = F({'title': 'Snowcrash'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk)
+
+
+class IntegerFilterTest(TestCase):
+
+    def test_filtering(self):
+        b1 = BankAccount.objects.create(amount_saved=0)
+        b2 = BankAccount.objects.create(amount_saved=3)
+        b3 = BankAccount.objects.create(amount_saved=10)
+
+        class F(FilterSet):
+            class Meta:
+                model = BankAccount
+                fields = ['amount_saved']
+
+        qs = BankAccount.objects.all()
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b1.pk, b2.pk, b3.pk],
+                                 lambda o: o.pk, ordered=False)
+        f = F({'amount_saved': '10'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk)
+        f = F({'amount_saved': '0'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b1.pk], lambda o: o.pk)
 
 
 class BooleanFilterTests(TestCase):
