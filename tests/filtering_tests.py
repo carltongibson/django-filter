@@ -64,9 +64,13 @@ class CharFilterTests(TestCase):
 class IntegerFilterTest(TestCase):
 
     def test_filtering(self):
-        b1 = BankAccount.objects.create(amount_saved=0)
-        b2 = BankAccount.objects.create(amount_saved=3)
-        b3 = BankAccount.objects.create(amount_saved=10)
+        default_values = {
+            'in_good_standing': True,
+            'friendly': False,
+        }
+        b1 = BankAccount.objects.create(amount_saved=0, **default_values)
+        b2 = BankAccount.objects.create(amount_saved=3, **default_values)
+        b3 = BankAccount.objects.create(amount_saved=10, **default_values)
 
         class F(FilterSet):
             class Meta:
