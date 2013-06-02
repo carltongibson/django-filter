@@ -30,7 +30,7 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', required=False, **kwargs):
+        lookup_type='exact', required=False, distinct=False, **kwargs):
         self.name = name
         self.label = label
         if action:
@@ -39,6 +39,7 @@ class Filter(object):
         self.widget = widget
         self.required = required
         self.extra = kwargs
+        self.distinct = distinct
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
@@ -72,7 +73,9 @@ class Filter(object):
         else:
             lookup = self.lookup_type
         if value:
-            return qs.filter(**{'%s__%s' % (self.name, lookup): value})
+            qs = qs.filter(**{'%s__%s' % (self.name, lookup): value})
+        if self.distinct:
+            qs = qs.distinct()
         return qs
 
 
