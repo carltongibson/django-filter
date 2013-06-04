@@ -50,8 +50,8 @@ use with Django's ORM.  So here when a user entered a price it would show all
 Products with a price less than that.
 
 Filters also take any arbitrary keyword arguments which get passed onto the
-``django.forms.Field`` constructor.  These extra keyword arguments get stored
-in ``Filter.extra``, so it's possible to override the constructor of a
+``django.forms.Field`` initializer.  These extra keyword arguments get stored
+in ``Filter.extra``, so it's possible to override the initializer of a
 ``FilterSet`` to add extra ones::
 
     class ProductFilterSet(django_filters.FilterSet):
