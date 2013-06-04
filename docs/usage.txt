@@ -1,10 +1,14 @@
 Using django-filter
--------------------
+===================
 
 Django-filter provides a simple way to filter down a queryset based on
 parameters a user provides.  Say we have a ``Product`` model and we want to let
-our users filter which products they see on a list page.  Let's start with our
-model::
+our users filter which products they see on a list page.  
+
+The model
+--------
+
+Let's start with our model::
 
     from django.db import models
 
@@ -14,6 +18,9 @@ model::
         description = models.TextField()
         release_date = models.DateField()
         manufacturer = models.ForeignKey(Manufacturer)
+
+The filter
+----------
 
 We have a number of fields and we want to let our users filter based on the
 price or the release_date.  We create a ``FilterSet`` for this::
@@ -27,7 +34,7 @@ price or the release_date.  We create a ``FilterSet`` for this::
 
 
 As you can see this uses a very similar API to Django's ``ModelForm``.  Just
-like with a ``ModelForm`` we can also overide filters, or add new ones using a
+like with a ``ModelForm`` we can also override filters, or add new ones using a
 declarative syntax::
 
     import django_filters
@@ -44,7 +51,7 @@ Products with a price less than that.
 
 Filters also take any arbitrary keyword arguments which get passed onto the
 ``django.forms.Field`` constructor.  These extra keyword arguments get stored
-in ``Filter.extra``, so it's possible to overide the constructor of a
+in ``Filter.extra``, so it's possible to override the constructor of a
 ``FilterSet`` to add extra ones::
 
     class ProductFilterSet(django_filters.FilterSet):
@@ -58,6 +65,9 @@ in ``Filter.extra``, so it's possible to overide the constructor of a
                 {'empty_label': 'All Manufacturers'})
 
 
+The view
+--------
+
 Now we need to write a view::
 
     def product_list(request):
@@ -66,6 +76,9 @@ Now we need to write a view::
 
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
+
+The template
+------------
 
 And lastly we need a template::
 
@@ -112,12 +125,12 @@ Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a 
 related model.
 
-If you want to use a custom widget, or in any other way overide the ordering
-field you can overide the ``get_ordering_field()`` method on a ``FilterSet``.
+If you want to use a custom widget, or in any other way override the ordering
+field you can override the ``get_ordering_field()`` method on a ``FilterSet``.
 This method just needs to return a Form Field.
 
 Generic View
-============
+------------
 
 In addition to the above usage there is also a class-based generic view
 included in django-filter, which lives at ``django_filters.views.FilterView``.
@@ -138,7 +151,7 @@ context parameter ``filter``.  Additionally, the context will contain
 ``object_list`` which holds the filtered queryset.
 
 A legacy functional generic view is still include in django-filter, although
-it's use is deprecated.  It can be found at 
+its use is deprecated.  It can be found at 
 ``django_filters.views.object_filter``.  You must provide the same arguments
 to it as the class based view::
 
@@ -150,5 +163,5 @@ to it as the class based view::
         (r'^list/', 'django_filters.views.object_filter', {'model': Product}),
     )
 
-The needed template and it's context variables will also be the same as the
+The needed template and its context variables will also be the same as the
 class-based view above.
