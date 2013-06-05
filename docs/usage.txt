@@ -77,6 +77,13 @@ Now we need to write a view::
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
 
+The URL conf
+------------
+
+We need a URL pattern to call the view::
+
+    url(r'^list$', views.product_list)
+
 The template
 ------------
 
@@ -143,14 +150,14 @@ You must provide either a ``model`` or ``filter_class`` argument, similar to
     from myapp.models import Product
     
     urlpatterns = patterns('',
-        (r'^list/', FilterView.as_view(model=Product)),
+        (r'^list/$', FilterView.as_view(model=Product)),
     )
 
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
 context parameter ``filter``.  Additionally, the context will contain 
 ``object_list`` which holds the filtered queryset.
 
-A legacy functional generic view is still include in django-filter, although
+A legacy functional generic view is still included in django-filter, although
 its use is deprecated.  It can be found at 
 ``django_filters.views.object_filter``.  You must provide the same arguments
 to it as the class based view::
@@ -160,7 +167,7 @@ to it as the class based view::
     from myapp.models import Product
 
     urlpatterns = patterns('',
-        (r'^list/', 'django_filters.views.object_filter', {'model': Product}),
+        (r'^list/$', 'django_filters.views.object_filter', {'model': Product}),
     )
 
 The needed template and its context variables will also be the same as the
