@@ -151,7 +151,7 @@ _truncate = lambda dt: dt.replace(hour=0, minute=0, second=0)
 
 class DateRangeFilter(ChoiceFilter):
     options = {
-        '': (_('Any Date'), lambda qs, name: qs.all()),
+        '': (_('Any date'), lambda qs, name: qs.all()),
         1: (_('Today'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month,
