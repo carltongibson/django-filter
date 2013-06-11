@@ -11,6 +11,7 @@ from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import get_model_field
 from django_filters.filters import CharFilter
+from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
@@ -85,7 +86,6 @@ class DbFieldDefaultFiltersTests(TestCase):
     def test_expected_db_fields_do_not_get_filters(self):
         to_check = [
             models.Field,
-            models.AutoField,
             models.BigIntegerField,
             models.GenericIPAddressField,
             models.FileField,
@@ -105,10 +105,11 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsInstance(result, CharFilter)
         self.assertEqual(result.name, 'username')
 
-    def test_filter_not_found_for_field(self):
+    def test_filter_found_for_autofield(self):
         f = User._meta.get_field('id')
         result = FilterSet.filter_for_field(f, 'id')
-        self.assertIsNone(result)
+        self.assertIsInstance(result, NumberFilter)
+        self.assertEqual(result.name, 'id')
 
     def test_field_with_extras(self):
         f = User._meta.get_field('favorite_books')
@@ -263,6 +264,18 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.declared_filters), 1)
         self.assertEqual(len(F.base_filters), 2)
         self.assertListEqual(list(F.base_filters), ['username', 'price'])
+
+    def test_meta_fields_containing_autofield(self):
+        class F(FilterSet):
+            username = CharFilter()
+
+            class Meta:
+                model = Book
+                fields = ('id', 'username', 'price')
+
+        self.assertEqual(len(F.declared_filters), 1)
+        self.assertEqual(len(F.base_filters), 3)
+        self.assertListEqual(list(F.base_filters), ['id', 'username', 'price'])
 
     def test_meta_fields_containing_unknown(self):
         with self.assertRaises(TypeError):
