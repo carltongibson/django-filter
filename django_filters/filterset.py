@@ -73,7 +73,10 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     field_dict = SortedDict()
     opts = model._meta
     if fields is None:
-        fields = [f.name for f in sorted(opts.fields + opts.many_to_many)]
+        fields = [f.name for f in sorted(
+           filter(lambda x: not isinstance(x, models.AutoField), opts.fields)
+           + opts.many_to_many
+        )]
     for f in fields:
         if exclude is not None and f in exclude:
             continue
@@ -135,6 +138,9 @@ class FilterSetMetaclass(type):
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
+    models.AutoField: {
+        'filter_class': NumberFilter
+    },
     models.CharField: {
         'filter_class': CharFilter
     },
