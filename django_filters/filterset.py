@@ -73,10 +73,8 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     field_dict = SortedDict()
     opts = model._meta
     if fields is None:
-        fields = [f.name for f in sorted(
-           filter(lambda x: not isinstance(x, models.AutoField), opts.fields)
-           + opts.many_to_many
-        )]
+        fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
+            if not isinstance(f, models.AutoField)]
     for f in fields:
         if exclude is not None and f in exclude:
             continue
