@@ -31,6 +31,7 @@ class FilterTests(TestCase):
     def test_creation(self):
         f = Filter()
         self.assertEqual(f.lookup_type, 'exact')
+        self.assertEqual(f.exclude, False)
 
     def test_creation_order(self):
         f = Filter()
@@ -41,6 +42,13 @@ class FilterTests(TestCase):
         f = Filter()
         field = f.field
         self.assertIsInstance(field, forms.Field)
+        self.assertEqual(field.help_text, '')
+
+    def test_field_with_exclusion(self):
+        f = Filter(exclude=True)
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+        self.assertEqual(field.help_text, 'This is an exclusion filter')
 
     def test_field_with_single_lookup_type(self):
         f = Filter(lookup_type='iexact')
@@ -53,6 +61,12 @@ class FilterTests(TestCase):
         self.assertIsInstance(field, LookupTypeField)
         choice_field = field.fields[1]
         self.assertEqual(len(choice_field.choices), len(LOOKUP_TYPES))
+
+    def test_field_with_lookup_type_and_exlusion(self):
+        f = Filter(lookup_type=None, exclude=True)
+        field = f.field
+        self.assertIsInstance(field, LookupTypeField)
+        self.assertEqual(field.help_text, 'This is an exclusion filter')
 
     def test_field_with_list_lookup_type(self):
         f = Filter(lookup_type=('istartswith', 'iendswith'))
@@ -68,7 +82,7 @@ class FilterTests(TestCase):
                 widget='somewidget')
             f.field
             mocked.assert_called_once_with(required=False,
-                label='somelabel', widget='somewidget')
+                label='somelabel', widget='somewidget', help_text=mock.ANY)
 
     def test_field_extra_params(self):
         with mock.patch.object(Filter, 'field_class',
@@ -76,7 +90,8 @@ class FilterTests(TestCase):
             f = Filter(someattr='someattr')
             f.field
             mocked.assert_called_once_with(required=mock.ANY,
-                label=mock.ANY, widget=mock.ANY, someattr='someattr')
+                label=mock.ANY, widget=mock.ANY, help_text=mock.ANY,
+                someattr='someattr')
 
     def test_field_with_required_filter(self):
         with mock.patch.object(Filter, 'field_class',
@@ -84,13 +99,20 @@ class FilterTests(TestCase):
             f = Filter(required=True)
             f.field
             mocked.assert_called_once_with(required=True,
-                label=mock.ANY, widget=mock.ANY)
+                label=mock.ANY, widget=mock.ANY, help_text=mock.ANY)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
         f = Filter()
         result = f.filter(qs, 'value')
         qs.filter.assert_called_once_with(None__exact='value')
+        self.assertNotEqual(qs, result)
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['filter', 'exclude'])
+        f = Filter(exclude=True)
+        result = f.filter(qs, 'value')
+        qs.exclude.assert_called_once_with(None__exact='value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_uses_name(self):
