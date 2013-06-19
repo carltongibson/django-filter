@@ -173,7 +173,7 @@ class FilterSetFormTests(TestCase):
 
         f = F().form
         self.assertEqual(f.fields['o'].choices,
-            [('username', 'Username'), ('status', 'Status')])
+            [('username', 'Username'), ('-username', 'Username'), ('status', 'Status'), ('-status', 'Status')])
 
     def test_ordering_uses_filter_label(self):
         class F(FilterSet):
@@ -186,7 +186,7 @@ class FilterSetFormTests(TestCase):
         
         f = F().form
         self.assertEqual(f.fields['o'].choices,
-            [('username', 'Account'), ('status', 'Status')])
+            [('username', 'Account'), ('-username', 'Account'), ('status', 'Status'), ('-status', 'Status')])
 
     def test_ordering_uses_implicit_filter_name(self):
         class F(FilterSet):
@@ -199,7 +199,7 @@ class FilterSetFormTests(TestCase):
         
         f = F().form
         self.assertEqual(f.fields['o'].choices,
-            [('username', 'Account'), ('status', 'Status')])
+            [('username', 'Account'), ('-username', 'Account'), ('status', 'Status'), ('-status', 'Status')])
 
     def test_ordering_with_overridden_field_name(self):
         """
@@ -231,7 +231,7 @@ class FilterSetFormTests(TestCase):
         f = F().form
         self.assertIn('order', f.fields)
         self.assertEqual(f.fields['order'].choices,
-            [('username', 'Username'), ('status', 'Status')])
+            [('username', 'Username'), ('-username', 'Username'), ('status', 'Status'), ('-status', 'Status')])
 
     def test_ordering_with_custom_display_names(self):
         class F(FilterSet):
