@@ -36,14 +36,3 @@ reports
 #local database
 local.db
 
-#temporary apps and project-specific local files
-clausula
-bileter/whoosh_index
-bileter/settings.py
-stadium/migrations
-biscuit
-venv
-manage.py
-cbklib
-
-*.xls
