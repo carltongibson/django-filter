@@ -263,7 +263,7 @@ class BaseFilterSet(object):
                     val = self.form.fields[name].clean(data)
                     qs = filter_.filter(qs, val)
                 except forms.ValidationError:
-                    pass
+                    qs = qs.none()
             if self._meta.order_by:
                 try:
                     order_field = self.form.fields[self.order_by_field]
