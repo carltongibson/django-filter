@@ -587,6 +587,10 @@ class FKRelationshipTests(TestCase):
         self.assertEqual(f.qs.count(), 2)
         self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
 
+        f = F({'company': 7}) # test for nonexistent company
+        self.assertEqual(f.qs.count(), 0)
+        self.assertQuerysetEqual(f.qs, [], lambda o: o.pk, False)
+
     def test_reverse_fk_relation(self):
         alex = User.objects.create(username='alex')
         jacob = User.objects.create(username='jacob')
