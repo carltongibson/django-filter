@@ -464,7 +464,7 @@ class AllValuesFilterTests(TestCase):
         self.assertEqual(list(F({'username': 'alex'})),
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})),
-                         list(User.objects.all()))
+                         list(User.objects.none()))
 
 
 class O2ORelationshipTests(TestCase):
