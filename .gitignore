@@ -1,5 +1,49 @@
-*.pyc
+*.py[co]
+
+# Packages
+*.egg
 *.egg-info
-build/
-dist/
-docs/_build
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+reports
+
+#Translations
+*.mo
+
+#Mr Developer
+.mr.developer.cfg
+
+#Temporary files
+*~
+
+#PyCharm project
+.idea
+
+#local database
+local.db
+
+#temporary apps and project-specific local files
+clausula
+bileter/whoosh_index
+bileter/settings.py
+stadium/migrations
+biscuit
+venv
+manage.py
+cbklib
+
+*.xls
