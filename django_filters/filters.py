@@ -10,14 +10,15 @@ from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from django_filters.fields import RangeField, LookupTypeField
+from .fields import \
+    RangeField, LookupTypeField, DateTimeRangeField
 
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', "DateTimeRangeFilter",
 ]
 
 
@@ -45,11 +46,13 @@ class Filter(object):
     @property
     def field(self):
         if not hasattr(self, '_field'):
-            if self.lookup_type is None or isinstance(self.lookup_type, (list, tuple)):
+            if self.lookup_type is None or \
+                    isinstance(self.lookup_type, (list, tuple)):
                 if self.lookup_type is None:
                     lookup = [(x, x) for x in LOOKUP_TYPES]
                 else:
-                    lookup = [(x, x) for x in LOOKUP_TYPES if x in self.lookup_type]
+                    lookup = \
+                        [(x, x) for x in LOOKUP_TYPES if x in self.lookup_type]
                 self._field = LookupTypeField(self.field_class(
                     required=self.required, widget=self.widget, **self.extra),
                     lookup, required=self.required, label=self.label)
@@ -64,7 +67,8 @@ class Filter(object):
         if isinstance(value, (list, tuple)):
             lookup = str(value[1])
             if not lookup:
-                lookup = 'exact'  # we fallback to exact if no choice for lookup is provided
+                lookup = 'exact'  # we fallback to exact if no choice for
+                # lookup is provided
             value = value[0]
         else:
             lookup = self.lookup_type
@@ -137,7 +141,18 @@ class RangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
-            return qs.filter(**{'%s__range' % self.name: (value.start, value.stop)})
+            return qs.filter(**{
+                '%s__range' % self.name: (value.start, value.stop)})
+        return qs
+
+
+class DateTimeRangeFilter(Filter):
+    field_class = DateTimeRangeField
+
+    def filter(self, qs, value):
+        if value:
+            return qs.filter(**{
+                '%s__range' % self.name: (value.start, value.stop)})
         return qs
 
 
@@ -166,7 +181,8 @@ class DateRangeFilter(ChoiceFilter):
     }
 
     def __init__(self, *args, **kwargs):
-        kwargs['choices'] = [(key, value[0]) for key, value in six.iteritems(self.options)]
+        kwargs['choices'] = \
+            [(key, value[0]) for key, value in six.iteritems(self.options)]
         super(DateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
@@ -180,6 +196,7 @@ class DateRangeFilter(ChoiceFilter):
 class AllValuesFilter(ChoiceFilter):
     @property
     def field(self):
-        qs = self.model._default_manager.distinct().order_by(self.name).values_list(self.name, flat=True)
+        qs = self.model._default_manager.distinct().order_by(self.name)\
+            .values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field

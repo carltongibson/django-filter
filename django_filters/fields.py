@@ -1,8 +1,25 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django import forms
 
-from django_filters.widgets import RangeWidget, LookupTypeWidget
+from .widgets import RangeWidget, LookupTypeWidget
+
+
+class DateTimeRangeField(forms.MultiValueField):
+    widget = RangeWidget
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            forms.DateTimeField(),
+            forms.DateTimeField(),
+        )
+        super(DateTimeRangeField, self).__init__(fields, *args, **kwargs)
+
+    def compress(self, data_list):
+        if data_list:
+            return slice(*data_list)
+        return None
 
 
 class RangeField(forms.MultiValueField):
