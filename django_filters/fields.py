@@ -8,6 +8,22 @@ from django import forms
 from .widgets import RangeWidget, LookupTypeWidget
 
 
+class DateTimeRangeField(forms.MultiValueField):
+    widget = RangeWidget
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            forms.DateTimeField(),
+            forms.DateTimeField(),
+        )
+        super(DateTimeRangeField, self).__init__(fields, *args, **kwargs)
+
+    def compress(self, data_list):
+        if data_list:
+            return slice(*data_list)
+        return None
+
+
 class RangeField(forms.MultiValueField):
     widget = RangeWidget
 

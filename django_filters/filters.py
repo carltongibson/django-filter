@@ -11,14 +11,15 @@ from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .fields import RangeField, LookupTypeField, Lookup
+from .fields import \
+    RangeField, LookupTypeField, Lookup, DateTimeRangeField
 
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', "DateTimeRangeFilter",
 ]
 
 
@@ -144,6 +145,26 @@ class RangeFilter(Filter):
         if value:
             lookup = '%s__range' % self.name
             return qs.filter(**{lookup: (value.start, value.stop)})
+        return qs
+
+
+class DateTimeRangeFilter(Filter):
+    field_class = DateTimeRangeField
+
+    def __init__(self, *args, **kwargs):
+        addday = kwargs.pop('addday', False)
+        super(DateTimeRangeFilter, self).__init__(*args, **kwargs)
+        self.addday = addday
+
+    def filter(self, qs, value):
+        if value is not None:
+            stop = value.stop
+            if self.addday:
+                stop += timedelta(days=1)
+
+            if value:
+                lookup = '%s__range' % self.name
+                qs = qs.filter(**{lookup: (value.start, stop)})
         return qs
 
 

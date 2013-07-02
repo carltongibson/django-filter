@@ -77,6 +77,7 @@ class Comment(models.Model):
 
 
 class Article(models.Model):
+    title = models.CharField(max_length=100)
     published = models.DateTimeField()
     author = models.ForeignKey(User, null=True)
 
@@ -173,4 +174,3 @@ class Business(models.Model):
     employees = models.ManyToManyField(Worker,
                                        through=HiredWorker,
                                        related_name='employers')
-

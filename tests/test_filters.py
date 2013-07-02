@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from datetime import datetime, timedelta
 import mock
 
 from django import forms
@@ -9,6 +10,7 @@ from django.test import TestCase
 
 from django_filters.fields import Lookup
 from django_filters.fields import RangeField
+from django_filters.fields import DateTimeRangeField
 from django_filters.fields import LookupTypeField
 from django_filters.filters import Filter
 from django_filters.filters import CharFilter
@@ -22,6 +24,7 @@ from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
+from django_filters.filters import DateTimeRangeFilter
 from django_filters.filters import DateRangeFilter
 from django_filters.filters import AllValuesFilter
 from django_filters.filters import LOOKUP_TYPES
@@ -370,6 +373,38 @@ class RangeFilterTests(TestCase):
         f = RangeFilter(lookup_type='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__range=(20, 30))
+
+
+class DateTimeRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = DateTimeRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, DateTimeRangeField)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        now = datetime.now()
+        tomorrow = now + timedelta(days=1)
+        value = mock.Mock(start=now, stop=tomorrow)
+        f = DateTimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__range=(now, tomorrow))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = DateTimeRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_type(self):
+        qs = mock.Mock()
+        now = datetime.now()
+        tomorrow = now + timedelta(days=1)
+        value = mock.Mock(start=now, stop=tomorrow)
+        f = DateTimeRangeFilter(lookup_type='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__range=(now, tomorrow))
 
 
 class DateRangeFilterTests(TestCase):
