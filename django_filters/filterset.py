@@ -328,10 +328,12 @@ class BaseFilterSet(object):
             else:
                 # add asc and desc field names
                 # use the filter's label if provided
-                choices = [(fieldname, fltr.label or capfirst(f))
-                           for f, fltr in self.filters.items()
-                           for fieldname in (fltr.name or f, "-%s" % (fltr.name or f))]
-
+                choices = []
+                for f, fltr in self.filters.items():
+                    choices.extend([
+                        (fltr.name or f, fltr.label or capfirst(f)),
+                        ("-%s" % (fltr.name or f), '%s (descending)' % (fltr.label or capfirst(f)))
+                    ])
             return forms.ChoiceField(label="Ordering", required=False,
                                      choices=choices)
 
