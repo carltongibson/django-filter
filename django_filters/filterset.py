@@ -330,7 +330,7 @@ class BaseFilterSet(object):
                 # use the filter's label if provided
                 choices = [(fieldname, fltr.label or capfirst(f))
                            for f, fltr in self.filters.items()
-                           for fieldname in (fltr.name or f, "-%s" % fltr.name or f)]
+                           for fieldname in (fltr.name or f, "-%s" % (fltr.name or f))]
 
             return forms.ChoiceField(label="Ordering", required=False,
                                      choices=choices)
