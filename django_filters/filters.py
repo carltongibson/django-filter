@@ -142,7 +142,11 @@ class RangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             lookup = '%s__range' % self.name
-            return qs.filter(**{lookup: (value.start, value.stop)})
+            max_value = '%s__max' % self.name
+            max_value = '%s__max' % self.name
+            value_start = 0 if not value.start else value.start
+            value_stop = qs.aggregate(Max(self.name))[max_value] if not value.stop else value.stop
+            return qs.filter(**{lookup: (value_start, value_stop)})
         return qs
 
 
