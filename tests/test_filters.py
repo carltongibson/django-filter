@@ -309,6 +309,16 @@ class NumberFilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.DecimalField)
 
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = NumberFilter()
+        f.filter(qs, 1)
+        qs.filter.assert_called_once_with(None__exact=1)
+        # Also test 0 as it once had a bug
+        qs.reset_mock()
+        f.filter(qs, 0)
+        qs.filter.assert_called_once_with(None__exact=0)
+
 
 class RangeFilterTests(TestCase):
 
