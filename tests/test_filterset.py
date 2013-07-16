@@ -513,3 +513,23 @@ class FilterSetOrderingTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
+    def test_custom_ordering(self):
+
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', 'status']
+
+            def get_order(self, order_choice):
+                if order_choice == 'status':
+                    return ['status', 'username']
+                return super(F, self).get_order(order_choice)
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)

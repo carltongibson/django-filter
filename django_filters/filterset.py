@@ -270,7 +270,7 @@ class BaseFilterSet(object):
                     data = self.form[self.order_by_field].data
                     value = order_field.clean(data)
                     if value:
-                        qs = qs.order_by(value)
+                        qs = qs.order_by(*self.get_order(value))
                 except forms.ValidationError:
                     pass
             self._qs = qs
@@ -314,6 +314,9 @@ class BaseFilterSet(object):
         if not hasattr(self, '_ordering_field'):
             self._ordering_field = self.get_ordering_field()
         return self._ordering_field
+
+    def get_order(self, order_choice):
+        return [order_choice]
 
     @classmethod
     def filter_for_field(cls, f, name):
