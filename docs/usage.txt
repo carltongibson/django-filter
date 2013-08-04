@@ -151,7 +151,7 @@ first name::
 
         def get_order(self, order_value):
             if order_value == 'last_name':
-                return ['last_name', 'last_name']
+                return ['last_name', 'first_name']
             return super(UserFilter, self).get_order(order_value)
 
 Generic View
