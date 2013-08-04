@@ -270,7 +270,7 @@ class BaseFilterSet(object):
                     data = self.form[self.order_by_field].data
                     value = order_field.clean(data)
                     if value:
-                        qs = qs.order_by(*self.get_order(value))
+                        qs = qs.order_by(*self.get_order_by(value))
                 except forms.ValidationError:
                     pass
             self._qs = qs
@@ -315,7 +315,7 @@ class BaseFilterSet(object):
             self._ordering_field = self.get_ordering_field()
         return self._ordering_field
 
-    def get_order(self, order_choice):
+    def get_order_by(self, order_choice):
         return [order_choice]
 
     @classmethod

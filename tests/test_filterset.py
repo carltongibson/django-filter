@@ -521,10 +521,10 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = ['username', 'status']
 
-            def get_order(self, order_choice):
+            def get_order_by(self, order_choice):
                 if order_choice == 'status':
                     return ['status', 'username']
-                return super(F, self).get_order(order_choice)
+                return super(F, self).get_order_by(order_choice)
 
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
