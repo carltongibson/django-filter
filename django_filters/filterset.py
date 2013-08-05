@@ -23,7 +23,6 @@ from .filters import (Filter, CharFilter, BooleanFilter,
 
 
 ORDER_BY_FIELD = 'o'
-_SENTINEL = object()
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -222,7 +221,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     filter_overrides = {}
     order_by_field = ORDER_BY_FIELD
-    strict = False
+    strict = True
 
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
@@ -259,7 +258,6 @@ class BaseFilterSet(object):
                 return self._qs
 
             def get_value(name):
-                value = _SENTINEL
                 if valid:
                     value = self.form.cleaned_data[name]
                 else:
@@ -267,24 +265,29 @@ class BaseFilterSet(object):
                     try:
                         value = self.form.fields[name].clean(data)
                     except forms.ValidationError:
-                        pass
+                        value = None
                 return value
 
             qs = self.queryset.all()
             for name, filter_ in six.iteritems(self.filters):
                 value = get_value(name)
-                if value is not _SENTINEL:  # valid & clean data
+                if value is not None:  # valid & clean data
                     qs = filter_.filter(qs, value)
-                elif self.strict:
-                    self._qs = self.queryset.none()
-                    return self._qs
+                else:
+                    # for invalid values: either strictly "apply" filter yielding no results
+                    # or ignore the filter altogether
+                    if self.strict:
+                        self._qs = self.queryset.none()
+                        return self._qs
+                    else:
+                        pass  # ignore the filter
 
             if self._meta.order_by:
                 value = get_value(self.order_by_field)
-                if value is _SENTINEL and self.strict:
+                if value is None and self.strict:
                     self._qs = self.queryset.none()
                     return self._qs
-                if not value or value is _SENTINEL:
+                if not value:
                     value = self.form.fields[self.order_by_field].choices[0][0]
                 qs = qs.order_by(value)
             
