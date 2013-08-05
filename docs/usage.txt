@@ -137,7 +137,7 @@ field you can override the ``get_ordering_field()`` method on a ``FilterSet``.
 This method just needs to return a Form Field.
 
 Ordering on multiple fields, or other complex orderings can be achieved by
-overriding the ``Filterset.get_order()`` method. This is passed the selected
+overriding the ``Filterset.get_order_by()`` method. This is passed the selected
 ``order_by`` value, and is expected to return an iterable of values to pass to
 ``QuerySet.order_by``. For example, to sort a ``User`` table by last name, then
 first name::
@@ -149,10 +149,10 @@ first name::
                 ('last_name', 'Last Name')
             )
 
-        def get_order(self, order_value):
+        def get_order_by(self, order_value):
             if order_value == 'last_name':
                 return ['last_name', 'first_name']
-            return super(UserFilter, self).get_order(order_value)
+            return super(UserFilter, self).get_order_by(order_value)
 
 Generic View
 ------------
