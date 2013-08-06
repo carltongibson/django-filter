@@ -447,13 +447,26 @@ class FilterSetOrderingTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
-    def test_ordering_on_unknown_value_results_in_default_ordering(self):
+    def test_ordering_on_unknown_value(self):
         class F(FilterSet):
             class Meta:
                 model = User
                 fields = ['username', 'status']
                 order_by = ['status']
-        
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, [], lambda o: o.username)
+
+    def test_ordering_on_unknown_value_results_in_default_ordering_without_strict(self):
+        class F(FilterSet):
+            strict = False
+
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
