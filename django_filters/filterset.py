@@ -257,41 +257,42 @@ class BaseFilterSet(object):
                 self._qs = self.queryset.none()
                 return self._qs
 
-            def get_value(name):
+            # start with all the results and filter from there
+            qs = self.queryset.all()
+            ordered_value = None
+            for name, filter_ in six.iteritems(self.filters):
+                value = None
                 if valid:
                     value = self.form.cleaned_data[name]
                 else:
-                    data = self.form[name].value()
+                    raw_value = self.form[name].value()
                     try:
-                        value = self.form.fields[name].clean(data)
+                        value = self.form.fields[name].clean(raw_value)
                     except forms.ValidationError:
-                        value = None
-                return value
+                        # for invalid values either:
+                        # strictly "apply" filter yielding no results and get outta here
+                        if self.strict:
+                            self._qs = self.queryset.none()
+                            return self._qs
+                        else:  # or ignore this filter altogether
+                            pass
 
-            qs = self.queryset.all()
-            for name, filter_ in six.iteritems(self.filters):
-                value = get_value(name)
                 if value is not None:  # valid & clean data
                     qs = filter_.filter(qs, value)
-                else:
-                    # for invalid values: either strictly "apply" filter yielding no results
-                    # or ignore the filter altogether
-                    if self.strict:
-                        self._qs = self.queryset.none()
-                        return self._qs
-                    else:
-                        pass  # ignore the filter
+
+                    # check if we are ordering and if this field is the order_by field
+                    # In the future, maybe collect multiple order_by fields in a dict???
+                    if self._meta.order_by and name == self.order_by_field:
+                        ordered_value = value
 
             if self._meta.order_by:
-                value = get_value(self.order_by_field)
-                if value is None and self.strict:
-                    self._qs = self.queryset.none()
-                    return self._qs
-                if not value:
-                    value = self.form.fields[self.order_by_field].choices[0][0]
-                qs = qs.order_by(value)
-            
+                if ordered_value is None:
+                    ordered_value = self.form.fields[self.order_by_field].choices[0][0]
+
+                qs = qs.order_by(ordered_value)
+
             self._qs = qs
+
         return self._qs
 
     def count(self):
