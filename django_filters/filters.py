@@ -30,7 +30,7 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', required=False, **kwargs):
+        lookup_type='exact', required=False, distinct=False, **kwargs):
         self.name = name
         self.label = label
         if action:
@@ -39,6 +39,7 @@ class Filter(object):
         self.widget = widget
         self.required = required
         self.extra = kwargs
+        self.distinct = distinct
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
@@ -62,8 +63,6 @@ class Filter(object):
         return self._field
 
     def filter(self, qs, value):
-        if not value:
-            return qs
         if isinstance(value, (list, tuple)):
             lookup = six.text_type(value[1])
             if not lookup:
@@ -71,8 +70,11 @@ class Filter(object):
             value = value[0]
         else:
             lookup = self.lookup_type
-        if value:
-            return qs.filter(**{'%s__%s' % (self.name, lookup): value})
+        if value in ([], (), {}, None, ''):
+            return qs
+        qs = qs.filter(**{'%s__%s' % (self.name, lookup): value})
+        if self.distinct:
+            qs = qs.distinct()
         return qs
 
 
@@ -148,7 +150,7 @@ _truncate = lambda dt: dt.replace(hour=0, minute=0, second=0)
 
 class DateRangeFilter(ChoiceFilter):
     options = {
-        '': (_('Any Date'), lambda qs, name: qs.all()),
+        '': (_('Any date'), lambda qs, name: qs.all()),
         1: (_('Today'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month,

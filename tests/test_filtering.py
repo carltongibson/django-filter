@@ -31,6 +31,7 @@ from .models import Article
 from .models import Company
 from .models import Location
 from .models import Account
+from .models import BankAccount
 from .models import Profile
 from .models import Node
 from .models import DirectedNode
@@ -60,6 +61,32 @@ class CharFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk)
 
 
+class IntegerFilterTest(TestCase):
+
+    def test_filtering(self):
+        default_values = {
+            'in_good_standing': True,
+            'friendly': False,
+        }
+        b1 = BankAccount.objects.create(amount_saved=0, **default_values)
+        b2 = BankAccount.objects.create(amount_saved=3, **default_values)
+        b3 = BankAccount.objects.create(amount_saved=10, **default_values)
+
+        class F(FilterSet):
+            class Meta:
+                model = BankAccount
+                fields = ['amount_saved']
+
+        qs = BankAccount.objects.all()
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b1.pk, b2.pk, b3.pk],
+                                 lambda o: o.pk, ordered=False)
+        f = F({'amount_saved': '10'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk)
+        f = F({'amount_saved': '0'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b1.pk], lambda o: o.pk)
+
+
 class BooleanFilterTests(TestCase):
 
     def test_filtering(self):
@@ -73,16 +100,16 @@ class BooleanFilterTests(TestCase):
                 fields = ['is_active']
 
         qs = User.objects.all()
-        
+
         # '2' and '3' are how the field expects the data from the browser
         f = F({'is_active': '2'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['jacob'], lambda o: o.username, False)
-        
+
         f = F({'is_active': '3'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['alex', 'aaron'],
                                  lambda o: o.username, False)
-        
+
         f = F({'is_active': '1'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['alex', 'aaron', 'jacob'],
@@ -141,7 +168,7 @@ class MultipleChoiceFilterTests(TestCase):
         f = F({'status': ['0']}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['carl'], lambda o: o.username)
-        
+
         f = F({'status': ['0', '1']}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['alex', 'carl'], lambda o: o.username)
@@ -280,10 +307,10 @@ class ModelMultipleChoiceFilterTests(TestCase):
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books': ['1']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
-        
+
         f = F({'favorite_books': ['1', '3']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
-        
+
         f = F({'favorite_books': ['2']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
@@ -404,7 +431,7 @@ class DateRangeFilterTests(TestCase):
             class Meta:
                 model = Comment
                 fields = ['date']
-        
+
         f = F({'date': '4'})  # this year
         self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
 
@@ -415,7 +442,7 @@ class DateRangeFilterTests(TestCase):
             class Meta:
                 model = Comment
                 fields = ['date']
-        
+
         f = F({'date': '3'})  # this month
         self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
 
@@ -641,7 +668,7 @@ class FKRelationshipTests(TestCase):
         alex = User.objects.create(username='alex')
         jacob = User.objects.create(username='jacob')
         User.objects.create(username='aaron')
-        
+
         Article.objects.create(author=alex, published=now_dt)
         Article.objects.create(author=jacob, published=now_dt)
         Article.objects.create(author=alex, published=now_dt)
@@ -650,7 +677,7 @@ class FKRelationshipTests(TestCase):
             class Meta:
                 model = Article
                 fields = ['author__username']
-        
+
         self.assertEqual(list(F.base_filters), ['author__username'])
         self.assertEqual(F({'author__username': 'alex'}).qs.count(), 2)
         self.assertEqual(F({'author__username': 'jacob'}).qs.count(), 1)
@@ -743,10 +770,10 @@ class M2MRelationshipTests(TestCase):
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books': ['1']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
-        
+
         f = F({'favorite_books': ['1', '3']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
-        
+
         f = F({'favorite_books': ['2']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
@@ -784,7 +811,7 @@ class M2MRelationshipTests(TestCase):
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books__title': "Ender's Game"}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
-        
+
         f = F({'favorite_books__title': 'Rainbow Six'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
@@ -794,7 +821,7 @@ class M2MRelationshipTests(TestCase):
             class Meta:
                 model = User
                 fields = ['favorite_books__title']
-        
+
         f = F()
         self.assertEqual(
             len(f.filters['favorite_books__title'].field.choices), 0)
@@ -823,7 +850,7 @@ class M2MRelationshipTests(TestCase):
         f = F({'lovers__username': "alex"}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)
-        
+
         f = F({'lovers__username': 'jacob'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.title)
 
@@ -833,7 +860,7 @@ class M2MRelationshipTests(TestCase):
             class Meta:
                 model = Book
                 fields = ['lovers__username']
-        
+
         f = F()
         self.assertEqual(
             len(f.filters['lovers__username'].field.choices), 0)
@@ -866,7 +893,7 @@ class M2MRelationshipTests(TestCase):
                'favorite_books__average_rating': 4.0},
               queryset=qs)
         self.assertQuerysetEqual(f.qs, ['aaron'], lambda o: o.username)
-        
+
         f = F({'favorite_books__price': "3.00",
                'favorite_books__average_rating': 4.0},
               queryset=qs)
@@ -883,7 +910,7 @@ class M2MRelationshipTests(TestCase):
         f = F({'lovers__status': 1, 'lovers__username': "alex"}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title)
-        
+
         f = F({'lovers__status': 1, 'lovers__username': 'jacob'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.title)
 
@@ -981,7 +1008,7 @@ class MiscFilterSetTests(TestCase):
                 fields = ['status', 'username']
 
         qs = User.objects.all()
-        
+
         f = F({'username': 'alex', 'status': '1'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
 
@@ -1015,7 +1042,7 @@ class MiscFilterSetTests(TestCase):
 
         f = F({'status': 0}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username)
-    
+
     def test_qs_count(self):
         class F(FilterSet):
             class Meta:
