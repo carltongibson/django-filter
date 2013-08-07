@@ -10,7 +10,7 @@ from django.db.models.related import RelatedObject
 from django.utils import six
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 
 try:
     from django.db.models.constants import LOOKUP_SEP
