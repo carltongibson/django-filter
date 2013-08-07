@@ -491,8 +491,26 @@ class AllValuesFilterTests(TestCase):
         self.assertEqual(list(F({'username': 'alex'})),
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})),
-                         list(User.objects.all()))
+                         list())
 
+    def test_filtering_without_strict(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = AllValuesFilter()
+            strict = False
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'alex'})),
+                         [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': 'jose'})),
+                         list(User.objects.all()))
 
 class O2ORelationshipTests(TestCase):
 

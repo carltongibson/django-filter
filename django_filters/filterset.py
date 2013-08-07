@@ -225,14 +225,17 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     filter_overrides = {}
     order_by_field = ORDER_BY_FIELD
+    strict = True
 
-    def __init__(self, data=None, queryset=None, prefix=None):
+    def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
         self.form_prefix = prefix
+        if strict is not None:
+            self.strict = strict
 
         self.filters = deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -252,28 +255,48 @@ class BaseFilterSet(object):
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
+            valid = self.is_bound and self.form.is_valid()
+
+            if self.strict and self.is_bound and not valid:
+                self._qs = self.queryset.none()
+                return self._qs
+
+            # start with all the results and filter from there
             qs = self.queryset.all()
+            ordered_value = None
             for name, filter_ in six.iteritems(self.filters):
-                try:
-                    if self.is_bound:
-                        data = self.form[name].data
-                    else:
-                        data = self.form.initial.get(
-                            name, self.form[name].field.initial)
-                    val = self.form.fields[name].clean(data)
-                    qs = filter_.filter(qs, val)
-                except forms.ValidationError:
-                    pass
+                value = None
+                if valid:
+                    value = self.form.cleaned_data[name]
+                else:
+                    raw_value = self.form[name].value()
+                    try:
+                        value = self.form.fields[name].clean(raw_value)
+                    except forms.ValidationError:
+                        # for invalid values either:
+                        # strictly "apply" filter yielding no results and get outta here
+                        if self.strict:
+                            self._qs = self.queryset.none()
+                            return self._qs
+                        else:  # or ignore this filter altogether
+                            pass
+
+                if value is not None:  # valid & clean data
+                    qs = filter_.filter(qs, value)
+
+                    # check if we are ordering and if this field is the order_by field
+                    # In the future, maybe collect multiple order_by fields in a dict???
+                    if self._meta.order_by and name == self.order_by_field:
+                        ordered_value = value
+
             if self._meta.order_by:
-                try:
-                    order_field = self.form.fields[self.order_by_field]
-                    data = self.form[self.order_by_field].data
-                    value = order_field.clean(data)
-                    if value:
-                        qs = qs.order_by(value)
-                except forms.ValidationError:
-                    pass
+                if ordered_value is None:
+                    ordered_value = self.form.fields[self.order_by_field].choices[0][0]
+
+                qs = qs.order_by(ordered_value)
+
             self._qs = qs
+
         return self._qs
 
     def count(self):
