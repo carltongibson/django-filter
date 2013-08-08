@@ -325,7 +325,8 @@ class BaseFilterSet(object):
                     # e.g. (('field', 'Display name'), ...)
                     choices = [(f[0], f[1]) for f in self._meta.order_by]
                 else:
-                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
+                    choices = [(f, _('%s (descending)' % capfirst(f[1:])) if f[0] == '-' else capfirst(f))
+                               for f in self._meta.order_by]
             else:
                 # add asc and desc field names
                 # use the filter's label if provided

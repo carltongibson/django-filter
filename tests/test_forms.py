@@ -218,6 +218,24 @@ class FilterSetFormTests(TestCase):
         self.assertNotIn('o', f.fields)
         self.assertIn('order', f.fields)
         self.assertEqual(f.fields['order'].choices, [('status', 'Status')])
+    
+    def test_ordering_with_overridden_field_name_and_descending(self):
+        """
+        Set the `order_by_field` on the queryset and ensure that the
+        field name is respected.
+        """
+        class F(FilterSet):
+            order_by_field = 'order'
+
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status', '-status']
+
+        f = F().form
+        self.assertNotIn('o', f.fields)
+        self.assertIn('order', f.fields)
+        self.assertEqual(f.fields['order'].choices, [('status', 'Status'), ('-status', 'Status (descending)')])
 
     def test_ordering_with_overridden_field_name_and_using_all_fields(self):
         class F(FilterSet):
