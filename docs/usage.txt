@@ -54,13 +54,13 @@ Filters also take any arbitrary keyword arguments which get passed onto the
 in ``Filter.extra``, so it's possible to override the initializer of a
 ``FilterSet`` to add extra ones::
 
-    class ProductFilterSet(django_filters.FilterSet):
+    class ProductFilter(django_filters.FilterSet):
         class Meta:
             model = Product
             fields = ['manufacturer']
 
         def __init__(self, *args, **kwargs):
-            super(ProductFilterSet, self).__init__(*args, **kwargs)
+            super(ProductFilter, self).__init__(*args, **kwargs)
             self.filters['manufacturer'].extra.update(
                 {'empty_label': 'All Manufacturers'})
 
