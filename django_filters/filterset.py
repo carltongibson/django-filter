@@ -10,6 +10,7 @@ from django.db.models.related import RelatedObject
 from django.utils import six
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
+from django.utils.translation import ugettext as _
 
 try:
     from django.db.models.constants import LOOKUP_SEP
@@ -324,11 +325,17 @@ class BaseFilterSet(object):
                     # e.g. (('field', 'Display name'), ...)
                     choices = [(f[0], f[1]) for f in self._meta.order_by]
                 else:
-                    choices = [(f, capfirst(f)) for f in self._meta.order_by]
+                    choices = [(f, _('%s (descending)' % capfirst(f[1:])) if f[0] == '-' else capfirst(f))
+                               for f in self._meta.order_by]
             else:
+                # add asc and desc field names
                 # use the filter's label if provided
-                choices = [(fltr.name or f, fltr.label or capfirst(f))
-                           for f, fltr in self.filters.items()]
+                choices = []
+                for f, fltr in self.filters.items():
+                    choices.extend([
+                        (fltr.name or f, fltr.label or capfirst(f)),
+                        ("-%s" % (fltr.name or f), _('%s (descending)' % (fltr.label or capfirst(f))))
+                    ])
             return forms.ChoiceField(label="Ordering", required=False,
                                      choices=choices)
 

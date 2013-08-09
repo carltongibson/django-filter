@@ -525,3 +525,25 @@ class FilterSetOrderingTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
+    def test_ordering_descending_set(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', '-username']
+
+        f = F({'o': '-username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
+
+    def test_ordering_descending_unset(self):
+        """ Test ordering descending works when order_by=True. """
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+
+        f = F({'o': '-username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
