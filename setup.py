@@ -6,7 +6,7 @@ f.close()
 
 setup(
     name='django-filter',
-    version='0.7a0',
+    version='0.7',
     description=('Django-filter is a reusable Django application for allowing'
                  ' users to filter querysets dynamically.'),
     long_description=readme,
@@ -14,6 +14,11 @@ setup(
     author_email='alex.gaynor@gmail.com',
     url='http://github.com/alex/django-filter/tree/master',
     packages=find_packages(exclude=['tests']),
+    package_data = {
+        'django_filters': [
+            'locale/*/LC_MESSAGES/*',
+        ],
+    },
     license='BSD',
     classifiers=[
         'Development Status :: 5 - Production/Stable',

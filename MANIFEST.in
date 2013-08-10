@@ -7,3 +7,4 @@ include runtests.py
 recursive-include docs *
 recursive-include requirements *
 recursive-include tests *
+recursive-include django_filters/locale *

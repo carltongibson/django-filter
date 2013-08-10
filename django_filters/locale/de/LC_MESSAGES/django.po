@@ -1,0 +1,48 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django-filter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-08-10 05:34-0500\n"
+"PO-Revision-Date: 2013-08-10 12:29+0100\n"
+"Last-Translator: Florian Apolloner <florian@apolloner.eu>\n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: filters.py:153
+msgid "Any date"
+msgstr "Alle Daten"
+
+#: filters.py:154
+msgid "Today"
+msgstr "Heute"
+
+#: filters.py:159
+msgid "Past 7 days"
+msgstr "Letzte 7 Tage"
+
+#: filters.py:163
+msgid "This month"
+msgstr "Diesen Monat"
+
+#: filters.py:167
+msgid "This year"
+msgstr "Dieses Jahr"
+
+#: filterset.py:332 filterset.py:341
+#, python-format
+msgid "%s (descending)"
+msgstr "%s (absteigend)"
+
+#: widgets.py:63
+msgid "All"
+msgstr "Alle"

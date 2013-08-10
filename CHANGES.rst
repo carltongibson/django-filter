@@ -1,4 +1,20 @@
-Version 0.6 (Unreleased)
+Version 0.7 (2013-08-10)
+------------------------
+
+ * FEATURE: Added support for AutoField.
+
+ * FEATURE: There is a "distinct" flag to ensure that only unique rows are
+   returned.
+
+ * FEATURE: Support descending ordering (slighty backwards incompatible).
+
+ * FEATURE: Support "strict" querysets, ie wrong filter data returns no results.
+
+ * FIXED: Some translation strings were changed to be in line with admin.
+
+ * FIXED: Support for Django 1.7.
+
+Version 0.6 (2013-03-25)
 ------------------------
 
 * raised minimum Django version to 1.4.x
