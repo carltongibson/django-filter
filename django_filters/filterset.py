@@ -297,7 +297,7 @@ class BaseFilterSet(object):
                     ordered_value = self.form.fields[self.order_by_field].choices[0][0]
 
                 if ordered_value:
-                    qs = qs.order_by(ordered_value)
+                    qs = qs.order_by(*self.get_order_by(ordered_value))
 
             self._qs = qs
 
@@ -341,6 +341,9 @@ class BaseFilterSet(object):
         if not hasattr(self, '_ordering_field'):
             self._ordering_field = self.get_ordering_field()
         return self._ordering_field
+
+    def get_order_by(self, order_choice):
+        return [order_choice]
 
     @classmethod
     def filter_for_field(cls, f, name):
