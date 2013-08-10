@@ -453,7 +453,11 @@ class FilterSetOrderingTests(TestCase):
             class Meta:
                 model = User
                 fields = ['username', 'status']
-                order_by = ['status']
+                order_by = ['username', 'status']
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
         f = F({'o': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
@@ -481,7 +485,7 @@ class FilterSetOrderingTests(TestCase):
 
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
-            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
+            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
 
     def test_ordering_on_different_field(self):
         class F(FilterSet):
@@ -493,6 +497,10 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
     @unittest.skip('todo')
     def test_ordering_uses_filter_name(self):
