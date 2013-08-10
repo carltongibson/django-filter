@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import mock
 
@@ -438,7 +437,7 @@ class FilterSetOrderingTests(TestCase):
         # user_ids = list(User.objects.all().values_list('pk', flat=True))
         self.qs = User.objects.all().order_by('id')
 
-    def test_ordering_unset(self):
+    def test_ordering_when_unbound(self):
         class F(FilterSet):
             class Meta:
                 model = User
@@ -447,21 +446,38 @@ class FilterSetOrderingTests(TestCase):
 
         f = F(queryset=self.qs)
         self.assertQuerysetEqual(
-            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
     def test_ordering(self):
         class F(FilterSet):
             class Meta:
                 model = User
                 fields = ['username', 'status']
-                order_by = ['status']
+                order_by = ['username', 'status']
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
         f = F({'o': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
-    def test_ordering_on_unknown_value_is_ignored(self):
+    def test_ordering_on_unknown_value(self):
         class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, [], lambda o: o.username)
+
+    def test_ordering_on_unknown_value_results_in_default_ordering_without_strict(self):
+        class F(FilterSet):
+            strict = False
+
             class Meta:
                 model = User
                 fields = ['username', 'status']
@@ -481,6 +497,10 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
     @unittest.skip('todo')
     def test_ordering_uses_filter_name(self):
@@ -516,6 +536,7 @@ class FilterSetOrderingTests(TestCase):
     def test_custom_ordering(self):
 
         class F(FilterSet):
+            debug = True
             class Meta:
                 model = User
                 fields = ['username', 'status']
