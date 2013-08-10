@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from copy import deepcopy
 
 from django import forms
+from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.related import RelatedObject
@@ -264,7 +265,6 @@ class BaseFilterSet(object):
 
             # start with all the results and filter from there
             qs = self.queryset.all()
-            ordered_value = None
             for name, filter_ in six.iteritems(self.filters):
                 value = None
                 if valid:
@@ -285,16 +285,20 @@ class BaseFilterSet(object):
                 if value is not None:  # valid & clean data
                     qs = filter_.filter(qs, value)
 
-                    # check if we are ordering and if this field is the order_by field
-                    # In the future, maybe collect multiple order_by fields in a dict???
-                    if self._meta.order_by and name == self.order_by_field:
-                        ordered_value = value
-
             if self._meta.order_by:
-                if ordered_value is None:
+                order_field = self.form.fields[self.order_by_field]
+                data = self.form[self.order_by_field].data
+                ordered_value = None
+                try:
+                    ordered_value = order_field.clean(data)
+                except forms.ValidationError:
+                    pass
+
+                if ordered_value in EMPTY_VALUES and self.strict:
                     ordered_value = self.form.fields[self.order_by_field].choices[0][0]
 
-                qs = qs.order_by(ordered_value)
+                if ordered_value:
+                    qs = qs.order_by(*self.get_order_by(ordered_value))
 
             self._qs = qs
 
@@ -344,6 +348,9 @@ class BaseFilterSet(object):
         if not hasattr(self, '_ordering_field'):
             self._ordering_field = self.get_ordering_field()
         return self._ordering_field
+
+    def get_order_by(self, order_choice):
+        return [order_choice]
 
     @classmethod
     def filter_for_field(cls, f, name):

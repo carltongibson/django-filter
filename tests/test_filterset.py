@@ -453,7 +453,11 @@ class FilterSetOrderingTests(TestCase):
             class Meta:
                 model = User
                 fields = ['username', 'status']
-                order_by = ['status']
+                order_by = ['username', 'status']
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
         f = F({'o': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
@@ -481,7 +485,7 @@ class FilterSetOrderingTests(TestCase):
 
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
-            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
+            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
 
     def test_ordering_on_different_field(self):
         class F(FilterSet):
@@ -493,6 +497,10 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
     @unittest.skip('todo')
     def test_ordering_uses_filter_name(self):
@@ -547,3 +555,25 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': '-username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
+
+    def test_custom_ordering(self):
+
+        class F(FilterSet):
+            debug = True
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', 'status']
+
+            def get_order_by(self, order_choice):
+                if order_choice == 'status':
+                    return ['status', 'username']
+                return super(F, self).get_order_by(order_choice)
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
