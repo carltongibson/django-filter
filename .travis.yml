@@ -9,8 +9,8 @@ python:
 env:
   - DJANGO=https://github.com/django/django/archive/master.tar.gz
   - DJANGO=https://github.com/django/django/archive/stable/1.6.x.tar.gz
-  - DJANGO=django==1.5 --use-mirrors
-  - DJANGO=django==1.4.5 --use-mirrors
+  - DJANGO=django==1.5.2
+  - DJANGO=django==1.4.6
 
 install:
   - pip install $DJANGO
@@ -26,9 +26,9 @@ notifications:
 matrix:
   exclude:
     - python: "3.2"
-      env: DJANGO=django==1.4.5 --use-mirrors
+      env: DJANGO=django==1.4.6
     - python: "3.3"
-      env: DJANGO=django==1.4.5 --use-mirrors
+      env: DJANGO=django==1.4.6
     - python: "2.6"
       env: DJANGO=https://github.com/django/django/archive/master.tar.gz
 
