@@ -382,7 +382,11 @@ class BaseFilterSet(object):
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
-            return filter_class(**default)
+            try:
+                return filter_class(**default)
+            except TypeError:
+                return filter_class(**dict(
+                    (str(k), v) for (k, v) in default.iteritems()))
 
     @classmethod
     def filter_for_reverse_field(cls, f, name):
