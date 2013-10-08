@@ -68,6 +68,11 @@ and ``DecimalField`` by default.
 
 Filters where a value is between two numerical values.
 
+``DateTimeRangeFilter``
+~~~~~~~~~~~~~~~
+
+Filters where a value is between two dates.
+
 ``DateRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
 
