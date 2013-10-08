@@ -18,13 +18,14 @@ Requirements
 Installation
 ------------
 
-Install using pip::
+From PyPI:
 
-    pip install django-filter
+``pip install django-filter``
 
-Or clone the repo and add to your PYTHONPATH::
+Or clone the repo and add to your PYTHONPATH:
 
-    git clone git@github.com:alex/django-filter.git
+``git clone git@github.com:alex/django-filter.git``
+
 
 Usage
 -----
@@ -32,7 +33,9 @@ Usage
 Django-filter can be used for generating interfaces similar to the Django
 admin's ``list_filter`` interface.  It has an API very similar to Django's
 ``ModelForms``.  For example, if you had a Product model you could have a
-filterset for it with the code::
+filterset for it with the code:
+
+::
 
     import django_filters
 
@@ -42,11 +45,14 @@ filterset for it with the code::
             fields = ['name', 'price', 'manufacturer']
 
 
-And then in your view you could do::
+And then in your view you could do:
+
+::
 
     def product_list(request):
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
         return render_to_response('my_app/template.html', {'filter': filter})
+
 
 Support
 -------
