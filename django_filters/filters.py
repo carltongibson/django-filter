@@ -63,6 +63,9 @@ class Filter(object):
         return self._field
 
     def filter(self, qs, value):
+        if value in ([], (), {}, None, ''):
+            return qs
+        
         if isinstance(value, (list, tuple)):
             lookup = six.text_type(value[1])
             if not lookup:
@@ -70,8 +73,7 @@ class Filter(object):
             value = value[0]
         else:
             lookup = self.lookup_type
-        if value in ([], (), {}, None, ''):
-            return qs
+        
         qs = qs.filter(**{'%s__%s' % (self.name, lookup): value})
         if self.distinct:
             qs = qs.distinct()
