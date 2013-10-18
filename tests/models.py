@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-### these models are for testing
 from django import forms
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
 
 STATUS_CHOICES = (
     (0, 'Regular'),
@@ -38,6 +39,7 @@ class SubnetMaskField(models.Field):
         return super(SubnetMaskField, self).formfield(**defaults)
 
 
+@python_2_unicode_compatible
 class User(models.Model):
     username = models.CharField(max_length=255)
     first_name = SubCharField(max_length=100)
@@ -49,18 +51,20 @@ class User(models.Model):
 
     favorite_books = models.ManyToManyField('Book', related_name='lovers')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.username
 
 
+@python_2_unicode_compatible
 class AdminUser(User):
     class Meta:
         proxy = True
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (ADMIN)" % self.username
 
 
+@python_2_unicode_compatible
 class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey(User, related_name='comments')
@@ -68,7 +72,7 @@ class Comment(models.Model):
     date = models.DateField()
     time = models.TimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s said %s" % (self.author, self.text[:25])
 
 
@@ -77,12 +81,13 @@ class Article(models.Model):
     author = models.ForeignKey(User, null=True)
 
 
+@python_2_unicode_compatible
 class Book(models.Model):
     title = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     average_rating = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
 
@@ -102,23 +107,25 @@ class NetworkSetting(models.Model):
     mask = SubnetMaskField()
 
 
+@python_2_unicode_compatible
 class Company(models.Model):
     name = models.CharField(max_length=100)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
         ordering = ['name']
 
 
+@python_2_unicode_compatible
 class Location(models.Model):
     company = models.ForeignKey(Company, related_name='locations')
     name = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
     open_days = models.CharField(max_length=7)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.company.name, self.name)
 
 
