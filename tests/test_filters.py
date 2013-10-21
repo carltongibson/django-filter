@@ -7,6 +7,7 @@ from django import forms
 from django.utils import unittest
 from django.test import TestCase
 
+from django_filters.fields import Lookup
 from django_filters.fields import RangeField
 from django_filters.fields import LookupTypeField
 from django_filters.filters import Filter
@@ -116,22 +117,23 @@ class FilterTests(TestCase):
 
     def test_filtering_with_list_value(self):
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield')
-        result = f.filter(qs, ['value', 'some_lookup_type'])
+        f = Filter(name='somefield', lookup_type=['some_lookup_type'])
+        result = f.filter(qs, Lookup('value', 'some_lookup_type'))
         qs.filter.assert_called_once_with(somefield__some_lookup_type='value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_skipped_with_list_value_with_blank(self):
         qs = mock.Mock()
-        f = Filter(name='somefield')
-        result = f.filter(qs, ['', 'some_lookup_type'])
+        f = Filter(name='somefield', lookup_type=['some_lookup_type'])
+        result = f.filter(qs, Lookup('', 'some_lookup_type'))
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
 
     def test_filtering_skipped_with_list_value_with_blank_lookup(self):
+        return # Now field is required to provide valid lookup_type if it provides any
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield')
-        result = f.filter(qs, ['value', ''])
+        f = Filter(name='somefield', lookup_type=None)
+        result = f.filter(qs, Lookup('value', ''))
         qs.filter.assert_called_once_with(somefield__exact='value')
         self.assertNotEqual(qs, result)
 
@@ -442,4 +444,3 @@ class AllValuesFilterTests(TestCase):
         f.model = mocked
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
-

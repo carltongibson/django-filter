@@ -11,7 +11,7 @@ from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .fields import RangeField, LookupTypeField
+from .fields import RangeField, LookupTypeField, Lookup
 
 
 __all__ = [
@@ -63,11 +63,9 @@ class Filter(object):
         return self._field
 
     def filter(self, qs, value):
-        if isinstance(value, (list, tuple)) and len(value)==2:
-            lookup = six.text_type(value[1])
-            if not lookup:
-                lookup = 'exact' # fallback to exact if lookup is not provided
-            value = value[0]
+        if isinstance(value, Lookup):
+            lookup = six.text_type(value.lookup_type)
+            value = value.value
         else:
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
