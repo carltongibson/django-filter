@@ -203,7 +203,7 @@ Generic View
 
 In addition to the above usage there is also a class-based generic view
 included in django-filter, which lives at ``django_filters.views.FilterView``.
-You must provide either a ``model`` or ``filter_class`` argument, similar to
+You must provide either a ``model`` or ``filterset_class`` argument, similar to
 ``ListView`` in Django itself::
 
     # urls.py
