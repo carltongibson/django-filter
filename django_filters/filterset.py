@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-import types
 
-from copy import deepcopy, copy
+import types
+import copy
 
 from django import forms
 from django.core.validators import EMPTY_VALUES
@@ -249,7 +249,7 @@ class BaseFilterSet(object):
         if strict is not None:
             self.strict = strict
 
-        self.filters = deepcopy(self.base_filters)
+        self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
         for filter_ in self.filters.values():
             filter_.model = self._meta.model
