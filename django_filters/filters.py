@@ -18,7 +18,7 @@ __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
 ]
 
 
@@ -187,3 +187,37 @@ class AllValuesFilter(ChoiceFilter):
         qs = qs.order_by(self.name).values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
+
+
+class MethodFilter(Filter):
+    """
+    This filter will allow you to run a method that exists on the filterset class
+    """
+    def __init__(self, *args, **kwargs):
+        # Get the action out of the kwargs
+        action = kwargs.get('action', None)
+
+        # If the action is a string store the action and set the action to our own filter method
+        # so it can be backwards compatible and work as expected, the parent will still treat it as
+        # a filter that has an action
+        self.parent_action = ''
+        if type(action) in [str, unicode]:
+            self.parent_action = str(action)
+            kwargs.update({
+                'action': self.filter
+            })
+
+        # Call the parent
+        super(MethodFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        """
+        This filter method will act as a proxy for the actual method we want to call.
+        It will try to find the method on the parent filterset, if not it defaults
+        to just returning the queryset
+        """
+        parent = getattr(self, 'parent', None)
+        parent_filter_method = getattr(parent, self.parent_action, None)
+        if parent_filter_method is not None:
+            return parent_filter_method(qs, value)
+        return qs
