@@ -201,7 +201,8 @@ class MethodFilter(Filter):
         # so it can be backwards compatible and work as expected, the parent will still treat it as
         # a filter that has an action
         self.parent_action = ''
-        if type(action) in [str, unicode]:
+        text_types = (str, six.text_type)
+        if type(action) in text_types:
             self.parent_action = str(action)
             kwargs.update({
                 'action': self.filter
