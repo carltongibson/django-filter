@@ -245,7 +245,7 @@ class BaseFilterSet(object):
             filter_.model = self._meta.model
 
         # Apply the parent to the filters, this will allow the filters to access the filterset
-        for filter_key, filter_ in self.filters.iteritems():
+        for filter_key, filter_ in six.iteritems(self.filters):
             filter_.parent = self
 
     def __iter__(self):
