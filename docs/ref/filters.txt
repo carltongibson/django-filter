@@ -126,10 +126,17 @@ ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from thos
 options.
 
 ``distinct``
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
 
 A boolean value that specifies whether the Filter will use distinct on the
 queryset. This option can be used to eliminate duplicate results when using filters that span related models. Defaults to ``False``.
+
+``exclude``
+~~~~~~~~~~~
+
+A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
+Defaults to ``False``.
+
 
 ``**kwargs``
 ~~~~~~~~~~~~
