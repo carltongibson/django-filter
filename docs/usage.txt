@@ -46,7 +46,7 @@ declarative syntax::
             fields = ['price', 'release_date']
 
 Filters take a ``lookup_type`` argument which specifies what lookup type to
-use with Django's ORM.  So here when a user entered a price it would show all
+use with [Django's ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  So here when a user entered a price it would show all
 Products with a price less than that.
 
 Items in the ``fields`` sequence in the ``Meta`` class may include
