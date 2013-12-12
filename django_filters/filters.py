@@ -40,7 +40,7 @@ class Filter(object):
         self.required = required
         self.extra = kwargs
         self.distinct = distinct
-        self.exclude = exclude
+        self.exclude = excludeMultipleChoiceFilter
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
@@ -105,8 +105,6 @@ class MultipleChoiceFilter(Filter):
 
     def filter(self, qs, value):
         value = value or ()
-        if len(value) == len(self.field.choices):
-            return qs
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})
