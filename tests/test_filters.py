@@ -26,6 +26,8 @@ from django_filters.filters import DateRangeFilter
 from django_filters.filters import AllValuesFilter
 from django_filters.filters import LOOKUP_TYPES
 
+from tests.models import Book, User
+
 
 class FilterTests(TestCase):
 
@@ -234,6 +236,14 @@ class MultipleChoiceFilterTests(TestCase):
         with self.assertRaises(TypeError):
             f.filter(qs, ['value'])
 
+    def test_anded_default_value(self):
+        f = MultipleChoiceFilter()
+        self.assertFalse(f.anded)
+
+    def test_anded_true(self):
+        f = MultipleChoiceFilter(anded=True)
+        self.assertTrue(f.anded)
+
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
         f = MultipleChoiceFilter(name='somefield')
@@ -270,6 +280,69 @@ class MultipleChoiceFilterTests(TestCase):
         f.field.choices = ['some', 'values', 'here']
         result = f.filter(qs, [])
         self.assertEqual(qs, result)
+
+    def test_filter_anded_true(self):
+        """Tests that a filter with `anded=True` returns objects that
+        have all the values included in `value`. For example filter
+        users that have all of this books.
+
+        """
+        book_kwargs = {'price': 1, 'average_rating': 1}
+        books = []
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+
+        user1 = User.objects.create()
+        user2 = User.objects.create()
+        user3 = User.objects.create()
+        user4 = User.objects.create()
+        user5 = User.objects.create()
+
+        user1.favorite_books.add(books[0], books[1])
+        user2.favorite_books.add(books[0], books[1], books[2])
+        user3.favorite_books.add(books[1], books[2])
+        user4.favorite_books.add(books[2], books[3])
+        user5.favorite_books.add(books[4], books[5])
+
+        filter_list = (
+            ((books[0].pk, books[0].pk),  # values
+             [1, 2]),  # list of user.pk that have `value` books
+            ((books[1].pk, books[1].pk),
+             [1, 2, 3]),
+            ((books[2].pk, books[2].pk),
+             [2, 3, 4]),
+            ((books[3].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[4].pk),
+             [5, ]),
+            ((books[0].pk, books[1].pk),
+             [1, 2]),
+            ((books[0].pk, books[2].pk),
+             [2, ]),
+            ((books[1].pk, books[2].pk),
+             [2, 3]),
+            ((books[2].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[5].pk),
+             [5, ]),
+            ((books[3].pk, books[4].pk),
+             []),
+            )
+        users = User.objects.all()
+
+        for item in filter_list:
+            f = MultipleChoiceFilter(name='favorite_books__pk', anded=True)
+            queryset = f.filter(users, item[0])
+            expected_pks = [c[0] for c in queryset.values_list('pk')]
+            self.assertListEqual(
+                expected_pks,
+                item[1],
+                'Lists Differ: {} != {} for case {}'.format(
+                    expected_pks, item[1], item[0]))
 
 
 class DateFilterTests(TestCase):

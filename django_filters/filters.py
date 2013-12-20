@@ -99,13 +99,24 @@ class ChoiceFilter(Filter):
 
 class MultipleChoiceFilter(Filter):
     """
-    This filter preforms an OR query on the selected options.
+    This filter preforms OR(by default) or AND(using anded=True) query
+    on the selected options.
+
     """
     field_class = forms.MultipleChoiceField
+
+    def __init__(self, *args, **kwargs):
+        anded = kwargs.pop('anded', False)
+        self.anded = anded
+        super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         value = value or ()
         if len(value) == len(self.field.choices):
+            return qs
+        if self.anded:
+            for v in value:
+                qs = qs.filter(**{self.name: v})
             return qs
         q = Q()
         for v in value:
