@@ -70,8 +70,8 @@ some predefined strings could be used as input of a boolean filter::
 ``MultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The same as ``ChoiceFilter`` except the user can select multiple items and it
-selects the OR of all the choices.
+The same as ``ChoiceFilter`` except the user can select multiple items
+and it selects the OR or AND(using ``anded=True``) of all the choices.
 
 Advanced Use: Depending on your application logic, when all or no choices are
 selected, filtering may be a noop. In this case you may wish to avoid the
