@@ -7,7 +7,7 @@ arguments.
 ``LinkWidget``
 ~~~~~~~~~~~~~~
 
-This widget renders each option as a link, intead of an actual <input>.  It has
+This widget renders each option as a link, instead of an actual <input>.  It has
 one method that you can overide for additional customizability.
 ``option_string()`` should return a string with 3 Python keyword argument
 placeholders::
