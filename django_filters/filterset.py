@@ -240,9 +240,10 @@ class BaseFilterSet(object):
             self.strict = strict
 
         self.filters = deepcopy(self.base_filters)
-        # propagate the model being used through the filters
+        # propagate the model and queryset being used through the filters
         for filter_ in self.filters.values():
             filter_.model = self._meta.model
+            filter_.queryset = self.queryset
 
     def __iter__(self):
         for obj in self.qs:
