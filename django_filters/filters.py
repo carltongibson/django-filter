@@ -7,6 +7,7 @@ from datetime import timedelta
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
+from django.db.models.fields import BLANK_CHOICE_DASH
 from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
@@ -189,5 +190,5 @@ class AllValuesFilter(ChoiceFilter):
     def field(self):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.name).values_list(self.name, flat=True)
-        self.extra['choices'] = [("", _("All"))] + [(o, o) for o in qs]
+        self.extra['choices'] = BLANK_CHOICE_DASH + [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
