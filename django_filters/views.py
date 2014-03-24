@@ -54,6 +54,7 @@ class FilterMixin(object):
 
 
 class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
+    http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
         filterset_class = self.get_filterset_class()
