@@ -204,15 +204,10 @@ class QuerySetFilter(ChoiceFilter):
         """
         Apply queryset methods
         """
-        method = self.options[value][1]['method']
-        if 'args' in self.options[value][1]:
-            args = self.options[value][1]['args']
-        else:
-            args = ()
-        if 'kwargs' in self.options[value][1]:
-            kwargs = self.options[value][1]['kwargs']
-        else:
-            kwargs = {}
+        config = self.options[value][1]
+        method = config.get('method', '')
+        args = config.get('args', ())
+        kwargs = config.get('kwargs', {})
         if method == '':
             return qs
         elif not hasattr(qs, method):
