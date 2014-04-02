@@ -41,6 +41,14 @@ filterset for it with the code::
             model = Product
             fields = ['name', 'price', 'manufacturer']
 
+        def filter_name(self, qs):
+            '''
+            You can custom your own filter,
+            remember that must return qs.
+            '''
+            name= self.form.cleaned_data["name"]
+            return qs.filter(name__icontains=name)
+
 
 And then in your view you could do::
 
