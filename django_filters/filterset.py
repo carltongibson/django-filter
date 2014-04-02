@@ -283,7 +283,10 @@ class BaseFilterSet(object):
                             pass
 
                 if value is not None:  # valid & clean data
-                    qs = filter_.filter(qs, value)
+                    if hasattr(self, "filter_%s" % name):
+                        qs = getattr(self, "filter_%s" % name)(qs)
+                    else:
+                        qs = filter_.filter(qs, value)
 
             if self._meta.order_by:
                 order_field = self.form.fields[self.order_by_field]
