@@ -19,6 +19,7 @@ from django_filters.filters import DateRangeFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
+from django_filters.filters import DateTimeRangeFilter
 # from django_filters.widgets import LinkWidget
 
 from .models import User
@@ -407,6 +408,37 @@ class RangeFilterTests(TestCase):
                                  lambda o: o.title)
 
 
+class DatetimeRangeFilterTests(TestCase):
+
+    def setUp(self):
+        self.now = now = datetime.datetime.now()
+        self.tomorrow = tomorrow = now + datetime.timedelta(days=1)
+        after_tomorrow = now + datetime.timedelta(days=2)
+
+        Article.objects.create(title="Today", published=now)
+        Article.objects.create(title="Tomorrow", published=tomorrow)
+        Article.objects.create(
+            title="After Tomorrow", published=after_tomorrow)
+
+    def test_filtering(self):
+        class F(FilterSet):
+            published = DateTimeRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        qs = Article.objects.all().order_by('published')
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Today', 'Tomorrow', 'After Tomorrow'],
+                                 lambda o: o.title)
+        f = F({'published_0': self.now, 'published_1': self.tomorrow}, queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Today', 'Tomorrow'],
+                                 lambda o: o.title)
+
+
 @unittest.skip('date-range is funky')
 class DateRangeFilterTests(TestCase):
 
@@ -511,6 +543,7 @@ class AllValuesFilterTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})),
                          list(User.objects.all()))
+
 
 class O2ORelationshipTests(TestCase):
 
@@ -1065,4 +1098,3 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.count(), 2)
-

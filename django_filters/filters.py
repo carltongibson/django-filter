@@ -11,14 +11,15 @@ from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .fields import RangeField, LookupTypeField
+from .fields import \
+    RangeField, LookupTypeField, Lookup, DateTimeRangeField
 
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', "DateTimeRangeFilter",
 ]
 
 
@@ -30,7 +31,7 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', required=False, distinct=False, **kwargs):
+        lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
@@ -40,6 +41,7 @@ class Filter(object):
         self.required = required
         self.extra = kwargs
         self.distinct = distinct
+        self.exclude = exclude
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
@@ -47,6 +49,7 @@ class Filter(object):
     @property
     def field(self):
         if not hasattr(self, '_field'):
+            help_text = _('This is an exclusion filter') if self.exclude else ''
             if (self.lookup_type is None or
                     isinstance(self.lookup_type, (list, tuple))):
                 if self.lookup_type is None:
@@ -56,23 +59,23 @@ class Filter(object):
                         (x, x) for x in LOOKUP_TYPES if x in self.lookup_type]
                 self._field = LookupTypeField(self.field_class(
                     required=self.required, widget=self.widget, **self.extra),
-                    lookup, required=self.required, label=self.label)
+                    lookup, required=self.required, label=self.label, help_text=help_text)
             else:
                 self._field = self.field_class(required=self.required,
-                    label=self.label, widget=self.widget, **self.extra)
+                    label=self.label, widget=self.widget,
+                    help_text=help_text, **self.extra)
         return self._field
 
     def filter(self, qs, value):
-        if isinstance(value, (list, tuple)):
-            lookup = six.text_type(value[1])
-            if not lookup:
-                lookup = 'exact'  # fallback to exact if lookup is not provided
-            value = value[0]
+        if isinstance(value, Lookup):
+            lookup = six.text_type(value.lookup_type)
+            value = value.value
         else:
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
             return qs
-        qs = qs.filter(**{'%s__%s' % (self.name, lookup): value})
+        method = qs.exclude if self.exclude else qs.filter
+        qs = method(**{'%s__%s' % (self.name, lookup): value})
         if self.distinct:
             qs = qs.distinct()
         return qs
@@ -142,6 +145,26 @@ class RangeFilter(Filter):
         if value:
             lookup = '%s__range' % self.name
             return qs.filter(**{lookup: (value.start, value.stop)})
+        return qs
+
+
+class DateTimeRangeFilter(Filter):
+    field_class = DateTimeRangeField
+
+    def __init__(self, *args, **kwargs):
+        addday = kwargs.pop('addday', False)
+        super(DateTimeRangeFilter, self).__init__(*args, **kwargs)
+        self.addday = addday
+
+    def filter(self, qs, value):
+        if value is not None:
+            stop = value.stop
+            if self.addday:
+                stop += timedelta(days=1)
+
+            if value:
+                lookup = '%s__range' % self.name
+                qs = qs.filter(**{lookup: (value.start, stop)})
         return qs
 
 

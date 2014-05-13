@@ -49,6 +49,11 @@ Filters take a ``lookup_type`` argument which specifies what lookup type to
 use with Django's ORM.  So here when a user entered a price it would show all
 Products with a price less than that.
 
+**It's quite common to forget to set lookup type for `CharField`s/`TextField`s
+and wonder why search for "foo" doesn't return result for "foobar". It's because
+default lookup type is exact text, but you probably want `icontains` lookup
+field.**
+
 Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a
 related model::
@@ -203,7 +208,7 @@ Generic View
 
 In addition to the above usage there is also a class-based generic view
 included in django-filter, which lives at ``django_filters.views.FilterView``.
-You must provide either a ``model`` or ``filter_class`` argument, similar to
+You must provide either a ``model`` or ``filterset_class`` argument, similar to
 ``ListView`` in Django itself::
 
     # urls.py
