@@ -1059,7 +1059,7 @@ class MiscFilterSetTests(TestCase):
 
         # only include users with status 2
         self.assertQuerysetEqual(
-            f.filter(User.objects.all()), ['jacob', 'aaron'], by_username)
+            f.filter(User.objects.all().order_by('username')), ['aaron', 'jacob'], by_username)
 
         aaron_and_carl = User.objects.filter(username__contains='r')
         # carl is excluded as his status is not 2
