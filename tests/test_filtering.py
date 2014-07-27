@@ -999,7 +999,7 @@ class MiscFilterSetTests(TestCase):
         f = F({'account': 'jdoe'}, queryset=qs)
         result = f.qs
         self.assertNotEqual(qs, result)
-        qs.all.return_value.filter.assert_called_with(username__exact='jdoe')
+        qs.filter.assert_called_with(username__exact='jdoe')
 
     def test_filtering_with_multiple_filters(self):
         class F(FilterSet):
@@ -1042,6 +1042,28 @@ class MiscFilterSetTests(TestCase):
 
         f = F({'status': 0}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username)
+
+    def test_filtering_multiple_different_querysets(self):
+        class F(FilterSet):
+            status = ChoiceFilter(choices=STATUS_CHOICES, initial=2)
+
+            class Meta:
+                model = User
+                fields = ['status']
+
+        f = F()
+
+        # only include users with status 2
+        self.assertQuerysetEqual(
+            f.filter(User.objects.all()), ['jacob', 'aaron'], lambda o: o.username)
+
+        aaron_and_carl = User.objects.filter(username__contains='r')
+        # carl is excluded as his status is not 2
+        # however, jacob is not included either, showing that
+        # the passed queryset is being filtered.
+        self.assertQuerysetEqual(
+            f.filter(aaron_and_carl), ['aaron'], lambda o: o.username)
+        self.assertFalse(hasattr(f, '_qs'))
 
     def test_qs_count(self):
         class F(FilterSet):
