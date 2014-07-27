@@ -49,7 +49,19 @@ class FilterTests(TestCase):
         f = Filter(exclude=True)
         field = f.field
         self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, 'This is an exclusion filter')
+        self.assertEqual(field.help_text, 'This is an exclusion filter.')
+
+    def test_field_with_help_text(self):
+        f = Filter(help_text="Filter description.")
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+        self.assertEqual("Filter description.", field.help_text)
+
+    def test_exclusion_field_with_help_text(self):
+        f = Filter(help_text="Filter description.", exclude=True)
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+        self.assertEqual("Filter description. This is an exclusion filter.", field.help_text)
 
     def test_field_with_single_lookup_type(self):
         f = Filter(lookup_type='iexact')
@@ -67,7 +79,7 @@ class FilterTests(TestCase):
         f = Filter(lookup_type=None, exclude=True)
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
-        self.assertEqual(field.help_text, 'This is an exclusion filter')
+        self.assertEqual(field.help_text, 'This is an exclusion filter.')
 
     def test_field_with_list_lookup_type(self):
         f = Filter(lookup_type=('istartswith', 'iendswith'))

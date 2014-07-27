@@ -48,7 +48,7 @@ class Filter(object):
     @property
     def field(self):
         if not hasattr(self, '_field'):
-            help_text = _('This is an exclusion filter') if self.exclude else ''
+            help_text = _('This is an exclusion filter.') if self.exclude else ''
             if (self.lookup_type is None or
                     isinstance(self.lookup_type, (list, tuple))):
                 if self.lookup_type is None:
@@ -60,9 +60,14 @@ class Filter(object):
                     required=self.required, widget=self.widget, **self.extra),
                     lookup, required=self.required, label=self.label, help_text=help_text)
             else:
+                extra = dict(self.extra)
+                if not extra.get('help_text', None):
+                    extra['help_text'] = help_text
+                else:
+                    if help_text:
+                        extra['help_text'] += u" {}".format(help_text)
                 self._field = self.field_class(required=self.required,
-                    label=self.label, widget=self.widget,
-                    help_text=help_text, **self.extra)
+                    label=self.label, widget=self.widget, **extra)
         return self._field
 
     def filter(self, qs, value):

@@ -77,7 +77,7 @@ class FilterSetFormTests(TestCase):
                 fields = ('title',)
 
         f = F().form
-        self.assertEqual(f.fields['title'].help_text, "This is an exclusion filter")
+        self.assertEqual(f.fields['title'].help_text, "This is an exclusion filter.")
 
     def test_form_fields_using_widget(self):
         class F(FilterSet):
