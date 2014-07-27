@@ -78,6 +78,24 @@ in ``Filter.extra``, so it's possible to override the initializer of a
             self.filters['manufacturer'].extra.update(
                 {'empty_label': 'All Manufacturers'})
 
+Like ``django.contrib.admin.ModelAdmin`` does it is possible to override
+default filters for all the models fields of the same kind using
+``filter_overrides``::
+
+    class ProductFilter(django_filters.FilterSet):
+        filter_overrides = {
+            models.CharField: {
+                'filter_class': django_filters.CharFilter,
+                'extra': lambda f: {
+                    'lookup_type': 'icontains',
+                }
+            }
+        }
+
+        class Meta:
+            model = Product
+            fields = ['name']
+
 
 The view
 --------
