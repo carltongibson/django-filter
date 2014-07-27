@@ -99,7 +99,7 @@ class Place(models.Model):
 
 
 class Restaurant(Place):
-    serves_pizza = models.BooleanField()
+    serves_pizza = models.BooleanField(default=False)
 
 
 class NetworkSetting(models.Model):
@@ -131,14 +131,14 @@ class Location(models.Model):
 
 class Account(models.Model):
     name = models.CharField(max_length=100)
-    in_good_standing = models.BooleanField()
-    friendly = models.BooleanField()
+    in_good_standing = models.BooleanField(default=False)
+    friendly = models.BooleanField(default=False)
 
 
 class Profile(models.Model):
     account = models.OneToOneField(Account, related_name='profile')
-    likes_coffee = models.BooleanField()
-    likes_tea = models.BooleanField()
+    likes_coffee = models.BooleanField(default=False)
+    likes_tea = models.BooleanField(default=False)
 
 
 class BankAccount(Account):

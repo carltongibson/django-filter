@@ -2,9 +2,14 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import mock
+import sys
+
+if sys.version_info >= (2, 7):
+    import unittest
+else:  # pragma: nocover
+    from django.utils import unittest  # noqa
 
 from django import forms
-from django.utils import unittest
 from django.test import TestCase
 
 from django_filters.fields import Lookup
