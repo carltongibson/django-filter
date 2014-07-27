@@ -9,7 +9,6 @@ from django.db import models
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.related import RelatedObject
 from django.utils import six
-from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
@@ -18,6 +17,13 @@ try:
 except ImportError:  # pragma: nocover
     # Django < 1.5 fallback
     from django.db.models.sql.constants import LOOKUP_SEP  # noqa
+
+try:
+    from collections import OrderedDict
+except ImportError:  # pragma: nocover
+    # Django < 1.5 fallback
+    from django.utils.datastructures import SortedDict as OrderedDict  # noqa
+
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
@@ -46,7 +52,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
             if hasattr(base, 'declared_filters'):
                 filters = list(base.declared_filters.items()) + filters
 
-    return SortedDict(filters)
+    return OrderedDict(filters)
 
 
 def get_model_field(model, f):
@@ -72,7 +78,7 @@ def get_model_field(model, f):
 
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
                       filter_for_reverse_field=None):
-    field_dict = SortedDict()
+    field_dict = OrderedDict()
     opts = model._meta
     if fields is None:
         fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
@@ -310,7 +316,7 @@ class BaseFilterSet(object):
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = SortedDict([
+            fields = OrderedDict([
                 (name, filter_.field)
                 for name, filter_ in six.iteritems(self.filters)])
             fields[self.order_by_field] = self.ordering_field

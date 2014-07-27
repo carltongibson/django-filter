@@ -5,12 +5,14 @@ python:
   - "2.7"
   - "3.2"
   - "3.3"
+  - "3.4"
 
 env:
   - DJANGO=https://github.com/django/django/archive/master.tar.gz
-  - DJANGO=https://github.com/django/django/archive/stable/1.6.x.tar.gz
-  - DJANGO=django==1.5.2
-  - DJANGO=django==1.4.6
+  - DJANGO=https://github.com/django/django/archive/stable/1.7.x.tar.gz
+  - DJANGO=django==1.6.5
+  - DJANGO=django==1.5.8
+  - DJANGO=django==1.4.13
 
 install:
   - pip install $DJANGO
@@ -26,9 +28,13 @@ notifications:
 matrix:
   exclude:
     - python: "3.2"
-      env: DJANGO=django==1.4.6
+      env: DJANGO=django==1.4.13
     - python: "3.3"
-      env: DJANGO=django==1.4.6
+      env: DJANGO=django==1.4.13
+    - python: "3.4"
+      env: DJANGO=django==1.4.13
+    - python: "2.6"
+      env: DJANGO=https://github.com/django/django/archive/stable/1.7.x.tar.gz
     - python: "2.6"
       env: DJANGO=https://github.com/django/django/archive/master.tar.gz
 
