@@ -18,7 +18,7 @@ __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
     'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter',
+    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', 'QuerySetFilter',
 ]
 
 
@@ -191,3 +191,25 @@ class AllValuesFilter(ChoiceFilter):
         qs = qs.order_by(self.name).values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
+
+
+class QuerySetFilter(ChoiceFilter):
+    def __init__(self, options, *args, **kwargs):
+        self.options = options
+        kwargs['choices'] = [
+            (key, value[0]) for key, value in six.iteritems(self.options)]
+        super(QuerySetFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        """
+        Apply queryset methods
+        """
+        config = self.options[value][1]
+        method = config.get('method', '')
+        args = config.get('args', ())
+        kwargs = config.get('kwargs', {})
+        if method == '':
+            return qs
+        elif not hasattr(qs, method):
+            raise Exception("Improperly configured", "Unknown QuerySet method %s" % method)
+        return getattr(qs, method)(*args, **kwargs)
