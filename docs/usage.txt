@@ -109,6 +109,9 @@ Now we need to write a view::
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
 
+If you want to access the filtered objects in your views, for example if you 
+want to paginate them, you can do that. They are in f.qs
+
 The URL conf
 ------------
 
