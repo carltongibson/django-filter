@@ -83,19 +83,37 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     if fields is None:
         fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
             if not isinstance(f, models.AutoField)]
+    # Loop through the list of fields.
     for f in fields:
+        # Skip the field if excluded.
         if exclude is not None and f in exclude:
             continue
         field = get_model_field(model, f)
+        # Do nothing if the field doesn't exist.
         if field is None:
             field_dict[f] = None
             continue
         if isinstance(field, RelatedObject):
             filter_ = filter_for_reverse_field(field, f)
+            if filter_:
+                field_dict[f] = filter_
+        # If fields is a dictionary, it must contain lists.
+        elif isinstance(fields, dict):
+            # Create a filter for each lookup type.
+            for lookup_type in fields[f]:
+                filter_ = filter_for_field(field, f, lookup_type)
+
+                if filter_:
+                    filter_name = f
+                    # Don't add "exact" to filter names
+                    if lookup_type != 'exact':
+                        filter_name = f + LOOKUP_SEP + lookup_type
+                    field_dict[filter_name] = filter_
+        # If fields is a list, it contains strings.
         else:
             filter_ = filter_for_field(field, f)
-        if filter_:
-            field_dict[f] = filter_
+            if filter_:
+                field_dict[f] = filter_
     return field_dict
 
 
@@ -359,13 +377,14 @@ class BaseFilterSet(object):
         return [order_choice]
 
     @classmethod
-    def filter_for_field(cls, f, name):
+    def filter_for_field(cls, f, name, lookup_type='exact'):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS)
         filter_for_field.update(cls.filter_overrides)
 
         default = {
             'name': name,
-            'label': capfirst(f.verbose_name)
+            'label': capfirst(f.verbose_name),
+            'lookup_type': lookup_type
         }
 
         if f.choices:
