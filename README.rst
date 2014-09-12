@@ -48,6 +48,21 @@ And then in your view you could do::
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
         return render_to_response('my_app/template.html', {'filter': filter})
 
+Django-filters additionally supports specifying FilterSet fields using a
+dictionary to specify filters with lookup types::
+ 
+    import django_filters
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {'name': ['exact', 'icontains'],
+                      'price': ['exact', 'gte', 'lte'],
+                     }
+
+The filters will be available as 'name', 'name__icontains', 'price',
+'price__gte', and 'price__lte' in the above example.
+
 Support
 -------
 

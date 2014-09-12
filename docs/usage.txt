@@ -54,6 +54,22 @@ and wonder why search for "foo" doesn't return result for "foobar". It's because
 default lookup type is exact text, but you probably want `icontains` lookup
 field.**
 
+The FilterSet Meta class fields can additionally be set using a Dictionary to
+specify multiple ``lookup_type`` filters without significant code duplication::
+
+    import django_filters
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {'price': ['lt', 'gt'],
+                      'release_date', ['exact'],
+                     }
+
+The above would generate 'price__lt', 'price__gt' and 'release_date' filters.
+The filter lookup type keyword 'exact' is the default and therefore never added
+to a filter name.
+
 Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a
 related model::
@@ -78,7 +94,7 @@ in ``Filter.extra``, so it's possible to override the initializer of a
             self.filters['manufacturer'].extra.update(
                 {'empty_label': 'All Manufacturers'})
 
-Like ``django.contrib.admin.ModelAdmin`` does it is possible to override
+Like ``django.contrib.admin.ModelAdmin``, it is possible to override
 default filters for all the models fields of the same kind using
 ``filter_overrides``::
 
