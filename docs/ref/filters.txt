@@ -118,8 +118,8 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ``lookup_type``
 ~~~~~~~~~~~~~~~
 
-The type of lookup that should be performed using the Django ORM.  All the
-normal options are allowed, and should be provided as a string.  You can also
+The type of lookup that should be performed using the [Django ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  
+All the normal options are allowed, and should be provided as a string.  You can also
 provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
 then the user can select the lookup type from all the ones available in the Django
 ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from those
