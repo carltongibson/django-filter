@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from copy import deepcopy
+import types
+import copy
 
 from django import forms
 from django.core.validators import EMPTY_VALUES
@@ -11,6 +12,7 @@ from django.db.models.related import RelatedObject
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
+from sys import version_info
 
 try:
     from django.db.models.constants import LOOKUP_SEP
@@ -31,6 +33,14 @@ from .filters import (Filter, CharFilter, BooleanFilter,
 
 
 ORDER_BY_FIELD = 'o'
+
+
+# There is a bug with deepcopy in 2.6, patch if we are running python < 2.7
+# http://bugs.python.org/issue1515
+if version_info < (2, 7, 0):
+    def _deepcopy_method(x, memo):
+        return type(x)(x.im_func, copy.deepcopy(x.im_self, memo), x.im_class)
+    copy._deepcopy_dispatch[types.MethodType] = _deepcopy_method
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -263,10 +273,14 @@ class BaseFilterSet(object):
         if strict is not None:
             self.strict = strict
 
-        self.filters = deepcopy(self.base_filters)
+        self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
         for filter_ in self.filters.values():
             filter_.model = self._meta.model
+
+        # Apply the parent to the filters, this will allow the filters to access the filterset
+        for filter_key, filter_ in six.iteritems(self.filters):
+            filter_.parent = self
 
     def __iter__(self):
         for obj in self.qs:
