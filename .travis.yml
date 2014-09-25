@@ -48,6 +48,6 @@ matrix:
     - python: "2.6"
       env: DJANGO=https://github.com/django/django/archive/master.tar.gz
   allow_failures:
-    - env: https://github.com/django/django/archive/master.tar.gz
+    - env: DJANGO=https://github.com/django/django/archive/master.tar.gz
   fast_finish: true
 
