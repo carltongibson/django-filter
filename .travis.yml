@@ -21,7 +21,7 @@ install:
   - travis_retry pip install -r requirements/travis-ci.txt
 
 script:
-  - coverage run --source django_filters runtests.py
+  - coverage run --source django_filters runtests.py -v 2
   - coverage report
 
 notifications:
