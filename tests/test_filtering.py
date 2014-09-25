@@ -322,6 +322,24 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = F({'favorite_books': ['4']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
+    def test_filtering_dictionary(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = {'favorite_books': ['exact']}
+
+        qs = User.objects.all().order_by('username')
+        f = F({'favorite_books': ['1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+        f = F({'favorite_books': ['1', '3']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+        f = F({'favorite_books': ['2']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+
+        f = F({'favorite_books': ['4']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
 class NumberFilterTests(TestCase):
 
@@ -351,6 +369,16 @@ class NumberFilterTests(TestCase):
                 fields = ['price']
 
         f = F({'price': 16}, queryset=Book.objects.all().order_by('title'))
+        self.assertQuerysetEqual(
+            f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
+
+    def test_filtering_with_single_lookup_type_dictionary(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = {'price': ['lt']}
+
+        f = F({'price__lt': 16}, queryset=Book.objects.all().order_by('title'))
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
@@ -539,6 +567,20 @@ class O2ORelationshipTests(TestCase):
             class Meta:
                 model = Profile
                 fields = ('account',)
+
+        f = F()
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'account': 1})
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
+
+    def test_o2o_relation_dictionary(self):
+
+        class F(FilterSet):
+            class Meta:
+                model = Profile
+                fields = {'account': ['exact'], }
 
         f = F()
         self.assertEqual(f.qs.count(), 4)
