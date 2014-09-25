@@ -21,6 +21,7 @@ from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
 # from django_filters.filters import DateTimeFilter
+from django_filters.filters import MethodFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
@@ -544,6 +545,56 @@ class AllValuesFilterTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})),
                          list(User.objects.all()))
+
+
+class MethodFilterTests(TestCase):
+
+    def test_filtering(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = MethodFilter(action='filter_username')
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+            def filter_username(self, queryset, value):
+                return queryset.filter(
+                    username=value
+                )
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'alex'})),
+                         [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': 'jose'})),
+                         list())
+
+    def test_filtering_external(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
+
+        def filter_username(queryset, value):
+            return queryset.filter(
+                username=value
+            )
+
+        class F(FilterSet):
+            username = MethodFilter(action=filter_username)
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'alex'})),
+                         [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': 'jose'})),
+                         list())
+
 
 class O2ORelationshipTests(TestCase):
 
