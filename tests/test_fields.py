@@ -2,16 +2,21 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import decimal
+import sys
+
+if sys.version_info >= (2, 7):
+    import unittest
+else:  # pragma: nocover
+    from django.utils import unittest  # noqa
 
 import django
 from django import forms
-from django.utils import unittest
 from django.test import TestCase
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import RangeField
 from django_filters.fields import LookupTypeField
-
+from django_filters.fields import Lookup
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
@@ -44,7 +49,7 @@ class LookupTypeFieldTests(TestCase):
         f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')])
         self.assertEqual(
             f.clean(['12.34', 'lt']),
-            [to_d(12.34), 'lt'])
+            Lookup(to_d(12.34), 'lt'))
 
     @unittest.skipIf(django.VERSION >= (1, 6),
                      'Django 1.6 uses html5 fields')

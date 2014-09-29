@@ -1,10 +1,15 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import mock
 import datetime
+import mock
+import sys
 
-from django.utils import unittest
+if sys.version_info >= (2, 7):
+    import unittest
+else:  # pragma: nocover
+    from django.utils import unittest  # noqa
+
 from django.test import TestCase
 from django.utils import six
 from django.utils.timezone import now
@@ -16,6 +21,7 @@ from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
 # from django_filters.filters import DateTimeFilter
+from django_filters.filters import MethodFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
@@ -317,6 +323,24 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = F({'favorite_books': ['4']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
+    def test_filtering_dictionary(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = {'favorite_books': ['exact']}
+
+        qs = User.objects.all().order_by('username')
+        f = F({'favorite_books': ['1']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+        f = F({'favorite_books': ['1', '3']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+        f = F({'favorite_books': ['2']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+
+        f = F({'favorite_books': ['4']}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
 class NumberFilterTests(TestCase):
 
@@ -346,6 +370,16 @@ class NumberFilterTests(TestCase):
                 fields = ['price']
 
         f = F({'price': 16}, queryset=Book.objects.all().order_by('title'))
+        self.assertQuerysetEqual(
+            f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
+
+    def test_filtering_with_single_lookup_type_dictionary(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = {'price': ['lt']}
+
+        f = F({'price__lt': 16}, queryset=Book.objects.all().order_by('title'))
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
@@ -512,6 +546,56 @@ class AllValuesFilterTests(TestCase):
         self.assertEqual(list(F({'username': 'jose'})),
                          list(User.objects.all()))
 
+
+class MethodFilterTests(TestCase):
+
+    def test_filtering(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = MethodFilter(action='filter_username')
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+            def filter_username(self, queryset, value):
+                return queryset.filter(
+                    username=value
+                )
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'alex'})),
+                         [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': 'jose'})),
+                         list())
+
+    def test_filtering_external(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
+
+        def filter_username(queryset, value):
+            return queryset.filter(
+                username=value
+            )
+
+        class F(FilterSet):
+            username = MethodFilter(action=filter_username)
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'alex'})),
+                         [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': 'jose'})),
+                         list())
+
+
 class O2ORelationshipTests(TestCase):
 
     def setUp(self):
@@ -534,6 +618,20 @@ class O2ORelationshipTests(TestCase):
             class Meta:
                 model = Profile
                 fields = ('account',)
+
+        f = F()
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'account': 1})
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
+
+    def test_o2o_relation_dictionary(self):
+
+        class F(FilterSet):
+            class Meta:
+                model = Profile
+                fields = {'account': ['exact'], }
 
         f = F()
         self.assertEqual(f.qs.count(), 4)

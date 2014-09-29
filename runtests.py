@@ -6,7 +6,7 @@ from django.core.management import execute_from_command_line
 
 if not settings.configured:
     test_runners_args = {}
-    if VERSION[1] < 6:
+    if VERSION < (1, 6):
         test_runners_args = {
             'TEST_RUNNER': 'discover_runner.DiscoverRunner',
         }
@@ -18,12 +18,15 @@ if not settings.configured:
             },
         },
         INSTALLED_APPS=(
+            'django.contrib.contenttypes',
+            'django.contrib.auth',
             'django_filters',
             'tests',
         ),
         ROOT_URLCONF=None,
         USE_TZ=True,
         SECRET_KEY='foobar',
+        SILENCED_SYSTEM_CHECKS=['1_7.W001'],
         **test_runners_args
     )
 

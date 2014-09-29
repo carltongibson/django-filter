@@ -43,7 +43,7 @@ class FilterSetFormTests(TestCase):
 
         f = F().form
         self.assertIsInstance(f, MyForm)
-    
+
     def test_form_prefix(self):
         class F(FilterSet):
             class Meta:
@@ -55,7 +55,7 @@ class FilterSetFormTests(TestCase):
 
         f = F(prefix='prefix').form
         self.assertEqual(f.prefix, 'prefix')
-    
+
     def test_form_fields(self):
         class F(FilterSet):
             class Meta:
@@ -67,6 +67,17 @@ class FilterSetFormTests(TestCase):
         self.assertIn('status', f.fields)
         self.assertEqual(sorted(f.fields['status'].choices),
                          sorted(STATUS_CHOICES))
+
+    def test_form_fields_exclusion(self):
+        class F(FilterSet):
+            title = CharFilter(exclude=True)
+
+            class Meta:
+                model = Book
+                fields = ('title',)
+
+        f = F().form
+        self.assertEqual(f.fields['title'].help_text, "This is an exclusion filter")
 
     def test_form_fields_using_widget(self):
         class F(FilterSet):
@@ -108,7 +119,7 @@ class FilterSetFormTests(TestCase):
         f = F().form
         self.assertEqual(f.fields['book_title'].label, None)
         self.assertEqual(f['book_title'].label, 'Book title')
-    
+
     def test_form_field_with_manual_name_and_label(self):
         class F(FilterSet):
             f1 = CharFilter(name='title', label="Book title")
@@ -183,7 +194,7 @@ class FilterSetFormTests(TestCase):
                 model = User
                 fields = ['username', 'status']
                 order_by = True
-        
+
         f = F().form
         self.assertEqual(f.fields['o'].choices,
             [('username', 'Account'), ('-username', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
@@ -196,7 +207,7 @@ class FilterSetFormTests(TestCase):
                 model = User
                 fields = ['account', 'status']
                 order_by = True
-        
+
         f = F().form
         self.assertEqual(f.fields['o'].choices,
             [('username', 'Account'), ('-username', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
@@ -257,7 +268,7 @@ class FilterSetFormTests(TestCase):
                 model = User
                 fields = ['username', 'status']
                 order_by = [('status', 'Current status')]
-        
+
         f = F().form
         self.assertEqual(
             f.fields['o'].choices, [('status', 'Current status')])

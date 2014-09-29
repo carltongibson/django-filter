@@ -46,8 +46,29 @@ declarative syntax::
             fields = ['price', 'release_date']
 
 Filters take a ``lookup_type`` argument which specifies what lookup type to
-use with Django's ORM.  So here when a user entered a price it would show all
+use with [Django's ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  So here when a user entered a price it would show all
 Products with a price less than that.
+
+**It's quite common to forget to set lookup type for `CharField`s/`TextField`s
+and wonder why search for "foo" doesn't return result for "foobar". It's because
+default lookup type is exact text, but you probably want `icontains` lookup
+field.**
+
+The FilterSet Meta class fields can additionally be set using a Dictionary to
+specify multiple ``lookup_type`` filters without significant code duplication::
+
+    import django_filters
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {'price': ['lt', 'gt'],
+                      'release_date', ['exact'],
+                     }
+
+The above would generate 'price__lt', 'price__gt' and 'release_date' filters.
+The filter lookup type keyword 'exact' is the default and therefore never added
+to a filter name.
 
 Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a
@@ -73,6 +94,24 @@ in ``Filter.extra``, so it's possible to override the initializer of a
             self.filters['manufacturer'].extra.update(
                 {'empty_label': 'All Manufacturers'})
 
+Like ``django.contrib.admin.ModelAdmin``, it is possible to override
+default filters for all the models fields of the same kind using
+``filter_overrides``::
+
+    class ProductFilter(django_filters.FilterSet):
+        filter_overrides = {
+            models.CharField: {
+                'filter_class': django_filters.CharFilter,
+                'extra': lambda f: {
+                    'lookup_type': 'icontains',
+                }
+            }
+        }
+
+        class Meta:
+            model = Product
+            fields = ['name']
+
 
 The view
 --------
@@ -85,6 +124,9 @@ Now we need to write a view::
 
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
+
+If you want to access the filtered objects in your views, for example if you 
+want to paginate them, you can do that. They are in f.qs
 
 The URL conf
 ------------
@@ -203,7 +245,7 @@ Generic View
 
 In addition to the above usage there is also a class-based generic view
 included in django-filter, which lives at ``django_filters.views.FilterView``.
-You must provide either a ``model`` or ``filter_class`` argument, similar to
+You must provide either a ``model`` or ``filterset_class`` argument, similar to
 ``ListView`` in Django itself::
 
     # urls.py

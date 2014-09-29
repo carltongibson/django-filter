@@ -1,9 +1,14 @@
 from __future__ import absolute_import, unicode_literals
 
 import mock
+import sys
+
+if sys.version_info >= (2, 7):
+    import unittest
+else:  # pragma: nocover
+    from django.utils import unittest  # noqa
 
 from django.db import models
-from django.utils import unittest
 from django.test import TestCase
 
 from django_filters.filterset import FilterSet
@@ -30,6 +35,12 @@ from .models import DirectedNode
 from .models import Worker
 from .models import Business
 
+
+def checkItemsEqual(L1, L2):
+    """
+    TestCase.assertItemsEqual() is not available in Python 2.6.
+    """
+    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
 
 class HelperMethodsTests(TestCase):
 
@@ -264,6 +275,19 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 2)
         self.assertListEqual(list(F.base_filters), ['username', 'price'])
 
+    def test_meta_fields_dictionary_derived(self):
+        class F(FilterSet):
+
+            class Meta:
+                model = Book
+                fields = {'price': ['exact', 'gte', 'lte'], }
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 3)
+
+        expected_list = ['price', 'price__gte', 'price__lte', ]
+        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+
     def test_meta_fields_containing_autofield(self):
         class F(FilterSet):
             username = CharFilter()
@@ -276,6 +300,22 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 3)
         self.assertListEqual(list(F.base_filters), ['id', 'username', 'price'])
 
+    def test_meta_fields_dictionary_autofield(self):
+        class F(FilterSet):
+            username = CharFilter()
+
+            class Meta:
+                model = Book
+                fields = {'id': ['exact'],
+                          'username': ['exact'],
+                          }
+
+        self.assertEqual(len(F.declared_filters), 1)
+        self.assertEqual(len(F.base_filters), 2)
+
+        expected_list = ['id', 'username']
+        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+
     def test_meta_fields_containing_unknown(self):
         with self.assertRaises(TypeError):
             class F(FilterSet):
@@ -284,6 +324,17 @@ class FilterSetClassCreationTests(TestCase):
                 class Meta:
                     model = Book
                     fields = ('username', 'price', 'other')
+
+    def test_meta_fields_dictionary_containing_unknown(self):
+        with self.assertRaises(TypeError):
+            class F(FilterSet):
+
+                class Meta:
+                    model = Book
+                    fields = {'id': ['exact'],
+                              'title': ['exact'],
+                              'other': ['exact'],
+                             }
 
     def test_meta_exlude_with_declared_and_declared_wins(self):
         class F(FilterSet):

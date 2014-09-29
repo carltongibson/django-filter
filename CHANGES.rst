@@ -1,3 +1,18 @@
+Version 0.8 (2014-09-29)
+------------------------
+
+ * FEATURE: Added exclusion filters support
+
+ * FEATURE: Added `fields` dictionary shorthand syntax
+
+ * FEATURE: Added `MethodFilter`.
+
+ * FIXED: #115 "filters.Filter.filter() fails if it receives [] or () as value"
+
+ * MISC: Various Documentation and Testing improvements
+
+
+
 Version 0.7 (2013-08-10)
 ------------------------
 
