@@ -65,7 +65,7 @@ specify multiple ``lookup_type`` filters without significant code duplication::
         class Meta:
             model = Product
             fields = {'price': ['lt', 'gt'],
-                      'release_date', ['exact'],
+                      'release_date': ['exact'],
                      }
 
 The above would generate 'price__lt', 'price__gt' and 'release_date' filters.
