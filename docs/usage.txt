@@ -46,8 +46,10 @@ declarative syntax::
             fields = ['price', 'release_date']
 
 Filters take a ``lookup_type`` argument which specifies what lookup type to
-use with [Django's ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  So here when a user entered a price it would show all
+use with `Django's ORM`_.  So here when a user entered a price it would show all
 Products with a price less than that.
+
+.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 
 **It's quite common to forget to set lookup type for `CharField`s/`TextField`s
 and wonder why search for "foo" doesn't return result for "foobar". It's because
