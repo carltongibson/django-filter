@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from copy import deepcopy
+import types
+import copy
 
 from django import forms
 from django.core.validators import EMPTY_VALUES
@@ -11,6 +12,7 @@ from django.db.models.related import RelatedObject
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
+from sys import version_info
 
 try:
     from django.db.models.constants import LOOKUP_SEP
@@ -31,6 +33,14 @@ from .filters import (Filter, CharFilter, BooleanFilter,
 
 
 ORDER_BY_FIELD = 'o'
+
+
+# There is a bug with deepcopy in 2.6, patch if we are running python < 2.7
+# http://bugs.python.org/issue1515
+if version_info < (2, 7, 0):
+    def _deepcopy_method(x, memo):
+        return type(x)(x.im_func, copy.deepcopy(x.im_self, memo), x.im_class)
+    copy._deepcopy_dispatch[types.MethodType] = _deepcopy_method
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -83,19 +93,37 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     if fields is None:
         fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
             if not isinstance(f, models.AutoField)]
+    # Loop through the list of fields.
     for f in fields:
+        # Skip the field if excluded.
         if exclude is not None and f in exclude:
             continue
         field = get_model_field(model, f)
+        # Do nothing if the field doesn't exist.
         if field is None:
             field_dict[f] = None
             continue
         if isinstance(field, RelatedObject):
             filter_ = filter_for_reverse_field(field, f)
+            if filter_:
+                field_dict[f] = filter_
+        # If fields is a dictionary, it must contain lists.
+        elif isinstance(fields, dict):
+            # Create a filter for each lookup type.
+            for lookup_type in fields[f]:
+                filter_ = filter_for_field(field, f, lookup_type)
+
+                if filter_:
+                    filter_name = f
+                    # Don't add "exact" to filter names
+                    if lookup_type != 'exact':
+                        filter_name = f + LOOKUP_SEP + lookup_type
+                    field_dict[filter_name] = filter_
+        # If fields is a list, it contains strings.
         else:
             filter_ = filter_for_field(field, f)
-        if filter_:
-            field_dict[f] = filter_
+            if filter_:
+                field_dict[f] = filter_
     return field_dict
 
 
@@ -245,10 +273,14 @@ class BaseFilterSet(object):
         if strict is not None:
             self.strict = strict
 
-        self.filters = deepcopy(self.base_filters)
+        self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
         for filter_ in self.filters.values():
             filter_.model = self._meta.model
+
+        # Apply the parent to the filters, this will allow the filters to access the filterset
+        for filter_key, filter_ in six.iteritems(self.filters):
+            filter_.parent = self
 
     def __iter__(self):
         for obj in self.qs:
@@ -359,13 +391,14 @@ class BaseFilterSet(object):
         return [order_choice]
 
     @classmethod
-    def filter_for_field(cls, f, name):
+    def filter_for_field(cls, f, name, lookup_type='exact'):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS)
         filter_for_field.update(cls.filter_overrides)
 
         default = {
             'name': name,
-            'label': capfirst(f.verbose_name)
+            'label': capfirst(f.verbose_name),
+            'lookup_type': lookup_type
         }
 
         if f.choices:
