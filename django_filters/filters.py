@@ -144,9 +144,9 @@ class RangeFilter(Filter):
         if value:
             q = Q()
             if value.start:
-              q |= Q(**{'%s__gt'%self.name:value.start})
+              q = Q(**{'%s__gt'%self.name:value.start})
             if value.stop:
-              q |= Q(**{'%s__lt'%self.name:value.stop})
+              q &= Q(**{'%s__lt'%self.name:value.stop})
             return qs.filter(q)
         return qs
 
