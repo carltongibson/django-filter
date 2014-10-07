@@ -142,12 +142,14 @@ class RangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
-            q = Q()
+          if value.start and value.stop:
+            lookup = '%s__range' % self.name
+            return qs.filter(**{lookup: (value.start, value.stop)})
+          else:
             if value.start:
-              q = Q(**{'%s__gt'%self.name:value.start})
+              qs = qs.filter(**{'%s__gte'%self.name:value.start})
             if value.stop:
-              q &= Q(**{'%s__lt'%self.name:value.stop})
-            return qs.filter(q)
+              qs = qs.filter(**{'%s__lte'%self.name:value.stop})
         return qs
 
 
