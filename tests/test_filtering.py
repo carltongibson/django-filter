@@ -342,6 +342,28 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = F({'favorite_books': ['4']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
+    def test_filtering_on_all_of_subset_of_choices(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['favorite_books']
+
+            def __init__(self, *args, **kwargs):
+                super(F, self).__init__(*args, **kwargs)
+                # This filter has a limited number of choices.
+                self.filters['favorite_books'].extra.update({
+                    'queryset': Book.objects.filter(id__in=[1, 2])
+                })
+
+        qs = User.objects.all().order_by('username')
+
+        # Select all the given choices.
+        f = F({'favorite_books': ['1', '2']}, queryset=qs)
+
+        # The results should only include matching users - not Jacob.
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+
 class NumberFilterTests(TestCase):
 
     def setUp(self):
