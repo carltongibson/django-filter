@@ -3,4 +3,22 @@ from __future__ import absolute_import
 from .filterset import FilterSet
 from .filters import *
 
-VERSION = (0, 7)
+__version__ = '0.8.0'
+
+
+def get_version(version):
+    '''
+    '0.1.2-dev' -> (0, 1, 2, 'dev')
+    '0.1.2' -> (0, 1, 2)
+    '''
+    v = version.split('.')
+    v = v[:-1] + v[-1].split('-')
+    ret = []
+    for p in v:
+        if p.isdigit():
+            ret.append(int(p))
+        else:
+            ret.append(p)
+    return tuple(ret)
+
+VERSION = get_version(__version__)
