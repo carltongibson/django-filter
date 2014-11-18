@@ -254,9 +254,9 @@ class MultipleChoiceFilterTests(TestCase):
             qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
             qs.filter.return_value.distinct.assert_called_once_with()
 
-    def test_filtering_skipped_when_len_of_value_is_len_of_field_choices(self):
+    def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
-        f = MultipleChoiceFilter(name='somefield')
+        f = MultipleChoiceFilter(name='somefield', required=True)
         result = f.filter(qs, [])
         self.assertEqual(len(f.field.choices), 0)
         self.assertEqual(qs, result)
