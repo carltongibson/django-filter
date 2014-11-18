@@ -105,8 +105,7 @@ class MultipleChoiceFilter(Filter):
 
     def filter(self, qs, value):
         value = value or ()
-        if len(value) == len(self.field.choices):
-            return qs
+
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})
