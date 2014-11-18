@@ -100,13 +100,42 @@ class ChoiceFilter(Filter):
 class MultipleChoiceFilter(Filter):
     """
     This filter preforms an OR query on the selected options.
+
+    Advanced Use
+    ------------
+    Depending on your application logic, when all or no choices are selected, filtering may be a noop. In this case you may wish to avoid the filtering overhead, particularly of the `distinct` call.
+
+    Set `always_filter` to False after instantiation to enable the default `is_noop` test.
+
+    Override `is_noop` if you require a different test for your application.
     """
     field_class = forms.MultipleChoiceField
 
-    def filter(self, qs, value):
-        value = value or ()
+    always_filter = True
+
+    def is_noop(self, qs, value):
+        """
+        Return True to short-circuit unnecessary and potentially slow filtering.
+        """
+        if self.always_filter:
+            return False
+
+        # A reasonable default for being a noop...
         if self.required and len(value) == len(self.field.choices):
+            return True
+
+        return False
+
+    def filter(self, qs, value):
+        value = value or () # Make sure we have an iterable
+
+        if self.is_noop(qs, value):
             return qs
+
+        # Even though not a noop, no point filtering if empty
+        if not value:
+            return qs
+
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})

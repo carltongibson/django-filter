@@ -257,6 +257,7 @@ class MultipleChoiceFilterTests(TestCase):
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
         f = MultipleChoiceFilter(name='somefield', required=True)
+        f.always_filter = False
         result = f.filter(qs, [])
         self.assertEqual(len(f.field.choices), 0)
         self.assertEqual(qs, result)
