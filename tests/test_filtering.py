@@ -358,6 +358,8 @@ class ModelMultipleChoiceFilterTests(TestCase):
                     'queryset': Book.objects.filter(id__in=[1, 2])
                 })
 
+                self.filters['favorite_books'].required = True
+
         qs = User.objects.all().order_by('username')
 
         # Select all the given choices.
