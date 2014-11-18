@@ -104,13 +104,9 @@ class MultipleChoiceFilter(Filter):
     field_class = forms.MultipleChoiceField
 
     def filter(self, qs, value):
-        value = value or ()
-        if len(value) == len(self.field.choices):
+        if not value:
             return qs
-        q = Q()
-        for v in value:
-            q |= Q(**{self.name: v})
-        return qs.filter(q).distinct()
+        return qs.filter(**{self.name + '__in': value}).distinct()
 
 
 class DateFilter(Filter):

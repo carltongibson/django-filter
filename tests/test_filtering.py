@@ -23,6 +23,7 @@ from django_filters.filters import DateRangeFilter
 # from django_filters.filters import DateTimeFilter
 from django_filters.filters import MethodFilter
 from django_filters.filters import MultipleChoiceFilter
+from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
 # from django_filters.widgets import LinkWidget
@@ -304,6 +305,8 @@ class ModelMultipleChoiceFilterTests(TestCase):
         alex.favorite_books = [b1, b2]
         aaron.favorite_books = [b1, b3]
 
+        self.alex = alex
+
     def test_filtering(self):
         class F(FilterSet):
             class Meta:
@@ -341,6 +344,58 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
         f = F({'favorite_books': ['4']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
+
+    def test_filtering_on_all_of_subset_of_choices(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['favorite_books']
+
+            def __init__(self, *args, **kwargs):
+                super(F, self).__init__(*args, **kwargs)
+                # This filter has a limited number of choices.
+                self.filters['favorite_books'].extra.update({
+                    'queryset': Book.objects.filter(id__in=[1, 2])
+                })
+
+        qs = User.objects.all().order_by('username')
+
+        # Select all the given choices.
+        f = F({'favorite_books': ['1', '2']}, queryset=qs)
+
+        # The results should only include matching users - not Jacob.
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+    def test_filtering_on_non_required_fields(self):
+        # See issue #132 - filtering with all options on a non-required
+        # field should exclude any results where the field is null.
+        class F(FilterSet):
+            author = ModelMultipleChoiceFilter(queryset=User.objects.all())
+
+            class Meta:
+                model = Article
+                fields = ['author']
+
+        published = now()
+        Article.objects.create(published=published, author=self.alex)
+        Article.objects.create(published=published, author=self.alex)
+        Article.objects.create(published=published)
+
+        qs = Article.objects.all()
+
+        # Select all authors.
+        authors = [
+            str(user.id)
+            for user in User.objects.all()
+        ]
+        f = F({'author': authors}, queryset=qs)
+
+        # The results should not include anonymous articles
+        self.assertEqual(
+            set(f.qs),
+            set(Article.objects.exclude(author__isnull=True)),
+        )
+
 
 class NumberFilterTests(TestCase):
 

@@ -242,39 +242,14 @@ class MultipleChoiceFilterTests(TestCase):
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
         f = MultipleChoiceFilter(name='somefield')
-        with mock.patch('django_filters.filters.Q') as mockQclass:
-            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
-            mockQclass.side_effect = [mockQ1, mockQ2]
+        f.filter(qs, ['value'])
+        qs.filter.assert_called_once_with(somefield__in=['value'])
 
-            f.filter(qs, ['value'])
-
-            self.assertEqual(mockQclass.call_args_list,
-                             [mock.call(), mock.call(somefield='value')])
-            mockQ1.__ior__.assert_called_once_with(mockQ2)
-            qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
-            qs.filter.return_value.distinct.assert_called_once_with()
-
-    def test_filtering_skipped_when_len_of_value_is_len_of_field_choices(self):
+    def test_filtering_skipped_with_empty_list_value(self):
         qs = mock.Mock(spec=[])
         f = MultipleChoiceFilter(name='somefield')
         result = f.filter(qs, [])
-        self.assertEqual(len(f.field.choices), 0)
-        self.assertEqual(qs, result)
-
-        f.field.choices = ['some', 'values', 'here']
-        result = f.filter(qs, ['some', 'values', 'here'])
-        self.assertEqual(qs, result)
-
-        result = f.filter(qs, ['other', 'values', 'there'])
-        self.assertEqual(qs, result)
-
-    @unittest.expectedFailure
-    def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
-        qs = mock.Mock(spec=[])
-        f = MultipleChoiceFilter(name='somefield')
-        f.field.choices = ['some', 'values', 'here']
-        result = f.filter(qs, [])
-        self.assertEqual(qs, result)
+        self.assertIs(qs, result)
 
 
 class DateFilterTests(TestCase):
