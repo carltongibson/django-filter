@@ -183,6 +183,26 @@ class MultipleChoiceFilterTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
+    def test_filtering_with_limited_choices(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        limited_choices = [(1, 1), (2, 2)]
+
+        class F(FilterSet):
+            status = MultipleChoiceFilter(choices=limited_choices)
+
+            class Meta:
+                model = User
+                fields = ['status']
+
+        qs = User.objects.all().order_by('username')
+        f = F({'status': [1, 2]}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'jacob'], lambda o: o.username)
+
 
 class DateFilterTests(TestCase):
 
