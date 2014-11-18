@@ -30,6 +30,16 @@ has ``choices``.
 The same as ``ChoiceFilter`` except the user can select multiple items and it
 selects the OR of all the choices.
 
+Advanced Use: Depending on your application logic, when all or no choices are
+selected, filtering may be a noop. In this case you may wish to avoid the
+filtering overhead, particularly of the `distinct` call.
+
+Set `always_filter` to False after instantiation to enable the default `is_noop`
+test.
+
+Override `is_noop` if you require a different test for your application.
+
+
 ``DateFilter``
 ~~~~~~~~~~~~~~
 
@@ -125,7 +135,7 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ``lookup_type``
 ~~~~~~~~~~~~~~~
 
-The type of lookup that should be performed using the [Django ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  
+The type of lookup that should be performed using the [Django ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").
 All the normal options are allowed, and should be provided as a string.  You can also
 provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
 then the user can select the lookup type from all the ones available in the Django
