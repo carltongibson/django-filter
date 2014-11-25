@@ -24,6 +24,26 @@ This filter matches a boolean, either ``True`` or ``False``, used with
 This filter matches an item of any type by choices, used with any field that
 has ``choices``.
 
+``TypedChoiceFilter``
+~~~~~~~~~~~~~~~~
+
+The same as ``ChoiceFilter`` with the added possibility to convert value to
+match against. This could be done by using `coerce` parameter.
+An example use-case is limiting boolean choices to match against so only
+some predefined strings could be used as input of a boolean filter:
+
+.. sourcecode:: python
+    import django_filters
+    from distutils.util import strtobool
+
+    BOOLEAN_CHOICES = (('false', 'False'), ('true', 'True'),)
+                
+    class YourFilterSet(django_filters.FilterSet):
+        ...
+        flag = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES,
+                                                coerce=strtobool)
+
+
 ``MultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
