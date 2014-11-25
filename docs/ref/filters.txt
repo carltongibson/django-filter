@@ -24,6 +24,12 @@ This filter matches a boolean, either ``True`` or ``False``, used with
 This filter matches an item of any type by choices, used with any field that
 has ``choices``.
 
+``TypedChoiceFilter``
+~~~~~~~~~~~~~~~~
+
+The same as ``ChoiceFilter`` with the added possibility to convert value to
+match against. This could be done by using `coerce` parameter.
+
 ``MultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
