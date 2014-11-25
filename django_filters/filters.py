@@ -16,9 +16,10 @@ from .fields import RangeField, LookupTypeField, Lookup
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
-    'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
-    'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
+    'DateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
+    'ModelMultipleChoiceFilter', 'NumberFilter', 'RangeFilter',
+    'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
 ]
 
 
@@ -95,6 +96,10 @@ class BooleanFilter(Filter):
 
 class ChoiceFilter(Filter):
     field_class = forms.ChoiceField
+
+
+class TypedChoiceFilter(Filter):
+    field_class = forms.TypedChoiceField
 
 
 class MultipleChoiceFilter(Filter):
