@@ -25,19 +25,18 @@ This filter matches an item of any type by choices, used with any field that
 has ``choices``.
 
 ``TypedChoiceFilter``
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 The same as ``ChoiceFilter`` with the added possibility to convert value to
 match against. This could be done by using `coerce` parameter.
 An example use-case is limiting boolean choices to match against so only
-some predefined strings could be used as input of a boolean filter:
+some predefined strings could be used as input of a boolean filter::
 
-.. sourcecode:: python
     import django_filters
     from distutils.util import strtobool
 
     BOOLEAN_CHOICES = (('false', 'False'), ('true', 'True'),)
-                
+
     class YourFilterSet(django_filters.FilterSet):
         ...
         flag = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES,
@@ -96,7 +95,27 @@ and ``DecimalField`` by default.
 ``RangeFilter``
 ~~~~~~~~~~~~~~~
 
-Filters where a value is between two numerical values.
+Filters where a value is between two numerical values, or greater than a minimum or less than a maximum where only one limit value is provided. ::
+
+    class F(FilterSet):
+        """Filter for Books by Price"""
+        price = RangeFilter()
+
+        class Meta:
+            model = Book
+            fields = ['price']
+
+    qs = Book.objects.all().order_by('title')
+
+    # Range: Books between 5€ and 15€
+    f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
+
+    # Min-Only: Books costing more the 11€
+    f = F({'price_0': '11'}, queryset=qs)
+
+    # Max-Only: Books costing less than 19€
+    f = F({'price_1': '19'}, queryset=qs)
+
 
 ``DateRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
