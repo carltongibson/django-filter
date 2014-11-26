@@ -497,6 +497,16 @@ class RangeFilterTests(TestCase):
                                  ['Ender\'s Game', 'Rainbow Six'],
                                  lambda o: o.title)
 
+        f = F({'price_0': '11'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Rainbow Six', 'Snowcrash'],
+                                 lambda o: o.title)
+        f = F({'price_1': '19'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Ender\'s Game', 'Rainbow Six'],
+                                 lambda o: o.title)
+
+
 
 @unittest.skip('date-range is funky')
 class DateRangeFilterTests(TestCase):
