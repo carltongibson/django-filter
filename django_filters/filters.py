@@ -16,9 +16,10 @@ from .fields import RangeField, LookupTypeField, Lookup
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
-    'MultipleChoiceFilter', 'DateFilter', 'DateTimeFilter', 'TimeFilter',
-    'ModelChoiceFilter', 'ModelMultipleChoiceFilter', 'NumberFilter',
-    'RangeFilter', 'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
+    'DateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
+    'ModelMultipleChoiceFilter', 'NumberFilter', 'RangeFilter',
+    'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
 ]
 
 
@@ -97,16 +98,49 @@ class ChoiceFilter(Filter):
     field_class = forms.ChoiceField
 
 
+class TypedChoiceFilter(Filter):
+    field_class = forms.TypedChoiceField
+
+
 class MultipleChoiceFilter(Filter):
     """
     This filter preforms an OR query on the selected options.
+
+    Advanced Use
+    ------------
+    Depending on your application logic, when all or no choices are selected, filtering may be a noop. In this case you may wish to avoid the filtering overhead, particularly of the `distinct` call.
+
+    Set `always_filter` to False after instantiation to enable the default `is_noop` test.
+
+    Override `is_noop` if you require a different test for your application.
     """
     field_class = forms.MultipleChoiceField
 
+    always_filter = True
+
+    def is_noop(self, qs, value):
+        """
+        Return True to short-circuit unnecessary and potentially slow filtering.
+        """
+        if self.always_filter:
+            return False
+
+        # A reasonable default for being a noop...
+        if self.required and len(value) == len(self.field.choices):
+            return True
+
+        return False
+
     def filter(self, qs, value):
-        value = value or ()
-        if len(value) == len(self.field.choices):
+        value = value or () # Make sure we have an iterable
+
+        if self.is_noop(qs, value):
             return qs
+
+        # Even though not a noop, no point filtering if empty
+        if not value:
+            return qs
+
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})
@@ -142,8 +176,14 @@ class RangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
+          if value.start and value.stop:
             lookup = '%s__range' % self.name
             return qs.filter(**{lookup: (value.start, value.stop)})
+          else:
+            if value.start:
+              qs = qs.filter(**{'%s__gte'%self.name:value.start})
+            if value.stop:
+              qs = qs.filter(**{'%s__lte'%self.name:value.stop})
         return qs
 
 

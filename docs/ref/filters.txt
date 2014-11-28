@@ -24,11 +24,40 @@ This filter matches a boolean, either ``True`` or ``False``, used with
 This filter matches an item of any type by choices, used with any field that
 has ``choices``.
 
+``TypedChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~
+
+The same as ``ChoiceFilter`` with the added possibility to convert value to
+match against. This could be done by using `coerce` parameter.
+An example use-case is limiting boolean choices to match against so only
+some predefined strings could be used as input of a boolean filter::
+
+    import django_filters
+    from distutils.util import strtobool
+
+    BOOLEAN_CHOICES = (('false', 'False'), ('true', 'True'),)
+
+    class YourFilterSet(django_filters.FilterSet):
+        ...
+        flag = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES,
+                                                coerce=strtobool)
+
+
 ``MultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The same as ``ChoiceFilter`` except the user can select multiple items and it
 selects the OR of all the choices.
+
+Advanced Use: Depending on your application logic, when all or no choices are
+selected, filtering may be a noop. In this case you may wish to avoid the
+filtering overhead, particularly of the `distinct` call.
+
+Set `always_filter` to False after instantiation to enable the default `is_noop`
+test.
+
+Override `is_noop` if you require a different test for your application.
+
 
 ``DateFilter``
 ~~~~~~~~~~~~~~
@@ -66,7 +95,27 @@ and ``DecimalField`` by default.
 ``RangeFilter``
 ~~~~~~~~~~~~~~~
 
-Filters where a value is between two numerical values.
+Filters where a value is between two numerical values, or greater than a minimum or less than a maximum where only one limit value is provided. ::
+
+    class F(FilterSet):
+        """Filter for Books by Price"""
+        price = RangeFilter()
+
+        class Meta:
+            model = Book
+            fields = ['price']
+
+    qs = Book.objects.all().order_by('title')
+
+    # Range: Books between 5€ and 15€
+    f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
+
+    # Min-Only: Books costing more the 11€
+    f = F({'price_0': '11'}, queryset=qs)
+
+    # Max-Only: Books costing less than 19€
+    f = F({'price_1': '19'}, queryset=qs)
+
 
 ``DateRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
@@ -125,7 +174,7 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ``lookup_type``
 ~~~~~~~~~~~~~~~
 
-The type of lookup that should be performed using the [Django ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  
+The type of lookup that should be performed using the [Django ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").
 All the normal options are allowed, and should be provided as a string.  You can also
 provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
 then the user can select the lookup type from all the ones available in the Django
