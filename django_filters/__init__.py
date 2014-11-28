@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from .filterset import FilterSet
 from .filters import *
 
-__version__ = '0.9.0-dev'
+__version__ = '0.9.0'
 
 
 def get_version(version):
