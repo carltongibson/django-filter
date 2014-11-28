@@ -80,6 +80,11 @@ class Article(models.Model):
     published = models.DateTimeField()
     author = models.ForeignKey(User, null=True)
 
+    def __str__(self):
+        if self.author_id:
+            return "%s on %s" % (self.author, self.published)
+        return "Anonymous on %s" % self.published
+
 
 @python_2_unicode_compatible
 class Book(models.Model):

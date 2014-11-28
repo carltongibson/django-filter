@@ -1,3 +1,20 @@
+Version 0.9 (2014-11-28)
+------------------------
+
+* FEATURE: Allow Min/Max-Only use of RangeFilter
+
+* FEATURE: Added TypedChoiceFilter
+
+* FIXED: Correct logic for short circuit on MultipleChoiceFilter
+
+    Added `always_filter` attribute and `is_noop()` test to apply short-circuiting.
+
+    Set `always_filter` to `False` on init to apply default `is_noop()` test.
+    Override `is_noop()` for more complex cases.
+
+* MISC: Version bumping with ``bumpversion``
+
+
 Version 0.8 (2014-09-29)
 ------------------------
 

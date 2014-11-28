@@ -1,12 +1,22 @@
+import os
+import sys
 from setuptools import setup, find_packages
 
 f = open('README.rst')
 readme = f.read()
 f.close()
 
+if sys.argv[-1] == 'publish':
+    os.system("python setup.py sdist upload")
+    os.system("python setup.py bdist_wheel upload")
+    print("You probably want to also tag the version now:")
+    print("  git tag -a %s -m 'version %s'" % (version, version))
+    print("  git push --tags")
+    sys.exit()
+
 setup(
     name='django-filter',
-    version='0.7',
+    version='0.9.0',
     description=('Django-filter is a reusable Django application for allowing'
                  ' users to filter querysets dynamically.'),
     long_description=readme,

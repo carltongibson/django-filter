@@ -3,7 +3,7 @@ Using django-filter
 
 Django-filter provides a simple way to filter down a queryset based on
 parameters a user provides.  Say we have a ``Product`` model and we want to let
-our users filter which products they see on a list page.  
+our users filter which products they see on a list page.
 
 The model
 ---------
@@ -46,8 +46,10 @@ declarative syntax::
             fields = ['price', 'release_date']
 
 Filters take a ``lookup_type`` argument which specifies what lookup type to
-use with [Django's ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").  So here when a user entered a price it would show all
+use with `Django's ORM`_.  So here when a user entered a price it would show all
 Products with a price less than that.
+
+.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 
 **It's quite common to forget to set lookup type for `CharField`s/`TextField`s
 and wonder why search for "foo" doesn't return result for "foobar". It's because
@@ -125,7 +127,7 @@ Now we need to write a view::
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
 
-If you want to access the filtered objects in your views, for example if you 
+If you want to access the filtered objects in your views, for example if you
 want to paginate them, you can do that. They are in f.qs
 
 The URL conf
@@ -252,17 +254,17 @@ You must provide either a ``model`` or ``filterset_class`` argument, similar to
     from django.conf.urls import patterns, url
     from django_filters.views import FilterView
     from myapp.models import Product
-    
+
     urlpatterns = patterns('',
         (r'^list/$', FilterView.as_view(model=Product)),
     )
 
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
-context parameter ``filter``.  Additionally, the context will contain 
+context parameter ``filter``.  Additionally, the context will contain
 ``object_list`` which holds the filtered queryset.
 
 A legacy functional generic view is still included in django-filter, although
-its use is deprecated.  It can be found at 
+its use is deprecated.  It can be found at
 ``django_filters.views.object_filter``.  You must provide the same arguments
 to it as the class based view::
 
