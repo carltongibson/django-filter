@@ -1,3 +1,9 @@
+unreleased
+---------------------
+
+* MISC: Version bumping with ``bumpversion``
+
+
 Version 0.8 (2014-09-29)
 ------------------------
 
