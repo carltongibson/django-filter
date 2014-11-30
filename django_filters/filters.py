@@ -19,7 +19,8 @@ __all__ = [
     'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
     'DateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
     'ModelMultipleChoiceFilter', 'NumberFilter', 'RangeFilter',
-    'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'DateRangeFilter', 'AllValuesFilter', 'MethodFilter',
+    'MultiValuesMultipleChoiceFilter'
 ]
 
 
@@ -266,3 +267,53 @@ class MethodFilter(Filter):
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
+
+
+class MultiValuesMultipleChoiceFilter(Filter):
+    """
+    This filter preforms an OR query on the selected options for multi fields.
+
+    Advanced Use
+    ------------
+    Depending on your application logic, when all or no choices are selected, filtering may be a noop. In this case you may wish to avoid the filtering overhead, particularly of the `distinct` call.
+
+    Set `always_filter` to False after instantiation to enable the default `is_noop` test.
+
+    Override `is_noop` if you require a different test for your application.
+    """
+    field_class = forms.MultipleChoiceField
+
+    always_filter = True
+
+    def __init__(self, fields, *args, **kwargs):
+        super(MultiValuesMultipleChoiceFilter, self).__init__(*args, **kwargs)
+        self.fields = fields
+
+    def is_noop(self, qs, value):
+        """
+        Return True to short-circuit unnecessary and potentially slow filtering.
+        """
+        if self.always_filter:
+            return False
+
+        # A reasonable default for being a noop...
+        if self.required and len(value) == len(self.field.choices):
+            return True
+
+        return False
+
+    def filter(self, qs, value):
+        value = value or ()  # Make sure we have an iterable
+
+        if self.is_noop(qs, value):
+            return qs
+
+        # Even though not a noop, no point filtering if empty
+        if not value:
+            return qs
+
+        q = Q()
+        for v in value:
+            for f in self.fields:
+                q |= Q(**{f: v})
+        return qs.filter(q).distinct()
