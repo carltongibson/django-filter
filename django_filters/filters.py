@@ -269,7 +269,7 @@ class MethodFilter(Filter):
         return qs
 
 
-class MultiValuesMultipleChoiceFilter(Filter):
+class MultiValuesMultipleChoiceFilter(MultipleChoiceFilter):
     """
     This filter preforms an OR query on the selected options for multi fields.
 
@@ -281,26 +281,9 @@ class MultiValuesMultipleChoiceFilter(Filter):
 
     Override `is_noop` if you require a different test for your application.
     """
-    field_class = forms.MultipleChoiceField
-
-    always_filter = True
-
     def __init__(self, fields, *args, **kwargs):
         super(MultiValuesMultipleChoiceFilter, self).__init__(*args, **kwargs)
         self.fields = fields
-
-    def is_noop(self, qs, value):
-        """
-        Return True to short-circuit unnecessary and potentially slow filtering.
-        """
-        if self.always_filter:
-            return False
-
-        # A reasonable default for being a noop...
-        if self.required and len(value) == len(self.field.choices):
-            return True
-
-        return False
 
     def filter(self, qs, value):
         value = value or ()  # Make sure we have an iterable
