@@ -266,3 +266,30 @@ class MethodFilter(Filter):
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
+
+
+class MultiFieldRangeFilter(Filter):
+    field_class = RangeField
+
+    def __init__(self, fields, *args, **kwargs):
+        super(MultiFieldRangeFilter, self).__init__(*args, **kwargs)
+        self.fields = fields
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+
+        q = Q()
+        if value.start and value.stop:
+            for f in self.fields:
+                q |= Q(**{'%s__range' % f: (value.start, value.stop)})
+            return qs.filter(q)
+        else:
+            if value.start:
+                for f in self.fields:
+                    q |= Q(**{'%s__gte' % f: value.start})
+                return qs.filter(q)
+            if value.stop:
+                for f in self.fields:
+                    q |= Q(**{'%s__lte' % f: value.stop})
+                return qs.filter(q)
