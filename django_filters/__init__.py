@@ -6,7 +6,7 @@ from .filters import *
 __version__ = '0.9.0'
 
 
-def get_version(version):
+def parse_version(version):
     '''
     '0.1.2-dev' -> (0, 1, 2, 'dev')
     '0.1.2' -> (0, 1, 2)
@@ -21,4 +21,4 @@ def get_version(version):
             ret.append(p)
     return tuple(ret)
 
-VERSION = get_version(__version__)
+VERSION = parse_version(__version__)
