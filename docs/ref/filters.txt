@@ -138,6 +138,21 @@ This is a ``Filter`` that will allow you to run a method that exists on the filt
 this filter is a property of. Set the `action` to a string that will map to a method on the
 filter set class.
 
+``MultiFieldRangeFilter``
+~~~~~~~~~~~~~~~
+
+The same as ``RangeFilter`` except it works with multiple fields.
+
+As an argument is a list with fields to filter. ::
+
+    class F(FilterSet):
+        """Filter for Books by Price"""
+        prices = MultiFieldRangeFilter(['retail_price', 'market_price'])
+
+        class Meta:
+            model = Book
+            fields = ['prices']
+
 Core Arguments
 --------------
 
