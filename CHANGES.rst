@@ -1,3 +1,8 @@
+Version 0.9.1 (2014-12-03)
+--------------------------
+
+* FIXED: Compatibility with Debug Toolbar's versions panel
+
 Version 0.9 (2014-11-28)
 ------------------------
 
