@@ -331,6 +331,36 @@ class ModelMultipleChoiceFilterTests(TestCase):
         self.assertIsInstance(field, forms.ModelMultipleChoiceField)
         self.assertEqual(field.queryset, qs)
 
+    def test_filter_with_queryset(self):
+        from django.utils.datastructures import MultiValueDict
+        from django_filters.filterset import FilterSet
+        from .models import User
+
+        qs = mock.Mock()
+        qs.filter.return_value = [User(username='Person A')]
+        qs.filter.distinct.return_value = []
+        data = MultiValueDict()
+        data["username"] = "Person A"
+
+        filter_mock = mock.Mock()
+        filter_mock.return_value = []
+        ModelMultipleChoiceFilter.filter = filter_mock
+
+        class F(FilterSet):
+            username = ModelMultipleChoiceFilter(queryset=qs,
+                                                 name='username',
+                                                 to_field_name='username')
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        retval = F(data=data, queryset=qs).qs
+        self.assertEqual(retval, filter_mock.return_value)
+        # arguments are incorrect here.
+        ModelMultipleChoiceFilter.filter.assert_called_with(qs, data.getlist(
+            'username'))
+
 
 class NumberFilterTests(TestCase):
 
