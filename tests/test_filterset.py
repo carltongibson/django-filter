@@ -518,6 +518,17 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
+            
+    def test_multiple_ordering(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', 'status']
+
+        f = F({'o': ['status', 'username']}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'jacob', 'alex', 'carl'], lambda o: o.username)
 
     def test_ordering_on_unknown_value(self):
         class F(FilterSet):
