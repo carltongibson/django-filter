@@ -16,9 +16,11 @@ class GenericViewTestCase(TestCase):
 
     def setUp(self):
         Book.objects.create(
-            title="Ender's Game", price='1.00', average_rating=3.0)
+            title="Ender's Game", price='3.00', average_rating=3.0)
         Book.objects.create(
-            title="Rainbow Six", price='1.00', average_rating=3.0)
+            title="Rainbow Six", price='2.00', average_rating=3.0)
+        Book.objects.create(
+            title="Ulysses", price='2.00', average_rating=3.0)
         Book.objects.create(
             title="Snowcrash", price='1.00', average_rating=3.0)
 
@@ -28,14 +30,28 @@ class GenericClassBasedViewTests(GenericViewTestCase):
 
     def test_view(self):
         response = self.client.get(self.base_url)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Ulysses', 'Snowcrash']:
             self.assertContains(response, b)
 
     def test_view_filtering_on_title(self):
         response = self.client.get(self.base_url + '?title=Snowcrash')
-        for b in ['Ender&#39;s Game', 'Rainbow Six']:
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Ulysses']:
             self.assertNotContains(response, b)
         self.assertContains(response, 'Snowcrash')
+
+    def test_view_ordering_by_title(self):
+        response = self.client.get(self.base_url + '?o=title')
+        self.assertEqual(response.status_code, 200)
+
+        results = response.content.split('</tr>')[-1].strip().split('\n\n    ')
+        self.assertEqual(results, ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash', 'Ulysses'])
+
+    def test_view_ordering_by_title_and_price(self):
+        response = self.client.get(self.base_url + '?o=price&o=title')
+        self.assertEqual(response.status_code, 200)
+
+        results = response.content.split('</tr>')[-1].strip().split('\n\n    ')
+        self.assertEqual(results, ['Snowcrash', 'Rainbow Six', 'Ulysses', 'Ender&#39;s Game'])
 
     def test_view_with_filterset_not_model(self):
         factory = RequestFactory()
@@ -44,7 +60,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         view = FilterView.as_view(filterset_class=filterset)
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Ulysses', 'Snowcrash']:
             self.assertContains(response, b)
 
     def test_view_without_filterset_or_model(self):
@@ -70,12 +86,12 @@ class GenericFunctionalViewTests(GenericViewTestCase):
 
     def test_view(self):
         response = self.client.get(self.base_url)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Ulysses', 'Snowcrash']:
             self.assertContains(response, b)
 
     def test_view_filtering_on_price(self):
         response = self.client.get(self.base_url + '?title=Snowcrash')
-        for b in ['Ender&#39;s Game', 'Rainbow Six']:
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Ulysses']:
             self.assertNotContains(response, b)
         self.assertContains(response, 'Snowcrash')
 
