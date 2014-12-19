@@ -24,6 +24,30 @@ This filter matches a boolean, either ``True`` or ``False``, used with
 This filter matches an item of any type by choices, used with any field that
 has ``choices``.
 
+
+Requires ``choices`` ``kwarg`` to be passed if explicitly declared on the ``FilterSet``. For example::
+
+    class User(models.Model):
+        username = models.CharField(max_length=255)
+        first_name = SubCharField(max_length=100)
+        last_name = SubSubCharField(max_length=100)
+
+        status = models.IntegerField(choices=STATUS_CHOICES, default=0)
+
+    STATUS_CHOICES = (
+        (0, 'Regular'),
+        (1, 'Manager'),
+        (2, 'Admin'),
+    )
+
+    class F(FilterSet):
+        status = ChoiceFilter(choices=STATUS_CHOICES)
+        class Meta:
+            model = User
+            fields = ['status']
+
+
+
 ``TypedChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~
 
