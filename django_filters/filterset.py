@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import types
 import copy
+from sys import version_info
 
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
@@ -12,7 +13,7 @@ from django.db.models.fields import FieldDoesNotExist
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
-from sys import version_info
+
 
 try:
     from django.db.models.constants import LOOKUP_SEP
@@ -363,17 +364,17 @@ class BaseFilterSet(object):
             if self._meta.order_by:
                 order_field = self.form.fields[self.order_by_field]
                 data = self.form[self.order_by_field].data
-                ordered_value = None
+                ordered_values = None
                 try:
-                    ordered_value = order_field.clean(data)
+                    ordered_values = order_field.clean(data)
                 except forms.ValidationError:
                     pass
 
-                if ordered_value in EMPTY_VALUES and self.strict:
-                    ordered_value = self.form.fields[self.order_by_field].choices[0][0]
+                if ordered_values in EMPTY_VALUES and self.strict:
+                    ordered_values = (self.form.fields[self.order_by_field].choices[0][0],)
 
-                if ordered_value:
-                    qs = qs.order_by(*self.get_order_by(ordered_value))
+                if ordered_values:
+                    qs = qs.order_by(*self.get_order_by(ordered_values))
 
             self._qs = qs
 
@@ -417,8 +418,8 @@ class BaseFilterSet(object):
                         (fltr.name or f, fltr.label or capfirst(f)),
                         ("-%s" % (fltr.name or f), _('%s (descending)' % (fltr.label or capfirst(f))))
                     ])
-            return forms.ChoiceField(label=_("Ordering"), required=False,
-                                     choices=choices)
+            return forms.MultipleChoiceField(label=_("Ordering"), required=False,
+                                             choices=choices)
 
     @property
     def ordering_field(self):
@@ -426,8 +427,10 @@ class BaseFilterSet(object):
             self._ordering_field = self.get_ordering_field()
         return self._ordering_field
 
-    def get_order_by(self, order_choice):
-        return [order_choice]
+    def get_order_by(self, order_choices):
+        if isinstance(order_choices, six.string_types):
+            return (order_choices,)
+        return order_choices
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_type='exact'):
