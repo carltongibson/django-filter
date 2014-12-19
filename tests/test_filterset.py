@@ -511,11 +511,11 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = ['username', 'status']
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': ('username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
-        f = F({'o': 'status'}, queryset=self.qs)
+        f = F({'o': ('status',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
             
@@ -530,6 +530,17 @@ class FilterSetOrderingTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'jacob', 'alex', 'carl'], lambda o: o.username)
 
+    def test_multiple_ordering(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', 'status']
+
+        f = F({'o': ('status', 'username')}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
+
     def test_ordering_on_unknown_value(self):
         class F(FilterSet):
             class Meta:
@@ -537,7 +548,7 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = ['status']
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': ('username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, [], lambda o: o.username)
 
@@ -550,7 +561,7 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = ['status']
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': ('username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
 
@@ -561,11 +572,11 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = True
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': ('username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
-        f = F({'o': 'status'}, queryset=self.qs)
+        f = F({'o': ('status',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
@@ -579,7 +590,7 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['account', 'status']
                 order_by = True
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': ('username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
@@ -596,7 +607,7 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = ['status']
 
-        f = F({'order': 'status'}, queryset=self.qs)
+        f = F({'order': ('status',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
@@ -607,7 +618,7 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = ['username', '-username']
 
-        f = F({'o': '-username'}, queryset=self.qs)
+        f = F({'o': ('-username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
 
@@ -619,7 +630,7 @@ class FilterSetOrderingTests(TestCase):
                 fields = ['username', 'status']
                 order_by = True
 
-        f = F({'o': '-username'}, queryset=self.qs)
+        f = F({'o': ('-username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
 
@@ -633,15 +644,15 @@ class FilterSetOrderingTests(TestCase):
                 order_by = ['username', 'status']
 
             def get_order_by(self, order_choice):
-                if order_choice == 'status':
+                if order_choice[0] == 'status':
                     return ['status', 'username']
                 return super(F, self).get_order_by(order_choice)
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': ('username',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
 
-        f = F({'o': 'status'}, queryset=self.qs)
+        f = F({'o': ('status',)}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
 
