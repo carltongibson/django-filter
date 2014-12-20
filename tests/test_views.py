@@ -43,14 +43,14 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         response = self.client.get(self.base_url + '?o=title')
         self.assertEqual(response.status_code, 200)
 
-        results = response.content.split('</tr>')[-1].strip().split('\n\n    ')
+        results = response.rendered_content.split('</tr>')[-1].strip().split('\n\n    ')
         self.assertEqual(results, ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash', 'Ulysses'])
 
     def test_view_ordering_by_title_and_price(self):
         response = self.client.get(self.base_url + '?o=price&o=title')
         self.assertEqual(response.status_code, 200)
 
-        results = response.content.split('</tr>')[-1].strip().split('\n\n    ')
+        results = response.rendered_content.split('</tr>')[-1].strip().split('\n\n    ')
         self.assertEqual(results, ['Snowcrash', 'Rainbow Six', 'Ulysses', 'Ender&#39;s Game'])
 
     def test_view_with_filterset_not_model(self):
