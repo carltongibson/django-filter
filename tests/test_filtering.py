@@ -151,6 +151,39 @@ class ChoiceFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
 
 
+    def test_filtering_on_explicitly_defined_field(self):
+        """
+        Test for #30.
+
+        If you explicitly declare ChoiceFilter fields you **MUST** pass `choices`.
+        """
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        class F(FilterSet):
+            status = ChoiceFilter(choices=STATUS_CHOICES)
+            class Meta:
+                model = User
+                fields = ['status']
+
+        f = F()
+        self.assertQuerysetEqual(f.qs,
+                                 ['aaron', 'alex', 'jacob', 'carl'],
+                                 lambda o: o.username, False)
+        f = F({'status': '1'})
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username, False)
+
+        f = F({'status': '2'})
+        self.assertQuerysetEqual(f.qs, ['jacob', 'aaron'],
+                                 lambda o: o.username, False)
+
+        f = F({'status': '0'})
+        self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
+
+
+
 class MultipleChoiceFilterTests(TestCase):
 
     def test_filtering(self):

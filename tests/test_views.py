@@ -31,7 +31,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
             self.assertContains(response, b)
 
-    def test_view_filtering_on_price(self):
+    def test_view_filtering_on_title(self):
         response = self.client.get(self.base_url + '?title=Snowcrash')
         for b in ['Ender&#39;s Game', 'Rainbow Six']:
             self.assertNotContains(response, b)
