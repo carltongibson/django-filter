@@ -8,7 +8,6 @@ from django import forms
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
-from django.db.models.related import RelatedObject
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
@@ -25,6 +24,12 @@ try:
 except ImportError:  # pragma: nocover
     # Django < 1.5 fallback
     from django.utils.datastructures import SortedDict as OrderedDict  # noqa
+
+try:
+    from django.db.models.related import RelatedObject as ForeignObjectRel
+except ImportError:  # pragma: nocover
+    # Django >= 1.8 replaces RelatedObject with ForeignObjectRel
+    from django.db.models.fields.related import ForeignObjectRel
 
 
 from .filters import (Filter, CharFilter, BooleanFilter,
@@ -73,7 +78,7 @@ def get_model_field(model, f):
             rel = opts.get_field_by_name(name)[0]
         except FieldDoesNotExist:
             return None
-        if isinstance(rel, RelatedObject):
+        if isinstance(rel, ForeignObjectRel):
             model = rel.model
             opts = rel.opts
         else:
@@ -103,7 +108,7 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
         if field is None:
             field_dict[f] = None
             continue
-        if isinstance(field, RelatedObject):
+        if isinstance(field, ForeignObjectRel):
             filter_ = filter_for_reverse_field(field, f)
             if filter_:
                 field_dict[f] = filter_
@@ -426,7 +431,7 @@ class BaseFilterSet(object):
     @classmethod
     def filter_for_reverse_field(cls, f, name):
         rel = f.field.rel
-        queryset = f.model._default_manager.all()
+        queryset = f.field.model._default_manager.all()
         default = {
             'name': name,
             'label': capfirst(rel.related_name),
