@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from datetime import date, datetime, time
 import mock
 import sys
 
@@ -12,24 +13,30 @@ else:  # pragma: nocover
 from django import forms
 from django.test import TestCase
 
-from django_filters.fields import Lookup
-from django_filters.fields import RangeField
-from django_filters.fields import LookupTypeField
-from django_filters.filters import Filter
-from django_filters.filters import CharFilter
-from django_filters.filters import BooleanFilter
-from django_filters.filters import ChoiceFilter
-from django_filters.filters import MultipleChoiceFilter
-from django_filters.filters import DateFilter
-from django_filters.filters import DateTimeFilter
-from django_filters.filters import TimeFilter
-from django_filters.filters import ModelChoiceFilter
-from django_filters.filters import ModelMultipleChoiceFilter
-from django_filters.filters import NumberFilter
-from django_filters.filters import RangeFilter
-from django_filters.filters import DateRangeFilter
-from django_filters.filters import AllValuesFilter
-from django_filters.filters import LOOKUP_TYPES
+from django_filters.fields import (
+    Lookup,
+    RangeField,
+    DateRangeField,
+    TimeRangeField,
+    LookupTypeField)
+from django_filters.filters import (
+    Filter,
+    CharFilter,
+    BooleanFilter,
+    ChoiceFilter,
+    MultipleChoiceFilter,
+    DateFilter,
+    DateTimeFilter,
+    TimeFilter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    NumberFilter,
+    RangeFilter,
+    DateRangeFilter,
+    DateFromToRangeFilter,
+    TimeRangeFilter,
+    AllValuesFilter,
+    LOOKUP_TYPES)
 
 
 class FilterTests(TestCase):
@@ -454,6 +461,94 @@ class DateRangeFilterTests(TestCase):
                 None__year=now_dt.year,
                 None__month=now_dt.month,
                 None__day=now_dt.day)
+
+
+class DateFromToRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = DateFromToRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, DateRangeField)
+
+    def test_filtering_range(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=date(2015, 4, 7), stop=date(2015, 9, 6))
+        f = DateFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=date(2015, 4, 7), stop=None)
+        f = DateFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=date(2015, 4, 7))
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=date(2015, 9, 6))
+        f = DateFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=date(2015, 9, 6))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = DateFromToRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(start=date(2015, 4, 7), stop=date(2015, 9, 6))
+        f = DateFromToRangeFilter(lookup_type='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+
+
+class TimeRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = TimeRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, TimeRangeField)
+
+    def test_filtering_range(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=time(10, 15), stop=time(12, 30))
+        f = TimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(time(10, 15), time(12, 30)))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=time(10, 15), stop=None)
+        f = TimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=time(10, 15))
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=time(12, 30))
+        f = TimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=time(12, 30))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = TimeRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(start=time(10, 15), stop=time(12, 30))
+        f = TimeRangeFilter(lookup_type='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(time(10, 15), time(12, 30)))
 
 
 class AllValuesFilterTests(TestCase):
