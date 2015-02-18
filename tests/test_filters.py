@@ -364,12 +364,26 @@ class RangeFilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, RangeField)
 
-    def test_filtering(self):
+    def test_filtering_range(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=20, stop=30)
         f = RangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__range=(20, 30))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=20, stop=None)
+        f = RangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=20)
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=30)
+        f = RangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=30)
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
