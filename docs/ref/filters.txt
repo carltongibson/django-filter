@@ -147,6 +147,17 @@ Filters where a value is between two numerical values, or greater than a minimum
 Filter similar to the admin changelist date one, it has a number of common
 selections for working with date fields.
 
+``DateFromToRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField`` and ``DateTimeField``.
+
+
+``TimeRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses time format values instead of numerical values. It can be used with ``TimeField``.
+
 ``AllValuesFilter``
 ~~~~~~~~~~~~~~~~~~~
 
