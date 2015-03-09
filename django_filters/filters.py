@@ -108,15 +108,23 @@ class MultipleChoiceFilter(Filter):
 
     Advanced Use
     ------------
-    Depending on your application logic, when all or no choices are selected, filtering may be a noop. In this case you may wish to avoid the filtering overhead, particularly of the `distinct` call.
+    Depending on your application logic, when all or no choices are selected,
+    filtering may be a noop. In this case you may wish to avoid the filtering
+    overhead, particularly if using a `distinct` call.
 
-    Set `always_filter` to False after instantiation to enable the default `is_noop` test.
+    Set `always_filter` to False after instantiation to enable the default
+    `is_noop` test.
 
     Override `is_noop` if you require a different test for your application.
+
+    `distinct` defaults to True on this class to preserve backward compatibility.
     """
     field_class = forms.MultipleChoiceField
 
     always_filter = True
+
+    def __init__(self, distinct=True, **kwargs):
+        super(MultipleChoiceFilter, self).__init__(distinct=distinct, **kwargs)
 
     def is_noop(self, qs, value):
         """
@@ -144,7 +152,11 @@ class MultipleChoiceFilter(Filter):
         q = Q()
         for v in value:
             q |= Q(**{self.name: v})
-        return qs.filter(q).distinct()
+
+        if self.distinct:
+            return qs.filter(q).distinct()
+
+        return qs.filter(q)
 
 
 class DateFilter(Filter):
