@@ -123,8 +123,10 @@ class MultipleChoiceFilter(Filter):
 
     always_filter = True
 
-    def __init__(self, distinct=True, **kwargs):
-        super(MultipleChoiceFilter, self).__init__(distinct=distinct, **kwargs)
+    def __init__(self, *args, **kwargs):
+        distinct = kwargs.get('distinct', True)
+        kwargs['distinct'] = distinct
+        super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
         """
