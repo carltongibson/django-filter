@@ -347,7 +347,7 @@ class MultipleChoiceFilterTests(TestCase):
             self.assertListEqual(
                 expected_pks,
                 item[1],
-                'Lists Differ: {} != {} for case {}'.format(
+                'Lists Differ: {0} != {1} for case {2}'.format(
                     expected_pks, item[1], item[0]))
 
 
