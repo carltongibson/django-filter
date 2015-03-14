@@ -236,13 +236,13 @@ class MultipleChoiceFilterTests(TestCase):
         with self.assertRaises(TypeError):
             f.filter(qs, ['value'])
 
-    def test_anded_default_value(self):
+    def test_conjoined_default_value(self):
         f = MultipleChoiceFilter()
-        self.assertFalse(f.anded)
+        self.assertFalse(f.conjoined)
 
-    def test_anded_true(self):
-        f = MultipleChoiceFilter(anded=True)
-        self.assertTrue(f.anded)
+    def test_conjoined_true(self):
+        f = MultipleChoiceFilter(conjoined=True)
+        self.assertTrue(f.conjoined)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
@@ -281,8 +281,8 @@ class MultipleChoiceFilterTests(TestCase):
         result = f.filter(qs, [])
         self.assertEqual(qs, result)
 
-    def test_filter_anded_true(self):
-        """Tests that a filter with `anded=True` returns objects that
+    def test_filter_conjoined_true(self):
+        """Tests that a filter with `conjoined=True` returns objects that
         have all the values included in `value`. For example filter
         users that have all of this books.
 
@@ -335,7 +335,7 @@ class MultipleChoiceFilterTests(TestCase):
         users = User.objects.all()
 
         for item in filter_list:
-            f = MultipleChoiceFilter(name='favorite_books__pk', anded=True)
+            f = MultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list('pk')]
             self.assertListEqual(

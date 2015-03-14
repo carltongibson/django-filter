@@ -99,22 +99,22 @@ class ChoiceFilter(Filter):
 
 class MultipleChoiceFilter(Filter):
     """
-    This filter preforms OR(by default) or AND(using anded=True) query
+    This filter preforms OR(by default) or AND(using conjoined=True) query
     on the selected options.
 
     """
     field_class = forms.MultipleChoiceField
 
     def __init__(self, *args, **kwargs):
-        anded = kwargs.pop('anded', False)
-        self.anded = anded
+        conjoined = kwargs.pop('conjoined', False)
+        self.conjoined = conjoined
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         value = value or ()
         if len(value) == len(self.field.choices):
             return qs
-        if self.anded:
+        if self.conjoined:
             for v in value:
                 qs = qs.filter(**{self.name: v})
             return qs

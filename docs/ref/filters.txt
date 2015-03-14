@@ -28,7 +28,7 @@ has ``choices``.
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The same as ``ChoiceFilter`` except the user can select multiple items
-and it selects the OR or AND(using ``anded=True``) of all the choices.
+and it selects the OR or AND(using ``conjoined=True``) of all the choices.
 
 ``DateFilter``
 ~~~~~~~~~~~~~~
