@@ -628,3 +628,45 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
+
+
+
+class FilterSetTogetherTests(TestCase):
+
+    def setUp(self):
+        self.alex = User.objects.create(username='alex', status=1)
+        self.jacob = User.objects.create(username='jacob', status=2)
+        self.qs = User.objects.all().order_by('id')
+    
+    def test_fields_set(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status', 'is_active', 'first_name']
+                together = [
+                    ('username', 'status'), 
+                    ('first_name', 'is_active'),
+                ]
+
+        f = F({}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex'}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
+        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+        
+    def test_single_fields_set(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                together = ['username', 'status']
+        
+        f = F({}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex'}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
+        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)

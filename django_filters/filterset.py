@@ -141,6 +141,8 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
 
         self.form = getattr(options, 'form', forms.Form)
+        
+        self.together = getattr(options, 'together', None)
 
 
 class FilterSetMetaclass(type):
@@ -352,6 +354,22 @@ class BaseFilterSet(object):
 
     @property
     def form(self):
+        
+        def full_clean(form):
+            super(form.__class__, form).full_clean()
+            message = 'Following fields must be together: %s'
+            together = self._meta.together
+            cleaned_data = form.cleaned_data
+            if isinstance(together[0], (list, tuple)):
+                for each in together:
+                    count = len([i for i in each if cleaned_data.get(i)])
+                    if 0 < count < len(each):
+                        return form.add_error(None, message % ','.join(each))
+            else:
+                count = len([i for i in together if cleaned_data.get(i)])
+                if 0 < count < len(together):
+                    return form.add_error(None, message % ','.join(together))
+
         if not hasattr(self, '_form'):
             fields = OrderedDict([
                 (name, filter_.field)
@@ -359,6 +377,8 @@ class BaseFilterSet(object):
             fields[self.order_by_field] = self.ordering_field
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
+            if self._meta.together:
+                Form.full_clean = full_clean
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
