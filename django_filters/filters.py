@@ -62,11 +62,20 @@ class Filter(object):
                 help_text = _('This is an exclusion filter') if self.exclude else _('Filter')
             if (self.lookup_type is None or
                     isinstance(self.lookup_type, (list, tuple))):
-                if self.lookup_type is None:
-                    lookup = [(x, x) for x in LOOKUP_TYPES]
-                else:
-                    lookup = [
-                        (x, x) for x in LOOKUP_TYPES if x in self.lookup_type]
+
+                lookup = []
+
+                for x in LOOKUP_TYPES:
+                    if isinstance(x, (list, tuple)) and len(x) == 2:
+                        choice = (x[0], x[1])
+                    else:
+                        choice = (x, x)
+
+                    if self.lookup_type is None:
+                        lookup.append(choice)
+                    elif x in self.lookup_type:
+                        lookup.append(choice)
+
                 self._field = LookupTypeField(self.field_class(
                     required=self.required, widget=self.widget, **self.extra),
                     lookup, required=self.required, label=self.label, help_text=help_text)
