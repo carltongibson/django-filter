@@ -696,6 +696,57 @@ class MethodFilterTests(TestCase):
                          list())
 
 
+    def test_filtering_default_attribute_action(self):
+        User.objects.create(username='mike')
+        User.objects.create(username='jake')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = MethodFilter()
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+            def filter_username(self, queryset, value):
+                return queryset.filter(
+                    username__contains='ke'
+                )
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'mike'})),
+                         [User.objects.get(username='mike'),
+                          User.objects.get(username='jake')],)
+        self.assertEqual(list(F({'username': 'jake'})),
+                         [User.objects.get(username='mike'),
+                          User.objects.get(username='jake')])
+        self.assertEqual(list(F({'username': 'aaron'})),
+                         [User.objects.get(username='mike'),
+                          User.objects.get(username='jake')])
+
+
+    def test_filtering_default(self):
+        User.objects.create(username='mike')
+        User.objects.create(username='jake')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = MethodFilter()
+            email = MethodFilter()
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'mike'})),
+                         list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'jake'})),
+                         list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'aaron'})),
+                         list(User.objects.all()))
+
+
 class O2ORelationshipTests(TestCase):
 
     def setUp(self):
