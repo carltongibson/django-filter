@@ -106,7 +106,8 @@ class TypedChoiceFilter(Filter):
 
 class MultipleChoiceFilter(Filter):
     """
-    This filter preforms an OR query on the selected options.
+    This filter preforms OR(by default) or AND(using conjoined=True) query
+    on the selected options.
 
     Advanced Use
     ------------
@@ -119,6 +120,11 @@ class MultipleChoiceFilter(Filter):
     field_class = forms.MultipleChoiceField
 
     always_filter = True
+
+    def __init__(self, *args, **kwargs):
+        conjoined = kwargs.pop('conjoined', False)
+        self.conjoined = conjoined
+        super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
         """
@@ -141,6 +147,11 @@ class MultipleChoiceFilter(Filter):
 
         # Even though not a noop, no point filtering if empty
         if not value:
+            return qs
+
+        if self.conjoined:
+            for v in value:
+                qs = qs.filter(**{self.name: v})
             return qs
 
         q = Q()
