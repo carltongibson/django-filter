@@ -182,6 +182,10 @@ class NumberFilter(Filter):
     field_class = forms.DecimalField
 
 
+class IPFilter(Filter):
+    field_class = forms.CharField
+
+
 class RangeFilter(Filter):
     field_class = RangeField
 
