@@ -278,7 +278,7 @@ class MethodFilter(Filter):
         parent = getattr(self, 'parent', None)
         parent_filter_method = getattr(parent, self.parent_action, None)
         if not parent_filter_method:
-            func_str = 'filter_{}'.format(self.name)
+            func_str = 'filter_{0}'.format(self.name)
             parent_filter_method = getattr(parent, func_str, None)
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
