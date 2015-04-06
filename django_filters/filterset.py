@@ -80,8 +80,8 @@ def get_model_field(model, f):
         except FieldDoesNotExist:
             return None
         if isinstance(rel, ForeignObjectRel):
-            model = rel.model
-            opts = rel.opts
+            model = rel.field.model
+            opts = model._meta 
         else:
             model = rel.rel.to
             opts = model._meta
