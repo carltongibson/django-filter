@@ -33,6 +33,7 @@ from .models import BankAccount
 from .models import Node
 from .models import DirectedNode
 from .models import Worker
+from .models import HiredWorker
 from .models import Business
 
 
@@ -48,9 +49,13 @@ class HelperMethodsTests(TestCase):
     def test_get_declared_filters(self):
         pass
 
-    def test_get_model_field(self):
+    def test_get_model_field_none(self):
         result = get_model_field(User, 'unknown__name')
         self.assertIsNone(result)
+
+    def test_get_model_field(self):
+        result = get_model_field(Business, 'hiredworker__worker')
+        self.assertEqual(result, HiredWorker._meta.get_field('worker'))
 
     @unittest.skip('todo')
     def test_filters_for_model(self):
