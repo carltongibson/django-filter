@@ -35,7 +35,7 @@ except ImportError:  # pragma: nocover
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter)
+    ModelMultipleChoiceFilter, NumberFilter, IPFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -288,6 +288,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     },
     models.IPAddressField: {
         'filter_class': CharFilter,
+    },
+    models.GenericIPAddressField: {
+        'filter_class': IPFilter,
     },
     models.CommaSeparatedIntegerField: {
         'filter_class': CharFilter,

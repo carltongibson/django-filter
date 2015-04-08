@@ -81,6 +81,7 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.FloatField,
             models.IntegerField,
             models.IPAddressField,
+            models.GenericIPAddressField,
             models.NullBooleanField,
             models.PositiveIntegerField,
             models.PositiveSmallIntegerField,
@@ -102,7 +103,6 @@ class DbFieldDefaultFiltersTests(TestCase):
         to_check = [
             models.Field,
             models.BigIntegerField,
-            models.GenericIPAddressField,
             models.FileField,
             models.ImageField,
         ]
