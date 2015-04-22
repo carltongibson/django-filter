@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import types
 import copy
+import re
 
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
@@ -428,8 +429,8 @@ class BaseFilterSet(object):
                 choices = []
                 for f, fltr in self.filters.items():
                     choices.extend([
-                        (fltr.name or f, fltr.label or capfirst(f)),
-                        ("-%s" % (fltr.name or f), _('%s (descending)' % (fltr.label or capfirst(f))))
+                        (f, fltr.label or capfirst(f)),
+                        ("-%s" % (f), _('%s (descending)' % (fltr.label or capfirst(f))))
                     ])
             return forms.ChoiceField(label=_("Ordering"), required=False,
                                      choices=choices)
@@ -441,6 +442,15 @@ class BaseFilterSet(object):
         return self._ordering_field
 
     def get_order_by(self, order_choice):
+        re_ordering_field = re.compile(r'(?P<inverse>\-?)(?P<field>.*)')
+        m = re.match(re_ordering_field, order_choice)
+        inverted  = m.group('inverse')
+        filter_api_name = m.group('field')
+
+        _filter = self.filters.get(filter_api_name, None)
+
+        if _filter and filter_api_name != _filter.name:
+            return [inverted + _filter.name]
         return [order_choice]
 
     @classmethod
