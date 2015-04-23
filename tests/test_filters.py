@@ -50,7 +50,7 @@ class FilterTests(TestCase):
         f = Filter()
         field = f.field
         self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, '')
+        self.assertEqual(field.help_text, 'Filter')
 
     def test_field_with_exclusion(self):
         f = Filter(exclude=True)
