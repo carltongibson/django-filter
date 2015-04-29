@@ -116,6 +116,11 @@ for ``ManyToManyField`` by default.
 Filters based on a numerical value, used with ``IntegerField``, ``FloatField``,
 and ``DecimalField`` by default.
 
+``NumericRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~
+
+Filters where a value is between two numerical values, or greater than a minimum or less than a maximum where only one limit value is provided. ::
+
 ``RangeFilter``
 ~~~~~~~~~~~~~~~
 
