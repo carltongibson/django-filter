@@ -220,6 +220,11 @@ class DateRangeFilter(ChoiceFilter):
         4: (_('This year'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
         })),
+        5: (_('Yesterday'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: now().year,
+            '%s__month' % name: now().month,
+            '%s__day' % name: (now().day - timedelta(days=1)).day,
+        })),
     }
 
     def __init__(self, *args, **kwargs):
