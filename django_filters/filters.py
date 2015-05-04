@@ -188,13 +188,14 @@ class NumericRangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             if value.start and value.stop:
-                lookup = '%s__overlap' % self.name
-                return qs.filter(**{lookup: NumericRange(value.start, value.stop)})
+                lookup = '%s__%s' % (self.name, self.lookup_type)
+                return qs.filter(**{lookup: (value.start, value.stop)})
             else:
                 if value.start:
                     qs = qs.filter(**{'%s__startswith' % self.name: value.start})
                 if value.stop:
                     qs = qs.filter(**{'%s__endswith' % self.name: value.stop})
+        return qs
 
 
 class RangeFilter(Filter):

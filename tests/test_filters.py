@@ -26,6 +26,7 @@ from django_filters.filters import TimeFilter
 from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
+from django_filters.filters import NumericRangeFilter
 from django_filters.filters import RangeFilter
 from django_filters.filters import DateRangeFilter
 from django_filters.filters import AllValuesFilter
@@ -421,6 +422,41 @@ class NumberFilterTests(TestCase):
         qs.reset_mock()
         f.filter(qs, 0)
         qs.filter.assert_called_once_with(None__exact=0)
+
+class NumericRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = NumericRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, RangeField)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=20, stop=30)
+        f = NumericRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__exact=(20, 30))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = NumericRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_field_with_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(start=20, stop=30)        
+        f = NumericRangeFilter(lookup_type=('overlap'))
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__overlap=(20, 30))  
+    
+    @unittest.expectedFailure
+    def test_filtering_lower_field_higher_than_upper_field(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=35, stop=30)
+        f = NumericRangeFilter()
+        result = f.filter(qs, value)
+        self.assertEqual(qs, result)
 
 
 class RangeFilterTests(TestCase):
