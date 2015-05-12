@@ -162,6 +162,21 @@ This is a ``Filter`` that will allow you to run a method that exists on the filt
 this filter is a property of. Set the `action` to a string that will map to a method on the
 filter set class.
 
+``MultiValuesMultipleChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The same as ``MultipleChoiceFilter`` except the user can select multiple fields to filter.
+
+As an argument is a list of the fields. ::
+
+    class AnimalFilterSet(django_filters.FilterSet):
+        legs = django_filters.MultiValuesMultipleChoiceFilter(['dog__legs', 'spider__legs'],
+            choices=Animal.LEGS_CHOICES)
+
+        class Meta:
+            model = Animal
+            fields = ['legs']
+
 Core Arguments
 --------------
 
