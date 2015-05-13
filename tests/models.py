@@ -6,10 +6,14 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 
+REGULAR = 0
+MANAGER = 1
+ADMIN = 2
+
 STATUS_CHOICES = (
-    (0, 'Regular'),
-    (1, 'Manager'),
-    (2, 'Admin'),
+    (REGULAR, 'Regular'),
+    (MANAGER, 'Manager'),
+    (ADMIN, 'Admin'),
 )
 
 
@@ -53,6 +57,32 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
+
+@python_2_unicode_compatible
+class UsersOfManager(models.Model):
+    users = models.ManyToManyField(User,
+                                   limit_choices_to={'is_active': True},
+                                   related_name='users_of_manager')
+    manager = models.ForeignKey(User,
+                                limit_choices_to=lambda: {'status': 1},
+                                related_name='his_users')
+
+    def __str__(self):
+        return self.manager.name + '_group'
+
+
+@python_2_unicode_compatible
+class ManagerGroup(models.Model):
+    users = models.ManyToManyField(User,
+                                   limit_choices_to={'is_active': True},
+                                   related_name='member_of')
+    manager = models.ForeignKey(User,
+                                limit_choices_to=lambda: {'status': MANAGER},
+                                related_name='manager_of',
+                                on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.manager.name + ' group'
 
 
 @python_2_unicode_compatible
