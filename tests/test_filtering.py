@@ -94,6 +94,10 @@ class IntegerFilterTest(TestCase):
         self.assertQuerysetEqual(f.qs, [b1.pk], lambda o: o.pk)
 
 
+def by_username(user):
+    return user.username
+
+
 class BooleanFilterTests(TestCase):
 
     def test_filtering(self):
@@ -110,17 +114,17 @@ class BooleanFilterTests(TestCase):
 
         # '2' and '3' are how the field expects the data from the browser
         f = F({'is_active': '2'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['jacob'], lambda o: o.username, False)
+        self.assertQuerysetEqual(f.qs, ['jacob'], by_username, False)
 
         f = F({'is_active': '3'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['alex', 'aaron'],
-                                 lambda o: o.username, False)
+                                 by_username, False)
 
         f = F({'is_active': '1'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['alex', 'aaron', 'jacob'],
-                                 lambda o: o.username, False)
+                                 by_username, False)
 
 
 class ChoiceFilterTests(TestCase):
@@ -139,16 +143,16 @@ class ChoiceFilterTests(TestCase):
         f = F()
         self.assertQuerysetEqual(f.qs,
                                  ['aaron', 'alex', 'jacob', 'carl'],
-                                 lambda o: o.username, False)
+                                 by_username, False)
         f = F({'status': '1'})
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username, False)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username, False)
 
         f = F({'status': '2'})
         self.assertQuerysetEqual(f.qs, ['jacob', 'aaron'],
-                                 lambda o: o.username, False)
+                                 by_username, False)
 
         f = F({'status': '0'})
-        self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
+        self.assertQuerysetEqual(f.qs, ['carl'], by_username, False)
 
 
     def test_filtering_on_explicitly_defined_field(self):
@@ -203,19 +207,19 @@ class MultipleChoiceFilterTests(TestCase):
         f = F(queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'jacob', 'alex', 'carl'],
-            lambda o: o.username, False)
+            by_username, False)
 
         f = F({'status': ['0']}, queryset=qs)
         self.assertQuerysetEqual(
-            f.qs, ['carl'], lambda o: o.username)
+            f.qs, ['carl'], by_username)
 
         f = F({'status': ['0', '1']}, queryset=qs)
         self.assertQuerysetEqual(
-            f.qs, ['alex', 'carl'], lambda o: o.username)
+            f.qs, ['alex', 'carl'], by_username)
 
         f = F({'status': ['0', '1', '2']}, queryset=qs)
         self.assertQuerysetEqual(
-            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], by_username)
 
 
 class DateFilterTests(TestCase):
@@ -348,16 +352,16 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books': ['1']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], by_username)
 
         f = F({'favorite_books': ['1', '3']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], by_username)
 
         f = F({'favorite_books': ['2']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         f = F({'favorite_books': ['4']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, [], by_username)
 
     def test_filtering_dictionary(self):
         class F(FilterSet):
@@ -849,7 +853,7 @@ class FKRelationshipTests(TestCase):
 
         qs = User.objects.all()
         f = F({'comments': [2]}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         class F(FilterSet):
             comments = AllValuesFilter()
@@ -859,7 +863,7 @@ class FKRelationshipTests(TestCase):
                 fields = ['comments']
 
         f = F({'comments': 2}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
     def test_fk_relation_attribute(self):
         now_dt = now()
@@ -908,7 +912,7 @@ class FKRelationshipTests(TestCase):
 
         qs = User.objects.all()
         f = F({'comments__text': 'comment 2'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         class F(FilterSet):
             comments__text = AllValuesFilter()
@@ -918,7 +922,7 @@ class FKRelationshipTests(TestCase):
                 fields = ['comments__text']
 
         f = F({'comments__text': 'comment 2'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
     @unittest.skip('todo - need correct models')
     def test_fk_relation_multiple_attributes(self):
@@ -967,16 +971,16 @@ class M2MRelationshipTests(TestCase):
 
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books': ['1']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], by_username)
 
         f = F({'favorite_books': ['1', '3']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], by_username)
 
         f = F({'favorite_books': ['2']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         f = F({'favorite_books': ['4']}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, [], by_username)
 
     def test_reverse_m2m_relation(self):
         class F(FilterSet):
@@ -1008,10 +1012,10 @@ class M2MRelationshipTests(TestCase):
 
         qs = User.objects.all().order_by('username')
         f = F({'favorite_books__title': "Ender's Game"}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron', 'alex'], by_username)
 
         f = F({'favorite_books__title': 'Rainbow Six'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         class F(FilterSet):
             favorite_books__title = MultipleChoiceFilter()
@@ -1026,7 +1030,7 @@ class M2MRelationshipTests(TestCase):
         # f = F({'favorite_books__title': ['1', '3']},
         #     queryset=qs)
         # self.assertQuerysetEqual(
-        #     f.qs, ['aaron', 'alex'], lambda o: o.username)
+        #     f.qs, ['aaron', 'alex'], by_username)
 
         class F(FilterSet):
             favorite_books__title = AllValuesFilter()
@@ -1036,7 +1040,7 @@ class M2MRelationshipTests(TestCase):
                 fields = ['favorite_books__title']
 
         f = F({'favorite_books__title': "Snowcrash"}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron'], by_username)
 
     def test_reverse_m2m_relation_attribute(self):
         class F(FilterSet):
@@ -1090,12 +1094,12 @@ class M2MRelationshipTests(TestCase):
         f = F({'favorite_books__price': "1.00",
                'favorite_books__average_rating': 4.0},
               queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['aaron'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['aaron'], by_username)
 
         f = F({'favorite_books__price': "3.00",
                'favorite_books__average_rating': 4.0},
               queryset=qs)
-        self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, [], by_username)
 
     @unittest.expectedFailure
     def test_reverse_m2m_relation_multiple_attributes(self):
@@ -1197,7 +1201,7 @@ class MiscFilterSetTests(TestCase):
         f = F({'account': 'jdoe'}, queryset=qs)
         result = f.qs
         self.assertNotEqual(qs, result)
-        qs.all.return_value.filter.assert_called_with(username__exact='jdoe')
+        qs.filter.assert_called_with(username__exact='jdoe')
 
     def test_filtering_with_multiple_filters(self):
         class F(FilterSet):
@@ -1208,7 +1212,7 @@ class MiscFilterSetTests(TestCase):
         qs = User.objects.all()
 
         f = F({'username': 'alex', 'status': '1'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         f = F({'username': 'alex', 'status': '2'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.pk)
@@ -1224,7 +1228,7 @@ class MiscFilterSetTests(TestCase):
 
         f = F({'username': 'a'}, queryset=User.objects.all())
         self.assertQuerysetEqual(
-            f.qs, ['alex', 'aaron'], lambda o: o.username, False)
+            f.qs, ['alex', 'aaron'], by_username, False)
 
     def test_filter_with_initial(self):
         class F(FilterSet):
@@ -1236,10 +1240,32 @@ class MiscFilterSetTests(TestCase):
 
         qs = User.objects.all()
         f = F(queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['alex'], by_username)
 
         f = F({'status': 0}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs, ['carl'], by_username)
+
+    def test_filtering_multiple_different_querysets(self):
+        class F(FilterSet):
+            status = ChoiceFilter(choices=STATUS_CHOICES, initial=2)
+
+            class Meta:
+                model = User
+                fields = ['status']
+
+        f = F()
+
+        # only include users with status 2
+        self.assertQuerysetEqual(
+            f.filter(User.objects.all().order_by('username')), ['aaron', 'jacob'], by_username)
+
+        aaron_and_carl = User.objects.filter(username__contains='r')
+        # carl is excluded as his status is not 2
+        # however, jacob is not included either, showing that
+        # the passed queryset is being filtered.
+        self.assertQuerysetEqual(
+            f.filter(aaron_and_carl), ['aaron'], by_username)
+        self.assertFalse(hasattr(f, '_qs'))
 
     def test_qs_count(self):
         class F(FilterSet):

@@ -332,14 +332,20 @@ class BaseFilterSet(object):
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
-            valid = self.is_bound and self.form.is_valid()
+            queryset = self.filter(self.queryset)
+            self._qs = queryset
+        return self._qs
 
-            if self.strict and self.is_bound and not valid:
-                self._qs = self.queryset.none()
-                return self._qs
+    def filter(self, queryset):
+        """Filter the queryset using the supplied filter parameters.
+        """
+        valid = self.is_bound and self.form.is_valid()
 
+        if self.strict and self.is_bound and not valid:
+            return queryset.none()
+        else:
             # start with all the results and filter from there
-            qs = self.queryset.all()
+            qs = queryset
             for name, filter_ in six.iteritems(self.filters):
                 value = None
                 if valid:
@@ -352,8 +358,7 @@ class BaseFilterSet(object):
                         # for invalid values either:
                         # strictly "apply" filter yielding no results and get outta here
                         if self.strict:
-                            self._qs = self.queryset.none()
-                            return self._qs
+                            return queryset.none()
                         else:  # or ignore this filter altogether
                             pass
 
@@ -374,10 +379,7 @@ class BaseFilterSet(object):
 
                 if ordered_value:
                     qs = qs.order_by(*self.get_order_by(ordered_value))
-
-            self._qs = qs
-
-        return self._qs
+            return qs
 
     def count(self):
         return self.qs.count()
