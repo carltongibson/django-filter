@@ -54,6 +54,18 @@ class User(models.Model):
     def __str__(self):
         return self.username
 
+@python_2_unicode_compatible
+class UsersOfManager(models.Model):
+    users = models.ManyToManyField(User,
+                                   limit_choices_to={'is_active': True},
+                                   related_name='users_of_manager')
+    manager = models.ForeignKey(User,
+                                limit_choices_to=lambda: {'status': 1},
+                                related_name='his_users')
+
+    def __str__(self):
+        return self.manager.name + '_group'
+
 
 @python_2_unicode_compatible
 class AdminUser(User):

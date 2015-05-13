@@ -176,6 +176,14 @@ class FilterSetMetaclass(type):
         return new_class
 
 
+def __queryset_of_relation_field(f):
+    limit_choices_filter = f.rel.limit_choices_to()\
+        if hasattr(f.rel.limit_choices_to, '__call__')\
+        else f.rel.limit_choices_to
+
+    return f.rel.to._default_manager.complex_filter(limit_choices_filter)
+
+
 FILTER_FOR_DBFIELD_DEFAULTS = {
     models.AutoField: {
         'filter_class': NumberFilter
@@ -201,24 +209,21 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(
-                f.rel.limit_choices_to),
+            'queryset': __queryset_of_relation_field(f),
             'to_field_name': f.rel.field_name,
         }
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(
-                f.rel.limit_choices_to),
+            'queryset': __queryset_of_relation_field(f),
             'to_field_name': f.rel.field_name
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(
-                f.rel.limit_choices_to),
+            'queryset': __queryset_of_relation_field(f),
         }
     },
     models.DecimalField: {
