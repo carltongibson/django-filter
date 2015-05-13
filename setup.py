@@ -6,7 +6,7 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
-version = '0.9.3-dev'
+version = '0.10.0'
 
 if sys.argv[-1] == 'publish':
     os.system("python setup.py sdist upload")

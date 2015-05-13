@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from .filterset import FilterSet
 from .filters import *
 
-__version__ = '0.9.3-dev'
+__version__ = '0.10.0'
 
 
 def parse_version(version):
