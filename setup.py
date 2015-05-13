@@ -6,6 +6,8 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
+version = '0.9.3-dev'
+
 if sys.argv[-1] == 'publish':
     os.system("python setup.py sdist upload")
     os.system("python setup.py bdist_wheel upload")
@@ -16,7 +18,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name='django-filter',
-    version='0.9.3',
+    version=version,
     description=('Django-filter is a reusable Django application for allowing'
                  ' users to filter querysets dynamically.'),
     long_description=readme,
