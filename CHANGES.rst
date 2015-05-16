@@ -1,3 +1,11 @@
+Version 0.11.0   NOT RELEASED
+----------------------------
+
+* FEATURE: Added default filter method lookup for MethodFilter
+
+
+
+
 Version 0.10.0 (2015-05-13)
 ---------------------
 
