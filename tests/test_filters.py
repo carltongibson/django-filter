@@ -9,6 +9,8 @@ if sys.version_info >= (2, 7):
 else:  # pragma: nocover
     from django.utils import unittest  # noqa
 
+from datetime import timedelta
+
 from django import forms
 from django.test import TestCase
 
@@ -527,6 +529,18 @@ class DateRangeFilterTests(TestCase):
                 None__year=now_dt.year,
                 None__month=now_dt.month,
                 None__day=now_dt.day)
+
+    def test_filtering_for_yesterday(self):
+        qs = mock.Mock(spec=['filter'])
+        with mock.patch('django_filters.filters.now') as mock_now:
+            now_dt = mock_now.return_value
+            f = DateRangeFilter()
+            f.filter(qs, '5')
+            qs.filter.assert_called_once_with(
+                None__year=now_dt.year,
+                None__month=now_dt.month,
+                None__day=(now_dt.day - timedelta(days=1)).day,
+            )
 
 
 class AllValuesFilterTests(TestCase):
