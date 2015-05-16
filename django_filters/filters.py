@@ -11,7 +11,8 @@ from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .fields import RangeField, LookupTypeField, Lookup
+from .fields import (
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField)
 
 
 __all__ = [
@@ -19,7 +20,8 @@ __all__ = [
     'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
     'DateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
     'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
-    'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'DateRangeFilter', 'DateFromToRangeFilter', 'TimeRangeFilter',
+    'AllValuesFilter', 'MethodFilter'
 ]
 
 
@@ -254,6 +256,14 @@ class DateRangeFilter(ChoiceFilter):
         except (ValueError, TypeError):
             value = ''
         return self.options[value][1](qs, self.name)
+
+
+class DateFromToRangeFilter(RangeFilter):
+    field_class = DateRangeField
+
+
+class TimeRangeFilter(RangeFilter):
+    field_class = TimeRangeField
 
 
 class AllValuesFilter(ChoiceFilter):
