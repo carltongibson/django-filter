@@ -18,7 +18,7 @@ __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
     'DateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
-    'ModelMultipleChoiceFilter', 'NumberFilter', 'RangeFilter',
+    'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
     'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
 ]
 
@@ -180,6 +180,22 @@ class ModelMultipleChoiceFilter(MultipleChoiceFilter):
 
 class NumberFilter(Filter):
     field_class = forms.DecimalField
+
+
+class NumericRangeFilter(Filter):
+    field_class = RangeField
+
+    def filter(self, qs, value):
+        if value:
+            if value.start and value.stop:
+                lookup = '%s__%s' % (self.name, self.lookup_type)
+                return qs.filter(**{lookup: (value.start, value.stop)})
+            else:
+                if value.start:
+                    qs = qs.filter(**{'%s__startswith' % self.name: value.start})
+                if value.stop:
+                    qs = qs.filter(**{'%s__endswith' % self.name: value.stop})
+        return qs
 
 
 class RangeFilter(Filter):
