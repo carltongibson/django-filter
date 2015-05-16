@@ -268,12 +268,18 @@ class MethodFilter(Filter):
 
     def filter(self, qs, value):
         """
-        This filter method will act as a proxy for the actual method we want to call.
-        It will try to find the method on the parent filterset, if not it defaults
-        to just returning the queryset
+        This filter method will act as a proxy for the actual method we want to
+        call.
+
+        It will try to find the method on the parent filterset,
+        if not it attempts to search for the method `field_{{attribute_name}}`.
+        Otherwise it defaults to just returning the queryset.
         """
         parent = getattr(self, 'parent', None)
         parent_filter_method = getattr(parent, self.parent_action, None)
+        if not parent_filter_method:
+            func_str = 'filter_{0}'.format(self.name)
+            parent_filter_method = getattr(parent, func_str, None)
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
