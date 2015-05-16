@@ -5,6 +5,8 @@ Version 0.11.0   NOT RELEASED
 
 * FEATURE: Added support for yesterday in daterangefilter #234
 
+* FEATURE: Created Filter for NumericRange. #236
+
 
 Version 0.10.0 (2015-05-13)
 ---------------------
