@@ -223,7 +223,7 @@ class DateRangeFilter(ChoiceFilter):
         5: (_('Yesterday'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month,
-            '%s__day' % name: (now().day - timedelta(days=1)).day,
+            '%s__day' % name: (now() - timedelta(days=1)).day,
         })),
     }
 

@@ -539,7 +539,7 @@ class DateRangeFilterTests(TestCase):
             qs.filter.assert_called_once_with(
                 None__year=now_dt.year,
                 None__month=now_dt.month,
-                None__day=(now_dt.day - timedelta(days=1)).day,
+                None__day=(now_dt - timedelta(days=1)).day,
             )
 
 
