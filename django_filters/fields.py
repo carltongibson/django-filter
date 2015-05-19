@@ -28,7 +28,6 @@ class RangeField(forms.MultiValueField):
 class DateRangeField(RangeField):
 
     def __init__(self, *args, **kwargs):
-        super(DateRangeField, self).__init__(*args, **kwargs)
         fields = (
             forms.DateField(),
             forms.DateField())
@@ -48,7 +47,6 @@ class DateRangeField(RangeField):
 class TimeRangeField(RangeField):
 
     def __init__(self, *args, **kwargs):
-        super(TimeRangeField, self).__init__(*args, **kwargs)
         fields = (
             forms.TimeField(),
             forms.TimeField())
