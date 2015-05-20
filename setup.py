@@ -18,11 +18,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name='django-filter',
-<<<<<<< HEAD
     version=version+'mc',
-=======
-    version=version,
->>>>>>> develop
     description=('Django-filter is a reusable Django application for allowing'
                  ' users to filter querysets dynamically.'),
     long_description=readme,
