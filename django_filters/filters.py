@@ -11,15 +11,17 @@ from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .fields import RangeField, LookupTypeField, Lookup
+from .fields import (
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField)
 
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
     'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
     'DateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
-    'ModelMultipleChoiceFilter', 'NumberFilter', 'RangeFilter',
-    'DateRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
+    'DateRangeFilter', 'DateFromToRangeFilter', 'TimeRangeFilter',
+    'AllValuesFilter', 'MethodFilter'
 ]
 
 
@@ -45,6 +47,12 @@ class Filter(object):
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
+
+    def get_method(self, qs):
+        """Return filter method based on whether we're excluding
+           or simply filtering.
+        """
+        return qs.exclude if self.exclude else qs.filter
 
     @property
     def field(self):
@@ -74,8 +82,7 @@ class Filter(object):
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
             return qs
-        method = qs.exclude if self.exclude else qs.filter
-        qs = method(**{'%s__%s' % (self.name, lookup): value})
+        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         if self.distinct:
             qs = qs.distinct()
         return qs
@@ -90,7 +97,7 @@ class BooleanFilter(Filter):
 
     def filter(self, qs, value):
         if value is not None:
-            return qs.filter(**{self.name: value})
+            return self.get_method(qs)(**{self.name: value})
         return qs
 
 
@@ -104,7 +111,8 @@ class TypedChoiceFilter(Filter):
 
 class MultipleChoiceFilter(Filter):
     """
-    This filter preforms an OR query on the selected options.
+    This filter preforms OR(by default) or AND(using conjoined=True) query
+    on the selected options.
 
     Advanced Use
     ------------
@@ -126,6 +134,10 @@ class MultipleChoiceFilter(Filter):
     def __init__(self, *args, **kwargs):
         distinct = kwargs.get('distinct', True)
         kwargs['distinct'] = distinct
+
+        conjoined = kwargs.pop('conjoined', False)
+        self.conjoined = conjoined
+
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
@@ -152,13 +164,16 @@ class MultipleChoiceFilter(Filter):
             return qs
 
         q = Q()
-        for v in value:
-            q |= Q(**{self.name: v})
+        for v in set(value):
+            if self.conjoined:
+                qs = self.get_method(qs)(**{self.name: v})
+            else:
+                q |= Q(**{self.name: v})
 
         if self.distinct:
-            return qs.filter(q).distinct()
+            return self.get_method(qs)(q).distinct()
 
-        return qs.filter(q)
+        return self.get_method(qs)(q)
 
 
 class DateFilter(Filter):
@@ -185,6 +200,22 @@ class NumberFilter(Filter):
     field_class = forms.DecimalField
 
 
+class NumericRangeFilter(Filter):
+    field_class = RangeField
+
+    def filter(self, qs, value):
+        if value:
+            if value.start and value.stop:
+                lookup = '%s__%s' % (self.name, self.lookup_type)
+                return self.get_method(qs)(**{lookup: (value.start, value.stop)})
+            else:
+                if value.start:
+                    qs = self.get_method(qs)(**{'%s__startswith' % self.name: value.start})
+                if value.stop:
+                    qs = self.get_method(qs)(**{'%s__endswith' % self.name: value.stop})
+        return qs
+
+
 class RangeFilter(Filter):
     field_class = RangeField
 
@@ -192,12 +223,12 @@ class RangeFilter(Filter):
         if value:
           if value.start and value.stop:
             lookup = '%s__range' % self.name
-            return qs.filter(**{lookup: (value.start, value.stop)})
+            return self.get_method(qs)(**{lookup: (value.start, value.stop)})
           else:
             if value.start:
-              qs = qs.filter(**{'%s__gte'%self.name:value.start})
+              qs = self.get_method(qs)(**{'%s__gte'%self.name:value.start})
             if value.stop:
-              qs = qs.filter(**{'%s__lte'%self.name:value.stop})
+              qs = self.get_method(qs)(**{'%s__lte'%self.name:value.stop})
         return qs
 
 
@@ -223,6 +254,11 @@ class DateRangeFilter(ChoiceFilter):
         4: (_('This year'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
         })),
+        5: (_('Yesterday'), lambda qs, name: qs.filter(**{
+            '%s__year' % name: now().year,
+            '%s__month' % name: now().month,
+            '%s__day' % name: (now() - timedelta(days=1)).day,
+        })),
     }
 
     def __init__(self, *args, **kwargs):
@@ -236,6 +272,14 @@ class DateRangeFilter(ChoiceFilter):
         except (ValueError, TypeError):
             value = ''
         return self.options[value][1](qs, self.name)
+
+
+class DateFromToRangeFilter(RangeFilter):
+    field_class = DateRangeField
+
+
+class TimeRangeFilter(RangeFilter):
+    field_class = TimeRangeField
 
 
 class AllValuesFilter(ChoiceFilter):
@@ -271,12 +315,18 @@ class MethodFilter(Filter):
 
     def filter(self, qs, value):
         """
-        This filter method will act as a proxy for the actual method we want to call.
-        It will try to find the method on the parent filterset, if not it defaults
-        to just returning the queryset
+        This filter method will act as a proxy for the actual method we want to
+        call.
+
+        It will try to find the method on the parent filterset,
+        if not it attempts to search for the method `field_{{attribute_name}}`.
+        Otherwise it defaults to just returning the queryset.
         """
         parent = getattr(self, 'parent', None)
         parent_filter_method = getattr(parent, self.parent_action, None)
+        if not parent_filter_method:
+            func_str = 'filter_{0}'.format(self.name)
+            parent_filter_method = getattr(parent, func_str, None)
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
