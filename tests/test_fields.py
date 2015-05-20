@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from datetime import datetime, time
 import decimal
 import sys
 
@@ -14,9 +15,8 @@ from django import forms
 from django.test import TestCase
 
 from django_filters.widgets import RangeWidget
-from django_filters.fields import RangeField
-from django_filters.fields import LookupTypeField
-from django_filters.fields import Lookup
+from django_filters.fields import (
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField)
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
@@ -35,6 +35,37 @@ class RangeFieldTests(TestCase):
         self.assertEqual(
             f.clean(['12.34', '55']),
             slice(to_d(12.34), to_d(55)))
+
+
+class DateRangeFieldTests(TestCase):
+
+    def test_field(self):
+        f = DateRangeField()
+        self.assertEqual(len(f.fields), 2)
+
+    def test_clean(self):
+        w = RangeWidget()
+        f = DateRangeField(widget=w)
+
+        self.assertEqual(
+            f.clean(['2015-01-01', '2015-01-10']),
+            slice(datetime(2015, 1, 1, 0, 0 , 0),
+                  datetime(2015, 1, 10, 23, 59, 59, 999999)))
+
+
+class TimeRangeFieldTests(TestCase):
+
+    def test_field(self):
+        f = DateRangeField()
+        self.assertEqual(len(f.fields), 2)
+
+    def test_clean(self):
+        w = RangeWidget()
+        f = TimeRangeField(widget=w)
+
+        self.assertEqual(
+            f.clean(['10:15', '12:30']),
+            slice(time(10, 15, 0), time(12, 30, 0)))
 
 
 class LookupTypeFieldTests(TestCase):
@@ -86,4 +117,3 @@ class LookupTypeFieldTests(TestCase):
                 <option value="gt">gt</option>
                 <option selected="selected" value="lt">lt</option>
             </select>""")
-

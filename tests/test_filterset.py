@@ -33,6 +33,7 @@ from .models import BankAccount
 from .models import Node
 from .models import DirectedNode
 from .models import Worker
+from .models import HiredWorker
 from .models import Business
 
 
@@ -48,9 +49,13 @@ class HelperMethodsTests(TestCase):
     def test_get_declared_filters(self):
         pass
 
-    def test_get_model_field(self):
+    def test_get_model_field_none(self):
         result = get_model_field(User, 'unknown__name')
         self.assertIsNone(result)
+
+    def test_get_model_field(self):
+        result = get_model_field(Business, 'hiredworker__worker')
+        self.assertEqual(result, HiredWorker._meta.get_field('worker'))
 
     @unittest.skip('todo')
     def test_filters_for_model(self):
@@ -628,3 +633,45 @@ class FilterSetOrderingTests(TestCase):
         f = F({'o': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
+
+
+
+class FilterSetTogetherTests(TestCase):
+
+    def setUp(self):
+        self.alex = User.objects.create(username='alex', status=1)
+        self.jacob = User.objects.create(username='jacob', status=2)
+        self.qs = User.objects.all().order_by('id')
+    
+    def test_fields_set(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status', 'is_active', 'first_name']
+                together = [
+                    ('username', 'status'), 
+                    ('first_name', 'is_active'),
+                ]
+
+        f = F({}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex'}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
+        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+        
+    def test_single_fields_set(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                together = ['username', 'status']
+        
+        f = F({}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex'}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
+        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)

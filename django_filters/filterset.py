@@ -5,6 +5,7 @@ import types
 import copy
 
 from django import forms
+from django.forms.forms import NON_FIELD_ERRORS
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
@@ -79,8 +80,12 @@ def get_model_field(model, f):
         except FieldDoesNotExist:
             return None
         if isinstance(rel, ForeignObjectRel):
-            model = rel.model
-            opts = rel.opts
+            if hasattr(rel, "related_model"):
+                # django >= 1.8 (ForeignObjectRel)
+                opts = rel.related_model._meta
+            else:
+                # django < 1.8 (RelatedObject)
+                opts = rel.opts
         else:
             model = rel.rel.to
             opts = model._meta
@@ -132,6 +137,31 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     return field_dict
 
 
+def get_full_clean_override(together):
+    def full_clean(form):
+        
+        def add_error(message):
+            try:
+                form.add_error(None, message)
+            except AttributeError:
+                form._errors[NON_FIELD_ERRORS] = message
+        
+        def all_valid(fieldset):
+            cleaned_data = form.cleaned_data
+            count = len([i for i in fieldset if cleaned_data.get(i)])
+            return 0 < count < len(fieldset)
+        
+        super(form.__class__, form).full_clean()
+        message = 'Following fields must be together: %s'
+        if isinstance(together[0], (list, tuple)):
+            for each in together:
+                if all_valid(each):
+                    return add_error(message % ','.join(each))
+        elif all_valid(together):
+            return add_error(message % ','.join(together))
+    return full_clean
+
+
 class FilterSetOptions(object):
     def __init__(self, options=None):
         self.model = getattr(options, 'model', None)
@@ -141,6 +171,8 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
 
         self.form = getattr(options, 'form', forms.Form)
+        
+        self.together = getattr(options, 'together', None)
 
 
 class FilterSetMetaclass(type):
@@ -359,6 +391,8 @@ class BaseFilterSet(object):
             fields[self.order_by_field] = self.ordering_field
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
+            if self._meta.together:
+                Form.full_clean = get_full_clean_override(self._meta.together)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:

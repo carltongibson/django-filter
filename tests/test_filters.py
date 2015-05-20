@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from datetime import date, datetime, time
 import mock
 import sys
 
@@ -9,27 +10,39 @@ if sys.version_info >= (2, 7):
 else:  # pragma: nocover
     from django.utils import unittest  # noqa
 
+from datetime import timedelta
+
 from django import forms
 from django.test import TestCase
 
-from django_filters.fields import Lookup
-from django_filters.fields import RangeField
-from django_filters.fields import LookupTypeField
-from django_filters.filters import Filter
-from django_filters.filters import CharFilter
-from django_filters.filters import BooleanFilter
-from django_filters.filters import ChoiceFilter
-from django_filters.filters import MultipleChoiceFilter
-from django_filters.filters import DateFilter
-from django_filters.filters import DateTimeFilter
-from django_filters.filters import TimeFilter
-from django_filters.filters import ModelChoiceFilter
-from django_filters.filters import ModelMultipleChoiceFilter
-from django_filters.filters import NumberFilter
-from django_filters.filters import RangeFilter
-from django_filters.filters import DateRangeFilter
-from django_filters.filters import AllValuesFilter
-from django_filters.filters import LOOKUP_TYPES
+
+from django_filters.fields import (
+    Lookup,
+    RangeField,
+    DateRangeField,
+    TimeRangeField,
+    LookupTypeField)
+from django_filters.filters import (
+    Filter,
+    CharFilter,
+    BooleanFilter,
+    ChoiceFilter,
+    MultipleChoiceFilter,
+    DateFilter,
+    DateTimeFilter,
+    TimeFilter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    NumberFilter,
+    NumericRangeFilter,
+    RangeFilter,
+    DateRangeFilter,
+    DateFromToRangeFilter,
+    TimeRangeFilter,
+    AllValuesFilter,
+    LOOKUP_TYPES)
+
+from tests.models import Book, User
 
 
 class FilterTests(TestCase):
@@ -202,6 +215,13 @@ class BooleanFilterTests(TestCase):
         qs.filter.assert_called_once_with(somefield=True)
         self.assertNotEqual(qs, result)
 
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = BooleanFilter(name='somefield', exclude=True)
+        result = f.filter(qs, True)
+        qs.exclude.assert_called_once_with(somefield=True)
+        self.assertNotEqual(qs, result)
+
     @unittest.expectedFailure
     def test_filtering_skipped_with_blank_value(self):
         qs = mock.Mock()
@@ -239,6 +259,14 @@ class MultipleChoiceFilterTests(TestCase):
         with self.assertRaises(TypeError):
             f.filter(qs, ['value'])
 
+    def test_conjoined_default_value(self):
+        f = MultipleChoiceFilter()
+        self.assertFalse(f.conjoined)
+
+    def test_conjoined_true(self):
+        f = MultipleChoiceFilter(conjoined=True)
+        self.assertTrue(f.conjoined)
+
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
         f = MultipleChoiceFilter(name='somefield')
@@ -253,6 +281,21 @@ class MultipleChoiceFilterTests(TestCase):
             mockQ1.__ior__.assert_called_once_with(mockQ2)
             qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
             qs.filter.return_value.distinct.assert_called_once_with()
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = MultipleChoiceFilter(name='somefield', exclude=True)
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.exclude.return_value.distinct.assert_called_once_with()
 
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
@@ -276,6 +319,69 @@ class MultipleChoiceFilterTests(TestCase):
         f.field.choices = ['some', 'values', 'here']
         result = f.filter(qs, [])
         self.assertEqual(qs, result)
+
+    def test_filter_conjoined_true(self):
+        """Tests that a filter with `conjoined=True` returns objects that
+        have all the values included in `value`. For example filter
+        users that have all of this books.
+
+        """
+        book_kwargs = {'price': 1, 'average_rating': 1}
+        books = []
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+
+        user1 = User.objects.create()
+        user2 = User.objects.create()
+        user3 = User.objects.create()
+        user4 = User.objects.create()
+        user5 = User.objects.create()
+
+        user1.favorite_books.add(books[0], books[1])
+        user2.favorite_books.add(books[0], books[1], books[2])
+        user3.favorite_books.add(books[1], books[2])
+        user4.favorite_books.add(books[2], books[3])
+        user5.favorite_books.add(books[4], books[5])
+
+        filter_list = (
+            ((books[0].pk, books[0].pk),  # values
+             [1, 2]),  # list of user.pk that have `value` books
+            ((books[1].pk, books[1].pk),
+             [1, 2, 3]),
+            ((books[2].pk, books[2].pk),
+             [2, 3, 4]),
+            ((books[3].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[4].pk),
+             [5, ]),
+            ((books[0].pk, books[1].pk),
+             [1, 2]),
+            ((books[0].pk, books[2].pk),
+             [2, ]),
+            ((books[1].pk, books[2].pk),
+             [2, 3]),
+            ((books[2].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[5].pk),
+             [5, ]),
+            ((books[3].pk, books[4].pk),
+             []),
+            )
+        users = User.objects.all()
+
+        for item in filter_list:
+            f = MultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
+            queryset = f.filter(users, item[0])
+            expected_pks = [c[0] for c in queryset.values_list('pk')]
+            self.assertListEqual(
+                expected_pks,
+                item[1],
+                'Lists Differ: {0} != {1} for case {2}'.format(
+                    expected_pks, item[1], item[0]))
 
 
 class DateFilterTests(TestCase):
@@ -349,6 +455,59 @@ class NumberFilterTests(TestCase):
         f.filter(qs, 0)
         qs.filter.assert_called_once_with(None__exact=0)
 
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = NumberFilter(exclude=True)
+        f.filter(qs, 1)
+        qs.exclude.assert_called_once_with(None__exact=1)
+        # Also test 0 as it once had a bug
+        qs.reset_mock()
+        f.filter(qs, 0)
+        qs.exclude.assert_called_once_with(None__exact=0)
+
+
+class NumericRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = NumericRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, RangeField)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=20, stop=30)
+        f = NumericRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__exact=(20, 30))
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        value = mock.Mock(start=20, stop=30)
+        f = NumericRangeFilter(exclude=True)
+        f.filter(qs, value)
+        qs.exclude.assert_called_once_with(None__exact=(20, 30))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = NumericRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_field_with_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(start=20, stop=30)
+        f = NumericRangeFilter(lookup_type=('overlap'))
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__overlap=(20, 30))
+
+    @unittest.expectedFailure
+    def test_filtering_lower_field_higher_than_upper_field(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=35, stop=30)
+        f = NumericRangeFilter()
+        result = f.filter(qs, value)
+        self.assertEqual(qs, result)
+
 
 class RangeFilterTests(TestCase):
 
@@ -357,12 +516,33 @@ class RangeFilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, RangeField)
 
-    def test_filtering(self):
+    def test_filtering_range(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=20, stop=30)
         f = RangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__range=(20, 30))
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        value = mock.Mock(start=20, stop=30)
+        f = RangeFilter(exclude=True)
+        f.filter(qs, value)
+        qs.exclude.assert_called_once_with(None__range=(20, 30))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=20, stop=None)
+        f = RangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=20)
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=30)
+        f = RangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=30)
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -454,6 +634,106 @@ class DateRangeFilterTests(TestCase):
                 None__year=now_dt.year,
                 None__month=now_dt.month,
                 None__day=now_dt.day)
+
+    def test_filtering_for_yesterday(self):
+        qs = mock.Mock(spec=['filter'])
+        with mock.patch('django_filters.filters.now') as mock_now:
+            now_dt = mock_now.return_value
+            f = DateRangeFilter()
+            f.filter(qs, '5')
+            qs.filter.assert_called_once_with(
+                None__year=now_dt.year,
+                None__month=now_dt.month,
+                None__day=(now_dt - timedelta(days=1)).day,
+            )
+
+
+class DateFromToRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = DateFromToRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, DateRangeField)
+
+    def test_filtering_range(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=date(2015, 4, 7), stop=date(2015, 9, 6))
+        f = DateFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=date(2015, 4, 7), stop=None)
+        f = DateFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=date(2015, 4, 7))
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=date(2015, 9, 6))
+        f = DateFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=date(2015, 9, 6))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = DateFromToRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(start=date(2015, 4, 7), stop=date(2015, 9, 6))
+        f = DateFromToRangeFilter(lookup_type='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+
+
+class TimeRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = TimeRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, TimeRangeField)
+
+    def test_filtering_range(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=time(10, 15), stop=time(12, 30))
+        f = TimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(time(10, 15), time(12, 30)))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=time(10, 15), stop=None)
+        f = TimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=time(10, 15))
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=time(12, 30))
+        f = TimeRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=time(12, 30))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = TimeRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(start=time(10, 15), stop=time(12, 30))
+        f = TimeRangeFilter(lookup_type='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(time(10, 15), time(12, 30)))
 
 
 class AllValuesFilterTests(TestCase):
