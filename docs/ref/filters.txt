@@ -242,9 +242,18 @@ queryset. This option can be used to eliminate duplicate results when using filt
 A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
 Defaults to ``False``.
 
+ModelChoiceFilter and ModelMultipleChoiceFilter
+--------------
+
+
+``queryset``
+~~~~~~~~~~~
+
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
+
 
 ``**kwargs``
 ~~~~~~~~~~~~
 
 Any extra keyword arguments will be provided to the accompanying form Field.
-This can be used to provide arguments like ``choices`` or ``queryset``.
+This can be used to provide arguments like ``choices``.
