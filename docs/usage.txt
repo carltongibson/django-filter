@@ -294,9 +294,12 @@ in your FilterSet class.
 
 The ``strict`` option controls whether results are returned when an invalid
 value is specified by the user for any filter field. By default, ``strict`` is
-set to ``True`` meaning that an empty queryset is returned if any field contains
-an invalid value. You can loosen this behavior by setting ``strict`` to
-``False`` which will effectively ignore a filter field if its value is invalid.
+set to ``STRICTNESS.RETURN_NO_RESULTS`` meaning that an empty queryset is
+returned if any field contains an invalid value. You can loosen this behavior
+by setting ``strict`` to ``STRICTNESS.IGNORE`` which will effectively ignore a
+filter field if its value is invalid. A third option of
+``STRICTNESS.RAISE_VALIDATION_ERROR`` will cause a ``ValidationError` to be
+raised if any field contains an invalid value.
 
 Overriding ``FilterSet`` methods
 --------------------------------

@@ -49,6 +49,16 @@ if version_info < (2, 7, 0):
     copy._deepcopy_dispatch[types.MethodType] = _deepcopy_method
 
 
+class STRICTNESS(object):
+    """
+    Values of False & True chosen for backward compatability reasons.
+    Originally, these were the only options.
+    """
+    IGNORE = False
+    RETURN_NO_RESULTS = True
+    RAISE_VALIDATION_ERROR = "RAISE"
+
+
 def get_declared_filters(bases, attrs, with_base_filters=True):
     filters = []
     for filter_name, obj in list(attrs.items()):
@@ -298,7 +308,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     filter_overrides = {}
     order_by_field = ORDER_BY_FIELD
-    strict = True
+    # What to do on on validation errors
+    strict = STRICTNESS.RETURN_NO_RESULTS
 
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
@@ -334,9 +345,13 @@ class BaseFilterSet(object):
         if not hasattr(self, '_qs'):
             valid = self.is_bound and self.form.is_valid()
 
-            if self.strict and self.is_bound and not valid:
-                self._qs = self.queryset.none()
-                return self._qs
+            if self.is_bound and not valid:
+                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                    raise forms.ValidationError(self.form.errors)
+                elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                    self._qs = self.queryset.none()
+                    return self._qs
+                # else STRICTNESS.IGNORE...  ignoring
 
             # start with all the results and filter from there
             qs = self.queryset.all()
@@ -349,13 +364,12 @@ class BaseFilterSet(object):
                     try:
                         value = self.form.fields[name].clean(raw_value)
                     except forms.ValidationError:
-                        # for invalid values either:
-                        # strictly "apply" filter yielding no results and get outta here
-                        if self.strict:
+                        if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                            raise
+                        elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
                             self._qs = self.queryset.none()
                             return self._qs
-                        else:  # or ignore this filter altogether
-                            pass
+                        # else STRICTNESS.IGNORE...  ignoring
 
                 if value is not None:  # valid & clean data
                     qs = filter_.filter(qs, value)
