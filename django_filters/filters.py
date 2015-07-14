@@ -12,7 +12,9 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField)
+    CSVField, RangeField, LookupTypeField, Lookup, DateRangeField,
+    TimeRangeField)
+from .widgets import CommaSeparatedValueWidget
 
 
 __all__ = [
@@ -314,3 +316,7 @@ class MethodFilter(Filter):
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
+
+
+class CSVFilter(Filter):
+    field_class = CSVField
