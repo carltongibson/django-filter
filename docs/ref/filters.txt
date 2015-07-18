@@ -70,15 +70,15 @@ some predefined strings could be used as input of a boolean filter::
 ``MultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The same as ``ChoiceFilter`` except the user can select multiple choices 
-and the filter will form the OR of these choices by default to match items. 
+The same as ``ChoiceFilter`` except the user can select multiple choices
+and the filter will form the OR of these choices by default to match items.
 The filter will form the AND of the selected choices when the ``conjoined=True``
 argument is passed to this class.
 
 Multiple choices are represented in the query string by reusing the same key with
 different values (e.g. ''?status=Regular&status=Admin'').
 
-Advanced Use: Depending on your application logic, when all or no choices are 
+Advanced Use: Depending on your application logic, when all or no choices are
 selected, filtering may be a noop. In this case you may wish to avoid the
 filtering overhead, particularly of the `distinct` call.
 
@@ -109,11 +109,18 @@ Matches on a time.  Used with ``TimeField`` by default.
 Similar to a ``ChoiceFilter`` except it works with related models, used for
 ``ForeignKey`` by default.
 
+If automatically instantiated ``ModelChoiceFilter`` will use the default ``QuerySet`` for the
+related field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+
 ``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Similar to a ``MultipleChoiceFilter`` except it works with related models, used
 for ``ManyToManyField`` by default.
+
+As with ``ModelChoiceFilter``, if automatically instantiated ``ModelMultipleChoiceFilter`` will use
+the default ``QuerySet`` for the related field. If manually instantiated you **must** provide the
+``queryset`` kwarg.
 
 ``NumberFilter``
 ~~~~~~~~~~~~~~~~
