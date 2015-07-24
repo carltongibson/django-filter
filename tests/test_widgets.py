@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 from django.forms import TextInput, Select
+from django.utils.datastructures import MultiValueDict
 
+from django_filters.widgets import CommaSeparatedValueWidget
 from django_filters.widgets import RangeWidget
 from django_filters.widgets import LinkWidget
 from django_filters.widgets import LookupTypeWidget
@@ -135,3 +137,45 @@ class RangeWidgetTests(TestCase):
             -
             <input type="text" name="price_1" value="9.99" />""")
 
+
+class CommaSeparatedValueWidgetTests(TestCase):
+    def test_widget(self):
+        w = CommaSeparatedValueWidget()
+        self.assertHTMLEqual(w.render('price', ''), """
+            <input type="text" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', '1,2'), """
+            <input type="text" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', ['1', '2']), """
+            <input type="text" name="price" value="1,2" />""")
+
+    def test_widget_value_from_datadict(self):
+        w = CommaSeparatedValueWidget()
+        data = {'price': '1'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = {'price': '1,2'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1', '2'])
+
+        data = MultiValueDict({'price': ['1']})
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = MultiValueDict({'price': ['1,2']})
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1', '2'])
+
+        data = MultiValueDict({'price': ['1', '2']})
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1', '2'])
+
+        data = {'price': None}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        data = {'price': ''}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])

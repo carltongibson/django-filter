@@ -6,7 +6,7 @@ from collections import namedtuple
 
 from django import forms
 
-from .widgets import RangeWidget, LookupTypeWidget
+from .widgets import CommaSeparatedValueWidget, RangeWidget, LookupTypeWidget
 
 
 class RangeField(forms.MultiValueField):
@@ -71,3 +71,12 @@ class LookupTypeField(forms.MultiValueField):
         if len(data_list)==2:
             return Lookup(value=data_list[0], lookup_type=data_list[1] or 'exact')
         return Lookup(value=None, lookup_type='exact')
+
+
+class CSVField(forms.CharField):
+    widget = CommaSeparatedValueWidget
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+        return super(CSVField, self).to_python(value)

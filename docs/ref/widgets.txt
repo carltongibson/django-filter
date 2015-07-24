@@ -17,3 +17,11 @@ placeholders::
 2. ``query_string``: This is the query string for use in the ``href``
    option on the ``<a>`` elemeent.
 3. ``label``: This is the text to be displayed to the user.
+
+``CommaSeparatedValueWidget``
+~~~~~~~~~~~~~~
+
+This widget converts a comma-separated value for an <input>, into a list of
+values for an `__in` lookup. It has one method that you can overide for
+converting values from the inputted strings. ``customize()`` should return the
+value in the same type it's stored in the database.

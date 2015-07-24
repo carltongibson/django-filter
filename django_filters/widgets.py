@@ -10,6 +10,7 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
+from django.utils.datastructures import MultiValueDict
 try:
     from django.utils.encoding import force_text
 except:  # pragma: nocover
@@ -97,3 +98,41 @@ class LookupTypeWidget(forms.MultiWidget):
         if value is None:
             return [None, None]
         return value
+
+
+class CommaSeparatedValueWidget(forms.TextInput):
+    def sanitize(self, value_list):
+        """Remove empty items in case of ?number=1,,2."""
+        return [v for v in value_list if v]
+
+    def customize(self, value):
+        """Allow simple type conversion of values."""
+        return value
+
+    def value_from_datadict(self, data, files, name):
+        if isinstance(data, MultiValueDict):
+            value = data.getlist(name)
+        else:
+            value = [data.get(name)]
+
+        value = self.sanitize(value)
+        if not any(value):
+            return []
+
+        value = ','.join(value).split(',')
+
+        return list(map(self.customize, value))
+
+    def render(self, name, value, attrs=None):
+        if value is None:
+            value = ''
+
+        final_attrs = self.build_attrs(attrs, type=self.input_type,
+                                       name=name)
+        if value != '':
+            # Only add the 'value' attribute if a value is non-empty.
+            if isinstance(value, list):
+                value = ','.join(value)
+            final_attrs['value'] = force_text(self._format_value(value))
+        return super(CommaSeparatedValueWidget, self).render(
+            name, value, final_attrs)
