@@ -48,6 +48,12 @@ class Filter(object):
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
 
+    def get_method(self, qs):
+        """Return filter method based on whether we're excluding
+           or simply filtering.
+        """
+        return qs.exclude if self.exclude else qs.filter
+
     @property
     def field(self):
         if not hasattr(self, '_field'):
@@ -78,8 +84,7 @@ class Filter(object):
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
             return qs
-        method = qs.exclude if self.exclude else qs.filter
-        qs = method(**{'%s__%s' % (self.name, lookup): value})
+        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         if self.distinct:
             qs = qs.distinct()
         return qs
@@ -94,7 +99,7 @@ class BooleanFilter(Filter):
 
     def filter(self, qs, value):
         if value is not None:
-            return qs.filter(**{self.name: value})
+            return self.get_method(qs)(**{self.name: value})
         return qs
 
 
@@ -113,19 +118,28 @@ class MultipleChoiceFilter(Filter):
 
     Advanced Use
     ------------
-    Depending on your application logic, when all or no choices are selected, filtering may be a noop. In this case you may wish to avoid the filtering overhead, particularly of the `distinct` call.
+    Depending on your application logic, when all or no choices are selected,
+    filtering may be a noop. In this case you may wish to avoid the filtering
+    overhead, particularly if using a `distinct` call.
 
-    Set `always_filter` to False after instantiation to enable the default `is_noop` test.
+    Set `always_filter` to False after instantiation to enable the default
+    `is_noop` test.
 
     Override `is_noop` if you require a different test for your application.
+
+    `distinct` defaults to True on this class to preserve backward compatibility.
     """
     field_class = forms.MultipleChoiceField
 
     always_filter = True
 
     def __init__(self, *args, **kwargs):
+        distinct = kwargs.get('distinct', True)
+        kwargs['distinct'] = distinct
+
         conjoined = kwargs.pop('conjoined', False)
         self.conjoined = conjoined
+
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
@@ -151,15 +165,17 @@ class MultipleChoiceFilter(Filter):
         if not value:
             return qs
 
-        if self.conjoined:
-            for v in value:
-                qs = qs.filter(**{self.name: v})
-            return qs
-
         q = Q()
-        for v in value:
-            q |= Q(**{self.name: v})
-        return qs.filter(q).distinct()
+        for v in set(value):
+            if self.conjoined:
+                qs = self.get_method(qs)(**{self.name: v})
+            else:
+                q |= Q(**{self.name: v})
+
+        if self.distinct:
+            return self.get_method(qs)(q).distinct()
+
+        return self.get_method(qs)(q)
 
 
 class DateFilter(Filter):
@@ -193,12 +209,12 @@ class NumericRangeFilter(Filter):
         if value:
             if value.start and value.stop:
                 lookup = '%s__%s' % (self.name, self.lookup_type)
-                return qs.filter(**{lookup: (value.start, value.stop)})
+                return self.get_method(qs)(**{lookup: (value.start, value.stop)})
             else:
                 if value.start:
-                    qs = qs.filter(**{'%s__startswith' % self.name: value.start})
+                    qs = self.get_method(qs)(**{'%s__startswith' % self.name: value.start})
                 if value.stop:
-                    qs = qs.filter(**{'%s__endswith' % self.name: value.stop})
+                    qs = self.get_method(qs)(**{'%s__endswith' % self.name: value.stop})
         return qs
 
 
@@ -209,12 +225,12 @@ class RangeFilter(Filter):
         if value:
           if value.start and value.stop:
             lookup = '%s__range' % self.name
-            return qs.filter(**{lookup: (value.start, value.stop)})
+            return self.get_method(qs)(**{lookup: (value.start, value.stop)})
           else:
             if value.start:
-              qs = qs.filter(**{'%s__gte'%self.name:value.start})
+              qs = self.get_method(qs)(**{'%s__gte'%self.name:value.start})
             if value.stop:
-              qs = qs.filter(**{'%s__lte'%self.name:value.stop})
+              qs = self.get_method(qs)(**{'%s__lte'%self.name:value.stop})
         return qs
 
 
