@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.test import TestCase
 from django.forms import TextInput, Select
 
+from django_filters.widgets import BooleanWidget
 from django_filters.widgets import RangeWidget
 from django_filters.widgets import LinkWidget
 from django_filters.widgets import LookupTypeWidget
@@ -135,3 +136,22 @@ class RangeWidgetTests(TestCase):
             -
             <input type="text" name="price_1" value="9.99" />""")
 
+
+class BooleanWidgetTests(TestCase):
+    """
+    """
+    def test_widget_value_from_datadict(self):
+        """
+        """
+        w = BooleanWidget()
+
+        trueActive = {'active': 'true'}
+        result = w.value_from_datadict(trueActive, {}, 'active')
+        self.assertEqual(result, True)
+
+        falseActive = {'active': 'false'}
+        result = w.value_from_datadict(falseActive, {}, 'active')
+        self.assertEqual(result, False)
+
+        result = w.value_from_datadict({}, {}, 'active')
+        self.assertEqual(result, None)

@@ -94,18 +94,8 @@ class BooleanFilter(Filter):
 
     def filter(self, qs, value):
         if value is not None:
-            value = self._convert_boolean(value)
             return qs.filter(**{self.name: value})
         return qs
-
-    def _convert_boolean(self, value):
-        """Convert JavaScript true/false values into the internal Python types.
-        """
-        if value == 'true':
-            value = True
-        elif value == 'false':
-            value = False
-        return value
 
 
 class ChoiceFilter(Filter):
