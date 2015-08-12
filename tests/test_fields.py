@@ -118,9 +118,15 @@ class LookupTypeFieldTests(TestCase):
                 <option selected="selected" value="lt">lt</option>
             </select>""")
 
+
 class IsoDateTimeFieldTests(TestCase):
 
     def test_datetime_string_is_parsed(self):
         f = IsoDateTimeField()
         d = f.strptime("2015-07-19T13:34:51.759", IsoDateTimeField.ISO_8601)
+        self.assertTrue(isinstance(d, datetime))
+
+    def test_datetime_string_with_timezone_is_parsed(self):
+        f = IsoDateTimeField()
+        d = f.strptime("2015-07-19T13:34:51.759+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d, datetime))
