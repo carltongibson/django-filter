@@ -1,0 +1,12 @@
+Fields Reference
+================
+
+``IsoDateTimeField``
+~~~~~~~~~~~~~~~~~~~~
+
+Extends ``django.forms.DateTimeField`` to parse ISO 8601 formated dates.
+
+Defines a class level attribute ``ISO_8601`` as constant for the format.
+
+Sets ``input_formats = [ISO_8601]``.
+
