@@ -15,5 +15,6 @@ Contents:
     install
     usage
     ref/filters
+    ref/fields
     ref/widgets
     tests

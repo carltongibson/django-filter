@@ -16,7 +16,7 @@ from django.test import TestCase
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
@@ -117,3 +117,16 @@ class LookupTypeFieldTests(TestCase):
                 <option value="gt">gt</option>
                 <option selected="selected" value="lt">lt</option>
             </select>""")
+
+
+class IsoDateTimeFieldTests(TestCase):
+
+    def test_datetime_string_is_parsed(self):
+        f = IsoDateTimeField()
+        d = f.strptime("2015-07-19T13:34:51.759", IsoDateTimeField.ISO_8601)
+        self.assertTrue(isinstance(d, datetime))
+
+    def test_datetime_string_with_timezone_is_parsed(self):
+        f = IsoDateTimeField()
+        d = f.strptime("2015-07-19T13:34:51.759+01:00", IsoDateTimeField.ISO_8601)
+        self.assertTrue(isinstance(d, datetime))
