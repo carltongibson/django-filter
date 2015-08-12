@@ -215,6 +215,13 @@ class BooleanFilterTests(TestCase):
         qs.filter.assert_called_once_with(somefield=True)
         self.assertNotEqual(qs, result)
 
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = BooleanFilter(name='somefield', exclude=True)
+        result = f.filter(qs, True)
+        qs.exclude.assert_called_once_with(somefield=True)
+        self.assertNotEqual(qs, result)
+
     @unittest.expectedFailure
     def test_filtering_skipped_with_blank_value(self):
         qs = mock.Mock()
@@ -274,6 +281,21 @@ class MultipleChoiceFilterTests(TestCase):
             mockQ1.__ior__.assert_called_once_with(mockQ2)
             qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
             qs.filter.return_value.distinct.assert_called_once_with()
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = MultipleChoiceFilter(name='somefield', exclude=True)
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.exclude.return_value.distinct.assert_called_once_with()
 
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
@@ -433,6 +455,17 @@ class NumberFilterTests(TestCase):
         f.filter(qs, 0)
         qs.filter.assert_called_once_with(None__exact=0)
 
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = NumberFilter(exclude=True)
+        f.filter(qs, 1)
+        qs.exclude.assert_called_once_with(None__exact=1)
+        # Also test 0 as it once had a bug
+        qs.reset_mock()
+        f.filter(qs, 0)
+        qs.exclude.assert_called_once_with(None__exact=0)
+
+
 class NumericRangeFilterTests(TestCase):
 
     def test_default_field(self):
@@ -446,6 +479,13 @@ class NumericRangeFilterTests(TestCase):
         f = NumericRangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__exact=(20, 30))
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        value = mock.Mock(start=20, stop=30)
+        f = NumericRangeFilter(exclude=True)
+        f.filter(qs, value)
+        qs.exclude.assert_called_once_with(None__exact=(20, 30))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -489,6 +529,13 @@ class RangeFilterTests(TestCase):
         f = RangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__range=(20, 30))
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        value = mock.Mock(start=20, stop=30)
+        f = RangeFilter(exclude=True)
+        f.filter(qs, value)
+        qs.exclude.assert_called_once_with(None__range=(20, 30))
 
     def test_filtering_start(self):
         qs = mock.Mock(spec=['filter'])
