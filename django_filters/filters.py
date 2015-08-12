@@ -202,13 +202,13 @@ class NumericRangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
-            if value.start and value.stop:
+            if value.start is not None and value.stop is not None:
                 lookup = '%s__%s' % (self.name, self.lookup_type)
                 return qs.filter(**{lookup: (value.start, value.stop)})
             else:
-                if value.start:
+                if value.start is not None:
                     qs = qs.filter(**{'%s__startswith' % self.name: value.start})
-                if value.stop:
+                if value.stop is not None:
                     qs = qs.filter(**{'%s__endswith' % self.name: value.stop})
         return qs
 
@@ -218,13 +218,13 @@ class RangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
-          if value.start and value.stop:
+          if value.start is not None and value.stop is not None:
             lookup = '%s__range' % self.name
             return qs.filter(**{lookup: (value.start, value.stop)})
           else:
-            if value.start:
+            if value.start is not None:
               qs = qs.filter(**{'%s__gte'%self.name:value.start})
-            if value.stop:
+            if value.stop is not None:
               qs = qs.filter(**{'%s__lte'%self.name:value.stop})
         return qs
 

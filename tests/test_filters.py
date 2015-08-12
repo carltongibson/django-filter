@@ -468,6 +468,13 @@ class NumericRangeFilterTests(TestCase):
         result = f.filter(qs, value)
         self.assertEqual(qs, result)
 
+    def test_zero_to_zero(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=0, stop=0)
+        f = NumericRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__exact=(0, 0))
+
 
 class RangeFilterTests(TestCase):
 
