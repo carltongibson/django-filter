@@ -6,7 +6,12 @@ from collections import namedtuple
 
 from django import forms
 from django.utils.dateparse import parse_datetime
-from django.utils.encoding import force_str
+
+# TODO: Remove this once Django 1.4 is EOL.
+try:
+    from django.utils.encoding import force_str
+except ImportError:
+    force_str = None
 
 from .widgets import RangeWidget, LookupTypeWidget
 
@@ -88,7 +93,10 @@ class IsoDateTimeField(forms.DateTimeField):
     input_formats = [ISO_8601]
 
     def strptime(self, value, format):
-        value = force_str(value)
+        # TODO: Remove this once Django 1.4 is EOL.
+        if force_str is not None:
+            value = force_str(value)
+
         if format == self.ISO_8601:
             parsed = parse_datetime(value)
             if parsed is None:  # Continue with other formats if doesn't match
