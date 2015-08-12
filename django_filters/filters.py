@@ -170,6 +170,15 @@ class DateTimeFilter(Filter):
     field_class = forms.DateTimeField
 
 class IsoDateTimeFilter(DateTimeFilter):
+    """
+    Uses IsoDateTimeField to support filtering on ISO 8601 formated datetimes.
+
+    For context see:
+
+    * https://code.djangoproject.com/ticket/23448
+    * https://github.com/tomchristie/django-rest-framework/issues/1338
+    * https://github.com/alex/django-filter/pull/264
+    """
     field_class = IsoDateTimeField
 
 class TimeFilter(Filter):
