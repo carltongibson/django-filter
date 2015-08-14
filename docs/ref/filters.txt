@@ -93,15 +93,35 @@ Override `is_noop` if you require a different test for your application.
 
 Matches on a date.  Used with ``DateField`` by default.
 
-``DateTimeFilter``
-~~~~~~~~~~~~~~~~~~
-
-Matches on a date and time.  Used with ``DateTimeField`` by default.
 
 ``TimeFilter``
 ~~~~~~~~~~~~~~
 
 Matches on a time.  Used with ``TimeField`` by default.
+
+
+``DateTimeFilter``
+~~~~~~~~~~~~~~~~~~
+
+Matches on a date and time.  Used with ``DateTimeField`` by default.
+
+
+``IsoDateTimeFilter``
+~~~~~~~~~~~~~~~~~~~~~
+
+Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often used in APIs, and are employed by default by Django REST Framework.
+
+Example. ::
+
+    class F(FilterSet):
+        """Filter for Books by date published, using ISO 8601 formatted dates"""
+        published = IsoDateTimeFilter()
+
+        class Meta:
+            model = Book
+            fields = ['published']
+
+
 
 ``ModelChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -127,6 +147,20 @@ the default ``QuerySet`` for the related field. If manually instantiated you **m
 
 Filters based on a numerical value, used with ``IntegerField``, ``FloatField``,
 and ``DecimalField`` by default.
+
+``NumericRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~
+
+Filters where a value is between two numerical values, or greater than a minimum or less
+than a maximum where only one limit value is provided. This filter is designed to work with
+the Postgres Numerical Range Fields, including `IntegerRangeField`, `BigIntegerRangeField` and `FloatRangeField`,
+available since Django 1.8. The default widget used is the `RangeField`.
+
+RangeField lookup_types can be used, including `overlap`, `contains`, and `contained_by`. More lookups can be
+found in the Django docs ([https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields](https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields)).
+
+If the lower limit value is provided, the filter automatically defaults to `__startswith` as the lookup
+type and if only the upper limit value is provided, the filter uses `__endswith`.
 
 ``RangeFilter``
 ~~~~~~~~~~~~~~~
@@ -158,6 +192,17 @@ Filters where a value is between two numerical values, or greater than a minimum
 
 Filter similar to the admin changelist date one, it has a number of common
 selections for working with date fields.
+
+``DateFromToRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField`` and ``DateTimeField``.
+
+
+``TimeRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses time format values instead of numerical values. It can be used with ``TimeField``.
 
 ``AllValuesFilter``
 ~~~~~~~~~~~~~~~~~~~
@@ -229,9 +274,18 @@ queryset. This option can be used to eliminate duplicate results when using filt
 A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
 Defaults to ``False``.
 
+ModelChoiceFilter and ModelMultipleChoiceFilter
+--------------
+
+
+``queryset``
+~~~~~~~~~~~
+
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
+
 
 ``**kwargs``
 ~~~~~~~~~~~~
 
 Any extra keyword arguments will be provided to the accompanying form Field.
-This can be used to provide arguments like ``choices`` or ``queryset``.
+This can be used to provide arguments like ``choices``.

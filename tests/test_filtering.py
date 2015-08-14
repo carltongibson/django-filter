@@ -511,6 +511,10 @@ class RangeFilterTests(TestCase):
                             average_rating=4.5999999999999996)
         Book.objects.create(title="Snowcrash", price='20.0',
                             average_rating=4.2999999999999998)
+        Book.objects.create(title="Refund", price='-10.0',
+                            average_rating=5.0)
+        Book.objects.create(title="Free Book", price='0.0',
+                            average_rating=0.0)
 
     def test_filtering(self):
         class F(FilterSet):
@@ -523,7 +527,7 @@ class RangeFilterTests(TestCase):
         qs = Book.objects.all().order_by('title')
         f = F(queryset=qs)
         self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
+                                 ['Ender\'s Game', 'Free Book', 'Rainbow Six', 'Refund', 'Snowcrash'],
                                  lambda o: o.title)
         f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
@@ -536,7 +540,20 @@ class RangeFilterTests(TestCase):
                                  lambda o: o.title)
         f = F({'price_1': '19'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six'],
+                                 ['Ender\'s Game', 'Free Book', 'Rainbow Six', 'Refund'],
+                                 lambda o: o.title)
+
+        f = F({'price_0': '0', 'price_1': '12'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Ender\'s Game', 'Free Book'],
+                                 lambda o: o.title)
+        f = F({'price_0': '-11', 'price_1': '0'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Free Book', 'Refund'],
+                                 lambda o: o.title)
+        f = F({'price_0': '0', 'price_1': '0'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Free Book'],
                                  lambda o: o.title)
 
 
@@ -694,6 +711,57 @@ class MethodFilterTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'})),
                          list())
+
+
+    def test_filtering_default_attribute_action(self):
+        User.objects.create(username='mike')
+        User.objects.create(username='jake')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = MethodFilter()
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+            def filter_username(self, queryset, value):
+                return queryset.filter(
+                    username__contains='ke'
+                )
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'mike'})),
+                         [User.objects.get(username='mike'),
+                          User.objects.get(username='jake')],)
+        self.assertEqual(list(F({'username': 'jake'})),
+                         [User.objects.get(username='mike'),
+                          User.objects.get(username='jake')])
+        self.assertEqual(list(F({'username': 'aaron'})),
+                         [User.objects.get(username='mike'),
+                          User.objects.get(username='jake')])
+
+
+    def test_filtering_default(self):
+        User.objects.create(username='mike')
+        User.objects.create(username='jake')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = MethodFilter()
+            email = MethodFilter()
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'mike'})),
+                         list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'jake'})),
+                         list(User.objects.all()))
+        self.assertEqual(list(F({'username': 'aaron'})),
+                         list(User.objects.all()))
 
 
 class O2ORelationshipTests(TestCase):
