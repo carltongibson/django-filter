@@ -140,7 +140,7 @@ Example. ::
 
         class Meta:
             model = Book
-            fields = ['published']
+            fields = ['author']
 
 ``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
