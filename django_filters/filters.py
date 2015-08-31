@@ -84,9 +84,9 @@ class Filter(object):
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
             return qs
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         if self.distinct:
             qs = qs.distinct()
+        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         return qs
 
 
