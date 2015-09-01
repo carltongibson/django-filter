@@ -132,6 +132,16 @@ Similar to a ``ChoiceFilter`` except it works with related models, used for
 If automatically instantiated ``ModelChoiceFilter`` will use the default ``QuerySet`` for the
 related field. If manually instantiated you **must** provide the ``queryset`` kwarg.
 
+Example. ::
+
+    class F(FilterSet):
+        """Filter for books by author"""
+        author = ModelChoiceFilter(queryset=Author.objects.all())
+
+        class Meta:
+            model = Book
+            fields = ['author']
+
 ``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -217,10 +227,27 @@ of the admin.
 
 This is a ``Filter`` that will allow you to run a method that exists on the filter set that
 this filter is a property of. Set the `action` to a string that will map to a method on the
-filter set class.
+filter set class. `action` will default to ``filter_{value-of-name-attribute}``
+
+Example. ::
+
+    class F(FilterSet):
+        """Filter for Books by if books are published or not"""
+        published = MethodFilter()
+
+        def filter_published(self, queryset, value):
+            if value:
+                return queryset.filter(published__isnull=False)
+            return queryset
+
+        class Meta:
+            model = Book
+            fields = ['published']
 
 Core Arguments
 --------------
+
+These arguments apply to the filters described above.
 
 ``name``
 ~~~~~~~~
@@ -250,7 +277,8 @@ additional ones that django-filter provides which may be useful:
 
 An optional callable that tells the filter how to handle the queryset.  It
 recieves a ``QuerySet`` and the value to filter on and should return a
-``Queryset`` that is filtered appropriately.
+``Queryset`` that is filtered appropriately. `action` will default to
+``filter_{value-of-name-attribute}``
 
 ``lookup_type``
 ~~~~~~~~~~~~~~~
@@ -274,9 +302,11 @@ queryset. This option can be used to eliminate duplicate results when using filt
 A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
 Defaults to ``False``.
 
-ModelChoiceFilter and ModelMultipleChoiceFilter
+ModelChoiceFilter and ModelMultipleChoiceFilter arguments
 --------------
 
+These arguments apply specifically to ModelChoiceFiler and
+ModelMultipleChoiceFilter only.
 
 ``queryset``
 ~~~~~~~~~~~
