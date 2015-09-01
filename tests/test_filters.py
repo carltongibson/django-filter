@@ -189,7 +189,7 @@ class FilterTests(TestCase):
         qs = mock.Mock(spec=['filter', 'distinct'])
         f = Filter(name='somefield', distinct=True)
         f.filter(qs, 'value')
-        result = qs.distinct.assert_called_once()
+        result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
 
 
