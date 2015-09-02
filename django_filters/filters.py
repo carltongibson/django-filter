@@ -280,7 +280,10 @@ class DateRangeFilter(ChoiceFilter):
             value = int(value)
         except (ValueError, TypeError):
             value = ''
-        return self.options[value][1](qs, self.name)
+        qs = self.options[value][1](qs, self.name)
+        if self.distinct:
+            qs = qs.distinct()
+        return qs
 
 
 class DateFromToRangeFilter(RangeFilter):
