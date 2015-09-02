@@ -8,7 +8,7 @@ from django_filters.filterset import FilterSet
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 
-from .models import User
+from .models import User, UsersOfManager
 from .models import Book
 from .models import STATUS_CHOICES
 
@@ -273,3 +273,19 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(
             f.fields['o'].choices, [('status', 'Current status')])
 
+    def test_limit_choices_to(self):
+        User.objects.create(username='inactive', is_active=False, status=0)
+        User.objects.create(username='active', is_active=True, status=0)
+        User.objects.create(username='manager', is_active=False, status=1)
+
+        class F(FilterSet):
+            class Meta:
+                model = UsersOfManager
+                fields = ['users', 'manager']
+        f = F().form
+        self.assertEquals(
+            list(f.fields['users'].choices), [(2, u'active')]
+        )
+        self.assertEquals(
+            list(f.fields['manager'].choices), [(u'', u'---------'), (3, u'manager')]
+        )
