@@ -212,14 +212,14 @@ class BooleanFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = BooleanFilter(name='somefield')
         result = f.filter(qs, True)
-        qs.filter.assert_called_once_with(somefield=True)
+        qs.filter.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
     def test_filtering_exclude(self):
         qs = mock.Mock(spec=['exclude'])
         f = BooleanFilter(name='somefield', exclude=True)
         result = f.filter(qs, True)
-        qs.exclude.assert_called_once_with(somefield=True)
+        qs.exclude.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
     @unittest.expectedFailure
@@ -236,6 +236,13 @@ class BooleanFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
+
+    def test_filtering_lookup_type(self):
+        qs = mock.Mock(spec=['filter'])
+        f = BooleanFilter(name='somefield', lookup_type='isnull')
+        result = f.filter(qs, True)
+        qs.filter.assert_called_once_with(somefield__isnull=True)
+        self.assertNotEqual(qs, result)
 
 
 class ChoiceFilterTests(TestCase):
