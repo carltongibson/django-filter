@@ -244,6 +244,21 @@ Example. ::
             model = Book
             fields = ['published']
 
+``MultiFieldRangeFilter``
+~~~~~~~~~~~~~~~
+
+The same as ``RangeFilter`` except it works with multiple fields.
+
+As an argument is a list with fields to filter. ::
+
+    class F(FilterSet):
+        """Filter for Books by Price"""
+        prices = MultiFieldRangeFilter(['retail_price', 'market_price'])
+
+        class Meta:
+            model = Book
+            fields = ['prices']
+
 Core Arguments
 --------------
 
