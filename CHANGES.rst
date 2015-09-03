@@ -1,3 +1,23 @@
+Version 0.12.0 (2015-??-??)
+---------------------------
+
+* BREAKING CHANGE: the custom filter names are now also be used for ordering #230
+
+    If you use ordering on a field you defined as custom filter with custom
+    name, you should now use the filter name as ordering key as well.
+
+    Eg. For a filter like :
+
+        class F(FilterSet):
+            account = CharFilter(name='username')
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+
+     Before, ordering was like `?o=username`. Since 0.12.0 it's `o=account`.
+
+
 Version 0.11.0 (2015-08-14)
 ---------------------------
 

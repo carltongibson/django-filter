@@ -558,19 +558,29 @@ class FilterSetOrderingTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
 
-    @unittest.skip('todo')
     def test_ordering_uses_filter_name(self):
         class F(FilterSet):
             account = CharFilter(name='username')
-
             class Meta:
                 model = User
                 fields = ['account', 'status']
                 order_by = True
 
-        f = F({'o': 'username'}, queryset=self.qs)
+        f = F({'o': 'account'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+    def test_reverted_ordering_uses_filter_name(self):
+        class F(FilterSet):
+            account = CharFilter(name='username')
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+
+        f = F({'o': '-account'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
 
     def test_ordering_with_overridden_field_name(self):
         """

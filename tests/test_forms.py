@@ -199,7 +199,7 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(f.fields['o'].choices,
             [('username', 'Account'), ('-username', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
 
-    def test_ordering_uses_implicit_filter_name(self):
+    def test_ordering_uses_explicit_filter_name(self):
         class F(FilterSet):
             account = CharFilter(name='username')
 
@@ -210,7 +210,7 @@ class FilterSetFormTests(TestCase):
 
         f = F().form
         self.assertEqual(f.fields['o'].choices,
-            [('username', 'Account'), ('-username', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
+            [('account', 'Account'), ('-account', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
 
     def test_ordering_with_overridden_field_name(self):
         """
@@ -272,4 +272,3 @@ class FilterSetFormTests(TestCase):
         f = F().form
         self.assertEqual(
             f.fields['o'].choices, [('status', 'Current status')])
-
