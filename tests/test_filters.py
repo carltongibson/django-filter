@@ -12,6 +12,7 @@ else:  # pragma: nocover
 
 from datetime import timedelta
 
+import django
 from django import forms
 from django.test import TestCase
 
@@ -21,7 +22,8 @@ from django_filters.fields import (
     RangeField,
     DateRangeField,
     TimeRangeField,
-    LookupTypeField)
+    LookupTypeField,
+    UUIDField)
 from django_filters.filters import (
     Filter,
     CharFilter,
@@ -40,6 +42,7 @@ from django_filters.filters import (
     DateFromToRangeFilter,
     TimeRangeFilter,
     AllValuesFilter,
+    UUIDFilter,
     LOOKUP_TYPES)
 
 from tests.models import Book, User
@@ -199,6 +202,18 @@ class CharFilterTests(TestCase):
         f = CharFilter()
         field = f.field
         self.assertIsInstance(field, forms.CharField)
+
+
+class UUIDFilterTests(TestCase):
+
+    def test_default_field(self):
+        if not django.VERSION < (1, 8):
+            f = UUIDFilter()
+            field = f.field
+            self.assertIsInstance(field, UUIDField)
+        else:
+            with self.assertRaises(ImportError):
+                UUIDFilter().field
 
 
 class BooleanFilterTests(TestCase):
