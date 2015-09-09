@@ -12,6 +12,15 @@ Filters
 This filter does simple character matches, used with ``CharField`` and
 ``TextField`` by default.
 
+``UUIDFilter``
+~~~~~~~~~~~~~~
+
+This filter matches UUID values, used with ``models.UUIDField`` by default.
+
+Note:
+::
+    Only available in Django versions >= 1.8
+
 ``BooleanFilter``
 ~~~~~~~~~~~~~~~~~
 
