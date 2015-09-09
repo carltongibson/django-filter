@@ -17,7 +17,7 @@ from .widgets import RangeWidget, LookupTypeWidget
 
 try:
     from django.forms import UUIDField
-except ImportError, e:
+except ImportError as e:
     class UUIDField(object):
         def __init__(self, *args, **kwargs):
             # delay ImportError until it is used
