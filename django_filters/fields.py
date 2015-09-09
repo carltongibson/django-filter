@@ -18,10 +18,11 @@ from .widgets import RangeWidget, LookupTypeWidget
 try:
     from django.forms import UUIDField
 except ImportError as e:
+    uuidfield_import_error = e
     class UUIDField(object):
         def __init__(self, *args, **kwargs):
             # delay ImportError until it is used
-            raise e
+            raise uuidfield_import_error
 
 
 class RangeField(forms.MultiValueField):
