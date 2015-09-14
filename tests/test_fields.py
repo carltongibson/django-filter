@@ -12,7 +12,12 @@ else:  # pragma: nocover
 
 import django
 from django import forms
-from django.test import TestCase, override_settings
+from django.test import TestCase
+try:
+    from django.test import override_settings
+except ImportError:
+    # TODO: Remove this once Django 1.6 is EOL.
+    from django.test.utils import override_settings
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
