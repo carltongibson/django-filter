@@ -5,7 +5,9 @@ from datetime import datetime, time
 from collections import namedtuple
 
 from django import forms
+from django.conf import settings
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 
 # TODO: Remove this once Django 1.4 is EOL.
 try:
@@ -91,6 +93,7 @@ class IsoDateTimeField(forms.DateTimeField):
     """
     ISO_8601 = 'iso-8601'
     input_formats = [ISO_8601]
+    default_timezone = timezone.get_default_timezone() if settings.USE_TZ else None
 
     def strptime(self, value, format):
         # TODO: Remove this once Django 1.4 is EOL.
@@ -101,5 +104,12 @@ class IsoDateTimeField(forms.DateTimeField):
             parsed = parse_datetime(value)
             if parsed is None:  # Continue with other formats if doesn't match
                 raise ValueError
+
+            # Handle timezone awareness. Copied from:
+            # https://github.com/tomchristie/django-rest-framework/blob/3.2.0/rest_framework/fields.py#L965-L969
+            if settings.USE_TZ and not timezone.is_aware(parsed):
+                return timezone.make_aware(parsed, self.default_timezone)
+            elif not settings.USE_TZ and timezone.is_aware(parsed):
+                return timezone.make_naive(parsed, timezone.UTC())
             return parsed
         return super(IsoDateTimeField, self).strptime(value, format)
