@@ -10,6 +10,7 @@ else:  # pragma: nocover
 
 from django.db import models
 from django.test import TestCase
+from django.utils import timezone
 
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
@@ -22,6 +23,7 @@ from django_filters.filters import ModelMultipleChoiceFilter
 
 from .models import User
 from .models import AdminUser
+from .models import Article
 from .models import Book
 from .models import Profile
 from .models import Comment
@@ -481,6 +483,26 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = F(queryset=m)
         self.assertEqual(f.queryset, m)
+
+
+class FilterSetLookupTypeOverrideTests(TestCase):
+
+    def test_isnull(self):
+        self.alex = User.objects.create(username='alex')
+        self.alex_article = Article.objects.create(author=self.alex, published=timezone.now())
+        self.anon_article = Article.objects.create(published=timezone.now())
+        self.qs = Article.objects.all()
+
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'author': ['isnull'], }
+
+        f = F({'author__isnull': True}, queryset=self.qs)
+        self.assertQuerysetEqual(f.qs, [self.anon_article.pk], lambda o: o.pk)
+
+        f = F({'author__isnull': False}, queryset=self.qs)
+        self.assertQuerysetEqual(f.qs, [self.alex_article.pk], lambda o: o.pk)
 
 
 class FilterSetOrderingTests(TestCase):

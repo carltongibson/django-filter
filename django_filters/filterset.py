@@ -306,6 +306,14 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 }
 
 
+FILTER_OVERRIDES_FOR_LOOKUP_TYPE = {
+    'isnull': {
+        'filter_class': BooleanFilter,
+        'choices': None,
+    },
+}
+
+
 class BaseFilterSet(object):
     filter_overrides = {}
     order_by_field = ORDER_BY_FIELD
@@ -469,6 +477,10 @@ class BaseFilterSet(object):
             return ChoiceFilter(**default)
 
         data = filter_for_field.get(f.__class__)
+
+        # Get lookup_type overrides for filters
+        data = cls.filter_for_lookup_type(data, lookup_type)
+
         if data is None:
             # could be a derived field, inspect parents
             for class_ in f.__class__.mro():
@@ -499,6 +511,11 @@ class BaseFilterSet(object):
             return ModelMultipleChoiceFilter(**default)
         else:
             return ModelChoiceFilter(**default)
+
+    @classmethod
+    def filter_for_lookup_type(cls, field_filter, lookup_type):
+        overrides = FILTER_OVERRIDES_FOR_LOOKUP_TYPE
+        return overrides.get(lookup_type, field_filter)
 
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
