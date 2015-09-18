@@ -316,6 +316,7 @@ FILTER_OVERRIDES_FOR_LOOKUP_TYPE = {
 
 class BaseFilterSet(object):
     filter_overrides = {}
+    lookup_type_overrides = {}
     order_by_field = ORDER_BY_FIELD
     # What to do on on validation errors
     strict = STRICTNESS.RETURN_NO_RESULTS
@@ -514,7 +515,9 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_lookup_type(cls, field_filter, lookup_type):
-        overrides = FILTER_OVERRIDES_FOR_LOOKUP_TYPE
+        overrides = dict(FILTER_OVERRIDES_FOR_LOOKUP_TYPE)
+        overrides.update(cls.lookup_type_overrides)
+
         return overrides.get(lookup_type, field_filter)
 
 

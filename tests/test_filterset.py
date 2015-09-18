@@ -504,6 +504,21 @@ class FilterSetLookupTypeOverrideTests(TestCase):
         f = F({'author__isnull': False}, queryset=self.qs)
         self.assertQuerysetEqual(f.qs, [self.alex_article.pk], lambda o: o.pk)
 
+    def test_lookup_type_overrides(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'author': ['isnull'], }
+
+        # Override lookup_types
+        class O(F):
+            lookup_type_overrides = {
+                'isnull': {'filter_class': ChoiceFilter, },
+            }
+
+        self.assertFalse(isinstance(F.base_filters['author__isnull'], ChoiceFilter))
+        self.assertTrue(isinstance(O.base_filters['author__isnull'], ChoiceFilter))
+
 
 class FilterSetOrderingTests(TestCase):
 
