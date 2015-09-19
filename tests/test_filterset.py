@@ -14,6 +14,8 @@ from django.test import TestCase
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import get_model_field
+from django_filters.filterset import LOOKUPS
+from django_filters.filterset import LOOKUP_TYPES
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
@@ -291,6 +293,22 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 3)
 
         expected_list = ['price', 'price__gte', 'price__lte', ]
+        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+
+    def test_meta_fields_dictionary_all_lookups(self):
+        class F(FilterSet):
+
+            class Meta:
+                model = Book
+                fields = {'price': LOOKUPS.ALL, }
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), len(LOOKUP_TYPES))
+
+        expected_list = ['price__%s' % l for l in LOOKUP_TYPES]
+        i = expected_list.index('price__exact')
+        expected_list[i] = 'price'
+
         self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
 
     def test_meta_fields_containing_autofield(self):
