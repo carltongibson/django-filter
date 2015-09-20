@@ -36,7 +36,7 @@ except ImportError:  # pragma: nocover
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter)
+    ModelMultipleChoiceFilter, NumberFilter, LOOKUP_TYPES)
 
 
 ORDER_BY_FIELD = 'o'
@@ -58,6 +58,10 @@ class STRICTNESS(object):
     IGNORE = False
     RETURN_NO_RESULTS = True
     RAISE_VALIDATION_ERROR = "RAISE"
+
+
+class LOOKUPS(object):
+    ALL = '__all__'
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -130,8 +134,13 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
                 field_dict[f] = filter_
         # If fields is a dictionary, it must contain lists.
         elif isinstance(fields, dict):
+            lookup_types = fields[f]
+
+            if lookup_types == LOOKUPS.ALL:
+                lookup_types = LOOKUP_TYPES
+
             # Create a filter for each lookup type.
-            for lookup_type in fields[f]:
+            for lookup_type in lookup_types:
                 filter_ = filter_for_field(field, f, lookup_type)
 
                 if filter_:
