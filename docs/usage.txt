@@ -72,6 +72,17 @@ The above would generate 'price__lt', 'price__gt' and 'release_date' filters.
 The filter lookup type keyword 'exact' is the default and therefore never added
 to a filter name.
 
+To enable all filter lookups for a field, the ``LOOKUPS.ALL`` constant has been
+provided. This exposes filters for all django query terms.::
+
+    import django_filters
+    from django_filters.filterset import LOOKUPS
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {'price': LOOKUPS.ALL, }
+
 Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a
 related model::
