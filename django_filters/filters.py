@@ -12,7 +12,7 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField, UUIDField)
 
 
 __all__ = [
@@ -104,6 +104,10 @@ class ChoiceFilter(Filter):
 
 class TypedChoiceFilter(Filter):
     field_class = forms.TypedChoiceField
+
+
+class UUIDFilter(Filter):
+    field_class = UUIDField
 
 
 class MultipleChoiceFilter(Filter):

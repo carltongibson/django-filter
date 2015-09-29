@@ -36,7 +36,7 @@ except ImportError:  # pragma: nocover
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter)
+    ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -305,6 +305,10 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     },
 }
 
+if hasattr(models, "UUIDField"):
+    FILTER_FOR_DBFIELD_DEFAULTS[models.UUIDField] = {
+        'filter_class': UUIDFilter,
+    }
 
 class BaseFilterSet(object):
     filter_overrides = {}

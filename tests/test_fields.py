@@ -21,10 +21,20 @@ except ImportError:
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField, UUIDField)
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
+
+
+class UUIDFieldTests(TestCase):
+
+    def test_field(self):
+        if django.VERSION < (1, 8):
+            with self.assertRaises(ImportError):
+                UUIDField()
+        else:
+            self.assertIs(UUIDField, forms.UUIDField)
 
 
 class RangeFieldTests(TestCase):
