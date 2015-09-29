@@ -1,4 +1,4 @@
 django-discover-runner
 mock
-coverage
+coverage==3.7.1
 sphinx-autobuild
