@@ -173,6 +173,23 @@ def get_full_clean_override(together):
     return full_clean
 
 
+def get_from_dbfield_dict(dbfield_dict, field_class):
+    if not dbfield_dict:
+        return None
+
+    # walk the mro, as field_class could be a derived model field.
+    # (last index is object)
+    for cls in field_class.mro()[:-1]:
+
+        # skip if cls is models.Field
+        if cls is models.Field:
+            continue
+
+        data = dbfield_dict.get(cls)
+        if data:
+            return data
+
+
 class FilterSetOptions(object):
     def __init__(self, options=None):
         self.model = getattr(options, 'model', None)
@@ -477,23 +494,16 @@ class BaseFilterSet(object):
             default['choices'] = f.choices
             return ChoiceFilter(**default)
 
-        data = filter_for_field.get(f.__class__)
+        # get filter defaults for DB field type
+        data = get_from_dbfield_dict(filter_for_field, f.__class__)
 
-        # Get lookup_type overrides for filters
+        # No DB field defaults - cannot generate filter field
+        if data is None:
+            return
+
+        # Get filter override for the lookup_type
         data = cls.filter_for_lookup_type(data, lookup_type)
 
-        if data is None:
-            # could be a derived field, inspect parents
-            for class_ in f.__class__.mro():
-                # skip if class_ is models.Field or object
-                # 1st item in mro() is original class
-                if class_ in (f.__class__, models.Field, object):
-                    continue
-                data = filter_for_field.get(class_)
-                if data:
-                    break
-            if data is None:
-                return
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
