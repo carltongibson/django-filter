@@ -8,6 +8,7 @@ if sys.version_info >= (2, 7):
 else:  # pragma: nocover
     from django.utils import unittest  # noqa
 
+import django
 from django.db import models
 from django.test import TestCase
 from django.utils import timezone
@@ -23,6 +24,7 @@ from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import RangeFilter
 from django_filters.filters import DateFromToRangeFilter
+from django_filters.filters import UUIDFilter
 
 from .models import User
 from .models import AdminUser
@@ -40,6 +42,7 @@ from .models import DirectedNode
 from .models import Worker
 from .models import HiredWorker
 from .models import Business
+from .models import UUIDTestModel
 
 
 def checkItemsEqual(L1, L2):
@@ -98,6 +101,8 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.OneToOneField,
             models.ManyToManyField,
         ]
+        if hasattr(models, "UUIDField"):
+            to_check.append(models.UUIDField)
         msg = "%s expected to be found in FILTER_FOR_DBFIELD_DEFAULTS"
 
         for m in to_check:
@@ -124,6 +129,15 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, 'username')
         self.assertIsInstance(result, CharFilter)
         self.assertEqual(result.name, 'username')
+    
+    def test_filter_found_for_uuidfield(self):
+        if UUIDTestModel is None:
+            self.assertLess(django.VERSION, (1, 8))
+        else:
+            f = UUIDTestModel._meta.get_field('uuid')
+            result = FilterSet.filter_for_field(f, 'uuid')
+            self.assertIsInstance(result, UUIDFilter)
+            self.assertEqual(result.name, 'uuid')
 
     def test_filter_found_for_autofield(self):
         f = User._meta.get_field('id')

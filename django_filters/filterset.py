@@ -36,8 +36,8 @@ except ImportError:  # pragma: nocover
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter, RangeFilter, TimeRangeFilter,
-    DateFromToRangeFilter)
+    ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, RangeFilter,
+    TimeRangeFilter, DateFromToRangeFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -323,6 +323,10 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     },
 }
 
+if hasattr(models, "UUIDField"):
+    FILTER_FOR_DBFIELD_DEFAULTS[models.UUIDField] = {
+        'filter_class': UUIDFilter,
+    }
 
 FILTER_OVERRIDES_FOR_LOOKUP_TYPE = {
     'isnull': {

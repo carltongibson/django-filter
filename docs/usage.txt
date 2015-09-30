@@ -209,7 +209,7 @@ and used. ::
                     username__contains='ke'
                 )
 
-Under the hood, if ``action`` not is defined, ``django_filter``
+Under the hood, if ``action`` is not defined, ``django_filter``
 searches for a class method with a name that follows the pattern
 ``filter_{{ATTRIBUTE_NAME}}``. For example, if the attribute name is
 ``email``, then the filter class will be scanned for the filter function
