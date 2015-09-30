@@ -15,11 +15,14 @@ from django.utils import timezone
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import get_model_field
+from django_filters.filters import BooleanFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
+from django_filters.filters import RangeFilter
+from django_filters.filters import DateFromToRangeFilter
 
 from .models import User
 from .models import AdminUser
@@ -179,6 +182,24 @@ class FilterSetFilterForFieldTests(TestCase):
 
     @unittest.skip('todo')
     def test_filter_overrides(self):
+        pass
+
+    def test_lookup_type_overrides(self):
+        f = User._meta.get_field('id')
+        result = FilterSet.filter_for_field(f, 'id', 'isnull')
+        self.assertIsInstance(result, BooleanFilter)
+
+    def test_lookup_type_field_override(self):
+        f = models.IntegerField()
+        result = FilterSet.filter_for_field(f, 'id', 'range')
+        self.assertIsInstance(result, RangeFilter)
+
+        f = models.DateField()
+        result = FilterSet.filter_for_field(f, 'date', 'range')
+        self.assertIsInstance(result, DateFromToRangeFilter)
+
+    @unittest.skip('todo')
+    def test_lookup_type_class_overrides(self):
         pass
 
 

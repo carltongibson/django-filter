@@ -36,7 +36,8 @@ except ImportError:  # pragma: nocover
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter)
+    ModelMultipleChoiceFilter, NumberFilter, RangeFilter, TimeRangeFilter,
+    DateFromToRangeFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -326,7 +327,18 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 FILTER_OVERRIDES_FOR_LOOKUP_TYPE = {
     'isnull': {
         'filter_class': BooleanFilter,
-        'choices': None,
+    },
+    'range': {
+        'filter_class': RangeFilter,
+
+        'DBFIELD_OVERRIDES': {
+            models.DateField: {
+                'filter_class': DateFromToRangeFilter,
+            },
+            models.TimeField: {
+                'filter_class': TimeRangeFilter,
+            },
+        },
     },
 }
 
@@ -502,7 +514,7 @@ class BaseFilterSet(object):
             return
 
         # Get filter override for the lookup_type
-        data = cls.filter_for_lookup_type(data, lookup_type)
+        data = cls.filter_for_lookup_type(lookup_type, f) or data
 
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
@@ -524,11 +536,22 @@ class BaseFilterSet(object):
             return ModelChoiceFilter(**default)
 
     @classmethod
-    def filter_for_lookup_type(cls, field_filter, lookup_type):
+    def filter_for_lookup_type(cls, lookup_type, f):
         overrides = dict(FILTER_OVERRIDES_FOR_LOOKUP_TYPE)
         overrides.update(cls.lookup_type_overrides)
 
-        return overrides.get(lookup_type, field_filter)
+        lookup_override = overrides.get(lookup_type)
+        if not lookup_override:
+            return
+
+        lookup_override = dict(lookup_override)
+        field_overrides = lookup_override.pop('DBFIELD_OVERRIDES', {})
+        field_lookup_override = get_from_dbfield_dict(field_overrides, f.__class__)
+
+        if field_lookup_override:
+            lookup_override.update(field_lookup_override)
+
+        return lookup_override
 
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
