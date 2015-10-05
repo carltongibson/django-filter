@@ -8,8 +8,11 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
+  - "3.5"
+
 env:
   - DJANGO='https://github.com/django/django/archive/master.tar.gz'
+  - DJANGO='https://www.djangoproject.com/download/1.9a1/tarball/'
   - DJANGO='django>=1.8.0,<1.9.0'
   - DJANGO='django>=1.7.0,<1.8.0'
   - DJANGO='django>=1.4.0,<1.5.0'
@@ -31,10 +34,14 @@ matrix:
       env: DJANGO='django>=1.4.0,<1.5.0'
     - python: "3.2"
       env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
+    - python: "3.2"
+      env: DJANGO='https://www.djangoproject.com/download/1.9a1/tarball/'
     - python: "3.3"
       env: DJANGO='django>=1.4.0,<1.5.0'
     - python: "3.3"
       env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
+    - python: "3.3"
+      env: DJANGO='https://www.djangoproject.com/download/1.9a1/tarball/'
     - python: "3.4"
       env: DJANGO='django>=1.4.0,<1.5.0'
     - python: "2.6"
@@ -43,6 +50,8 @@ matrix:
       env: DJANGO='django>=1.8.0,<1.9.0'
     - python: "2.6"
       env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
+    - python: "2.6"
+      env: DJANGO='https://www.djangoproject.com/download/1.9a1/tarball/'
   allow_failures:
     - env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
   fast_finish: true
