@@ -136,6 +136,14 @@ class RangeWidgetTests(TestCase):
             -
             <input type="text" name="price_1" value="9.99" />""")
 
+    def test_widget_attributes(self):
+        w = RangeWidget(attrs={'type': 'date'})
+        self.assertEqual(len(w.widgets), 2)
+        self.assertHTMLEqual(w.render('date', ''), """
+            <input type="date" name="date_0" />
+            -
+            <input type="date" name="date_1" />""")
+
 
 class BooleanWidgetTests(TestCase):
     """
