@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 from django.conf import settings
-from django.core.management import call_command
 from django.core.management import execute_from_command_line
 
 if not settings.configured:
@@ -23,7 +22,7 @@ if not settings.configured:
 
 
 def runshell():
-    call_command('syncdb', interactive=False)
+    execute_from_command_line(sys.argv[:1] + ['syncdb', '--noinput', '-v', '0'])
     argv = sys.argv[:1] + ['shell'] + sys.argv[1:]
     execute_from_command_line(argv)
 
