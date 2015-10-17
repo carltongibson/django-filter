@@ -18,6 +18,7 @@ try:
 except ImportError:
     # TODO: Remove this once Django 1.6 is EOL.
     from django.test.utils import override_settings
+from django.utils.timezone import make_aware
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
@@ -156,7 +157,7 @@ class IsoDateTimeFieldTests(TestCase):
     def test_datetime_timezone_awareness(self):
         # parsed datetimes should obey USE_TZ
         f = IsoDateTimeField()
-        r = self.reference_dt.replace(tzinfo=f.default_timezone)
+        r = make_aware(self.reference_dt, f.default_timezone)
 
         d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d.tzinfo, tzinfo))
