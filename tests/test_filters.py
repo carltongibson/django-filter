@@ -15,8 +15,7 @@ from django_filters.fields import (
     RangeField,
     DateRangeField,
     TimeRangeField,
-    LookupTypeField,
-    UUIDField)
+    LookupTypeField)
 from django_filters.filters import (
     Filter,
     CharFilter,
@@ -203,7 +202,7 @@ class UUIDFilterTests(TestCase):
         if not django.VERSION < (1, 8):
             f = UUIDFilter()
             field = f.field
-            self.assertIsInstance(field, UUIDField)
+            self.assertIsInstance(field, forms.UUIDField)
         else:
             with self.assertRaises(ImportError):
                 UUIDFilter().field

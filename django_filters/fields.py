@@ -11,8 +11,6 @@ from django.utils import timezone
 
 from .widgets import RangeWidget, LookupTypeWidget
 
-from django.forms import UUIDField
-
 
 class RangeField(forms.MultiValueField):
     widget = RangeWidget
