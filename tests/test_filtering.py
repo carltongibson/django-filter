@@ -3,12 +3,7 @@ from __future__ import unicode_literals
 
 import datetime
 import mock
-import sys
-
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
+import unittest
 
 from django.test import TestCase
 from django.utils import six
@@ -1331,4 +1326,3 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.count(), 2)
-

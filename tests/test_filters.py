@@ -1,16 +1,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from datetime import date, datetime, time
+from datetime import date, time, timedelta
 import mock
-import sys
-
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
-
-from datetime import timedelta
+import unittest
 
 import django
 from django import forms
