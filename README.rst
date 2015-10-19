@@ -12,8 +12,8 @@ Full documentation on `read the docs`_.
 Requirements
 ------------
 
-* Python 2.6+
-* Django 1.4.5+
+* Python 2.7+
+* Django 1.8.5+
 
 Installation
 ------------
@@ -50,7 +50,7 @@ And then in your view you could do::
 
 Django-filters additionally supports specifying FilterSet fields using a
 dictionary to specify filters with lookup types::
- 
+
     import django_filters
 
     class ProductFilter(django_filters.FilterSet):

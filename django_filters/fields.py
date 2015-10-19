@@ -9,22 +9,7 @@ from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
-# TODO: Remove this once Django 1.4 is EOL.
-try:
-    from django.utils.encoding import force_str
-except ImportError:
-    force_str = None
-
 from .widgets import RangeWidget, LookupTypeWidget
-
-try:
-    from django.forms import UUIDField
-except ImportError as e:
-    uuidfield_import_error = e
-    class UUIDField(object):
-        def __init__(self, *args, **kwargs):
-            # delay ImportError until it is used
-            raise uuidfield_import_error
 
 
 class RangeField(forms.MultiValueField):
@@ -105,10 +90,6 @@ class IsoDateTimeField(forms.DateTimeField):
     default_timezone = timezone.get_default_timezone() if settings.USE_TZ else None
 
     def strptime(self, value, format):
-        # TODO: Remove this once Django 1.4 is EOL.
-        if force_str is not None:
-            value = force_str(value)
-
         if format == self.ISO_8601:
             parsed = parse_datetime(value)
             if parsed is None:  # Continue with other formats if doesn't match
