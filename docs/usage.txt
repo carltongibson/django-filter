@@ -114,6 +114,42 @@ default filters for all the models fields of the same kind using
             model = Product
             fields = ['name']
 
+Lookup Specific Overrides
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Some lookup types accept values that differ from its field's underlying type.
+For example::
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {'manufacturer': ['exact', 'in', 'isnull'], }
+
+In this case, the ``exact`` lookup accepts manufacturer IDs, however the ``in``
+lookup expects a comma delimited list of IDs, and ``isnull`` expects either
+``True`` or ``False``. The default filter for the manufacturer field will be
+unable to parse the list or boolean values. To solve this value conflict,
+some lookups are provided filter overrides.
+
+.. note::
+
+    Currently, ``isnull`` is the only overriden lookup type.
+
+It is also possible to override lookup specific filters by using
+``lookup_type_overrides``::
+
+    class ProductFilter(django_filters.FilterSet):
+        lookup_type_overrides = {
+            'isnull': {
+                'filter_class': django_filters.BooleanFilter,
+                'extra': lambda f: {
+                    'widget': widgets.RadioSelect(choices=BOOL_CHOICES),
+                }
+            }
+        }
+
+        class Meta:
+            model = Product
+            fields = {'manufacturer': ['exact', 'in', 'isnull'], }
 
 MethodFilter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -20,7 +20,8 @@ from sys import version_info
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
+    ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, RangeFilter,
+    TimeRangeFilter, DateFromToRangeFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -155,6 +156,23 @@ def get_full_clean_override(together):
         elif all_valid(together):
             return add_error(message % ','.join(together))
     return full_clean
+
+
+def get_from_dbfield_dict(dbfield_dict, field_class):
+    if not dbfield_dict:
+        return None
+
+    # walk the mro, as field_class could be a derived model field.
+    # (last index is object)
+    for cls in field_class.mro()[:-1]:
+
+        # skip if cls is models.Field
+        if cls is models.Field:
+            continue
+
+        data = dbfield_dict.get(cls)
+        if data:
+            return data
 
 
 class FilterSetOptions(object):
@@ -294,8 +312,28 @@ if hasattr(models, "UUIDField"):
         'filter_class': UUIDFilter,
     }
 
+FILTER_OVERRIDES_FOR_LOOKUP_TYPE = {
+    'isnull': {
+        'filter_class': BooleanFilter,
+    },
+    'range': {
+        'filter_class': RangeFilter,
+
+        'DBFIELD_OVERRIDES': {
+            models.DateField: {
+                'filter_class': DateFromToRangeFilter,
+            },
+            models.TimeField: {
+                'filter_class': TimeRangeFilter,
+            },
+        },
+    },
+}
+
+
 class BaseFilterSet(object):
     filter_overrides = {}
+    lookup_type_overrides = {}
     order_by_field = ORDER_BY_FIELD
     # What to do on on validation errors
     strict = STRICTNESS.RETURN_NO_RESULTS
@@ -456,19 +494,16 @@ class BaseFilterSet(object):
             default['choices'] = f.choices
             return ChoiceFilter(**default)
 
-        data = filter_for_field.get(f.__class__)
+        # get filter defaults for DB field type
+        data = get_from_dbfield_dict(filter_for_field, f.__class__)
+
+        # No DB field defaults - cannot generate filter field
         if data is None:
-            # could be a derived field, inspect parents
-            for class_ in f.__class__.mro():
-                # skip if class_ is models.Field or object
-                # 1st item in mro() is original class
-                if class_ in (f.__class__, models.Field, object):
-                    continue
-                data = filter_for_field.get(class_)
-                if data:
-                    break
-            if data is None:
-                return
+            return
+
+        # Get filter override for the lookup_type
+        data = cls.filter_for_lookup_type(lookup_type, f) or data
+
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
@@ -487,6 +522,24 @@ class BaseFilterSet(object):
             return ModelMultipleChoiceFilter(**default)
         else:
             return ModelChoiceFilter(**default)
+
+    @classmethod
+    def filter_for_lookup_type(cls, lookup_type, f):
+        overrides = dict(FILTER_OVERRIDES_FOR_LOOKUP_TYPE)
+        overrides.update(cls.lookup_type_overrides)
+
+        lookup_override = overrides.get(lookup_type)
+        if not lookup_override:
+            return
+
+        lookup_override = dict(lookup_override)
+        field_overrides = lookup_override.pop('DBFIELD_OVERRIDES', {})
+        field_lookup_override = get_from_dbfield_dict(field_overrides, f.__class__)
+
+        if field_lookup_override:
+            lookup_override.update(field_lookup_override)
+
+        return lookup_override
 
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):

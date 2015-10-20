@@ -6,19 +6,24 @@ import unittest
 import django
 from django.db import models
 from django.test import TestCase
+from django.utils import timezone
 
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import get_model_field
+from django_filters.filters import BooleanFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
+from django_filters.filters import RangeFilter
+from django_filters.filters import DateFromToRangeFilter
 from django_filters.filters import UUIDFilter
 
 from .models import User
 from .models import AdminUser
+from .models import Article
 from .models import Book
 from .models import Profile
 from .models import Comment
@@ -187,6 +192,24 @@ class FilterSetFilterForFieldTests(TestCase):
 
     @unittest.skip('todo')
     def test_filter_overrides(self):
+        pass
+
+    def test_lookup_type_overrides(self):
+        f = User._meta.get_field('id')
+        result = FilterSet.filter_for_field(f, 'id', 'isnull')
+        self.assertIsInstance(result, BooleanFilter)
+
+    def test_lookup_type_field_override(self):
+        f = models.IntegerField()
+        result = FilterSet.filter_for_field(f, 'id', 'range')
+        self.assertIsInstance(result, RangeFilter)
+
+        f = models.DateField()
+        result = FilterSet.filter_for_field(f, 'date', 'range')
+        self.assertIsInstance(result, DateFromToRangeFilter)
+
+    @unittest.skip('todo')
+    def test_lookup_type_class_overrides(self):
         pass
 
 
@@ -491,6 +514,41 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = F(queryset=m)
         self.assertEqual(f.queryset, m)
+
+
+class FilterSetLookupTypeOverrideTests(TestCase):
+
+    def test_isnull(self):
+        self.alex = User.objects.create(username='alex')
+        self.alex_article = Article.objects.create(author=self.alex, published=timezone.now())
+        self.anon_article = Article.objects.create(published=timezone.now())
+        self.qs = Article.objects.all()
+
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'author': ['isnull'], }
+
+        f = F({'author__isnull': True}, queryset=self.qs)
+        self.assertQuerysetEqual(f.qs, [self.anon_article.pk], lambda o: o.pk)
+
+        f = F({'author__isnull': False}, queryset=self.qs)
+        self.assertQuerysetEqual(f.qs, [self.alex_article.pk], lambda o: o.pk)
+
+    def test_lookup_type_overrides(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'author': ['isnull'], }
+
+        # Override lookup_types
+        class O(F):
+            lookup_type_overrides = {
+                'isnull': {'filter_class': ChoiceFilter, },
+            }
+
+        self.assertFalse(isinstance(F.base_filters['author__isnull'], ChoiceFilter))
+        self.assertTrue(isinstance(O.base_filters['author__isnull'], ChoiceFilter))
 
 
 class FilterSetOrderingTests(TestCase):
