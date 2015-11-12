@@ -2,7 +2,7 @@ Running the django-filter tests
 ===============================
 
 The easiest way to run the django-filter tests is to check out the source
-code into a virtualenv, where you can install the test dependencies.  
+code into a virtualenv, where you can install the test dependencies.
 django-filter uses a custom test runner to locate all of the tests, so a
 wrapper script is available to set up and run the test suite.
 
@@ -44,4 +44,13 @@ virutalenv::
 Run the django-filter tests::
 
     python runtests.py
+
+
+Testing all supported versions
+------------------------------
+
+You can also use the excellent tox testing tool to run the tests against all supported versions of
+Python and Django. Install tox globally, and then simply run::
+
+    tox
 

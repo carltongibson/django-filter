@@ -1,3 +1,31 @@
+Version 0.11.0 (2015-08-14)
+---------------------------
+
+* FEATURE: Added default filter method lookup for MethodFilter #222
+
+* FEATURE: Added support for yesterday in daterangefilter #234
+
+* FEATURE: Created Filter for NumericRange. #236
+
+* FEATURE: Added Date/time range filters #215
+
+* FEATURE: Added option to raise with `strict` #255
+
+* FEATURE: Added Form Field and Filter to parse ISO-8601 timestamps
+
+
+Version 0.10.0 (2015-05-13)
+---------------------
+
+* FEATURE: Added ``conjoined`` parameter to ``MultipleChoiceFilter``
+
+* FEATURE: Added ``together`` meta option to validate fields as a group
+
+* FIXED: Added testing on Django 1.8
+
+* FIXED: ``get_model_field`` on Django 1.8
+
+
 Version 0.9.2 (2015-01-23)
 --------------------------
 
