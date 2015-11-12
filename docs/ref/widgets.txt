@@ -15,5 +15,5 @@ placeholders::
 1. ``attrs``: This is a string with all the attributes that will be on the
    final ``<a>`` tag.
 2. ``query_string``: This is the query string for use in the ``href``
-   option on the ``<a>`` elemeent.
+   option on the ``<a>`` element.
 3. ``label``: This is the text to be displayed to the user.
