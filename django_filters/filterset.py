@@ -284,6 +284,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.IPAddressField: {
         'filter_class': CharFilter,
     },
+    models.GenericIPAddressField: {
+        'filter_class': CharFilter,
+    },
     models.CommaSeparatedIntegerField: {
         'filter_class': CharFilter,
     },
