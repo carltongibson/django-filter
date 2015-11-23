@@ -150,7 +150,7 @@ Though you would need to pass in the actual function value, not it's name.
 
         class F(django_filters.FilterSet):
 	    # Notice: In this case, action accepts a func, not a string
-            username = MethodFilter(action=filter_username)
+            username = MethodFilter(action=my_custom_filter)
 
             class Meta:
                 model = User

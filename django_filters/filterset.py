@@ -1,38 +1,20 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import types
 import copy
 import re
+from collections import OrderedDict
 
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
 from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields import FieldDoesNotExist
+from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
-from sys import version_info
-
-try:
-    from django.db.models.constants import LOOKUP_SEP
-except ImportError:  # pragma: nocover
-    # Django < 1.5 fallback
-    from django.db.models.sql.constants import LOOKUP_SEP  # noqa
-
-try:
-    from collections import OrderedDict
-except ImportError:  # pragma: nocover
-    # Django < 1.5 fallback
-    from django.utils.datastructures import SortedDict as OrderedDict  # noqa
-
-try:
-    from django.db.models.related import RelatedObject as ForeignObjectRel
-except ImportError:  # pragma: nocover
-    # Django >= 1.8 replaces RelatedObject with ForeignObjectRel
-    from django.db.models.fields.related import ForeignObjectRel
-
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
@@ -40,14 +22,6 @@ from .filters import (Filter, CharFilter, BooleanFilter,
 
 
 ORDER_BY_FIELD = 'o'
-
-
-# There is a bug with deepcopy in 2.6, patch if we are running python < 2.7
-# http://bugs.python.org/issue1515
-if version_info < (2, 7, 0):
-    def _deepcopy_method(x, memo):
-        return type(x)(x.im_func, copy.deepcopy(x.im_self, memo), x.im_class)
-    copy._deepcopy_dispatch[types.MethodType] = _deepcopy_method
 
 
 class STRICTNESS(object):
@@ -87,21 +61,15 @@ def get_model_field(model, f):
     opts = model._meta
     for name in parts[:-1]:
         try:
-            rel = opts.get_field_by_name(name)[0]
+            rel = opts.get_field(name)
         except FieldDoesNotExist:
             return None
         if isinstance(rel, ForeignObjectRel):
-            if hasattr(rel, "related_model"):
-                # django >= 1.8 (ForeignObjectRel)
-                opts = rel.related_model._meta
-            else:
-                # django < 1.8 (RelatedObject)
-                opts = rel.opts
+            opts = rel.related_model._meta
         else:
-            model = rel.rel.to
-            opts = model._meta
+            opts = rel.rel.to._meta
     try:
-        rel, model, direct, m2m = opts.get_field_by_name(parts[-1])
+        rel = opts.get_field(parts[-1])
     except FieldDoesNotExist:
         return None
     return rel
@@ -150,18 +118,18 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
 
 def get_full_clean_override(together):
     def full_clean(form):
-        
+
         def add_error(message):
             try:
                 form.add_error(None, message)
             except AttributeError:
                 form._errors[NON_FIELD_ERRORS] = message
-        
+
         def all_valid(fieldset):
             cleaned_data = form.cleaned_data
             count = len([i for i in fieldset if cleaned_data.get(i)])
             return 0 < count < len(fieldset)
-        
+
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
         if isinstance(together[0], (list, tuple)):
@@ -182,7 +150,7 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
 
         self.form = getattr(options, 'form', forms.Form)
-        
+
         self.together = getattr(options, 'together', None)
 
 
@@ -297,18 +265,17 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.URLField: {
         'filter_class': CharFilter,
     },
-    models.IPAddressField: {
+    models.GenericIPAddressField: {
         'filter_class': CharFilter,
     },
     models.CommaSeparatedIntegerField: {
         'filter_class': CharFilter,
     },
+    models.UUIDField: {
+        'filter_class': UUIDFilter,
+    },
 }
 
-if hasattr(models, "UUIDField"):
-    FILTER_FOR_DBFIELD_DEFAULTS[models.UUIDField] = {
-        'filter_class': UUIDFilter,
-    }
 
 class BaseFilterSet(object):
     filter_overrides = {}
@@ -340,7 +307,7 @@ class BaseFilterSet(object):
             yield obj
 
     def __len__(self):
-        return len(self.qs)
+        return self.qs.count()
 
     def __getitem__(self, key):
         return self.qs[key]
