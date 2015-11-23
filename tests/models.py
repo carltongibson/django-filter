@@ -31,10 +31,10 @@ class SubnetMaskField(models.Field):
         models.Field.__init__(self, *args, **kwargs)
 
     def get_internal_type(self):
-        return "IPAddressField"
+        return "GenericIPAddressField"
 
     def formfield(self, **kwargs):
-        defaults = {'form_class': forms.IPAddressField}
+        defaults = {'form_class': forms.GenericIPAddressField}
         defaults.update(kwargs)
         return super(SubnetMaskField, self).formfield(**defaults)
 
@@ -108,7 +108,7 @@ class Restaurant(Place):
 
 
 class NetworkSetting(models.Model):
-    ip = models.IPAddressField()
+    ip = models.GenericIPAddressField()
     mask = SubnetMaskField()
 
 
@@ -180,8 +180,5 @@ class Business(models.Model):
                                        related_name='employers')
 
 
-if hasattr(models, "UUIDField"):
-    class UUIDTestModel(models.Model):
-        uuid = models.UUIDField()
-else:
-    UUIDTestModel = None
+class UUIDTestModel(models.Model):
+    uuid = models.UUIDField()

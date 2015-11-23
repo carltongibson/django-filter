@@ -79,7 +79,6 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.FilePathField,
             models.FloatField,
             models.IntegerField,
-            models.IPAddressField,
             models.GenericIPAddressField,
             models.NullBooleanField,
             models.PositiveIntegerField,
@@ -92,9 +91,8 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.ForeignKey,
             models.OneToOneField,
             models.ManyToManyField,
+            models.UUIDField,
         ]
-        if hasattr(models, "UUIDField"):
-            to_check.append(models.UUIDField)
         msg = "%s expected to be found in FILTER_FOR_DBFIELD_DEFAULTS"
 
         for m in to_check:
@@ -120,15 +118,12 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, 'username')
         self.assertIsInstance(result, CharFilter)
         self.assertEqual(result.name, 'username')
-    
+
     def test_filter_found_for_uuidfield(self):
-        if UUIDTestModel is None:
-            self.assertLess(django.VERSION, (1, 8))
-        else:
-            f = UUIDTestModel._meta.get_field('uuid')
-            result = FilterSet.filter_for_field(f, 'uuid')
-            self.assertIsInstance(result, UUIDFilter)
-            self.assertEqual(result.name, 'uuid')
+        f = UUIDTestModel._meta.get_field('uuid')
+        result = FilterSet.filter_for_field(f, 'uuid')
+        self.assertIsInstance(result, UUIDFilter)
+        self.assertEqual(result.name, 'uuid')
 
     def test_filter_found_for_autofield(self):
         f = User._meta.get_field('id')
@@ -193,7 +188,7 @@ class FilterSetFilterForFieldTests(TestCase):
 class FilterSetFilterForReverseFieldTests(TestCase):
 
     def test_reverse_o2o_relationship(self):
-        f = Account._meta.get_field_by_name('profile')[0]
+        f = Account._meta.get_field('profile')
         result = FilterSet.filter_for_reverse_field(f, 'profile')
         self.assertIsInstance(result, ModelChoiceFilter)
         self.assertEqual(result.name, 'profile')
@@ -202,7 +197,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
         self.assertEqual(result.extra['queryset'].model, Profile)
 
     def test_reverse_fk_relationship(self):
-        f = User._meta.get_field_by_name('comments')[0]
+        f = User._meta.get_field('comments')
         result = FilterSet.filter_for_reverse_field(f, 'comments')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.name, 'comments')
@@ -211,7 +206,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
         self.assertEqual(result.extra['queryset'].model, Comment)
 
     def test_reverse_m2m_relationship(self):
-        f = Book._meta.get_field_by_name('lovers')[0]
+        f = Book._meta.get_field('lovers')
         result = FilterSet.filter_for_reverse_field(f, 'lovers')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.name, 'lovers')
@@ -220,7 +215,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
         self.assertEqual(result.extra['queryset'].model, User)
 
     def test_reverse_non_symmetrical_selfref_m2m_field(self):
-        f = DirectedNode._meta.get_field_by_name('inbound_nodes')[0]
+        f = DirectedNode._meta.get_field('inbound_nodes')
         result = FilterSet.filter_for_reverse_field(f, 'inbound_nodes')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.name, 'inbound_nodes')
@@ -229,7 +224,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
         self.assertEqual(result.extra['queryset'].model, DirectedNode)
 
     def test_reverse_m2m_field_with_through_model(self):
-        f = Worker._meta.get_field_by_name('employers')[0]
+        f = Worker._meta.get_field('employers')
         result = FilterSet.filter_for_reverse_field(f, 'employers')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.name, 'employers')
@@ -662,14 +657,14 @@ class FilterSetTogetherTests(TestCase):
         self.alex = User.objects.create(username='alex', status=1)
         self.jacob = User.objects.create(username='jacob', status=2)
         self.qs = User.objects.all().order_by('id')
-    
+
     def test_fields_set(self):
         class F(FilterSet):
             class Meta:
                 model = User
                 fields = ['username', 'status', 'is_active', 'first_name']
                 together = [
-                    ('username', 'status'), 
+                    ('username', 'status'),
                     ('first_name', 'is_active'),
                 ]
 
@@ -680,14 +675,14 @@ class FilterSetTogetherTests(TestCase):
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
-        
+
     def test_single_fields_set(self):
         class F(FilterSet):
             class Meta:
                 model = User
                 fields = ['username', 'status']
                 together = ['username', 'status']
-        
+
         f = F({}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 2)
         f = F({'username': 'alex'}, queryset=self.qs)

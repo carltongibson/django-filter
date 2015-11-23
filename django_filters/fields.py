@@ -9,6 +9,8 @@ from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
+from django.utils.encoding import force_str
+
 from .widgets import RangeWidget, LookupTypeWidget
 
 
@@ -90,6 +92,8 @@ class IsoDateTimeField(forms.DateTimeField):
     default_timezone = timezone.get_default_timezone() if settings.USE_TZ else None
 
     def strptime(self, value, format):
+        value = force_str(value)
+
         if format == self.ISO_8601:
             parsed = parse_datetime(value)
             if parsed is None:  # Continue with other formats if doesn't match
