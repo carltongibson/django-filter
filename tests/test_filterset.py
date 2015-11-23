@@ -92,9 +92,8 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.ForeignKey,
             models.OneToOneField,
             models.ManyToManyField,
+            models.UUIDField,
         ]
-        if hasattr(models, "UUIDField"):
-            to_check.append(models.UUIDField)
         msg = "%s expected to be found in FILTER_FOR_DBFIELD_DEFAULTS"
 
         for m in to_check:
@@ -122,13 +121,10 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertEqual(result.name, 'username')
 
     def test_filter_found_for_uuidfield(self):
-        if UUIDTestModel is None:
-            self.assertLess(django.VERSION, (1, 8))
-        else:
-            f = UUIDTestModel._meta.get_field('uuid')
-            result = FilterSet.filter_for_field(f, 'uuid')
-            self.assertIsInstance(result, UUIDFilter)
-            self.assertEqual(result.name, 'uuid')
+        f = UUIDTestModel._meta.get_field('uuid')
+        result = FilterSet.filter_for_field(f, 'uuid')
+        self.assertIsInstance(result, UUIDFilter)
+        self.assertEqual(result.name, 'uuid')
 
     def test_filter_found_for_autofield(self):
         f = User._meta.get_field('id')

@@ -280,12 +280,11 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.CommaSeparatedIntegerField: {
         'filter_class': CharFilter,
     },
+    models.UUIDField: {
+        'filter_class': UUIDFilter,
+    },
 }
 
-if hasattr(models, "UUIDField"):
-    FILTER_FOR_DBFIELD_DEFAULTS[models.UUIDField] = {
-        'filter_class': UUIDFilter,
-    }
 
 class BaseFilterSet(object):
     filter_overrides = {}

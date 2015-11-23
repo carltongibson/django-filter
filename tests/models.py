@@ -180,8 +180,5 @@ class Business(models.Model):
                                        related_name='employers')
 
 
-if hasattr(models, "UUIDField"):
-    class UUIDTestModel(models.Model):
-        uuid = models.UUIDField()
-else:
-    UUIDTestModel = None
+class UUIDTestModel(models.Model):
+    uuid = models.UUIDField()

@@ -199,13 +199,9 @@ class CharFilterTests(TestCase):
 class UUIDFilterTests(TestCase):
 
     def test_default_field(self):
-        if not django.VERSION < (1, 8):
-            f = UUIDFilter()
-            field = f.field
-            self.assertIsInstance(field, forms.UUIDField)
-        else:
-            with self.assertRaises(ImportError):
-                UUIDFilter().field
+        f = UUIDFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.UUIDField)
 
 
 class BooleanFilterTests(TestCase):
