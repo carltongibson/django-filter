@@ -1,12 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import mock
-import sys
-
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
+import unittest
 
 import django
 from django.db import models
@@ -46,6 +41,7 @@ def checkItemsEqual(L1, L2):
     """
     return len(L1) == len(L2) and sorted(L1) == sorted(L2)
 
+
 class HelperMethodsTests(TestCase):
 
     @unittest.skip('todo')
@@ -84,6 +80,7 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.FloatField,
             models.IntegerField,
             models.IPAddressField,
+            models.GenericIPAddressField,
             models.NullBooleanField,
             models.PositiveIntegerField,
             models.PositiveSmallIntegerField,
@@ -107,7 +104,6 @@ class DbFieldDefaultFiltersTests(TestCase):
         to_check = [
             models.Field,
             models.BigIntegerField,
-            models.GenericIPAddressField,
             models.FileField,
             models.ImageField,
         ]

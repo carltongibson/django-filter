@@ -1,16 +1,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from datetime import date, datetime, time
+from datetime import date, time, timedelta
 import mock
-import sys
-
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
-
-from datetime import timedelta
+import unittest
 
 import django
 from django import forms
@@ -22,8 +15,7 @@ from django_filters.fields import (
     RangeField,
     DateRangeField,
     TimeRangeField,
-    LookupTypeField,
-    UUIDField)
+    LookupTypeField)
 from django_filters.filters import (
     Filter,
     CharFilter,
@@ -210,7 +202,7 @@ class UUIDFilterTests(TestCase):
         if not django.VERSION < (1, 8):
             f = UUIDFilter()
             field = f.field
-            self.assertIsInstance(field, UUIDField)
+            self.assertIsInstance(field, forms.UUIDField)
         else:
             with self.assertRaises(ImportError):
                 UUIDFilter().field

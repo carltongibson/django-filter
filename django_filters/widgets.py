@@ -10,10 +10,7 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
-try:
-    from django.utils.encoding import force_text
-except:  # pragma: nocover
-    from django.utils.encoding import force_unicode as force_text  # noqa
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
@@ -80,7 +77,7 @@ class LinkWidget(forms.Widget):
 
 class RangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
-        widgets = (forms.TextInput(attrs=attrs), forms.TextInput(attrs=attrs))
+        widgets = (forms.TextInput, forms.TextInput)
         super(RangeWidget, self).__init__(widgets, attrs)
 
     def decompress(self, value):

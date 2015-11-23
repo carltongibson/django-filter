@@ -4,35 +4,19 @@ from __future__ import unicode_literals
 import types
 import copy
 import re
+from collections import OrderedDict
 
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
 from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields import FieldDoesNotExist
+from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 from sys import version_info
-
-try:
-    from django.db.models.constants import LOOKUP_SEP
-except ImportError:  # pragma: nocover
-    # Django < 1.5 fallback
-    from django.db.models.sql.constants import LOOKUP_SEP  # noqa
-
-try:
-    from collections import OrderedDict
-except ImportError:  # pragma: nocover
-    # Django < 1.5 fallback
-    from django.utils.datastructures import SortedDict as OrderedDict  # noqa
-
-try:
-    from django.db.models.related import RelatedObject as ForeignObjectRel
-except ImportError:  # pragma: nocover
-    # Django >= 1.8 replaces RelatedObject with ForeignObjectRel
-    from django.db.models.fields.related import ForeignObjectRel
-
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
@@ -300,6 +284,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.IPAddressField: {
         'filter_class': CharFilter,
     },
+    models.GenericIPAddressField: {
+        'filter_class': CharFilter,
+    },
     models.CommaSeparatedIntegerField: {
         'filter_class': CharFilter,
     },
@@ -340,7 +327,7 @@ class BaseFilterSet(object):
             yield obj
 
     def __len__(self):
-        return len(self.qs)
+        return self.qs.count()
 
     def __getitem__(self, key):
         return self.qs[key]

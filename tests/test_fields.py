@@ -3,38 +3,20 @@ from __future__ import unicode_literals
 
 from datetime import datetime, time, timedelta, tzinfo
 import decimal
-import sys
-
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
+import unittest
 
 import django
 from django import forms
-from django.test import TestCase
-try:
-    from django.test import override_settings
-except ImportError:
-    # TODO: Remove this once Django 1.6 is EOL.
-    from django.test.utils import override_settings
+from django.test import TestCase, override_settings
+from django.utils.timezone import make_aware
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField, UUIDField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
-
-
-class UUIDFieldTests(TestCase):
-
-    def test_field(self):
-        if django.VERSION < (1, 8):
-            with self.assertRaises(ImportError):
-                UUIDField()
-        else:
-            self.assertIs(UUIDField, forms.UUIDField)
 
 
 class RangeFieldTests(TestCase):
@@ -156,7 +138,7 @@ class IsoDateTimeFieldTests(TestCase):
     def test_datetime_timezone_awareness(self):
         # parsed datetimes should obey USE_TZ
         f = IsoDateTimeField()
-        r = self.reference_dt.replace(tzinfo=f.default_timezone)
+        r = make_aware(self.reference_dt, f.default_timezone)
 
         d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d.tzinfo, tzinfo))
