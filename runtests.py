@@ -27,6 +27,10 @@ if not settings.configured:
         USE_TZ=True,
         SECRET_KEY='foobar',
         SILENCED_SYSTEM_CHECKS=['1_7.W001'],
+        TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'APP_DIRS': True,
+        }],
         **test_runners_args
     )
 
