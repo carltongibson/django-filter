@@ -71,7 +71,7 @@ def get_model_field(model, f):
     opts = model._meta
     for name in parts[:-1]:
         try:
-            rel = opts.get_field_by_name(name)[0]
+            rel = opts.get_field(name)
         except FieldDoesNotExist:
             return None
         if isinstance(rel, ForeignObjectRel):
@@ -85,7 +85,7 @@ def get_model_field(model, f):
             model = rel.rel.to
             opts = model._meta
     try:
-        rel, model, direct, m2m = opts.get_field_by_name(parts[-1])
+        rel = opts.get_field(parts[-1])
     except FieldDoesNotExist:
         return None
     return rel
@@ -134,18 +134,18 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
 
 def get_full_clean_override(together):
     def full_clean(form):
-        
+
         def add_error(message):
             try:
                 form.add_error(None, message)
             except AttributeError:
                 form._errors[NON_FIELD_ERRORS] = message
-        
+
         def all_valid(fieldset):
             cleaned_data = form.cleaned_data
             count = len([i for i in fieldset if cleaned_data.get(i)])
             return 0 < count < len(fieldset)
-        
+
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
         if isinstance(together[0], (list, tuple)):
@@ -166,7 +166,7 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
 
         self.form = getattr(options, 'form', forms.Form)
-        
+
         self.together = getattr(options, 'together', None)
 
 
