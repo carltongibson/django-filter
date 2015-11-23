@@ -79,7 +79,6 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.FilePathField,
             models.FloatField,
             models.IntegerField,
-            models.IPAddressField,
             models.GenericIPAddressField,
             models.NullBooleanField,
             models.PositiveIntegerField,
