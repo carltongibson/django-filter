@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import types
 import copy
 import re
 from collections import OrderedDict
@@ -16,7 +15,6 @@ from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
-from sys import version_info
 
 from .filters import (Filter, CharFilter, BooleanFilter,
     ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
@@ -24,14 +22,6 @@ from .filters import (Filter, CharFilter, BooleanFilter,
 
 
 ORDER_BY_FIELD = 'o'
-
-
-# There is a bug with deepcopy in 2.6, patch if we are running python < 2.7
-# http://bugs.python.org/issue1515
-if version_info < (2, 7, 0):
-    def _deepcopy_method(x, memo):
-        return type(x)(x.im_func, copy.deepcopy(x.im_self, memo), x.im_class)
-    copy._deepcopy_dispatch[types.MethodType] = _deepcopy_method
 
 
 class STRICTNESS(object):
