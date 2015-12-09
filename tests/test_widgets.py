@@ -144,6 +144,16 @@ class RangeWidgetTests(TestCase):
             -
             <input type="date" name="date_1" />""")
 
+    def test_widget_min_max_attributes(self):
+        w = RangeWidget(
+            attrs_min={'placeholder': 'from'},
+            attrs_max={'placeholder': 'to'},
+        )
+        self.assertHTMLEqual(w.render('date', ''), """
+            <input type="text" name="date_0" placeholder="from" />
+            -
+            <input type="text" name="date_1" placeholder="to" />""")
+
 
 class BooleanWidgetTests(TestCase):
     """
