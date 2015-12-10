@@ -32,10 +32,7 @@ class RangeField(forms.MultiValueField):
 
 class DateRangeField(RangeField):
 
-    def __init__(self, *args, **kwargs):
-        fields = (
-            forms.DateField(),
-            forms.DateField())
+    def __init__(self, fields=2 * (forms.DateField(), ), *args, **kwargs):
         super(DateRangeField, self).__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
@@ -51,10 +48,7 @@ class DateRangeField(RangeField):
 
 class TimeRangeField(RangeField):
 
-    def __init__(self, *args, **kwargs):
-        fields = (
-            forms.TimeField(),
-            forms.TimeField())
+    def __init__(self, fields=2 * (forms.TimeField(), ), *args, **kwargs):
         super(TimeRangeField, self).__init__(fields, *args, **kwargs)
 
 
