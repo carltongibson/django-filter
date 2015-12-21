@@ -10,8 +10,10 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
+from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
+from django.utils import six
 from django.utils.translation import ugettext as _
 
 
@@ -114,3 +116,36 @@ class BooleanWidget(forms.Widget):
                 value = False
 
         return value
+
+
+class CommaSeparatedValueWidget(forms.TextInput):
+    @staticmethod
+    def sanitize(value_list):
+        """Remove empty items in case of ?number=1,,2."""
+        return [v for v in value_list if v]
+
+    @staticmethod
+    def customize(value):
+        """Allow simple type conversion of values."""
+        return value
+
+    def value_from_datadict(self, data, files, name):
+        value = data.get(name)
+
+        if value is None:
+            return []
+
+        values = self.sanitize(value.split(','))
+
+        return [self.customize(value) for value in values]
+
+    def render(self, name, value, attrs=None):
+        value = value or ''
+
+        final_attrs = self.build_attrs(attrs, type=self.input_type,  name=name)
+        if value:
+            if isinstance(value, list):
+                value = ','.join(value)
+            final_attrs['value'] = force_text(self._format_value(value))
+        return super(CommaSeparatedValueWidget, self).render(
+                name, value, final_attrs)
