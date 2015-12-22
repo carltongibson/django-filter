@@ -179,8 +179,11 @@ class FilterSetMetaclass(type):
             filters = declared_filters
 
         if None in filters.values():
-            raise TypeError("Meta.fields contains a field that isn't defined "
-                "on this FilterSet")
+            bad_fields = [v for v in filters.values() if v is None]
+            raise TypeError("Meta.fields contains fields that aren't defined "
+                            "on this FilterSet: {bad_fields}".format(
+                    bad_fields=', '.join(bad_fields))
+            )
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
