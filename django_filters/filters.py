@@ -351,6 +351,6 @@ class MethodFilter(Filter):
 class CSVFilter(Filter):
     field_class = CSVField
 
-    def __init__(self, lookup_type='in', *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(CSVFilter, self).__init__(
-                lookup_type=lookup_type, *args, **kwargs)
+                lookup_type='in', *args, **kwargs)
