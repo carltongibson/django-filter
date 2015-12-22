@@ -15,6 +15,7 @@ from django_filters.filterset import FilterSet
 from django_filters.filters import AllValuesFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
+from django_filters.filters import CSVFilter
 from django_filters.filters import DateRangeFilter
 # from django_filters.filters import DateTimeFilter
 from django_filters.filters import MethodFilter
@@ -1349,6 +1350,39 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '1'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
         self.assertEqual(f.count(), 1)
+
+        f = F({'status': '2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+    def test_csv_filters(self):
+        class F(FilterSet):
+            status = CSVFilter()
+
+            class Meta:
+                model = User
+                fields = ['status']
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'status': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'status': '0'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+        f = F({'status': '0,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 3)
+        self.assertEqual(f.count(), 3)
+
+        f = F({'status': '0,,1'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
 
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
