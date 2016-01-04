@@ -7,7 +7,7 @@ import warnings
 import unittest
 
 from django import forms
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_filters import filters
 from django_filters.fields import (
@@ -69,6 +69,20 @@ class FilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.Field)
         self.assertEqual(field.help_text, 'This is an exclusion filter')
+
+    @override_settings(FILTERS_HELP_TEXT_FILTER=False)
+    def test_default_field_settings(self):
+        f = Filter()
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+        self.assertEqual(field.help_text, '')
+
+    @override_settings(FILTERS_HELP_TEXT_EXCLUDE=False)
+    def test_field_with_exclusion_settings(self):
+        f = Filter(exclude=True)
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+        self.assertEqual(field.help_text, '')
 
     def test_field_with_single_lookup_expr(self):
         f = Filter(lookup_expr='iexact')
