@@ -33,7 +33,7 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
+                 lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
@@ -72,8 +72,8 @@ class Filter(object):
                     lookup, required=self.required, label=self.label, help_text=help_text)
             else:
                 self._field = self.field_class(required=self.required,
-                    label=self.label, widget=self.widget,
-                    help_text=help_text, **self.extra)
+                                               label=self.label, widget=self.widget,
+                                               help_text=help_text, **self.extra)
         return self._field
 
     def filter(self, qs, value):
@@ -155,7 +155,7 @@ class MultipleChoiceFilter(Filter):
         return False
 
     def filter(self, qs, value):
-        value = value or () # Make sure we have an iterable
+        value = value or ()  # Make sure we have an iterable
 
         if self.is_noop(qs, value):
             return qs
@@ -184,6 +184,7 @@ class DateFilter(Filter):
 class DateTimeFilter(Filter):
     field_class = forms.DateTimeField
 
+
 class IsoDateTimeFilter(DateTimeFilter):
     """
     Uses IsoDateTimeField to support filtering on ISO 8601 formated datetimes.
@@ -195,6 +196,7 @@ class IsoDateTimeFilter(DateTimeFilter):
     * https://github.com/alex/django-filter/pull/264
     """
     field_class = IsoDateTimeField
+
 
 class TimeFilter(Filter):
     field_class = forms.TimeField
@@ -233,19 +235,19 @@ class RangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
-          if value.start is not None and value.stop is not None:
-            lookup = '%s__range' % self.name
-            return self.get_method(qs)(**{lookup: (value.start, value.stop)})
-          else:
-
-            if value.start is not None:
-              qs = self.get_method(qs)(**{'%s__gte'%self.name:value.start})
-            if value.stop is not None:
-              qs = self.get_method(qs)(**{'%s__lte'%self.name:value.stop})
+            if value.start is not None and value.stop is not None:
+                lookup = '%s__range' % self.name
+                return self.get_method(qs)(**{lookup: (value.start, value.stop)})
+            else:
+                if value.start is not None:
+                    qs = self.get_method(qs)(**{'%s__gte' % self.name: value.start})
+                if value.stop is not None:
+                    qs = self.get_method(qs)(**{'%s__lte' % self.name: value.stop})
         return qs
 
 
-_truncate = lambda dt: dt.replace(hour=0, minute=0, second=0)
+def _truncate(dt):
+    return dt.replace(hour=0, minute=0, second=0)
 
 
 class DateRangeFilter(ChoiceFilter):
