@@ -7,13 +7,13 @@ from datetime import timedelta
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
+from django.conf import settings
 from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .fields import (
     RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
-
 
 __all__ = [
     'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
@@ -23,7 +23,6 @@ __all__ = [
     'DateRangeFilter', 'DateFromToRangeFilter', 'TimeRangeFilter',
     'AllValuesFilter', 'MethodFilter'
 ]
-
 
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
@@ -59,7 +58,12 @@ class Filter(object):
         if not hasattr(self, '_field'):
             help_text = self.extra.pop('help_text', None)
             if help_text is None:
-                help_text = _('This is an exclusion filter') if self.exclude else _('Filter')
+                if self.exclude and getattr(settings, "FILTERS_HELP_TEXT_EXCLUDE", True):
+                    help_text = _('This is an exclusion filter')
+                elif not self.exclude and getattr(settings, "FILTERS_HELP_TEXT_FILTER", True):
+                    help_text = _('Filter')
+                else:
+                    help_text = ''
             if (self.lookup_type is None or
                     isinstance(self.lookup_type, (list, tuple))):
 
