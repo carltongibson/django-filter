@@ -71,3 +71,9 @@ If you have questions about usage or development you can join the
 
 .. _`read the docs`: https://django-filter.readthedocs.org/en/latest/
 .. _`mailing list`: http://groups.google.com/group/django-filter
+
+**********
+Alternatives
+**********
+If the project does not meet your requirements - change it by pull requests or use an alternate `django-filter
+<https://github.com/novapost/django-generic-filters>`_.
