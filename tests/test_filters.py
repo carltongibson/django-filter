@@ -9,7 +9,7 @@ import django
 from django import forms
 from django.test import TestCase
 
-
+from django_filters import filters
 from django_filters.fields import (
     Lookup,
     RangeField,
@@ -769,3 +769,30 @@ class AllValuesFilterTests(TestCase):
         f.model = mocked
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
+
+
+class LookupTypesTests(TestCase):
+    def test_custom_lookup_types(self):
+        filters.LOOKUP_TYPES = [
+            ('', '---------'),
+            ('exact', 'Is equal to'),
+            ('not_exact', 'Is not equal to'),
+            ('lt', 'Lesser than'),
+            ('gt', 'Greater than'),
+            ('gte', 'Greater than or equal to'),
+            ('lte', 'Lesser than or equal to'),
+            ('startswith', 'Starts with'),
+            ('endswith', 'Ends with'),
+            ('contains', 'Contains'),
+            ('not_contains', 'Does not contain'),
+        ]
+
+        f = Filter(lookup_type=None)
+        field = f.field
+        choice_field = field.fields[1]
+        choices = choice_field.choices
+
+        self.assertIsInstance(field, LookupTypeField)
+        self.assertEqual(choices, filters.LOOKUP_TYPES)
+        self.assertEqual(choices[1][0], 'exact')
+        self.assertEqual(choices[1][1], 'Is equal to')
