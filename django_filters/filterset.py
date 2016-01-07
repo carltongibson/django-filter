@@ -17,8 +17,8 @@ from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
 from .filters import (Filter, CharFilter, BooleanFilter,
-    ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
+                      ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
 
 
 ORDER_BY_FIELD = 'o'
@@ -81,7 +81,7 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     opts = model._meta
     if fields is None:
         fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
-            if not isinstance(f, models.AutoField)]
+                  if not isinstance(f, models.AutoField)]
     # Loop through the list of fields.
     for f in fields:
         # Skip the field if excluded.
@@ -180,7 +180,7 @@ class FilterSetMetaclass(type):
 
         if None in filters.values():
             raise TypeError("Meta.fields contains a field that isn't defined "
-                "on this FilterSet")
+                            "on this FilterSet")
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
@@ -392,8 +392,13 @@ class BaseFilterSet(object):
                     # e.g. (('field', 'Display name'), ...)
                     choices = [(f[0], f[1]) for f in self._meta.order_by]
                 else:
-                    choices = [(f, _('%s (descending)' % capfirst(f[1:])) if f[0] == '-' else capfirst(f))
-                               for f in self._meta.order_by]
+                    choices = []
+                    for f in self._meta.order_by:
+                        if f[0] == '-':
+                            label = _('%s (descending)' % capfirst(f[1:]))
+                        else:
+                            label = capfirst(f)
+                        choices.append((f, label))
             else:
                 # add asc and desc field names
                 # use the filter's label if provided
@@ -415,7 +420,7 @@ class BaseFilterSet(object):
     def get_order_by(self, order_choice):
         re_ordering_field = re.compile(r'(?P<inverse>\-?)(?P<field>.*)')
         m = re.match(re_ordering_field, order_choice)
-        inverted  = m.group('inverse')
+        inverted = m.group('inverse')
         filter_api_name = m.group('field')
 
         _filter = self.filters.get(filter_api_name, None)
