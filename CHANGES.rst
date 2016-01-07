@@ -1,7 +1,13 @@
-Version 0.12.0 (2015-??-??)
+Version 0.12.0 (2016-01-07)
 ---------------------------
 
-* BREAKING CHANGE: the custom filter names are now also be used for ordering #230
+* FEATURE: Add support for custom ORM lookup types #221
+
+* FEATURE: Add JavaScript friendly BooleanWidget #270
+
+* FIXED: (More) Compatability with Django 1.8 and Django 1.9+
+
+* BREAKING CHANGE: custom filter names are now also be used for ordering #230
 
     If you use ordering on a field you defined as custom filter with custom
     name, you should now use the filter name as ordering key as well.
