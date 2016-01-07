@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 
 from django_filters.views import FilterView
@@ -11,8 +11,8 @@ from django_filters.filterset import FilterSet, filterset_factory
 from .models import Book
 
 
+@override_settings(ROOT_URLCONF='tests.urls')
 class GenericViewTestCase(TestCase):
-    urls = 'tests.urls'
 
     def setUp(self):
         Book.objects.create(
@@ -78,4 +78,3 @@ class GenericFunctionalViewTests(GenericViewTestCase):
         for b in ['Ender&#39;s Game', 'Rainbow Six']:
             self.assertNotContains(response, b)
         self.assertContains(response, 'Snowcrash')
-

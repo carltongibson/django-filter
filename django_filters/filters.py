@@ -33,7 +33,7 @@ class Filter(object):
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-        lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
+                 lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
@@ -62,18 +62,27 @@ class Filter(object):
                 help_text = _('This is an exclusion filter') if self.exclude else _('Filter')
             if (self.lookup_type is None or
                     isinstance(self.lookup_type, (list, tuple))):
-                if self.lookup_type is None:
-                    lookup = [(x, x) for x in LOOKUP_TYPES]
-                else:
-                    lookup = [
-                        (x, x) for x in LOOKUP_TYPES if x in self.lookup_type]
+
+                lookup = []
+
+                for x in LOOKUP_TYPES:
+                    if isinstance(x, (list, tuple)) and len(x) == 2:
+                        choice = (x[0], x[1])
+                    else:
+                        choice = (x, x)
+
+                    if self.lookup_type is None:
+                        lookup.append(choice)
+                    elif x in self.lookup_type:
+                        lookup.append(choice)
+
                 self._field = LookupTypeField(self.field_class(
                     required=self.required, widget=self.widget, **self.extra),
                     lookup, required=self.required, label=self.label, help_text=help_text)
             else:
                 self._field = self.field_class(required=self.required,
-                    label=self.label, widget=self.widget,
-                    help_text=help_text, **self.extra)
+                                               label=self.label, widget=self.widget,
+                                               help_text=help_text, **self.extra)
         return self._field
 
     def filter(self, qs, value):
@@ -84,9 +93,9 @@ class Filter(object):
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
             return qs
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         if self.distinct:
             qs = qs.distinct()
+        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         return qs
 
 
@@ -97,11 +106,6 @@ class CharFilter(Filter):
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
 
-    def filter(self, qs, value):
-        if value is not None:
-            return self.get_method(qs)(**{self.name: value})
-        return qs
-
 
 class ChoiceFilter(Filter):
     field_class = forms.ChoiceField
@@ -109,6 +113,10 @@ class ChoiceFilter(Filter):
 
 class TypedChoiceFilter(Filter):
     field_class = forms.TypedChoiceField
+
+
+class UUIDFilter(Filter):
+    field_class = forms.UUIDField
 
 
 class MultipleChoiceFilter(Filter):
@@ -156,7 +164,7 @@ class MultipleChoiceFilter(Filter):
         return False
 
     def filter(self, qs, value):
-        value = value or () # Make sure we have an iterable
+        value = value or ()  # Make sure we have an iterable
 
         if self.is_noop(qs, value):
             return qs
@@ -185,6 +193,7 @@ class DateFilter(Filter):
 class DateTimeFilter(Filter):
     field_class = forms.DateTimeField
 
+
 class IsoDateTimeFilter(DateTimeFilter):
     """
     Uses IsoDateTimeField to support filtering on ISO 8601 formated datetimes.
@@ -196,6 +205,7 @@ class IsoDateTimeFilter(DateTimeFilter):
     * https://github.com/alex/django-filter/pull/264
     """
     field_class = IsoDateTimeField
+
 
 class TimeFilter(Filter):
     field_class = forms.TimeField
@@ -234,19 +244,19 @@ class RangeFilter(Filter):
 
     def filter(self, qs, value):
         if value:
-          if value.start is not None and value.stop is not None:
-            lookup = '%s__range' % self.name
-            return self.get_method(qs)(**{lookup: (value.start, value.stop)})
-          else:
-
-            if value.start is not None:
-              qs = self.get_method(qs)(**{'%s__gte'%self.name:value.start})
-            if value.stop is not None:
-              qs = self.get_method(qs)(**{'%s__lte'%self.name:value.stop})
+            if value.start is not None and value.stop is not None:
+                lookup = '%s__range' % self.name
+                return self.get_method(qs)(**{lookup: (value.start, value.stop)})
+            else:
+                if value.start is not None:
+                    qs = self.get_method(qs)(**{'%s__gte' % self.name: value.start})
+                if value.stop is not None:
+                    qs = self.get_method(qs)(**{'%s__lte' % self.name: value.stop})
         return qs
 
 
-_truncate = lambda dt: dt.replace(hour=0, minute=0, second=0)
+def _truncate(dt):
+    return dt.replace(hour=0, minute=0, second=0)
 
 
 class DateRangeFilter(ChoiceFilter):
@@ -285,7 +295,10 @@ class DateRangeFilter(ChoiceFilter):
             value = int(value)
         except (ValueError, TypeError):
             value = ''
-        return self.options[value][1](qs, self.name)
+        qs = self.options[value][1](qs, self.name)
+        if self.distinct:
+            qs = qs.distinct()
+        return qs
 
 
 class DateFromToRangeFilter(RangeFilter):

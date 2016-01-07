@@ -8,7 +8,7 @@ arguments.
 ~~~~~~~~~~~~~~
 
 This widget renders each option as a link, instead of an actual <input>.  It has
-one method that you can overide for additional customizability.
+one method that you can override for additional customizability.
 ``option_string()`` should return a string with 3 Python keyword argument
 placeholders::
 
@@ -17,3 +17,12 @@ placeholders::
 2. ``query_string``: This is the query string for use in the ``href``
    option on the ``<a>`` element.
 3. ``label``: This is the text to be displayed to the user.
+
+``BooleanWidget``
+~~~~~~~~~~~~~~~~~
+
+This widget converts its input into Python's True/False values. It will convert
+all case variations of ``True`` and ``False`` into the internal Python values.
+To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``::
+
+  active = BooleanFilter(widget=BooleanWidget())

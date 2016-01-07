@@ -1,22 +1,19 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta, tzinfo
 import decimal
-import sys
-
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
+import unittest
 
 import django
 from django import forms
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.utils.timezone import make_aware
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
     RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
@@ -120,13 +117,51 @@ class LookupTypeFieldTests(TestCase):
 
 
 class IsoDateTimeFieldTests(TestCase):
+    reference_str = "2015-07-19T13:34:51.759"
+    reference_dt = datetime(2015, 7, 19, 13, 34, 51, 759000)
 
     def test_datetime_string_is_parsed(self):
         f = IsoDateTimeField()
-        d = f.strptime("2015-07-19T13:34:51.759", IsoDateTimeField.ISO_8601)
+        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d, datetime))
 
     def test_datetime_string_with_timezone_is_parsed(self):
         f = IsoDateTimeField()
-        d = f.strptime("2015-07-19T13:34:51.759+01:00", IsoDateTimeField.ISO_8601)
+        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d, datetime))
+
+    def test_datetime_zulu(self):
+        f = IsoDateTimeField()
+        d = f.strptime(self.reference_str + "Z", IsoDateTimeField.ISO_8601)
+        self.assertTrue(isinstance(d, datetime))
+
+    def test_datetime_timezone_awareness(self):
+        # parsed datetimes should obey USE_TZ
+        f = IsoDateTimeField()
+        r = make_aware(self.reference_dt, f.default_timezone)
+
+        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
+        self.assertTrue(isinstance(d.tzinfo, tzinfo))
+        self.assertEqual(d, r + r.utcoffset() - d.utcoffset())
+
+        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
+        self.assertTrue(isinstance(d.tzinfo, tzinfo))
+        self.assertEqual(d, r)
+
+    @override_settings(USE_TZ=False)
+    def test_datetime_timezone_naivety(self):
+        # parsed datetimes should obey USE_TZ
+        f = IsoDateTimeField()
+        r = self.reference_dt.replace()
+
+        # It's necessary to override this here, since the field class is parsed
+        # when USE_TZ = True.
+        f.default_timezone = None
+
+        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
+        self.assertTrue(d.tzinfo is None)
+        self.assertEqual(d, r - timedelta(hours=1))
+
+        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
+        self.assertTrue(d.tzinfo is None)
+        self.assertEqual(d, r)

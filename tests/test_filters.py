@@ -1,21 +1,15 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from datetime import date, datetime, time
+from datetime import date, time, timedelta
 import mock
-import sys
+import unittest
 
-if sys.version_info >= (2, 7):
-    import unittest
-else:  # pragma: nocover
-    from django.utils import unittest  # noqa
-
-from datetime import timedelta
-
+import django
 from django import forms
 from django.test import TestCase
 
-
+from django_filters import filters
 from django_filters.fields import (
     Lookup,
     RangeField,
@@ -40,6 +34,7 @@ from django_filters.filters import (
     DateFromToRangeFilter,
     TimeRangeFilter,
     AllValuesFilter,
+    UUIDFilter,
     LOOKUP_TYPES)
 
 from tests.models import Book, User
@@ -189,7 +184,7 @@ class FilterTests(TestCase):
         qs = mock.Mock(spec=['filter', 'distinct'])
         f = Filter(name='somefield', distinct=True)
         f.filter(qs, 'value')
-        result = qs.distinct.assert_called_once()
+        result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
 
 
@@ -199,6 +194,14 @@ class CharFilterTests(TestCase):
         f = CharFilter()
         field = f.field
         self.assertIsInstance(field, forms.CharField)
+
+
+class UUIDFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = UUIDFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.UUIDField)
 
 
 class BooleanFilterTests(TestCase):
@@ -212,14 +215,14 @@ class BooleanFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = BooleanFilter(name='somefield')
         result = f.filter(qs, True)
-        qs.filter.assert_called_once_with(somefield=True)
+        qs.filter.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
     def test_filtering_exclude(self):
         qs = mock.Mock(spec=['exclude'])
         f = BooleanFilter(name='somefield', exclude=True)
         result = f.filter(qs, True)
-        qs.exclude.assert_called_once_with(somefield=True)
+        qs.exclude.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
     @unittest.expectedFailure
@@ -236,6 +239,13 @@ class BooleanFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
+
+    def test_filtering_lookup_type(self):
+        qs = mock.Mock(spec=['filter'])
+        f = BooleanFilter(name='somefield', lookup_type='isnull')
+        result = f.filter(qs, True)
+        qs.filter.assert_called_once_with(somefield__isnull=True)
+        self.assertNotEqual(qs, result)
 
 
 class ChoiceFilterTests(TestCase):
@@ -759,3 +769,30 @@ class AllValuesFilterTests(TestCase):
         f.model = mocked
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
+
+
+class LookupTypesTests(TestCase):
+    def test_custom_lookup_types(self):
+        filters.LOOKUP_TYPES = [
+            ('', '---------'),
+            ('exact', 'Is equal to'),
+            ('not_exact', 'Is not equal to'),
+            ('lt', 'Lesser than'),
+            ('gt', 'Greater than'),
+            ('gte', 'Greater than or equal to'),
+            ('lte', 'Lesser than or equal to'),
+            ('startswith', 'Starts with'),
+            ('endswith', 'Ends with'),
+            ('contains', 'Contains'),
+            ('not_contains', 'Does not contain'),
+        ]
+
+        f = Filter(lookup_type=None)
+        field = f.field
+        choice_field = field.fields[1]
+        choices = choice_field.choices
+
+        self.assertIsInstance(field, LookupTypeField)
+        self.assertEqual(choices, filters.LOOKUP_TYPES)
+        self.assertEqual(choices[1][0], 'exact')
+        self.assertEqual(choices[1][1], 'Is equal to')

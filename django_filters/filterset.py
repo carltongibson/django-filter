@@ -1,52 +1,27 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import types
 import copy
+import re
+from collections import OrderedDict
 
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
 from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields import FieldDoesNotExist
+from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
-from sys import version_info
-
-try:
-    from django.db.models.constants import LOOKUP_SEP
-except ImportError:  # pragma: nocover
-    # Django < 1.5 fallback
-    from django.db.models.sql.constants import LOOKUP_SEP  # noqa
-
-try:
-    from collections import OrderedDict
-except ImportError:  # pragma: nocover
-    # Django < 1.5 fallback
-    from django.utils.datastructures import SortedDict as OrderedDict  # noqa
-
-try:
-    from django.db.models.related import RelatedObject as ForeignObjectRel
-except ImportError:  # pragma: nocover
-    # Django >= 1.8 replaces RelatedObject with ForeignObjectRel
-    from django.db.models.fields.related import ForeignObjectRel
-
 
 from .filters import (Filter, CharFilter, BooleanFilter,
-    ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-    ModelMultipleChoiceFilter, NumberFilter)
+                      ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
 
 
 ORDER_BY_FIELD = 'o'
-
-
-# There is a bug with deepcopy in 2.6, patch if we are running python < 2.7
-# http://bugs.python.org/issue1515
-if version_info < (2, 7, 0):
-    def _deepcopy_method(x, memo):
-        return type(x)(x.im_func, copy.deepcopy(x.im_self, memo), x.im_class)
-    copy._deepcopy_dispatch[types.MethodType] = _deepcopy_method
 
 
 class STRICTNESS(object):
@@ -86,21 +61,15 @@ def get_model_field(model, f):
     opts = model._meta
     for name in parts[:-1]:
         try:
-            rel = opts.get_field_by_name(name)[0]
+            rel = opts.get_field(name)
         except FieldDoesNotExist:
             return None
         if isinstance(rel, ForeignObjectRel):
-            if hasattr(rel, "related_model"):
-                # django >= 1.8 (ForeignObjectRel)
-                opts = rel.related_model._meta
-            else:
-                # django < 1.8 (RelatedObject)
-                opts = rel.opts
+            opts = rel.related_model._meta
         else:
-            model = rel.rel.to
-            opts = model._meta
+            opts = rel.rel.to._meta
     try:
-        rel, model, direct, m2m = opts.get_field_by_name(parts[-1])
+        rel = opts.get_field(parts[-1])
     except FieldDoesNotExist:
         return None
     return rel
@@ -112,7 +81,7 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     opts = model._meta
     if fields is None:
         fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
-            if not isinstance(f, models.AutoField)]
+                  if not isinstance(f, models.AutoField)]
     # Loop through the list of fields.
     for f in fields:
         # Skip the field if excluded.
@@ -149,18 +118,18 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
 
 def get_full_clean_override(together):
     def full_clean(form):
-        
+
         def add_error(message):
             try:
                 form.add_error(None, message)
             except AttributeError:
                 form._errors[NON_FIELD_ERRORS] = message
-        
+
         def all_valid(fieldset):
             cleaned_data = form.cleaned_data
             count = len([i for i in fieldset if cleaned_data.get(i)])
             return 0 < count < len(fieldset)
-        
+
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
         if isinstance(together[0], (list, tuple)):
@@ -181,7 +150,7 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
 
         self.form = getattr(options, 'form', forms.Form)
-        
+
         self.together = getattr(options, 'together', None)
 
 
@@ -211,7 +180,7 @@ class FilterSetMetaclass(type):
 
         if None in filters.values():
             raise TypeError("Meta.fields contains a field that isn't defined "
-                "on this FilterSet")
+                            "on this FilterSet")
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
@@ -296,11 +265,14 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.URLField: {
         'filter_class': CharFilter,
     },
-    models.IPAddressField: {
+    models.GenericIPAddressField: {
         'filter_class': CharFilter,
     },
     models.CommaSeparatedIntegerField: {
         'filter_class': CharFilter,
+    },
+    models.UUIDField: {
+        'filter_class': UUIDFilter,
     },
 }
 
@@ -335,7 +307,7 @@ class BaseFilterSet(object):
             yield obj
 
     def __len__(self):
-        return len(self.qs)
+        return self.qs.count()
 
     def __getitem__(self, key):
         return self.qs[key]
@@ -420,16 +392,21 @@ class BaseFilterSet(object):
                     # e.g. (('field', 'Display name'), ...)
                     choices = [(f[0], f[1]) for f in self._meta.order_by]
                 else:
-                    choices = [(f, _('%s (descending)' % capfirst(f[1:])) if f[0] == '-' else capfirst(f))
-                               for f in self._meta.order_by]
+                    choices = []
+                    for f in self._meta.order_by:
+                        if f[0] == '-':
+                            label = _('%s (descending)' % capfirst(f[1:]))
+                        else:
+                            label = capfirst(f)
+                        choices.append((f, label))
             else:
                 # add asc and desc field names
                 # use the filter's label if provided
                 choices = []
                 for f, fltr in self.filters.items():
                     choices.extend([
-                        (fltr.name or f, fltr.label or capfirst(f)),
-                        ("-%s" % (fltr.name or f), _('%s (descending)' % (fltr.label or capfirst(f))))
+                        (f, fltr.label or capfirst(f)),
+                        ("-%s" % (f), _('%s (descending)' % (fltr.label or capfirst(f))))
                     ])
             return forms.ChoiceField(label=_("Ordering"), required=False,
                                      choices=choices)
@@ -441,6 +418,15 @@ class BaseFilterSet(object):
         return self._ordering_field
 
     def get_order_by(self, order_choice):
+        re_ordering_field = re.compile(r'(?P<inverse>\-?)(?P<field>.*)')
+        m = re.match(re_ordering_field, order_choice)
+        inverted = m.group('inverse')
+        filter_api_name = m.group('field')
+
+        _filter = self.filters.get(filter_api_name, None)
+
+        if _filter and filter_api_name != _filter.name:
+            return [inverted + _filter.name]
         return [order_choice]
 
     @classmethod

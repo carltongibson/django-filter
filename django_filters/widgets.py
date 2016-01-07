@@ -10,10 +10,7 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
-try:
-    from django.utils.encoding import force_text
-except:  # pragma: nocover
-    from django.utils.encoding import force_unicode as force_text  # noqa
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
@@ -80,7 +77,7 @@ class LinkWidget(forms.Widget):
 
 class RangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
-        widgets = (forms.TextInput(attrs=attrs), forms.TextInput(attrs=attrs))
+        widgets = (forms.TextInput, forms.TextInput)
         super(RangeWidget, self).__init__(widgets, attrs)
 
     def decompress(self, value):
@@ -96,4 +93,24 @@ class LookupTypeWidget(forms.MultiWidget):
     def decompress(self, value):
         if value is None:
             return [None, None]
+        return value
+
+
+class BooleanWidget(forms.Widget):
+    """Convert true/false values into the internal Python True/False.
+    This can be used for AJAX queries that pass true/false from JavaScript's
+    internal types through.
+    """
+    def value_from_datadict(self, data, files, name):
+        """
+        """
+        value = super(BooleanWidget, self).value_from_datadict(
+            data, files, name)
+
+        if value is not None:
+            if value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+
         return value

@@ -1,3 +1,29 @@
+Version 0.12.0 (2016-01-07)
+---------------------------
+
+* FEATURE: Add support for custom ORM lookup types #221
+
+* FEATURE: Add JavaScript friendly BooleanWidget #270
+
+* FIXED: (More) Compatability with Django 1.8 and Django 1.9+
+
+* BREAKING CHANGE: custom filter names are now also be used for ordering #230
+
+    If you use ordering on a field you defined as custom filter with custom
+    name, you should now use the filter name as ordering key as well.
+
+    Eg. For a filter like :
+
+        class F(FilterSet):
+            account = CharFilter(name='username')
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+
+     Before, ordering was like `?o=username`. Since 0.12.0 it's `o=account`.
+
+
 Version 0.11.0 (2015-08-14)
 ---------------------------
 
