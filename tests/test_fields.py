@@ -19,6 +19,20 @@ def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
 
 
+class LookupBoolTests(TestCase):
+    def test_lookup_true(self):
+        self.assertTrue(Lookup(True, 'exact'))
+        self.assertTrue(Lookup(1, 'exact'))
+        self.assertTrue(Lookup('1', 'exact'))
+        self.assertTrue(Lookup(datetime.now(), 'exact'))
+
+    def test_lookup_false(self):
+        self.assertFalse(Lookup(False, 'exact'))
+        self.assertFalse(Lookup(0, 'exact'))
+        self.assertFalse(Lookup('', 'exact'))
+        self.assertFalse(Lookup(None, 'exact'))
+
+
 class RangeFieldTests(TestCase):
 
     def test_field(self):
@@ -46,7 +60,7 @@ class DateRangeFieldTests(TestCase):
 
         self.assertEqual(
             f.clean(['2015-01-01', '2015-01-10']),
-            slice(datetime(2015, 1, 1, 0, 0 , 0),
+            slice(datetime(2015, 1, 1, 0, 0, 0),
                   datetime(2015, 1, 10, 23, 59, 59, 999999)))
 
 
