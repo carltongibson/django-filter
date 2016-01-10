@@ -16,5 +16,5 @@ You may set ``input_formats`` to your list of required formats as per the `DateT
     f.input_formats = [IsoDateTimeField.ISO_8601] + DateTimeField.input_formats
 
 
-.. _`DateTimeField Docs`: https://docs.djangoproject.com/en/1.8/ref/forms/fields/#django.forms.DateTimeField.input_formats
+.. _`DateTimeField Docs`:https://docs.djangoproject.com/en/1.8/ref/forms/fields/#django.forms.DateTimeField.input_formats
 

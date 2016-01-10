@@ -17,4 +17,5 @@ Contents:
     ref/filters
     ref/fields
     ref/widgets
+    ref/settings
     tests
