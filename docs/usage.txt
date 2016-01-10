@@ -298,7 +298,7 @@ set to ``STRICTNESS.RETURN_NO_RESULTS`` meaning that an empty queryset is
 returned if any field contains an invalid value. You can loosen this behavior
 by setting ``strict`` to ``STRICTNESS.IGNORE`` which will effectively ignore a
 filter field if its value is invalid. A third option of
-``STRICTNESS.RAISE_VALIDATION_ERROR`` will cause a ``ValidationError` to be
+``STRICTNESS.RAISE_VALIDATION_ERROR`` will cause a ``ValidationError`` to be
 raised if any field contains an invalid value.
 
 Overriding ``FilterSet`` methods
@@ -380,8 +380,11 @@ Choices help text
 
 If you want the ``ChoiceField`` created from `LOOKUP_TYPES` to have human-friendly options you can do the following:
 
-    from django_filters import filters
+:: 
 
+    # filters.py
+    from django_filters import filters
+    
     filters.LOOKUP_TYPES = [
         ('', '---------'),
         ('exact', 'Is equal to'),
@@ -395,3 +398,4 @@ If you want the ``ChoiceField`` created from `LOOKUP_TYPES` to have human-friend
         ('contains', 'Contains'),
         ('not_contains', 'Does not contain'),
     ]
+

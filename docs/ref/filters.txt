@@ -308,13 +308,13 @@ A boolean value that specifies whether the Filter should use ``filter`` or ``exc
 Defaults to ``False``.
 
 ModelChoiceFilter and ModelMultipleChoiceFilter arguments
---------------
+---------------------------------------------------------
 
 These arguments apply specifically to ModelChoiceFiler and
 ModelMultipleChoiceFilter only.
 
 ``queryset``
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 ``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
 
