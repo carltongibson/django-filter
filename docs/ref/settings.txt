@@ -1,0 +1,24 @@
+.. _ref-settings:
+
+==================
+Available Settings
+==================
+
+Here is a list of all available settings of django-filters and their
+default values. All settings are prefixed with ``FILTERS_``, although this
+is a bit verbose it helps to make it easy to identify these settings.
+
+
+FILTERS_HELP_TEXT_EXCLUDE
+-------------------------
+
+Default: ``True``
+
+The settings for turn on / off default ``help_text`` fields of filters which ``exclude=True`` (see :doc:`/ref/filters`.). It doesn't affect on fields which defined ``help_text`` explicte.
+
+FILTERS_HELP_TEXT_FILTER
+------------------------
+
+Default: ``True``
+
+The settings for turn on / off default ``help_text`` fields of filters which ``exclude=False`` (default; see :doc:`/ref/filters`). It doesn't affect on fields which defined ``help_text`` explicte.
