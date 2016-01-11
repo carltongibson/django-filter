@@ -165,7 +165,7 @@ class FilterTests(TestCase):
         self.assertEqual(qs, result)
 
     def test_filtering_skipped_with_list_value_with_blank_lookup(self):
-        return # Now field is required to provide valid lookup_type if it provides any
+        return  # Now field is required to provide valid lookup_type if it provides any
         qs = mock.Mock(spec=['filter'])
         f = Filter(name='somefield', lookup_type=None)
         result = f.filter(qs, Lookup('value', ''))
@@ -185,6 +185,33 @@ class FilterTests(TestCase):
         f = Filter(name='somefield', distinct=True)
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
+        self.assertNotEqual(qs, result)
+
+
+class CustomFilterWithBooleanCheckTests(TestCase):
+
+    def setUp(self):
+        super(CustomFilterWithBooleanCheckTests, self).setUp()
+
+        class CustomTestFilter(Filter):
+            def filter(self_, qs, value):
+                if not value:
+                    return qs
+                return super(CustomTestFilter, self_).filter(qs, value)
+
+        self.test_filter_class = CustomTestFilter
+
+    def test_lookup_false(self):
+        qs = mock.Mock(spec=['filter'])
+        f = self.test_filter_class(name='somefield')
+        result = f.filter(qs, Lookup('', 'exact'))
+        self.assertEqual(qs, result)
+
+    def test_lookup_true(self):
+        qs = mock.Mock(spec=['filter'])
+        f = self.test_filter_class(name='somefield')
+        result = f.filter(qs, Lookup('somesearch', 'exact'))
+        qs.filter.assert_called_once_with(somefield__exact='somesearch')
         self.assertNotEqual(qs, result)
 
 

@@ -58,7 +58,12 @@ class TimeRangeField(RangeField):
         super(TimeRangeField, self).__init__(fields, *args, **kwargs)
 
 
-Lookup = namedtuple('Lookup', ('value', 'lookup_type'))
+class Lookup(namedtuple('Lookup', ('value', 'lookup_type'))):
+    # python nature is test __len__ on tuple types for boolean check
+    def __len__(self):
+        if not self.value:
+            return 0
+        return 2
 
 
 class LookupTypeField(forms.MultiValueField):
