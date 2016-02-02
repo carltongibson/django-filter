@@ -67,7 +67,7 @@ class AdminUser(User):
 @python_2_unicode_compatible
 class Comment(models.Model):
     text = models.TextField()
-    author = models.ForeignKey(User, related_name='comments')
+    author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
 
     date = models.DateField()
     time = models.TimeField()
@@ -78,7 +78,7 @@ class Comment(models.Model):
 
 class Article(models.Model):
     published = models.DateTimeField()
-    author = models.ForeignKey(User, null=True)
+    author = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         if self.author_id:
@@ -125,7 +125,7 @@ class Company(models.Model):
 
 @python_2_unicode_compatible
 class Location(models.Model):
-    company = models.ForeignKey(Company, related_name='locations')
+    company = models.ForeignKey(Company, related_name='locations', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
     open_days = models.CharField(max_length=7)
@@ -141,7 +141,7 @@ class Account(models.Model):
 
 
 class Profile(models.Model):
-    account = models.OneToOneField(Account, related_name='profile')
+    account = models.OneToOneField(Account, related_name='profile', on_delete=models.CASCADE)
     likes_coffee = models.BooleanField(default=False)
     likes_tea = models.BooleanField(default=False)
 
@@ -169,8 +169,8 @@ class Worker(models.Model):
 class HiredWorker(models.Model):
     salary = models.IntegerField()
     hired_on = models.DateField()
-    worker = models.ForeignKey(Worker)
-    business = models.ForeignKey('Business')
+    worker = models.ForeignKey(Worker, on_delete=models.CASCADE)
+    business = models.ForeignKey('Business', on_delete=models.CASCADE)
 
 
 class Business(models.Model):
