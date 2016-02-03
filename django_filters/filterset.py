@@ -19,7 +19,7 @@ from .compat import remote_field, remote_model
 from .filters import (Filter, CharFilter, BooleanFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
-from .utils import try_dbfield, get_model_field
+from .utils import try_dbfield, get_model_field, resolve_field
 
 
 ORDER_BY_FIELD = 'o'
@@ -81,14 +81,17 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
         # If fields is a dictionary, it must contain lists.
         elif isinstance(fields, dict):
             # Create a filter for each lookup type.
-            for lookup_type in fields[f]:
-                filter_ = filter_for_field(field, f, lookup_type)
+            for lookup_expr in fields[f]:
+                filter_ = filter_for_field(field, f, lookup_expr)
 
                 if filter_:
-                    filter_name = f
+                    filter_name = LOOKUP_SEP.join([f, lookup_expr])
+
                     # Don't add "exact" to filter names
-                    if lookup_type != 'exact':
-                        filter_name = f + LOOKUP_SEP + lookup_type
+                    _exact = LOOKUP_SEP + 'exact'
+                    if filter_name.endswith(_exact):
+                        filter_name = filter_name[:-len(_exact)]
+
                     field_dict[filter_name] = filter_
         # If fields is a list, it contains strings.
         else:
@@ -412,14 +415,16 @@ class BaseFilterSet(object):
         return [order_choice]
 
     @classmethod
-    def filter_for_field(cls, f, name, lookup_type='exact'):
+    def filter_for_field(cls, f, name, lookup_expr='exact'):
         filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS)
         filter_for_field.update(cls.filter_overrides)
+
+        f, lookup_type = resolve_field(f, lookup_expr)
 
         default = {
             'name': name,
             'label': capfirst(f.verbose_name),
-            'lookup_type': lookup_type
+            'lookup_type': lookup_expr
         }
 
         if f.choices:

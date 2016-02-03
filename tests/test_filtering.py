@@ -5,7 +5,7 @@ import datetime
 import mock
 import unittest
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import six
 from django.utils.timezone import now
 from django.utils import timezone
@@ -1238,6 +1238,31 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
         qs = DirectedNode.objects.all().order_by('pk')
         f = F({'inbound_nodes': ['1']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
+
+
+class TransformedQueryExpressionFilterTests(TestCase):
+
+    @override_settings(USE_TZ=False)
+    def test_filtering(self):
+        # use naive datetimes, as pytz is required to perform
+        # date lookups when timezones are involved.
+        now_dt = datetime.datetime.now()
+        after_5pm = now_dt.replace(hour=18)
+        before_5pm = now_dt.replace(hour=16)
+
+        u = User.objects.create(username='alex')
+        a = Article.objects.create(author=u, published=after_5pm)
+        Article.objects.create(author=u, published=before_5pm)
+
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'published': ['hour__gte']}
+
+        qs = Article.objects.all()
+        f = F({'published__hour__gte': 17}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertQuerysetEqual(f.qs, [a.pk], lambda o: o.pk)
 
 
 class MiscFilterSetTests(TestCase):

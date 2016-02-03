@@ -171,6 +171,12 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Worker)
 
+    def test_transformed_lookup_expr(self):
+        f = Comment._meta.get_field('date')
+        result = FilterSet.filter_for_field(f, 'date', 'year__gte')
+        self.assertIsInstance(result, NumberFilter)
+        self.assertEqual(result.name, 'date')
+
     @unittest.skip('todo')
     def test_filter_overrides(self):
         pass
