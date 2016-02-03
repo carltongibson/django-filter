@@ -9,7 +9,6 @@ from django.test import TestCase
 
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
-from django_filters.filterset import get_model_field
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
@@ -47,14 +46,6 @@ class HelperMethodsTests(TestCase):
     @unittest.skip('todo')
     def test_get_declared_filters(self):
         pass
-
-    def test_get_model_field_none(self):
-        result = get_model_field(User, 'unknown__name')
-        self.assertIsNone(result)
-
-    def test_get_model_field(self):
-        result = get_model_field(Business, 'hiredworker__worker')
-        self.assertEqual(result, HiredWorker._meta.get_field('worker'))
 
     @unittest.skip('todo')
     def test_filters_for_model(self):

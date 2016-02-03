@@ -10,7 +10,6 @@ from django.forms.forms import NON_FIELD_ERRORS
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 from django.utils.text import capfirst
@@ -20,7 +19,7 @@ from .compat import remote_field, remote_model
 from .filters import (Filter, CharFilter, BooleanFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
-from .utils import try_dbfield
+from .utils import try_dbfield, get_model_field
 
 
 ORDER_BY_FIELD = 'o'
@@ -56,25 +55,6 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
                 filters = list(base.declared_filters.items()) + filters
 
     return OrderedDict(filters)
-
-
-def get_model_field(model, f):
-    parts = f.split(LOOKUP_SEP)
-    opts = model._meta
-    for name in parts[:-1]:
-        try:
-            rel = opts.get_field(name)
-        except FieldDoesNotExist:
-            return None
-        if isinstance(rel, ForeignObjectRel):
-            opts = rel.related_model._meta
-        else:
-            opts = remote_model(rel)._meta
-    try:
-        rel = opts.get_field(parts[-1])
-    except FieldDoesNotExist:
-        return None
-    return rel
 
 
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
