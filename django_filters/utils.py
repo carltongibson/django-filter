@@ -1,6 +1,7 @@
 
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel
 
@@ -55,3 +56,40 @@ def get_model_field(model, field_name):
         return opts.get_field(parts[-1])
     except FieldDoesNotExist:
         return None
+
+
+def resolve_field(model_field, lookup_expr):
+    """
+    Resolves a ``lookup_expr`` into its final output field, given
+    the initial ``model_field``. The lookup expression should only contain
+    transforms and lookups, not intermediary model field parts.
+
+    Note:
+    This method is based on django.db.models.sql.query.Query.build_lookup
+
+    For more info on the lookup API:
+    https://docs.djangoproject.com/en/1.9/ref/models/lookups/
+
+    """
+    query = model_field.model._default_manager.all().query
+    lhs = Expression(model_field)
+    lookups = lookup_expr.split(LOOKUP_SEP)
+
+    assert len(lookups) > 0
+
+    while lookups:
+        name = lookups[0]
+        # If there is just one part left, try first get_lookup() so
+        # that if the lhs supports both transform and lookup for the
+        # name, then lookup will be picked.
+        if len(lookups) == 1:
+            final_lookup = lhs.get_lookup(name)
+            if not final_lookup:
+                # We didn't find a lookup. We are going to interpret
+                # the name as transform, and do an Exact lookup against
+                # it.
+                lhs = query.try_transform(lhs, name, lookups)
+                final_lookup = lhs.get_lookup('exact')
+            return lhs.output_field, final_lookup.lookup_name
+        lhs = query.try_transform(lhs, name, lookups)
+        lookups = lookups[1:]
