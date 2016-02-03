@@ -20,6 +20,7 @@ from .compat import remote_field, remote_model
 from .filters import (Filter, CharFilter, BooleanFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
+from .utils import try_dbfield
 
 
 ORDER_BY_FIELD = 'o'
@@ -445,19 +446,8 @@ class BaseFilterSet(object):
             default['choices'] = f.choices
             return ChoiceFilter(**default)
 
-        data = filter_for_field.get(f.__class__)
-        if data is None:
-            # could be a derived field, inspect parents
-            for class_ in f.__class__.mro():
-                # skip if class_ is models.Field or object
-                # 1st item in mro() is original class
-                if class_ in (f.__class__, models.Field, object):
-                    continue
-                data = filter_for_field.get(class_)
-                if data:
-                    break
-            if data is None:
-                return
+        data = try_dbfield(filter_for_field.get, f.__class__) or {}
+
         filter_class = data.get('filter_class')
         default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
