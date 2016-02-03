@@ -16,6 +16,7 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
+from .compat import remote_field, remote_model
 from .filters import (Filter, CharFilter, BooleanFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
@@ -67,7 +68,7 @@ def get_model_field(model, f):
         if isinstance(rel, ForeignObjectRel):
             opts = rel.related_model._meta
         else:
-            opts = rel.rel.to._meta
+            opts = remote_model(rel)._meta
     try:
         rel = opts.get_field(parts[-1])
     except FieldDoesNotExist:
@@ -212,24 +213,24 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(
-                f.rel.limit_choices_to),
-            'to_field_name': f.rel.field_name,
+            'queryset': remote_model(f)._default_manager.complex_filter(
+                remote_field(f).limit_choices_to),
+            'to_field_name': remote_field(f).field_name,
         }
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(
-                f.rel.limit_choices_to),
-            'to_field_name': f.rel.field_name
+            'queryset': remote_model(f)._default_manager.complex_filter(
+                remote_field(f).limit_choices_to),
+            'to_field_name': remote_field(f).field_name
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
-            'queryset': f.rel.to._default_manager.complex_filter(
-                f.rel.limit_choices_to),
+            'queryset': remote_model(f)._default_manager.complex_filter(
+                remote_field(f).limit_choices_to),
         }
     },
     models.DecimalField: {
@@ -464,7 +465,7 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_reverse_field(cls, f, name):
-        rel = f.field.rel
+        rel = remote_field(f.field)
         queryset = f.field.model._default_manager.all()
         default = {
             'name': name,
