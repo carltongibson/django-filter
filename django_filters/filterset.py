@@ -424,7 +424,7 @@ class BaseFilterSet(object):
         default = {
             'name': name,
             'label': capfirst(f.verbose_name),
-            'lookup_type': lookup_expr
+            'lookup_expr': lookup_expr
         }
 
         if f.choices:

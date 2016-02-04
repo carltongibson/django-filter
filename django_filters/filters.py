@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import warnings
 from datetime import timedelta
-
 
 from django import forms
 from django.db.models import Q
@@ -28,17 +28,26 @@ __all__ = [
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
+def _lookup_type_warning():
+    warnings.warn('lookup_type is deprecated. Use lookup_expr instead.', DeprecationWarning, stacklevel=3)
+
+
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-                 lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
+                 lookup_expr='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
             self.filter = action
-        self.lookup_type = lookup_type
+
+        self.lookup_expr = lookup_expr
+        if 'lookup_type' in kwargs:
+            _lookup_type_warning()
+            self.lookup_expr = kwargs.pop('lookup_type')
+
         self.widget = widget
         self.required = required
         self.extra = kwargs
@@ -54,14 +63,26 @@ class Filter(object):
         """
         return qs.exclude if self.exclude else qs.filter
 
+    def lookup_type():
+        def fget(self):
+            _lookup_type_warning()
+            return self.lookup_expr
+
+        def fset(self, value):
+            _lookup_type_warning()
+            self.lookup_expr = value
+
+        return locals()
+    lookup_type = property(**lookup_type())
+
     @property
     def field(self):
         if not hasattr(self, '_field'):
             help_text = self.extra.pop('help_text', None)
             if help_text is None:
                 help_text = _('This is an exclusion filter') if self.exclude else _('Filter')
-            if (self.lookup_type is None or
-                    isinstance(self.lookup_type, (list, tuple))):
+            if (self.lookup_expr is None or
+                    isinstance(self.lookup_expr, (list, tuple))):
 
                 lookup = []
 
@@ -71,9 +92,7 @@ class Filter(object):
                     else:
                         choice = (x, x)
 
-                    if self.lookup_type is None:
-                        lookup.append(choice)
-                    elif x in self.lookup_type:
+                    if self.lookup_expr is None or x in self.lookup_expr:
                         lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
@@ -90,7 +109,7 @@ class Filter(object):
             lookup = six.text_type(value.lookup_type)
             value = value.value
         else:
-            lookup = self.lookup_type
+            lookup = self.lookup_expr
         if value in ([], (), {}, None, ''):
             return qs
         if self.distinct:
@@ -229,7 +248,7 @@ class NumericRangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             if value.start is not None and value.stop is not None:
-                lookup = '%s__%s' % (self.name, self.lookup_type)
+                lookup = '%s__%s' % (self.name, self.lookup_expr)
                 return self.get_method(qs)(**{lookup: (value.start, value.stop)})
             else:
                 if value.start is not None:

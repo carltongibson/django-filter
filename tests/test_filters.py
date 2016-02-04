@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import date, time, timedelta
 import mock
+import warnings
 import unittest
 
 import django
@@ -186,6 +187,16 @@ class FilterTests(TestCase):
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
+
+    def test_lookup_type_deprecation(self):
+        """
+        Make sure user is alerted when using deprecated ``lookup_type``.
+        """
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            Filter(lookup_type='exact')
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
 
 class CustomFilterWithBooleanCheckTests(TestCase):
