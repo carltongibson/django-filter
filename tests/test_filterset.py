@@ -171,6 +171,7 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Worker)
 
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_transformed_lookup_expr(self):
         f = Comment._meta.get_field('date')
         result = FilterSet.filter_for_field(f, 'date', 'year__gte')

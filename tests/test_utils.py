@@ -1,4 +1,7 @@
 
+import unittest
+
+import django
 from django.test import TestCase
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
@@ -40,6 +43,7 @@ class ResolveFieldTests(TestCase):
             self.assertIsInstance(field, models.CharField)
             self.assertEqual(lookup, term)
 
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_resolve_transformed_lookups(self):
         """
         Check that chained field transforms are correctly resolved.
@@ -91,6 +95,7 @@ class ResolveFieldTests(TestCase):
                 self.assertIsInstance(field, models.IntegerField)
                 self.assertEqual(resolved_lookup, lookup)
 
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_resolve_implicit_exact_lookup(self):
         # Use a DateTimeField, so we can check multiple transforms.
         # eg, date__year__gte

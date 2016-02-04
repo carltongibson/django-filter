@@ -5,6 +5,7 @@ import datetime
 import mock
 import unittest
 
+import django
 from django.test import TestCase, override_settings
 from django.utils import six
 from django.utils.timezone import now
@@ -1242,6 +1243,7 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
 
 class TransformedQueryExpressionFilterTests(TestCase):
 
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     @override_settings(USE_TZ=False)
     def test_filtering(self):
         # use naive datetimes, as pytz is required to perform

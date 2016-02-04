@@ -45,16 +45,19 @@ declarative syntax::
             model = Product
             fields = ['price', 'release_date']
 
-Filters take a ``lookup_expr`` argument which specifies what lookup expression to
-use with `Django's ORM`_. A detailed explanation of lookup expressions is provided in Django's
-`lookup reference`_. django-filter expects an expression to contain only transforms and a final
-lookup. ex, ``year__gte``.
+Filters take a ``lookup_expr`` argument which specifies what lookup expression
+to use with `Django's ORM`_. A detailed explanation of lookup expressions is
+provided in Django's `lookup reference`_. django-filter supports expressions
+containing both transforms and a final lookup in version 1.9 of Django and
+above. ex, ``year__gte``. For Django version 1.8, transforms expressions are
+not supported.
 
 .. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 
 .. _`lookup reference`: https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
 
-In the above filter, when a user enters a price it would show all Products with a price less than that.
+In the above filter, when a user enters a price it would show all Products
+with a price less than that.
 
 **It's quite common to forget to set lookup type for `CharField`s/`TextField`s
 and wonder why search for "foo" doesn't return result for "foobar". It's because
