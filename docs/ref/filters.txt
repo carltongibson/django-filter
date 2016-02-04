@@ -171,7 +171,7 @@ than a maximum where only one limit value is provided. This filter is designed t
 the Postgres Numerical Range Fields, including `IntegerRangeField`, `BigIntegerRangeField` and `FloatRangeField`,
 available since Django 1.8. The default widget used is the `RangeField`.
 
-RangeField lookup_types can be used, including `overlap`, `contains`, and `contained_by`. More lookups can be
+RangeField lookup_exprs can be used, including `overlap`, `contains`, and `contained_by`. More lookups can be
 found in the Django docs ([https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields](https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields)).
 
 If the lower limit value is provided, the filter automatically defaults to `__startswith` as the lookup
@@ -285,15 +285,17 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ``Queryset`` that is filtered appropriately. `action` will default to
 ``filter_{value-of-name-attribute}``
 
-``lookup_type``
+``lookup_expr``
 ~~~~~~~~~~~~~~~
 
-The type of lookup that should be performed using the [Django ORM](https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups "Django's ORM Lookups").
+The lookup expression that should be performed using `Django's ORM`_.
 All the normal options are allowed, and should be provided as a string.  You can also
 provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
 then the user can select the lookup type from all the ones available in the Django
 ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from those
 options.
+
+.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 
 ``distinct``
 ~~~~~~~~~~~~

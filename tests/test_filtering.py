@@ -446,9 +446,9 @@ class NumberFilterTests(TestCase):
         f = F({'price': 10}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
 
-    def test_filtering_with_single_lookup_type(self):
+    def test_filtering_with_single_lookup_expr(self):
         class F(FilterSet):
-            price = NumberFilter(lookup_type='lt')
+            price = NumberFilter(lookup_expr='lt')
 
             class Meta:
                 model = Book
@@ -458,7 +458,7 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
-    def test_filtering_with_single_lookup_type_dictionary(self):
+    def test_filtering_with_single_lookup_expr_dictionary(self):
         class F(FilterSet):
             class Meta:
                 model = Book
@@ -468,9 +468,9 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
-    def test_filtering_with_multiple_lookup_types(self):
+    def test_filtering_with_multiple_lookup_exprs(self):
         class F(FilterSet):
-            price = NumberFilter(lookup_type=['lt', 'gt'])
+            price = NumberFilter(lookup_expr=['lt', 'gt'])
 
             class Meta:
                 model = Book
@@ -487,7 +487,7 @@ class NumberFilterTests(TestCase):
                                  lambda o: o.title, ordered=False)
 
         class F(FilterSet):
-            price = NumberFilter(lookup_type=['lt', 'gt', 'exact'])
+            price = NumberFilter(lookup_expr=['lt', 'gt', 'exact'])
 
             class Meta:
                 model = Book
