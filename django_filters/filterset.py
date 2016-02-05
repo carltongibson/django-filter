@@ -16,7 +16,7 @@ from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
 from .compat import remote_field, remote_model
-from .filters import (Filter, CharFilter, BooleanFilter,
+from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
 from .utils import try_dbfield, get_model_field, resolve_field
@@ -416,9 +416,6 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):
-        filter_for_field = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-        filter_for_field.update(cls.filter_overrides)
-
         f, lookup_type = resolve_field(f, lookup_expr)
 
         default = {
@@ -427,14 +424,9 @@ class BaseFilterSet(object):
             'lookup_expr': lookup_expr
         }
 
-        if f.choices:
-            default['choices'] = f.choices
-            return ChoiceFilter(**default)
+        filter_class, params = cls.filter_for_lookup(f, lookup_type)
+        default.update(params)
 
-        data = try_dbfield(filter_for_field.get, f.__class__) or {}
-
-        filter_class = data.get('filter_class')
-        default.update(data.get('extra', lambda f: {})(f))
         if filter_class is not None:
             return filter_class(**default)
 
@@ -451,6 +443,72 @@ class BaseFilterSet(object):
             return ModelMultipleChoiceFilter(**default)
         else:
             return ModelChoiceFilter(**default)
+
+    @classmethod
+    def filter_for_lookup(cls, f, lookup_type):
+        DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
+        DEFAULTS.update(cls.filter_overrides)
+
+        data = try_dbfield(DEFAULTS.get, f.__class__) or {}
+        filter_class = data.get('filter_class')
+        params = data.get('extra', lambda f: {})(f)
+
+        # if there is no filter class, exit early
+        if not filter_class:
+            return None, {}
+
+        # perform lookup specific checks
+        if lookup_type == 'isnull':
+            return BooleanFilter, {}
+
+        if lookup_type == 'in':
+            class ConcreteInFilter(BaseInFilter, filter_class):
+                pass
+            ConcreteInFilter.__name__ = cls._csv_filter_class_name(
+                filter_class, lookup_type
+            )
+
+            return ConcreteInFilter, {}
+
+        if lookup_type == 'range':
+            class ConcreteRangeFilter(BaseRangeFilter, filter_class):
+                pass
+            ConcreteRangeFilter.__name__ = cls._csv_filter_class_name(
+                filter_class, lookup_type
+            )
+
+            return ConcreteRangeFilter, {}
+
+        # Default behavior
+        if f.choices:
+            return ChoiceFilter, {'choices': f.choices}
+
+        return filter_class, params
+
+    @classmethod
+    def _csv_filter_class_name(cls, filter_class, lookup_type):
+        """
+        Generate a suitable class name for a concrete filter class. This is not
+        completely reliable, as not all filter class names are of the format
+        <Type>Filter.
+
+        ex::
+
+            FilterSet._csv_filter_class_name(DateTimeFilter, 'in')
+
+            returns 'DateTimeInFilter'
+
+        """
+        # DateTimeFilter => DateTime
+        type_name = filter_class.__name__
+        if type_name.endswith('Filter'):
+            type_name = type_name[:-6]
+
+        # in => In
+        lookup_name = lookup_type.capitalize()
+
+        # DateTimeInFilter
+        return str('%s%sFilter' % (type_name, lookup_name))
 
 
 class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
