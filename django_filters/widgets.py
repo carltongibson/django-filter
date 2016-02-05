@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import Iterable
 from itertools import chain
 try:
     from urllib.parse import urlencode
@@ -10,10 +11,9 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
-from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
-from django.utils import six
+from django.utils.six import string_types
 from django.utils.translation import ugettext as _
 
 
@@ -118,34 +118,20 @@ class BooleanWidget(forms.Widget):
         return value
 
 
-class CommaSeparatedValueWidget(forms.TextInput):
-    @staticmethod
-    def sanitize(value_list):
-        """Remove empty items in case of ?number=1,,2."""
-        return [v for v in value_list if v]
-
-    @staticmethod
-    def customize(value):
-        """Allow simple type conversion of values."""
-        return value
+class CSVWidget(forms.TextInput):
+    def _isiterable(self, value):
+        return isinstance(value, Iterable) and not isinstance(value, string_types)
 
     def value_from_datadict(self, data, files, name):
-        value = data.get(name)
+        value = super(CSVWidget, self).value_from_datadict(data, files, name)
 
-        if value is None:
-            return []
-
-        values = self.sanitize(value.split(','))
-
-        return [self.customize(value) for value in values]
+        if value is not None:
+            return value.split(',')
+        return None
 
     def render(self, name, value, attrs=None):
-        value = value or ''
+        if self._isiterable(value):
+            value = [force_text(self._format_value(v)) for v in value]
+            value = ','.join(list(value))
 
-        final_attrs = self.build_attrs(attrs, type=self.input_type,  name=name)
-        if value:
-            if isinstance(value, list):
-                value = ','.join(value)
-            final_attrs['value'] = force_text(self._format_value(value))
-        return super(CommaSeparatedValueWidget, self).render(
-                name, value, final_attrs)
+        return super(CSVWidget, self).render(name, value, attrs)

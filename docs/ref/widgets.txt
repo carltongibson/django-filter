@@ -26,11 +26,3 @@ all case variations of ``True`` and ``False`` into the internal Python values.
 To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``::
 
   active = BooleanFilter(widget=BooleanWidget())
-
-``CommaSeparatedValueWidget``
-~~~~~~~~~~~~~~
-
-This widget converts a comma-separated value for an <input>, into a list of
-values for an `__in` lookup. It has one method that you can overide for
-converting values from the inputted strings. ``customize()`` should return the
-value in the same type it's stored in the database.
