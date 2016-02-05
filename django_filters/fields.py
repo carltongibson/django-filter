@@ -10,8 +10,9 @@ from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from django.utils.encoding import force_str
+from django.utils.translation import ugettext_lazy as _
 
-from .widgets import RangeWidget, LookupTypeWidget
+from .widgets import RangeWidget, LookupTypeWidget, CSVWidget
 
 
 class RangeField(forms.MultiValueField):
@@ -114,3 +115,37 @@ class IsoDateTimeField(forms.DateTimeField):
                 return timezone.make_naive(parsed, timezone.UTC())
             return parsed
         return super(IsoDateTimeField, self).strptime(value, format)
+
+
+class BaseCSVField(forms.Field):
+    """
+    Base field for validating CSV types. Value validation is performed by
+    secondary base classes.
+
+    ex::
+        class IntegerCSVField(BaseCSVField, filters.IntegerField):
+            pass
+
+    """
+    widget = CSVWidget
+
+    def clean(self, value):
+        if value is None:
+            return None
+        return [super(BaseCSVField, self).clean(v) for v in value]
+
+
+class BaseRangeField(BaseCSVField):
+    default_error_messages = {
+        'invalid_values': _('Range query expects two values.')
+    }
+
+    def clean(self, value):
+        value = super(BaseRangeField, self).clean(value)
+
+        if value is not None and len(value) != 2:
+            raise forms.ValidationError(
+                self.error_messages['invalid_values'],
+                code='invalid_values')
+
+        return value

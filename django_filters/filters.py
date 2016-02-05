@@ -7,12 +7,15 @@ from datetime import timedelta
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
+from django.db.models.constants import LOOKUP_SEP
 from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField,
+    IsoDateTimeField, BaseCSVField, BaseRangeField,
+)
 
 
 __all__ = [
@@ -335,6 +338,65 @@ class AllValuesFilter(ChoiceFilter):
         qs = qs.order_by(self.name).values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
+
+
+class BaseCSVFilter(Filter):
+    """
+    Base class for CSV type filters, such as IN and RANGE.
+    """
+    base_field_class = BaseCSVField
+
+    def __init__(self, *args, **kwargs):
+        super(BaseCSVFilter, self).__init__(*args, **kwargs)
+
+        class ConcreteCSVField(self.base_field_class, self.field_class):
+            pass
+        ConcreteCSVField.__name__ = self._field_class_name(
+            self.field_class, self.lookup_expr
+        )
+
+        self.field_class = ConcreteCSVField
+
+    @classmethod
+    def _field_class_name(cls, field_class, lookup_expr):
+        """
+        Generate a suitable class name for the concrete field class. This is not
+        completely reliable, as not all field class names are of the format
+        <Type>Field.
+
+        ex::
+
+            BaseCSVFilter._field_class_name(DateTimeField, 'year__in')
+
+            returns 'DateTimeYearInField'
+
+        """
+        # DateTimeField => DateTime
+        type_name = field_class.__name__
+        if type_name.endswith('Field'):
+            type_name = type_name[:-5]
+
+        # year__in => YearIn
+        parts = lookup_expr.split(LOOKUP_SEP)
+        expression_name = ''.join(p.capitalize() for p in parts)
+
+        # DateTimeYearInField
+        return str('%s%sField' % (type_name, expression_name))
+
+
+class BaseInFilter(BaseCSVFilter):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('lookup_expr', 'in')
+        super(BaseInFilter, self).__init__(*args, **kwargs)
+
+
+class BaseRangeFilter(BaseCSVFilter):
+    base_field_class = BaseRangeField
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('lookup_expr', 'range')
+        super(BaseRangeFilter, self).__init__(*args, **kwargs)
 
 
 class MethodFilter(Filter):

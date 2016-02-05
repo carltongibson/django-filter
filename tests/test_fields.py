@@ -12,7 +12,8 @@ from django.utils.timezone import make_aware
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField,
+    IsoDateTimeField, BaseCSVField, BaseRangeField)
 
 
 def to_d(float_value):
@@ -179,3 +180,47 @@ class IsoDateTimeFieldTests(TestCase):
         d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
         self.assertTrue(d.tzinfo is None)
         self.assertEqual(d, r)
+
+
+class BaseCSVFieldTests(TestCase):
+    def setUp(self):
+        class DecimalCSVField(BaseCSVField, forms.DecimalField):
+            pass
+
+        self.field = DecimalCSVField()
+
+    def test_clean(self):
+        self.assertEqual(self.field.clean(None), None)
+        self.assertEqual(self.field.clean(''), [])
+        self.assertEqual(self.field.clean(['1']), [1])
+        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
+        self.assertEqual(self.field.clean(['1', '2', '3']), [1, 2, 3])
+
+    def test_validation_error(self):
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean([''])
+
+
+class BaseRangeFieldTests(TestCase):
+    def setUp(self):
+        class DecimalRangeField(BaseRangeField, forms.DecimalField):
+            pass
+
+        self.field = DecimalRangeField()
+
+    def test_clean(self):
+        self.assertEqual(self.field.clean(None), None)
+        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
+
+    def test_validation_error(self):
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean('')
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean([''])
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean(['1'])
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean(['1', '2', '3'])

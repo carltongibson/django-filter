@@ -16,7 +16,8 @@ from django_filters.fields import (
     RangeField,
     DateRangeField,
     TimeRangeField,
-    LookupTypeField)
+    LookupTypeField,
+    BaseCSVField)
 from django_filters.filters import (
     Filter,
     CharFilter,
@@ -35,6 +36,9 @@ from django_filters.filters import (
     DateFromToRangeFilter,
     TimeRangeFilter,
     AllValuesFilter,
+    BaseCSVFilter,
+    BaseInFilter,
+    BaseRangeFilter,
     UUIDFilter,
     LOOKUP_TYPES)
 
@@ -834,3 +838,71 @@ class LookupTypesTests(TestCase):
         self.assertEqual(choices, filters.LOOKUP_TYPES)
         self.assertEqual(choices[1][0], 'exact')
         self.assertEqual(choices[1][1], 'Is equal to')
+
+
+class CSVFilterTests(TestCase):
+    def setUp(self):
+        class NumberInFilter(BaseCSVFilter, NumberFilter):
+            pass
+
+        class DateTimeYearInFilter(BaseCSVFilter, DateTimeFilter):
+            pass
+
+        self.number_in = NumberInFilter(lookup_expr='in')
+        self.datetimeyear_in = DateTimeYearInFilter(lookup_expr='year__in')
+
+    def test_default_field(self):
+        f = BaseCSVFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.Field)
+
+    def test_concrete_field(self):
+        field = self.number_in.field
+        self.assertIsInstance(field, forms.DecimalField)
+        self.assertIsInstance(field, BaseCSVField)
+        self.assertEqual(field.__class__.__name__, 'DecimalInField')
+
+        field = self.datetimeyear_in.field
+        self.assertIsInstance(field, forms.DateTimeField)
+        self.assertIsInstance(field, BaseCSVField)
+        self.assertEqual(field.__class__.__name__, 'DateTimeYearInField')
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = self.number_in
+        f.filter(qs, [1, 2])
+        qs.filter.assert_called_once_with(None__in=[1, 2])
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = self.number_in
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_field_with_lookup_expr(self):
+        qs = mock.Mock()
+        f = self.datetimeyear_in
+        f.filter(qs, [1, 2])
+        qs.filter.assert_called_once_with(None__year__in=[1, 2])
+
+
+class BaseInFilterTests(TestCase):
+    def test_filtering(self):
+        class NumberInFilter(BaseInFilter, NumberFilter):
+            pass
+
+        qs = mock.Mock(spec=['filter'])
+        f = NumberInFilter()
+        f.filter(qs, [1, 2])
+        qs.filter.assert_called_once_with(None__in=[1, 2])
+
+
+class BaseRangeFilterTests(TestCase):
+    def test_filtering(self):
+        class NumberInFilter(BaseRangeFilter, NumberFilter):
+            pass
+
+        qs = mock.Mock(spec=['filter'])
+        f = NumberInFilter()
+        f.filter(qs, [1, 2])
+        qs.filter.assert_called_once_with(None__range=[1, 2])
