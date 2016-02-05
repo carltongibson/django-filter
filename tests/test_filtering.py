@@ -13,9 +13,9 @@ from django.utils import timezone
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import AllValuesFilter
+from django_filters.filters import BaseInFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
-from django_filters.filters import CSVFilter
 from django_filters.filters import DateRangeFilter
 # from django_filters.filters import DateTimeFilter
 from django_filters.filters import MethodFilter
@@ -1356,12 +1356,14 @@ class MiscFilterSetTests(TestCase):
         self.assertEqual(f.count(), 2)
 
     def test_csv_filters(self):
+        class NumberInFilter(BaseInFilter, NumberFilter):
+            pass
+
         class F(FilterSet):
-            status = CSVFilter()
+            status = NumberInFilter()
 
             class Meta:
                 model = User
-                fields = ['status']
 
         qs = User.objects.all()
         f = F(queryset=qs)
@@ -1369,8 +1371,8 @@ class MiscFilterSetTests(TestCase):
         self.assertEqual(f.count(), 4)
 
         f = F({'status': ''}, queryset=qs)
-        self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
 
         f = F({'status': '0'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
