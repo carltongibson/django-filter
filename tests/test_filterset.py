@@ -9,7 +9,6 @@ from django.test import TestCase
 
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
-from django_filters.filterset import get_model_field
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
@@ -47,14 +46,6 @@ class HelperMethodsTests(TestCase):
     @unittest.skip('todo')
     def test_get_declared_filters(self):
         pass
-
-    def test_get_model_field_none(self):
-        result = get_model_field(User, 'unknown__name')
-        self.assertIsNone(result)
-
-    def test_get_model_field(self):
-        result = get_model_field(Business, 'hiredworker__worker')
-        self.assertEqual(result, HiredWorker._meta.get_field('worker'))
 
     @unittest.skip('todo')
     def test_filters_for_model(self):
@@ -179,6 +170,13 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Worker)
+
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
+    def test_transformed_lookup_expr(self):
+        f = Comment._meta.get_field('date')
+        result = FilterSet.filter_for_field(f, 'date', 'year__gte')
+        self.assertIsInstance(result, NumberFilter)
+        self.assertEqual(result.name, 'date')
 
     @unittest.skip('todo')
     def test_filter_overrides(self):

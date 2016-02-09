@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import date, time, timedelta
 import mock
+import warnings
 import unittest
 
 import django
@@ -44,7 +45,7 @@ class FilterTests(TestCase):
 
     def test_creation(self):
         f = Filter()
-        self.assertEqual(f.lookup_type, 'exact')
+        self.assertEqual(f.lookup_expr, 'exact')
         self.assertEqual(f.exclude, False)
 
     def test_creation_order(self):
@@ -64,26 +65,26 @@ class FilterTests(TestCase):
         self.assertIsInstance(field, forms.Field)
         self.assertEqual(field.help_text, 'This is an exclusion filter')
 
-    def test_field_with_single_lookup_type(self):
-        f = Filter(lookup_type='iexact')
+    def test_field_with_single_lookup_expr(self):
+        f = Filter(lookup_expr='iexact')
         field = f.field
         self.assertIsInstance(field, forms.Field)
 
-    def test_field_with_none_lookup_type(self):
-        f = Filter(lookup_type=None)
+    def test_field_with_none_lookup_expr(self):
+        f = Filter(lookup_expr=None)
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
         choice_field = field.fields[1]
         self.assertEqual(len(choice_field.choices), len(LOOKUP_TYPES))
 
-    def test_field_with_lookup_type_and_exlusion(self):
-        f = Filter(lookup_type=None, exclude=True)
+    def test_field_with_lookup_expr_and_exlusion(self):
+        f = Filter(lookup_expr=None, exclude=True)
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
         self.assertEqual(field.help_text, 'This is an exclusion filter')
 
-    def test_field_with_list_lookup_type(self):
-        f = Filter(lookup_type=('istartswith', 'iendswith'))
+    def test_field_with_list_lookup_expr(self):
+        f = Filter(lookup_expr=('istartswith', 'iendswith'))
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
         choice_field = field.fields[1]
@@ -152,22 +153,22 @@ class FilterTests(TestCase):
 
     def test_filtering_with_list_value(self):
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield', lookup_type=['some_lookup_type'])
-        result = f.filter(qs, Lookup('value', 'some_lookup_type'))
-        qs.filter.assert_called_once_with(somefield__some_lookup_type='value')
+        f = Filter(name='somefield', lookup_expr=['some_lookup_expr'])
+        result = f.filter(qs, Lookup('value', 'some_lookup_expr'))
+        qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_skipped_with_list_value_with_blank(self):
         qs = mock.Mock()
-        f = Filter(name='somefield', lookup_type=['some_lookup_type'])
-        result = f.filter(qs, Lookup('', 'some_lookup_type'))
+        f = Filter(name='somefield', lookup_expr=['some_lookup_expr'])
+        result = f.filter(qs, Lookup('', 'some_lookup_expr'))
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
 
     def test_filtering_skipped_with_list_value_with_blank_lookup(self):
-        return  # Now field is required to provide valid lookup_type if it provides any
+        return  # Now field is required to provide valid lookup_expr if it provides any
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield', lookup_type=None)
+        f = Filter(name='somefield', lookup_expr=None)
         result = f.filter(qs, Lookup('value', ''))
         qs.filter.assert_called_once_with(somefield__exact='value')
         self.assertNotEqual(qs, result)
@@ -186,6 +187,16 @@ class FilterTests(TestCase):
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
+
+    def test_lookup_type_deprecation(self):
+        """
+        Make sure user is alerted when using deprecated ``lookup_type``.
+        """
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            Filter(lookup_type='exact')
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
 
 class CustomFilterWithBooleanCheckTests(TestCase):
@@ -267,9 +278,9 @@ class BooleanFilterTests(TestCase):
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
 
-    def test_filtering_lookup_type(self):
+    def test_filtering_lookup_expr(self):
         qs = mock.Mock(spec=['filter'])
-        f = BooleanFilter(name='somefield', lookup_type='isnull')
+        f = BooleanFilter(name='somefield', lookup_expr='isnull')
         result = f.filter(qs, True)
         qs.filter.assert_called_once_with(somefield__isnull=True)
         self.assertNotEqual(qs, result)
@@ -530,10 +541,10 @@ class NumericRangeFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
-    def test_field_with_lookup_type(self):
+    def test_field_with_lookup_expr(self):
         qs = mock.Mock()
         value = mock.Mock(start=20, stop=30)
-        f = NumericRangeFilter(lookup_type=('overlap'))
+        f = NumericRangeFilter(lookup_expr=('overlap'))
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__overlap=(20, 30))
 
@@ -594,10 +605,10 @@ class RangeFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
-    def test_filtering_ignores_lookup_type(self):
+    def test_filtering_ignores_lookup_expr(self):
         qs = mock.Mock()
         value = mock.Mock(start=20, stop=30)
-        f = RangeFilter(lookup_type='gte')
+        f = RangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__range=(20, 30))
 
@@ -727,10 +738,10 @@ class DateFromToRangeFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
-    def test_filtering_ignores_lookup_type(self):
+    def test_filtering_ignores_lookup_expr(self):
         qs = mock.Mock()
         value = mock.Mock(start=date(2015, 4, 7), stop=date(2015, 9, 6))
-        f = DateFromToRangeFilter(lookup_type='gte')
+        f = DateFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(date(2015, 4, 7), date(2015, 9, 6)))
@@ -771,10 +782,10 @@ class TimeRangeFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
-    def test_filtering_ignores_lookup_type(self):
+    def test_filtering_ignores_lookup_expr(self):
         qs = mock.Mock()
         value = mock.Mock(start=time(10, 15), stop=time(12, 30))
-        f = TimeRangeFilter(lookup_type='gte')
+        f = TimeRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(time(10, 15), time(12, 30)))
@@ -799,7 +810,7 @@ class AllValuesFilterTests(TestCase):
 
 
 class LookupTypesTests(TestCase):
-    def test_custom_lookup_types(self):
+    def test_custom_lookup_exprs(self):
         filters.LOOKUP_TYPES = [
             ('', '---------'),
             ('exact', 'Is equal to'),
@@ -814,7 +825,7 @@ class LookupTypesTests(TestCase):
             ('not_contains', 'Does not contain'),
         ]
 
-        f = Filter(lookup_type=None)
+        f = Filter(lookup_expr=None)
         field = f.field
         choice_field = field.fields[1]
         choices = choice_field.choices
