@@ -34,8 +34,8 @@ class DateRangeField(RangeField):
 
     def __init__(self, *args, **kwargs):
         fields = (
-            forms.DateField(),
-            forms.DateField())
+            forms.DateTimeField(),
+            forms.DateTimeField())
         super(DateRangeField, self).__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
