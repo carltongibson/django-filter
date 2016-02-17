@@ -46,7 +46,7 @@ And then in your view you could do::
 
     def product_list(request):
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
-        return render_to_response('my_app/template.html', {'filter': filter})
+        return render(request, 'my_app/template.html', {'filter': filter})
 
 Django-filters additionally supports specifying FilterSet fields using a
 dictionary to specify filters with lookup types::
