@@ -3,7 +3,6 @@ from __future__ import absolute_import, unicode_literals
 import mock
 import unittest
 
-import django
 from django.db import models
 from django.test import TestCase
 
