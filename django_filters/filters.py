@@ -73,8 +73,13 @@ class Filter(object):
 
                     if self.lookup_type is None:
                         lookup.append(choice)
-                    elif x in self.lookup_type:
-                        lookup.append(choice)
+                    else:
+                        if isinstance(x, (list, tuple)) and len(x) == 2:
+                            if x[0] in self.lookup_type:
+                                lookup.append(choice)
+                        else:
+                            if x in self.lookup_type:
+                                lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
                     required=self.required, widget=self.widget, **self.extra),

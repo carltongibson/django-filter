@@ -817,9 +817,26 @@ class LookupTypesTests(TestCase):
         f = Filter(lookup_type=None)
         field = f.field
         choice_field = field.fields[1]
-        choices = choice_field.choices
+        all_choices = choice_field.choices
 
         self.assertIsInstance(field, LookupTypeField)
-        self.assertEqual(choices, filters.LOOKUP_TYPES)
-        self.assertEqual(choices[1][0], 'exact')
-        self.assertEqual(choices[1][1], 'Is equal to')
+        self.assertEqual(all_choices, filters.LOOKUP_TYPES)
+        self.assertEqual(all_choices[1][0], 'exact')
+        self.assertEqual(all_choices[1][1], 'Is equal to')
+
+        custom_f = Filter(lookup_type=('endswith', 'not_contains'))
+        custom_field = custom_f.field
+        custom_choice_field = custom_field.fields[1]
+        my_custom_choices = custom_choice_field.choices
+
+        available_lookup_types = [
+            ('endswith', 'Ends with'),
+            ('not_contains', 'Does not contain'),
+        ]
+
+        self.assertIsInstance(custom_field, LookupTypeField)
+        self.assertEqual(my_custom_choices, available_lookup_types)
+        self.assertEqual(my_custom_choices[0][0], 'endswith')
+        self.assertEqual(my_custom_choices[0][1], 'Ends with')
+        self.assertEqual(my_custom_choices[1][0], 'not_contains')
+        self.assertEqual(my_custom_choices[1][1], 'Does not contain')
