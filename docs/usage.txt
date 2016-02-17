@@ -369,7 +369,7 @@ class-based view above.
 Custom lookup types
 -------------------
 
-By default django-filter uses Django's ORM built-in field lookups. If you want to globally accept specific lookups you can do the following:
+By default django-filter uses Django's ORM built-in field lookups. If you want to globally accept specific lookups you can do the following::
 
     from django_filters import filters
 
@@ -378,9 +378,7 @@ By default django-filter uses Django's ORM built-in field lookups. If you want t
 Choices help text
 -----------------
 
-If you want the ``ChoiceField`` created from `LOOKUP_TYPES` to have human-friendly options you can do the following:
-
-:: 
+If you want the ``ChoiceField`` created from `LOOKUP_TYPES` to have human-friendly options you can do the following::
 
     # filters.py
     from django_filters import filters
