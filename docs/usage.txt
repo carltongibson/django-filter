@@ -188,7 +188,7 @@ Now we need to write a view::
 
     def product_list(request):
         f = ProductFilter(request.GET, queryset=Product.objects.all())
-        return render_to_response('my_app/template.html', {'filter': f})
+        return render(request, 'my_app/template.html', {'filter': f})
 
 If a queryset argument isn't provided then all the items in the default manager
 of the model will be used.
