@@ -1,19 +1,20 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from datetime import date, time, timedelta
+from datetime import date, time, timedelta, datetime
 import mock
 import unittest
 
 import django
 from django import forms
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
-from django_filters import filters
+from django_filters import filters, FilterSet
 from django_filters.fields import (
     Lookup,
     RangeField,
     DateRangeField,
+    DateTimeRangeField,
     TimeRangeField,
     LookupTypeField)
 from django_filters.filters import (
@@ -32,12 +33,13 @@ from django_filters.filters import (
     RangeFilter,
     DateRangeFilter,
     DateFromToRangeFilter,
+    DateTimeFromToRangeFilter,
     TimeRangeFilter,
     AllValuesFilter,
     UUIDFilter,
     LOOKUP_TYPES)
 
-from tests.models import Book, User
+from tests.models import Book, User, Article, Comment
 
 
 class FilterTests(TestCase):
@@ -734,6 +736,101 @@ class DateFromToRangeFilterTests(TestCase):
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+
+    def test_filtering_queryset(self):
+        class F(FilterSet):
+            published = DateFromToRangeFilter(name='date')
+            class Meta:
+                model = Comment
+                fields = ['date']
+        adam = User.objects.create(username='adam')
+        kwargs = {'text': 'test', 'author': adam, 'time': '10:00'}
+        Comment.objects.create(date=date(2016, 1, 1), **kwargs)
+        Comment.objects.create(date=date(2016, 1, 2), **kwargs)
+        Comment.objects.create(date=date(2016, 1, 3), **kwargs)
+        Comment.objects.create(date=date(2016, 1, 3), **kwargs)
+        results = F(data={
+            'published_0': '2016-01-02',
+            'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+    @override_settings(USE_TZ=False)
+    def test_filtering_ignores_time(self):
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+            class Meta:
+                model = Article
+                fields = ['published']
+        Article.objects.create(published=datetime(2016, 1, 1, 10, 0))
+        Article.objects.create(published=datetime(2016, 1, 2, 12, 45))
+        Article.objects.create(published=datetime(2016, 1, 3, 18, 15))
+        Article.objects.create(published=datetime(2016, 1, 3, 19, 30))
+        results = F(data={
+            'published_0': '2016-01-02',
+            'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+
+class DateTimeFromToRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = DateTimeFromToRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, DateTimeRangeField)
+
+    def test_filtering_range(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(
+            start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
+        f = DateTimeFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=datetime(2015, 4, 7, 8, 30), stop=None)
+        f = DateTimeFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=datetime(2015, 4, 7, 8, 30))
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=datetime(2015, 9, 6, 11, 45))
+        f = DateTimeFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=datetime(2015, 9, 6, 11, 45))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = DateTimeFromToRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_type(self):
+        qs = mock.Mock()
+        value = mock.Mock(
+            start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
+        f = DateTimeFromToRangeFilter(lookup_type='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+
+    @override_settings(USE_TZ=False)
+    def test_filtering_queryset(self):
+        class F(FilterSet):
+            published = DateTimeFromToRangeFilter()
+            class Meta:
+                model = Article
+                fields = ['published']
+        Article.objects.create(published=datetime(2016, 1, 1, 10, 0))
+        Article.objects.create(published=datetime(2016, 1, 2, 12, 45))
+        Article.objects.create(published=datetime(2016, 1, 3, 18, 15))
+        Article.objects.create(published=datetime(2016, 1, 3, 19, 30))
+        results = F(data={
+            'published_0': '2016-01-02 10:00',
+            'published_1': '2016-01-03 19:00'})
+        self.assertEqual(len(results.qs), 2)
 
 
 class TimeRangeFilterTests(TestCase):

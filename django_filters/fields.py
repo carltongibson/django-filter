@@ -49,6 +49,15 @@ class DateRangeField(RangeField):
         return None
 
 
+class DateTimeRangeField(RangeField):
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            forms.DateTimeField(),
+            forms.DateTimeField())
+        super(DateTimeRangeField, self).__init__(fields, *args, **kwargs)
+
+
 class TimeRangeField(RangeField):
 
     def __init__(self, *args, **kwargs):

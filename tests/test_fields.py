@@ -12,7 +12,8 @@ from django.utils.timezone import make_aware
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    RangeField, LookupTypeField, Lookup, DateRangeField, DateTimeRangeField,
+    TimeRangeField, IsoDateTimeField)
 
 
 def to_d(float_value):
@@ -54,14 +55,30 @@ class DateRangeFieldTests(TestCase):
         f = DateRangeField()
         self.assertEqual(len(f.fields), 2)
 
+    @override_settings(USE_TZ=False)
     def test_clean(self):
         w = RangeWidget()
         f = DateRangeField(widget=w)
-
         self.assertEqual(
             f.clean(['2015-01-01', '2015-01-10']),
             slice(datetime(2015, 1, 1, 0, 0, 0),
                   datetime(2015, 1, 10, 23, 59, 59, 999999)))
+
+
+class DateTimeRangeFieldTests(TestCase):
+
+    def test_field(self):
+        f = DateTimeRangeField()
+        self.assertEqual(len(f.fields), 2)
+
+    @override_settings(USE_TZ=False)
+    def test_clean(self):
+        w = RangeWidget()
+        f = DateTimeRangeField(widget=w)
+        self.assertEqual(
+            f.clean(['2015-01-01 10:30', '2015-01-10 8:45']),
+            slice(datetime(2015, 1, 1, 10, 30, 0),
+                  datetime(2015, 1, 10, 8, 45, 0)))
 
 
 class TimeRangeFieldTests(TestCase):
