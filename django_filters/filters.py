@@ -95,8 +95,15 @@ class Filter(object):
                     else:
                         choice = (x, x)
 
-                    if self.lookup_expr is None or x in self.lookup_expr:
+                    if self.lookup_expr is None:
                         lookup.append(choice)
+                    else:
+                        if isinstance(x, (list, tuple)) and len(x) == 2:
+                            if x[0] in self.lookup_expr:
+                                lookup.append(choice)
+                        else:
+                            if x in self.lookup_expr:
+                                lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
                     required=self.required, widget=self.widget, **self.extra),

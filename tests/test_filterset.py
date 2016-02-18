@@ -4,11 +4,13 @@ import mock
 import unittest
 
 import django
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase
 
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
+from django_filters.filterset import STRICTNESS
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
@@ -535,7 +537,21 @@ class FilterSetOrderingTests(TestCase):
 
     def test_ordering_on_unknown_value_results_in_default_ordering_without_strict(self):
         class F(FilterSet):
-            strict = False
+            strict = STRICTNESS.IGNORE
+
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+
+        self.assertFalse(F.strict)
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
+
+    def test_ordering_on_unknown_value_results_in_default_ordering_with_strict_raise(self):
+        class F(FilterSet):
+            strict = STRICTNESS.RAISE_VALIDATION_ERROR
 
             class Meta:
                 model = User
@@ -543,6 +559,14 @@ class FilterSetOrderingTests(TestCase):
                 order_by = ['status']
 
         f = F({'o': 'username'}, queryset=self.qs)
+        with self.assertRaises(ValidationError) as excinfo:
+            f.qs.all()
+        self.assertEqual(excinfo.exception.message_dict,
+                         {'o': ['Select a valid choice. username is not one '
+                                'of the available choices.']})
+
+        # No default order_by should get applied.
+        f = F({}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
 

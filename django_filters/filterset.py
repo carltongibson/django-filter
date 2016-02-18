@@ -340,7 +340,9 @@ class BaseFilterSet(object):
                 except forms.ValidationError:
                     pass
 
-                if ordered_value in EMPTY_VALUES and self.strict:
+                # With a None-queryset, ordering must be enforced (#84).
+                if (ordered_value in EMPTY_VALUES and
+                        self.strict == STRICTNESS.RETURN_NO_RESULTS):
                     ordered_value = self.form.fields[self.order_by_field].choices[0][0]
 
                 if ordered_value:
