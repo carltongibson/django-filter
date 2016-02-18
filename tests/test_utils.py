@@ -65,6 +65,7 @@ class ResolveFieldTests(TestCase):
             self.assertIsInstance(field, models.ManyToManyField)
             self.assertEqual(lookup, term)
 
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not reverse lookups")
     def test_resolve_reverse_related_lookups(self):
         """
         Check that lookups can be resolved for related fields
