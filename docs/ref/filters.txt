@@ -227,6 +227,34 @@ database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
+``BaseInFilter``
+~~~~~~~~~~~~~~~~
+
+This is a base class used for generating IN lookup filters. Values are expected to be comma separated.
+
+Example. ::
+
+    class NumberInFilter(BaseInFilter, NumericFilter):
+        pass
+
+    class F(FilterSet):
+        id__in = NumberInFilter(name=id, lookup_expr='in')
+
+``BaseRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+This is a base class used for generating RANGE lookup filters. Values are expected to be comma separated.
+
+Example. ::
+
+    class NumberRangeFilter(BaseInFilter, NumericFilter):
+        pass
+
+    class F(FilterSet):
+        id__range = NumberRangeFilter(name=id, lookup_expr='range')
+
+
+
 ``MethodFilter``
 ~~~~~~~~~~~~~~~~~~~
 
