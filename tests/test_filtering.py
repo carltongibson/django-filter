@@ -1242,13 +1242,13 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
 
 
+# use naive datetimes, as pytz is required to perform
+# date lookups when timezones are involved.
+@override_settings(USE_TZ=False)
+@unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
 class TransformedQueryExpressionFilterTests(TestCase):
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
-    @override_settings(USE_TZ=False)
     def test_filtering(self):
-        # use naive datetimes, as pytz is required to perform
-        # date lookups when timezones are involved.
         now_dt = datetime.datetime.now()
         after_5pm = now_dt.replace(hour=18)
         before_5pm = now_dt.replace(hour=16)
@@ -1266,6 +1266,163 @@ class TransformedQueryExpressionFilterTests(TestCase):
         f = F({'published__hour__gte': 17}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
         self.assertQuerysetEqual(f.qs, [a.pk], lambda o: o.pk)
+
+
+# use naive datetimes, as pytz is required to perform
+# date lookups when timezones are involved.
+@override_settings(USE_TZ=False)
+class CSVFilterTests(TestCase):
+
+    def setUp(self):
+        u1 = User.objects.create(username='alex', status=1)
+        u2 = User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        now_dt = datetime.datetime.now()
+        after_5pm = now_dt.replace(hour=18)
+        before_5pm = now_dt.replace(hour=16)
+
+        Article.objects.create(author=u1, published=after_5pm)
+        Article.objects.create(author=u2, published=after_5pm)
+        Article.objects.create(author=u1, published=before_5pm)
+        Article.objects.create(author=u2, published=before_5pm)
+
+        class UserFilter(FilterSet):
+            class Meta:
+                model = User
+                fields = {
+                    'username': ['in'],
+                    'status': ['in'],
+                }
+
+        class ArticleFilter(FilterSet):
+            class Meta:
+                model = Article
+                fields = {
+                    'author': ['in'],
+                    'published': ['in'],
+                }
+
+        self.user_filter = UserFilter
+        self.article_filter = ArticleFilter
+
+        self.after_5pm = after_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+        self.before_5pm = before_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    def test_numeric_filtering(self):
+        F = self.user_filter
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'status__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'status__in': '0'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+        f = F({'status__in': '0,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 3)
+        self.assertEqual(f.count(), 3)
+
+        f = F({'status__in': '0,,1'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'status__in': '2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+    def test_string_filtering(self):
+        F = self.user_filter
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'username__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'username__in': 'alex'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+        f = F({'username__in': 'alex,aaron'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'username__in': 'alex,,aaron'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'username__in': 'alex,'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+    def test_datetime_filtering(self):
+        F = self.article_filter
+        after = self.after_5pm
+        before = self.before_5pm
+
+        qs = Article.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'published__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'published__in': '%s' % (after, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'published__in': '%s,%s' % (after, before, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'published__in': '%s,,%s' % (after, before, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'published__in': '%s,' % (after, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+    def test_related_filtering(self):
+        F = self.article_filter
+
+        qs = Article.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'author__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'author__in': '1'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'author__in': '1,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'author__in': '1,,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'author__in': '1,'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
 
 
 class MiscFilterSetTests(TestCase):
@@ -1350,41 +1507,6 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '1'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
         self.assertEqual(f.count(), 1)
-
-        f = F({'status': '2'}, queryset=qs)
-        self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
-
-    def test_csv_filters(self):
-        class NumberInFilter(BaseInFilter, NumberFilter):
-            pass
-
-        class F(FilterSet):
-            status = NumberInFilter()
-
-            class Meta:
-                model = User
-
-        qs = User.objects.all()
-        f = F(queryset=qs)
-        self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
-
-        f = F({'status': ''}, queryset=qs)
-        self.assertEqual(len(f.qs), 0)
-        self.assertEqual(f.count(), 0)
-
-        f = F({'status': '0'}, queryset=qs)
-        self.assertEqual(len(f.qs), 1)
-        self.assertEqual(f.count(), 1)
-
-        f = F({'status': '0,2'}, queryset=qs)
-        self.assertEqual(len(f.qs), 3)
-        self.assertEqual(f.count(), 3)
-
-        f = F({'status': '0,,1'}, queryset=qs)
-        self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
 
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)

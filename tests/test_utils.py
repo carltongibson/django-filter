@@ -11,6 +11,7 @@ from django_filters.utils import get_model_field, resolve_field
 
 from .models import User
 from .models import Article
+from .models import Book
 from .models import HiredWorker
 from .models import Business
 
@@ -41,6 +42,48 @@ class ResolveFieldTests(TestCase):
         for term in lookups:
             field, lookup = resolve_field(model_field, term)
             self.assertIsInstance(field, models.CharField)
+            self.assertEqual(lookup, term)
+
+    def test_resolve_forward_related_lookups(self):
+        """
+        Check that lookups can be resolved for related fields
+        in the forwards direction.
+        """
+        lookups = ['exact', 'gte', 'gt', 'lte', 'lt', 'in', 'isnull', ]
+
+        # ForeignKey
+        model_field = Article._meta.get_field('author')
+        for term in lookups:
+            field, lookup = resolve_field(model_field, term)
+            self.assertIsInstance(field, models.ForeignKey)
+            self.assertEqual(lookup, term)
+
+        # ManyToManyField
+        model_field = User._meta.get_field('favorite_books')
+        for term in lookups:
+            field, lookup = resolve_field(model_field, term)
+            self.assertIsInstance(field, models.ManyToManyField)
+            self.assertEqual(lookup, term)
+
+    def test_resolve_reverse_related_lookups(self):
+        """
+        Check that lookups can be resolved for related fields
+        in the reverse direction.
+        """
+        lookups = ['exact', 'gte', 'gt', 'lte', 'lt', 'in', 'isnull', ]
+
+        # ManyToOneRel
+        model_field = User._meta.get_field('article')
+        for term in lookups:
+            field, lookup = resolve_field(model_field, term)
+            self.assertIsInstance(field, models.ManyToOneRel)
+            self.assertEqual(lookup, term)
+
+        # ManyToManyRel
+        model_field = Book._meta.get_field('lovers')
+        for term in lookups:
+            field, lookup = resolve_field(model_field, term)
+            self.assertIsInstance(field, models.ManyToManyRel)
             self.assertEqual(lookup, term)
 
     @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")

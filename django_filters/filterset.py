@@ -468,7 +468,7 @@ class BaseFilterSet(object):
                 filter_class, lookup_type
             )
 
-            return ConcreteInFilter, {}
+            return ConcreteInFilter, params
 
         if lookup_type == 'range':
             class ConcreteRangeFilter(BaseRangeFilter, filter_class):
@@ -477,7 +477,7 @@ class BaseFilterSet(object):
                 filter_class, lookup_type
             )
 
-            return ConcreteRangeFilter, {}
+            return ConcreteRangeFilter, params
 
         # Default behavior
         if f.choices:
