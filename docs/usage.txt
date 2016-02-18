@@ -49,7 +49,7 @@ Filters take a ``lookup_expr`` argument which specifies what lookup expression
 to use with `Django's ORM`_. A detailed explanation of lookup expressions is
 provided in Django's `lookup reference`_. django-filter supports expressions
 containing both transforms and a final lookup in version 1.9 of Django and
-above. ex, ``year__gte``. For Django version 1.8, transforms expressions are
+above. ex, ``year__gte``. For Django version 1.8, transformed expressions are
 not supported.
 
 .. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
