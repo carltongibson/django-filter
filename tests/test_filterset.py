@@ -11,15 +11,19 @@ from django.test import TestCase
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import STRICTNESS
+from django_filters.filters import BooleanFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import UUIDFilter
+from django_filters.filters import BaseInFilter
+from django_filters.filters import BaseRangeFilter
 
 from .models import User
 from .models import AdminUser
+from .models import Article
 from .models import Book
 from .models import Profile
 from .models import Comment
@@ -183,6 +187,29 @@ class FilterSetFilterForFieldTests(TestCase):
     @unittest.skip('todo')
     def test_filter_overrides(self):
         pass
+
+
+class FilterSetFilterForLookupTests(TestCase):
+
+    def test_filter_for_ISNULL_lookup(self):
+        f = Article._meta.get_field('author')
+        result, params = FilterSet.filter_for_lookup(f, 'isnull')
+        self.assertEqual(result, BooleanFilter)
+        self.assertDictEqual(params, {})
+
+    def test_filter_for_IN_lookup(self):
+        f = Article._meta.get_field('author')
+        result, params = FilterSet.filter_for_lookup(f, 'in')
+        self.assertTrue(issubclass(result, ModelChoiceFilter))
+        self.assertTrue(issubclass(result, BaseInFilter))
+        self.assertEqual(params['to_field_name'], 'id')
+
+    def test_filter_for_RANGE_lookup(self):
+        f = Article._meta.get_field('author')
+        result, params = FilterSet.filter_for_lookup(f, 'range')
+        self.assertTrue(issubclass(result, ModelChoiceFilter))
+        self.assertTrue(issubclass(result, BaseRangeFilter))
+        self.assertEqual(params['to_field_name'], 'id')
 
 
 class FilterSetFilterForReverseFieldTests(TestCase):
