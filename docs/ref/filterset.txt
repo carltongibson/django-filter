@@ -1,8 +1,20 @@
 FilterSet Guide
 ===============
 
-Other Meta options
-------------------
+This document provides a guide on using additional FilterSet features.
+
+Meta options
+------------
+
+- model
+- fields
+- exclude
+- :ref:`order_by <order-by>`
+- :ref:`form <form>`
+- :ref:`together <together>`
+
+
+.. _order-by:
 
 Ordering using ``order_by``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,12 +47,18 @@ Note that the default query parameter name used for ordering is ``o``.  You
 can override this by setting an ``order_by_field`` attribute on the
 ``FilterSet`` class to the string value you would like to use.
 
+
+.. _form:
+
 Custom Forms using ``form``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
+
+
+.. _together:
 
 Group fields with ``together``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,6 +83,13 @@ Non-Meta options
 
 Note that these options do not go in the Meta class, they are specified directly
 in your FilterSet class.
+
+- filter_overrides
+- order_by_field
+- :ref:`strict <strict>`
+
+
+.. _strict:
 
 ``strict``
 ~~~~~~~~~~
