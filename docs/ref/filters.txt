@@ -404,6 +404,9 @@ Example. ::
             model = Book
             fields = ['published']
 
+
+.. _core-arguments:
+
 Core Arguments
 --------------
 
