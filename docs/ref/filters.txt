@@ -264,7 +264,7 @@ Example of using the ``DateTimeField`` field::
     assert len(f.qs) == 2
 
 ``DateTimeFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Similar to a ``RangeFilter`` except it uses datetime format values instead of numerical values. It can be used with ``DateTimeField``.
 
@@ -344,10 +344,22 @@ Example. ::
     class F(FilterSet):
         id__in = NumberInFilter(name=id, lookup_expr='in')
 
+        class Meta:
+            model = User
+
+    User.objects.create(username='alex')
+    User.objects.create(username='jacob')
+    User.objects.create(username='aaron')
+    User.objects.create(username='carl')
+
+    # In: User with IDs 1 and 3.
+    f = F({'id__in': '1,3'})
+    assert len(f.qs) == 2
+
 ``BaseRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
 
-This is a base class used for generating RANGE lookup filters. Values are expected to be comma separated.
+This is a base class used for generating RANGE lookup filters. The base class expects two values two, separated by a comma.
 
 Example. ::
 
@@ -357,10 +369,21 @@ Example. ::
     class F(FilterSet):
         id__range = NumberRangeFilter(name=id, lookup_expr='range')
 
+        class Meta:
+            model = User
+
+    User.objects.create(username='alex')
+    User.objects.create(username='jacob')
+    User.objects.create(username='aaron')
+    User.objects.create(username='carl')
+
+    # Range: User with IDs between 1 and 3.
+    f = F({'id__range': '1,3'})
+    assert len(f.qs) == 3
 
 
 ``MethodFilter``
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 This is a ``Filter`` that will allow you to run a method that exists on the filter set that
 this filter is a property of. Set the `action` to a string that will map to a method on the
