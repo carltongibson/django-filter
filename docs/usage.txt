@@ -182,8 +182,9 @@ default filters for all the models fields of the same kind using
             }
 
 
-MethodFilter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Custom filtering with MethodFilter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If you want fine control over each individual filter attribute, you can use
 the ``MethodFilter`` filter.
 
