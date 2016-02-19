@@ -12,7 +12,7 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    CSVField, RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
 
 
 __all__ = [
@@ -21,7 +21,7 @@ __all__ = [
     'DateTimeFilter', 'IsoDateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
     'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
     'DateRangeFilter', 'DateFromToRangeFilter', 'TimeRangeFilter',
-    'AllValuesFilter', 'MethodFilter'
+    'AllValuesFilter', 'MethodFilter', 'CSVFilter'
 ]
 
 
@@ -362,3 +362,11 @@ class MethodFilter(Filter):
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
+
+
+class CSVFilter(Filter):
+    field_class = CSVField
+
+    def __init__(self, *args, **kwargs):
+        super(CSVFilter, self).__init__(
+                lookup_type='in', *args, **kwargs)

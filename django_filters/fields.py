@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from django.utils.encoding import force_str
 
-from .widgets import RangeWidget, LookupTypeWidget
+from .widgets import CommaSeparatedValueWidget, RangeWidget, LookupTypeWidget
 
 
 class RangeField(forms.MultiValueField):
@@ -114,3 +114,12 @@ class IsoDateTimeField(forms.DateTimeField):
                 return timezone.make_naive(parsed, timezone.UTC())
             return parsed
         return super(IsoDateTimeField, self).strptime(value, format)
+
+
+class CSVField(forms.CharField):
+    widget = CommaSeparatedValueWidget
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+        return super(CSVField, self).to_python(value)
