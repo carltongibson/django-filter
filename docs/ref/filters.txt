@@ -3,6 +3,87 @@ Filter Reference
 
 This is a reference document with a list of the filters and their arguments.
 
+.. _core-arguments:
+
+Core Arguments
+--------------
+
+The following are the core arguments that apply to all filters.
+
+``name``
+~~~~~~~~
+
+The name of the field this filter is supposed to filter on, if this is not
+provided it automatically becomes the filter's name on the ``FilterSet``.
+
+``label``
+~~~~~~~~~
+
+The label as it will apear in the HTML, analogous to a form field's label
+argument.
+
+``widget``
+~~~~~~~~~~
+
+The django.form Widget class which will represent the ``Filter``.  In addition
+to the widgets that are included with Django that you can use there are
+additional ones that django-filter provides which may be useful:
+
+    * ``django_filters.widgets.LinkWidget`` -- this displays the options in a
+      manner similar to the way the Django Admin does, as a series of links.
+      The link for the selected option will have ``class="selected"``.
+
+``action``
+~~~~~~~~~~
+
+An optional callable that tells the filter how to handle the queryset.  It
+recieves a ``QuerySet`` and the value to filter on and should return a
+``Queryset`` that is filtered appropriately. `action` will default to
+``filter_{value-of-name-attribute}``
+
+``lookup_expr``
+~~~~~~~~~~~~~~~
+
+The lookup expression that should be performed using `Django's ORM`_.
+All the normal options are allowed, and should be provided as a string.  You can also
+provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
+then the user can select the lookup type from all the ones available in the Django
+ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from those
+options.
+
+.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+
+``distinct``
+~~~~~~~~~~~~
+
+A boolean value that specifies whether the Filter will use distinct on the
+queryset. This option can be used to eliminate duplicate results when using filters that span related models. Defaults to ``False``.
+
+``exclude``
+~~~~~~~~~~~
+
+A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
+Defaults to ``False``.
+
+
+``**kwargs``
+~~~~~~~~~~~~
+
+Any additional keyword arguments are stored as the ``extra`` parameter on the filter. They are provided to the accompanying form Field and can be used to provide arguments like ``choices``.
+
+
+ModelChoiceFilter and ModelMultipleChoiceFilter arguments
+---------------------------------------------------------
+
+These arguments apply specifically to ModelChoiceFiler and
+ModelMultipleChoiceFilter only.
+
+``queryset``
+~~~~~~~~~~~~
+
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
+
+
 Filters
 -------
 
@@ -403,84 +484,3 @@ Example. ::
         class Meta:
             model = Book
             fields = ['published']
-
-
-.. _core-arguments:
-
-Core Arguments
---------------
-
-These arguments apply to the filters described above.
-
-``name``
-~~~~~~~~
-
-The name of the field this filter is supposed to filter on, if this is not
-provided it automatically becomes the filter's name on the ``FilterSet``.
-
-``label``
-~~~~~~~~~
-
-The label as it will apear in the HTML, analogous to a form field's label
-argument.
-
-``widget``
-~~~~~~~~~~
-
-The django.form Widget class which will represent the ``Filter``.  In addition
-to the widgets that are included with Django that you can use there are
-additional ones that django-filter provides which may be useful:
-
-    * ``django_filters.widgets.LinkWidget`` -- this displays the options in a
-      manner similar to the way the Django Admin does, as a series of links.
-      The link for the selected option will have ``class="selected"``.
-
-``action``
-~~~~~~~~~~
-
-An optional callable that tells the filter how to handle the queryset.  It
-recieves a ``QuerySet`` and the value to filter on and should return a
-``Queryset`` that is filtered appropriately. `action` will default to
-``filter_{value-of-name-attribute}``
-
-``lookup_expr``
-~~~~~~~~~~~~~~~
-
-The lookup expression that should be performed using `Django's ORM`_.
-All the normal options are allowed, and should be provided as a string.  You can also
-provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
-then the user can select the lookup type from all the ones available in the Django
-ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from those
-options.
-
-.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
-
-``distinct``
-~~~~~~~~~~~~
-
-A boolean value that specifies whether the Filter will use distinct on the
-queryset. This option can be used to eliminate duplicate results when using filters that span related models. Defaults to ``False``.
-
-``exclude``
-~~~~~~~~~~~
-
-A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
-Defaults to ``False``.
-
-ModelChoiceFilter and ModelMultipleChoiceFilter arguments
----------------------------------------------------------
-
-These arguments apply specifically to ModelChoiceFiler and
-ModelMultipleChoiceFilter only.
-
-``queryset``
-~~~~~~~~~~~~
-
-``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
-
-
-``**kwargs``
-~~~~~~~~~~~~
-
-Any extra keyword arguments will be provided to the accompanying form Field.
-This can be used to provide arguments like ``choices``.
