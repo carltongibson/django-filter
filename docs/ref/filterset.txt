@@ -105,36 +105,3 @@ first name::
             if order_value == 'last_name':
                 return ['last_name', 'first_name']
             return super(UserFilter, self).get_order_by(order_value)
-
-
-Custom lookup types
--------------------
-
-By default django-filter uses Django's ORM built-in field lookups. If you want to globally accept specific lookups you can do the following::
-
-    from django_filters import filters
-
-    filters.LOOKUP_TYPES = ['gt', 'gte', 'lt', 'lte', 'custom_lookup_type']
-
-Choices help text
------------------
-
-If you want the ``ChoiceField`` created from `LOOKUP_TYPES` to have human-friendly options you can do the following::
-
-    # filters.py
-    from django_filters import filters
-
-    filters.LOOKUP_TYPES = [
-        ('', '---------'),
-        ('exact', 'Is equal to'),
-        ('not_exact', 'Is not equal to'),
-        ('lt', 'Lesser than'),
-        ('gt', 'Greater than'),
-        ('gte', 'Greater than or equal to'),
-        ('lte', 'Lesser than or equal to'),
-        ('startswith', 'Starts with'),
-        ('endswith', 'Ends with'),
-        ('contains', 'Contains'),
-        ('not_contains', 'Does not contain'),
-    ]
-

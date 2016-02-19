@@ -45,13 +45,42 @@ recieves a ``QuerySet`` and the value to filter on and should return a
 ~~~~~~~~~~~~~~~
 
 The lookup expression that should be performed using `Django's ORM`_.
-All the normal options are allowed, and should be provided as a string.  You can also
-provide either ``None`` or a ``list`` or a ``tuple``.  If ``None`` is provided,
-then the user can select the lookup type from all the ones available in the Django
-ORM.  If a ``list`` or ``tuple`` is provided, then the user can select from those
-options.
 
 .. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+
+A ``list`` or ``tuple`` of lookup types is also accepted, allowing the user to
+select the lookup from a dropdown. The list of lookup types are filtered against
+``filters.LOOKUP_TYPES``. If no lookups are passed, then a list of all lookup
+types will be generated::
+
+    class ProductFilter(django_filters.FilterSet):
+        name = django_filters.CharFilter(lookup_expr=['exact', 'iexact'])
+
+You can enable custom lookups by adding them to ``LOOKUP_TYPES``::
+
+    from django_filters import filters
+
+    filters.LOOKUP_TYPES = ['gt', 'gte', 'lt', 'lte', 'custom_lookup_type']
+
+Additionally, you can provide human-friendly help text by overriding ``LOOKUP_TYPES``::
+
+    # filters.py
+    from django_filters import filters
+
+    filters.LOOKUP_TYPES = [
+        ('', '---------'),
+        ('exact', 'Is equal to'),
+        ('not_exact', 'Is not equal to'),
+        ('lt', 'Lesser than'),
+        ('gt', 'Greater than'),
+        ('gte', 'Greater than or equal to'),
+        ('lte', 'Lesser than or equal to'),
+        ('startswith', 'Starts with'),
+        ('endswith', 'Ends with'),
+        ('contains', 'Contains'),
+        ('not_contains', 'Does not contain'),
+    ]
+
 
 ``distinct``
 ~~~~~~~~~~~~
