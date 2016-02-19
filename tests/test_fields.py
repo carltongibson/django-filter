@@ -217,6 +217,9 @@ class BaseCSVFieldTests(TestCase):
         with self.assertRaises(forms.ValidationError):
             self.field.clean([''])
 
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean(['a', 'b', 'c'])
+
 
 class BaseRangeFieldTests(TestCase):
     def setUp(self):
