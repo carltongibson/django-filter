@@ -15,6 +15,8 @@ The following are the core arguments that apply to all filters.
 
 The name of the field this filter is supposed to filter on, if this is not
 provided it automatically becomes the filter's name on the ``FilterSet``.
+You can traverse "relationship paths" using Django's ``__`` syntax to filter
+fields on a related model. eg, ``manufacturer__name``.
 
 ``label``
 ~~~~~~~~~
