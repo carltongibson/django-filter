@@ -182,22 +182,6 @@ default filters for all the models fields of the same kind using
             }
 
 
-Filters also take any arbitrary keyword arguments which get passed onto the
-``django.forms.Field`` initializer.  These extra keyword arguments get stored
-in ``Filter.extra``, so it's possible to override the initializer of a
-``FilterSet`` to add extra ones::
-
-    class ProductFilter(django_filters.FilterSet):
-        class Meta:
-            model = Product
-            fields = ['manufacturer']
-
-        def __init__(self, *args, **kwargs):
-            super(ProductFilter, self).__init__(*args, **kwargs)
-            self.filters['manufacturer'].extra.update(
-                {'empty_label': 'All Manufacturers'})
-
-
 MethodFilter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you want fine control over each individual filter attribute, you can use
