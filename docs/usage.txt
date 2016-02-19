@@ -105,21 +105,41 @@ For more information on additional arguments, see :ref:`core-arguments`.
 Generating filters with Meta.fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The FilterSet Meta class fields can additionally be set using a Dictionary to
-specify multiple ``lookup_expr`` filters without significant code duplication::
+The FilterSet Meta class provides a ``fields`` attribute that can be used for
+easily specifying multiple filters without significant code duplication. The
+base syntax supports a list of multiple field names::
 
     import django_filters
 
     class ProductFilter(django_filters.FilterSet):
         class Meta:
             model = Product
-            fields = {'price': ['lt', 'gt'],
-                      'release_date': ['exact', 'year__gt'],
-                     }
+            fields = ['price', 'release_date']
 
-The above would generate 'price__lt', 'price__gt' and 'release_date' filters.
-The filter lookup type keyword 'exact' is the default and therefore never added
-to a filter name.
+The above generates 'exact' lookups for both the 'price' and 'release_date'
+fields.
+
+Additionally, a dictionary can be used to specify multiple lookup expressions
+for each field::
+
+    import django_filters
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {
+                'price': ['lt', 'gt'],
+                'release_date': ['exact', 'year__gt'],
+            }
+
+The above would generate 'price__lt', 'price__gt', 'release_date', and
+'release_date__year__gt' filters.
+
+.. note::
+
+    The filter lookup type 'exact' is an implicit default and therefore never
+    added to a filter name. In the above example, the release date's exact
+    filter is 'release_date', not 'release_date__exact'.
 
 Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a
@@ -129,6 +149,38 @@ related model::
         class Meta:
             model = Product
             fields = ['manufacturer__country']
+
+
+Overriding default filters
+""""""""""""""""""""""""""
+
+Like ``django.contrib.admin.ModelAdmin``, it is possible to override
+default filters for all the models fields of the same kind using
+``filter_overrides``::
+
+    class ProductFilter(django_filters.FilterSet):
+        filter_overrides = {
+            models.CharField: {
+                'filter_class': django_filters.CharFilter,
+                'extra': lambda f: {
+                    'lookup_expr': 'icontains',
+                },
+            },
+            models.BooleanField: {
+                'filter_class': django_filters.BooleanFilter,
+                'extra': lambda f: {
+                    'widget': 'forms.CheckboxInput',
+                },
+            },
+        }
+
+        class Meta:
+            model = Product
+            fields = {
+                'name': ['exact'],
+                'release_date': ['isnull'],
+            }
+
 
 Filters also take any arbitrary keyword arguments which get passed onto the
 ``django.forms.Field`` initializer.  These extra keyword arguments get stored
@@ -144,24 +196,6 @@ in ``Filter.extra``, so it's possible to override the initializer of a
             super(ProductFilter, self).__init__(*args, **kwargs)
             self.filters['manufacturer'].extra.update(
                 {'empty_label': 'All Manufacturers'})
-
-Like ``django.contrib.admin.ModelAdmin``, it is possible to override
-default filters for all the models fields of the same kind using
-``filter_overrides``::
-
-    class ProductFilter(django_filters.FilterSet):
-        filter_overrides = {
-            models.CharField: {
-                'filter_class': django_filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'icontains',
-                }
-            }
-        }
-
-        class Meta:
-            model = Product
-            fields = ['name']
 
 
 MethodFilter
