@@ -211,13 +211,117 @@ selections for working with date fields.
 ``DateFromToRangeFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField`` and ``DateTimeField``.
+Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField``. It also works with ``DateTimeField``, but takes into consideration only the date.
 
+Example of using the ``DateField`` field::
+
+    class Comment(models.Model):
+        date = models.DateField()
+        time = models.TimeField()
+
+    class F(FilterSet):
+        date = DateFromToRangeFilter()
+
+        class Meta:
+            model = Comment
+            fields = ['date']
+
+    # Range: Comments added between 2016-01-01 and 2016-02-01
+    f = F({'date_0': '2016-01-01', 'date_1': '2016-02-01'})
+
+    # Min-Only: Comments added after 2016-01-01
+    f = F({'date_0': '2016-01-01'})
+
+    # Max-Only: Comments added before 2016-02-01
+    f = F({'date_1': '2016-02-01'})
+
+Example of using the ``DateTimeField`` field::
+
+    class Article(models.Model):
+        published = models.DateTimeField()
+
+    class F(FilterSet):
+        published = DateFromToRangeFilter()
+
+        class Meta:
+            model = Article
+            fields = ['published']
+
+    Article.objects.create(published='2016-01-01 8:00')
+    Article.objects.create(published='2016-01-20 10:00')
+    Article.objects.create(published='2016-02-10 12:00')
+
+    # Range: Articles published between 2016-01-01 and 2016-02-01
+    f = F({'published_0': '2016-01-01', 'published_1': '2016-02-01'})
+    assert len(f.qs) == 2
+
+    # Min-Only: Articles published after 2016-01-01
+    f = F({'published_0': '2016-01-01'})
+    assert len(f.qs) == 3
+
+    # Max-Only: Articles published before 2016-02-01
+    f = F({'published_1': '2016-02-01'})
+    assert len(f.qs) == 2
+
+``DateTimeFromToRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses datetime format values instead of numerical values. It can be used with ``DateTimeField``.
+
+Example::
+
+    class Article(models.Model):
+        published = models.DateTimeField()
+
+    class F(FilterSet):
+        published = DateTimeFromToRangeFilter()
+
+        class Meta:
+            model = Article
+            fields = ['published']
+
+    Article.objects.create(published='2016-01-01 8:00')
+    Article.objects.create(published='2016-01-01 9:30')
+    Article.objects.create(published='2016-01-02 8:00')
+
+    # Range: Articles published 2016-01-01 between 8:00 and 10:00
+    f = F({'published_0': '2016-01-01 8:00', 'published_1': '2016-01-01 10:00'})
+    assert len(f.qs) == 2
+
+    # Min-Only: Articles published after 2016-01-01 8:00
+    f = F({'published_0': '2016-01-01 8:00'})
+    assert len(f.qs) == 3
+
+    # Max-Only: Articles published before 2016-01-01 10:00
+    f = F({'published_1': '2016-01-01 10:00'})
+    assert len(f.qs) == 2
 
 ``TimeRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
 
 Similar to a ``RangeFilter`` except it uses time format values instead of numerical values. It can be used with ``TimeField``.
+
+Example::
+
+    class Comment(models.Model):
+        date = models.DateField()
+        time = models.TimeField()
+
+    class F(FilterSet):
+        time = TimeRangeFilter()
+
+        class Meta:
+            model = Comment
+            fields = ['time']
+
+    # Range: Comments added between 8:00 and 10:00
+    f = F({'time_0': '8:00', 'time_1': '10:00'})
+
+    # Min-Only: Comments added after 8:00
+    f = F({'time_0': '8:00'})
+
+    # Max-Only: Comments added before 10:00
+    f = F({'time_1': '10:00'})
 
 ``AllValuesFilter``
 ~~~~~~~~~~~~~~~~~~~
