@@ -23,7 +23,7 @@ You can allow the user to control ordering by providing the
 ``order_by`` argument in the Filter's Meta class.  ``order_by`` can be either a
 ``list`` or ``tuple`` of field names, in which case those are the options, or
 it can be a ``bool`` which, if True, indicates that all fields that
-the user can filter on can also be sorted on. An example or ordering using a list::
+the user can filter on can also be sorted on. An example of ordering using a list::
 
     import django_filters
 

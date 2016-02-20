@@ -31,9 +31,15 @@ The django.form Widget class which will represent the ``Filter``.  In addition
 to the widgets that are included with Django that you can use there are
 additional ones that django-filter provides which may be useful:
 
-    * ``django_filters.widgets.LinkWidget`` -- this displays the options in a
-      manner similar to the way the Django Admin does, as a series of links.
-      The link for the selected option will have ``class="selected"``.
+    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
+      similar to the way the Django Admin does, as a series of links. The link
+      for the selected option will have ``class="selected"``.
+    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
+      into Python's True/False values. It will convert all case variations of
+      ``True`` and ``False`` into the internal Python values.
+    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
+      value and converts it into a list of string values. It is expected that
+      the field class handle a list of values as well as type conversion.
 
 ``action``
 ~~~~~~~~~~
@@ -52,7 +58,7 @@ The lookup expression that should be performed using `Django's ORM`_.
 
 A ``list`` or ``tuple`` of lookup types is also accepted, allowing the user to
 select the lookup from a dropdown. The list of lookup types are filtered against
-``filters.LOOKUP_TYPES``. If no lookups are passed, then a list of all lookup
+``filters.LOOKUP_TYPES``. If `lookup_expr=None` is passed, then a list of all lookup
 types will be generated::
 
     class ProductFilter(django_filters.FilterSet):
