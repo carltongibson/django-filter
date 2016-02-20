@@ -106,6 +106,38 @@ raised if any field contains an invalid value.
 Overriding ``FilterSet`` methods
 --------------------------------
 
+``filter_for_lookup()``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to version 0.13.0, filter generation did not take into account the
+``lookup_expr`` used. This commonly caused malformed filters to be generated
+for 'isnull', 'in', and 'range' lookups (as well as transformed lookups). The
+current implementation provides the following behavior:
+
+- 'isnull' lookups return a ``BooleanFilter``
+- 'in' lookups return a filter derived from the CSV-based ``BaseInFilter``.
+- 'range' lookups return a filter derived from the CSV-based ``BaseRangeFilter``.
+
+If you want to override the ``filter_class`` and ``params`` used to instantiate
+filters for a model field, you can override ``filter_for_lookup()``. Ex::
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {
+                'release_date': ['exact', 'range'],
+            }
+
+        @classmethod
+        def filter_for_lookup(cls, f, lookup_type):
+            # override date range lookups
+            if isinstance(f, models.DateField) and lookup_type == 'range':
+                return django_filters.DateRangeFiler, {}
+
+            # use default behavior otherwise
+            return super(ProductFilter, cls).filter_for_lookup(f, lookup_type)
+
+
 ``get_ordering_field()``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
