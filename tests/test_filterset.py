@@ -21,6 +21,8 @@ from django_filters.filters import UUIDFilter
 from django_filters.filters import BaseInFilter
 from django_filters.filters import BaseRangeFilter
 
+from django_filters.widgets import BooleanWidget
+
 from .models import User
 from .models import AdminUser
 from .models import Article
@@ -210,6 +212,22 @@ class FilterSetFilterForLookupTests(TestCase):
         self.assertTrue(issubclass(result, ModelChoiceFilter))
         self.assertTrue(issubclass(result, BaseRangeFilter))
         self.assertEqual(params['to_field_name'], 'id')
+
+    def test_isnull_with_filter_overrides(self):
+        class OFilterSet(FilterSet):
+            filter_overrides = {
+                models.BooleanField: {
+                    'filter_class': BooleanFilter,
+                    'extra': lambda f: {
+                        'widget': BooleanWidget,
+                    },
+                },
+            }
+
+        f = Article._meta.get_field('author')
+        result, params = OFilterSet.filter_for_lookup(f, 'isnull')
+        self.assertEqual(result, BooleanFilter)
+        self.assertEqual(params['widget'], BooleanWidget)
 
 
 class FilterSetFilterForReverseFieldTests(TestCase):

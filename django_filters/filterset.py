@@ -461,7 +461,11 @@ class BaseFilterSet(object):
 
         # perform lookup specific checks
         if lookup_type == 'isnull':
-            return BooleanFilter, {}
+            data = try_dbfield(DEFAULTS.get, models.BooleanField)
+
+            filter_class = data.get('filter_class')
+            params = data.get('extra', lambda f: {})(f)
+            return filter_class, params
 
         if lookup_type == 'in':
             class ConcreteInFilter(BaseInFilter, filter_class):
