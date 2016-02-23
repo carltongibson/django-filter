@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import mock
 import unittest
 
+import django
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase
@@ -10,16 +11,21 @@ from django.test import TestCase
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import STRICTNESS
-from django_filters.filterset import get_model_field
+from django_filters.filters import BooleanFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import UUIDFilter
+from django_filters.filters import BaseInFilter
+from django_filters.filters import BaseRangeFilter
+
+from django_filters.widgets import BooleanWidget
 
 from .models import User
 from .models import AdminUser
+from .models import Article
 from .models import Book
 from .models import Profile
 from .models import Comment
@@ -48,14 +54,6 @@ class HelperMethodsTests(TestCase):
     @unittest.skip('todo')
     def test_get_declared_filters(self):
         pass
-
-    def test_get_model_field_none(self):
-        result = get_model_field(User, 'unknown__name')
-        self.assertIsNone(result)
-
-    def test_get_model_field(self):
-        result = get_model_field(Business, 'hiredworker__worker')
-        self.assertEqual(result, HiredWorker._meta.get_field('worker'))
 
     @unittest.skip('todo')
     def test_filters_for_model(self):
@@ -181,9 +179,55 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Worker)
 
+    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
+    def test_transformed_lookup_expr(self):
+        f = Comment._meta.get_field('date')
+        result = FilterSet.filter_for_field(f, 'date', 'year__gte')
+        self.assertIsInstance(result, NumberFilter)
+        self.assertEqual(result.name, 'date')
+
     @unittest.skip('todo')
     def test_filter_overrides(self):
         pass
+
+
+class FilterSetFilterForLookupTests(TestCase):
+
+    def test_filter_for_ISNULL_lookup(self):
+        f = Article._meta.get_field('author')
+        result, params = FilterSet.filter_for_lookup(f, 'isnull')
+        self.assertEqual(result, BooleanFilter)
+        self.assertDictEqual(params, {})
+
+    def test_filter_for_IN_lookup(self):
+        f = Article._meta.get_field('author')
+        result, params = FilterSet.filter_for_lookup(f, 'in')
+        self.assertTrue(issubclass(result, ModelChoiceFilter))
+        self.assertTrue(issubclass(result, BaseInFilter))
+        self.assertEqual(params['to_field_name'], 'id')
+
+    def test_filter_for_RANGE_lookup(self):
+        f = Article._meta.get_field('author')
+        result, params = FilterSet.filter_for_lookup(f, 'range')
+        self.assertTrue(issubclass(result, ModelChoiceFilter))
+        self.assertTrue(issubclass(result, BaseRangeFilter))
+        self.assertEqual(params['to_field_name'], 'id')
+
+    def test_isnull_with_filter_overrides(self):
+        class OFilterSet(FilterSet):
+            filter_overrides = {
+                models.BooleanField: {
+                    'filter_class': BooleanFilter,
+                    'extra': lambda f: {
+                        'widget': BooleanWidget,
+                    },
+                },
+            }
+
+        f = Article._meta.get_field('author')
+        result, params = OFilterSet.filter_for_lookup(f, 'isnull')
+        self.assertEqual(result, BooleanFilter)
+        self.assertEqual(params['widget'], BooleanWidget)
 
 
 class FilterSetFilterForReverseFieldTests(TestCase):

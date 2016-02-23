@@ -1,19 +1,21 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import warnings
 from datetime import timedelta
-
 
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
+from django.db.models.constants import LOOKUP_SEP
 from django.utils import six
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, DateTimeRangeField,
-    TimeRangeField, IsoDateTimeField)
+    Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
+    DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
+)
 
 
 __all__ = [
@@ -29,17 +31,26 @@ __all__ = [
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
+def _lookup_type_warning():
+    warnings.warn('lookup_type is deprecated. Use lookup_expr instead.', DeprecationWarning, stacklevel=3)
+
+
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
     def __init__(self, name=None, label=None, widget=None, action=None,
-                 lookup_type='exact', required=False, distinct=False, exclude=False, **kwargs):
+                 lookup_expr='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
             self.filter = action
-        self.lookup_type = lookup_type
+
+        self.lookup_expr = lookup_expr
+        if 'lookup_type' in kwargs:
+            _lookup_type_warning()
+            self.lookup_expr = kwargs.pop('lookup_type')
+
         self.widget = widget
         self.required = required
         self.extra = kwargs
@@ -55,14 +66,26 @@ class Filter(object):
         """
         return qs.exclude if self.exclude else qs.filter
 
+    def lookup_type():
+        def fget(self):
+            _lookup_type_warning()
+            return self.lookup_expr
+
+        def fset(self, value):
+            _lookup_type_warning()
+            self.lookup_expr = value
+
+        return locals()
+    lookup_type = property(**lookup_type())
+
     @property
     def field(self):
         if not hasattr(self, '_field'):
             help_text = self.extra.pop('help_text', None)
             if help_text is None:
                 help_text = _('This is an exclusion filter') if self.exclude else _('Filter')
-            if (self.lookup_type is None or
-                    isinstance(self.lookup_type, (list, tuple))):
+            if (self.lookup_expr is None or
+                    isinstance(self.lookup_expr, (list, tuple))):
 
                 lookup = []
 
@@ -72,14 +95,14 @@ class Filter(object):
                     else:
                         choice = (x, x)
 
-                    if self.lookup_type is None:
+                    if self.lookup_expr is None:
                         lookup.append(choice)
                     else:
                         if isinstance(x, (list, tuple)) and len(x) == 2:
-                            if x[0] in self.lookup_type:
+                            if x[0] in self.lookup_expr:
                                 lookup.append(choice)
                         else:
-                            if x in self.lookup_type:
+                            if x in self.lookup_expr:
                                 lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
@@ -96,7 +119,7 @@ class Filter(object):
             lookup = six.text_type(value.lookup_type)
             value = value.value
         else:
-            lookup = self.lookup_type
+            lookup = self.lookup_expr
         if value in ([], (), {}, None, ''):
             return qs
         if self.distinct:
@@ -235,7 +258,7 @@ class NumericRangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             if value.start is not None and value.stop is not None:
-                lookup = '%s__%s' % (self.name, self.lookup_type)
+                lookup = '%s__%s' % (self.name, self.lookup_expr)
                 return self.get_method(qs)(**{lookup: (value.start, value.stop)})
             else:
                 if value.start is not None:
@@ -326,6 +349,65 @@ class AllValuesFilter(ChoiceFilter):
         qs = qs.order_by(self.name).values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
+
+
+class BaseCSVFilter(Filter):
+    """
+    Base class for CSV type filters, such as IN and RANGE.
+    """
+    base_field_class = BaseCSVField
+
+    def __init__(self, *args, **kwargs):
+        super(BaseCSVFilter, self).__init__(*args, **kwargs)
+
+        class ConcreteCSVField(self.base_field_class, self.field_class):
+            pass
+        ConcreteCSVField.__name__ = self._field_class_name(
+            self.field_class, self.lookup_expr
+        )
+
+        self.field_class = ConcreteCSVField
+
+    @classmethod
+    def _field_class_name(cls, field_class, lookup_expr):
+        """
+        Generate a suitable class name for the concrete field class. This is not
+        completely reliable, as not all field class names are of the format
+        <Type>Field.
+
+        ex::
+
+            BaseCSVFilter._field_class_name(DateTimeField, 'year__in')
+
+            returns 'DateTimeYearInField'
+
+        """
+        # DateTimeField => DateTime
+        type_name = field_class.__name__
+        if type_name.endswith('Field'):
+            type_name = type_name[:-5]
+
+        # year__in => YearIn
+        parts = lookup_expr.split(LOOKUP_SEP)
+        expression_name = ''.join(p.capitalize() for p in parts)
+
+        # DateTimeYearInField
+        return str('%s%sField' % (type_name, expression_name))
+
+
+class BaseInFilter(BaseCSVFilter):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('lookup_expr', 'in')
+        super(BaseInFilter, self).__init__(*args, **kwargs)
+
+
+class BaseRangeFilter(BaseCSVFilter):
+    base_field_class = BaseRangeField
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('lookup_expr', 'range')
+        super(BaseRangeFilter, self).__init__(*args, **kwargs)
 
 
 class MethodFilter(Filter):
