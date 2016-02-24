@@ -1,9 +1,10 @@
-
+from django.conf import settings
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel
+from django.utils import timezone
 
 from .compat import remote_model
 
@@ -93,3 +94,11 @@ def resolve_field(model_field, lookup_expr):
             return lhs.output_field, final_lookup.lookup_name
         lhs = query.try_transform(lhs, name, lookups)
         lookups = lookups[1:]
+
+
+def handle_timezone(value):
+    if settings.USE_TZ and timezone.is_naive(value):
+        return timezone.make_aware(value, timezone.get_default_timezone())
+    elif not settings.USE_TZ and timezone.is_aware(value):
+        return timezone.make_naive(value, timezone.UTC())
+    return value
