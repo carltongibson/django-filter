@@ -6,11 +6,10 @@ import mock
 import warnings
 import unittest
 
-import django
 from django import forms
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from django_filters import filters, FilterSet
+from django_filters import filters
 from django_filters.fields import (
     Lookup,
     RangeField,
@@ -44,7 +43,7 @@ from django_filters.filters import (
     UUIDFilter,
     LOOKUP_TYPES)
 
-from tests.models import Book, User, Article, Comment
+from tests.models import Book, User
 
 
 class FilterTests(TestCase):
