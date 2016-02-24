@@ -10,6 +10,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from django.utils.encoding import force_str
+from django.utils.timezone import make_aware
 from django.utils.translation import ugettext_lazy as _
 
 from .widgets import RangeWidget, LookupTypeWidget, CSVWidget
@@ -44,8 +45,12 @@ class DateRangeField(RangeField):
             start_date, stop_date = data_list
             if start_date:
                 start_date = datetime.combine(start_date, time.min)
+                if settings.USE_TZ:
+                    start_date = make_aware(start_date)
             if stop_date:
                 stop_date = datetime.combine(stop_date, time.max)
+                if settings.USE_TZ:
+                    stop_date = make_aware(stop_date)
             return slice(start_date, stop_date)
         return None
 
