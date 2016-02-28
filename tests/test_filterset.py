@@ -11,6 +11,7 @@ from django.test import TestCase
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filterset import STRICTNESS
+from django_filters.filters import Filter
 from django_filters.filters import BooleanFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import NumberFilter
@@ -20,6 +21,8 @@ from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import UUIDFilter
 from django_filters.filters import BaseInFilter
 from django_filters.filters import BaseRangeFilter
+from django_filters.filters import DateRangeFilter
+from django_filters.filters import FilterMethod
 
 from django_filters.widgets import BooleanWidget
 
@@ -783,6 +786,106 @@ class FilterSetTogetherTests(TestCase):
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+
+
+# test filter.method here, as it depends on its parent FilterSet
+class FilterMethodTests(TestCase):
+
+    def test_none(self):
+        # use a mock to bypass bound/unbound method equality
+        class TestFilter(Filter):
+            filter = mock.Mock()
+
+        f = TestFilter(method=None)
+        self.assertIsNone(f.method)
+
+        # passing method=None should not modify filter function
+        self.assertIs(f.filter, TestFilter.filter)
+
+    def test_method_name(self):
+        class F(FilterSet):
+            f = Filter(method='filter_f')
+
+            def filter_f(self, qs, name, value):
+                pass
+
+        f = F({}, queryset=User.objects.all())
+        self.assertEqual(f.filters['f'].method, 'filter_f')
+        self.assertEqual(f.filters['f'].filter.method, f.filter_f)
+        self.assertIsInstance(f.filters['f'].filter, FilterMethod)
+
+    def test_method_callable(self):
+        def filter_f(qs, name, value):
+            pass
+
+        class F(FilterSet):
+            f = Filter(method=filter_f)
+
+        f = F({}, queryset=User.objects.all())
+        self.assertEqual(f.filters['f'].method, filter_f)
+        self.assertEqual(f.filters['f'].filter.method, filter_f)
+        self.assertIsInstance(f.filters['f'].filter, FilterMethod)
+
+    def test_method_with_overridden_filter(self):
+        # Some filter classes override the base filter() method. We need
+        # to ensure that passing a method argument still works correctly
+        class F(FilterSet):
+            f = DateRangeFilter(method='filter_f')
+
+            def filter_f(self, qs, name, value):
+                pass
+
+        f = F({}, queryset=User.objects.all())
+        self.assertEqual(f.filters['f'].method, 'filter_f')
+        self.assertEqual(f.filters['f'].filter.method, f.filter_f)
+
+    def test_parent_unresolvable(self):
+        f = Filter(method='filter_f')
+        with self.assertRaises(AssertionError) as w:
+            f.filter(User.objects.all(), 0)
+
+        self.assertIn("'None'", str(w.exception))
+        self.assertIn('parent', str(w.exception))
+        self.assertIn('filter_f', str(w.exception))
+
+    def test_method_unresolvable(self):
+        class F(FilterSet):
+            f = Filter(method='filter_f')
+
+        f = F({}, queryset=User.objects.all())
+
+        with self.assertRaises(AssertionError) as w:
+            f.filters['f'].filter(User.objects.all(), 0)
+
+        self.assertIn('%s.%s' % (F.__module__, F.__name__), str(w.exception))
+        self.assertIn('.filter_f()', str(w.exception))
+
+    def test_method_uncallable(self):
+        class F(FilterSet):
+            f = Filter(method='filter_f')
+            filter_f = 4
+
+        f = F({}, queryset=User.objects.all())
+
+        with self.assertRaises(AssertionError) as w:
+            f.filters['f'].filter(User.objects.all(), 0)
+
+        self.assertIn('%s.%s' % (F.__module__, F.__name__), str(w.exception))
+        self.assertIn('.filter_f()', str(w.exception))
+
+    def test_method_set_unset(self):
+        # use a mock to bypass bound/unbound method equality
+        class TestFilter(Filter):
+            filter = mock.Mock()
+
+        f = TestFilter(method='filter_f')
+        self.assertEqual(f.method, 'filter_f')
+        self.assertIsInstance(f.filter, FilterMethod)
+
+        # setting None should revert to Filter.filter
+        f.method = None
+        self.assertIsNone(f.method)
+        self.assertIs(f.filter, TestFilter.filter)
 
 
 @unittest.skip('TODO: remove when relevant deprecations have been completed')

@@ -193,12 +193,12 @@ class FilterTests(TestCase):
         qs.filter.assert_called_once_with(somefield__exact='value')
         self.assertNotEqual(qs, result)
 
-    def test_filter_using_action(self):
+    def test_filter_using_method(self):
         qs = mock.NonCallableMock(spec=[])
-        action = mock.Mock(spec=['filter'])
-        f = Filter(action=action)
+        method = mock.Mock()
+        f = Filter(method=method)
         result = f.filter(qs, 'value')
-        action.assert_called_once_with(qs, 'value')
+        method.assert_called_once_with(qs, None, 'value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_uses_distinct(self):

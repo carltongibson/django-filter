@@ -17,6 +17,7 @@ from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
+from .utils import deprecate
 
 
 __all__ = [
@@ -49,6 +50,9 @@ __all__ = [
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
+EMPTY_VALUES = ([], (), {}, '', None)
+
+
 def _lookup_type_warning():
     warnings.warn('lookup_type is deprecated. Use lookup_expr instead.', DeprecationWarning, stacklevel=3)
 
@@ -57,12 +61,14 @@ class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, name=None, label=None, widget=None, action=None,
+    def __init__(self, name=None, label=None, widget=None, action=None, method=None,
                  lookup_expr='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
+            deprecate('Filter.action has been deprecated in favor of Filter.method')
             self.filter = action
+        self.method = method
 
         self.lookup_expr = lookup_expr
         if 'lookup_type' in kwargs:
@@ -83,6 +89,28 @@ class Filter(object):
            or simply filtering.
         """
         return qs.exclude if self.exclude else qs.filter
+
+    def method():
+        """
+        Filter method needs to be lazily resolved, as it may be dependent on
+        the 'parent' FilterSet.
+        """
+        def fget(self):
+            return self._method
+
+        def fset(self, value):
+            self._method = value
+
+            # clear existing FilterMethod
+            if isinstance(self.filter, FilterMethod):
+                del self.filter
+
+            # override filter w/ FilterMethod.
+            if value is not None:
+                self.filter = FilterMethod(self)
+
+        return locals()
+    method = property(**method())
 
     def lookup_type():
         def fget(self):
@@ -144,7 +172,7 @@ class Filter(object):
             value = value.value
         else:
             lookup = self.lookup_expr
-        if value in ([], (), {}, None, ''):
+        if value in EMPTY_VALUES:
             return qs
         if self.distinct:
             qs = qs.distinct()
@@ -458,6 +486,8 @@ class MethodFilter(Filter):
     This filter will allow you to run a method that exists on the filterset class
     """
     def __init__(self, *args, **kwargs):
+        deprecate('MethodFilter has been deprecated in favor of Filter.method')
+
         # Get the action out of the kwargs
         action = kwargs.get('action', None)
 
@@ -492,3 +522,43 @@ class MethodFilter(Filter):
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
+
+
+class FilterMethod(object):
+    """
+    This helper is used to override Filter.filter() when a 'method' argument
+    is passed. It proxies the call to the actual method on the filter's parent.
+    """
+    def __init__(self, filter_instance):
+        self.f = filter_instance
+
+    def __call__(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        return self.method(qs, self.f.name, value)
+
+    @property
+    def method(self):
+        """
+        Resolve the method on the parent filterset.
+        """
+        instance = self.f
+
+        # noop if 'method' is a function
+        if callable(instance.method):
+            return instance.method
+
+        # otherwise, method is the name of a method on the parent FilterSet.
+        assert hasattr(instance, 'parent'), \
+            "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
+            (instance.name, instance.method)
+
+        parent = instance.parent
+        method = getattr(parent, instance.method, None)
+
+        assert callable(method), \
+            "Expected parent FilterSet '%s.%s' to have a '.%s()' method." % \
+            (parent.__class__.__module__, parent.__class__.__name__, instance.method)
+
+        return method
