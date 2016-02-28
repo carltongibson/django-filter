@@ -21,7 +21,6 @@ from django_filters.filters import DateFromToRangeFilter
 from django_filters.filters import DateTimeFromToRangeFilter
 # from django_filters.filters import DateTimeFilter
 from django_filters.filters import DurationFilter
-from django_filters.filters import MethodFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
@@ -892,24 +891,23 @@ class AllValuesMultipleFilterTests(TestCase):
                          list())
 
 
-class MethodFilterTests(TestCase):
+class FilterMethodTests(TestCase):
+
+    def setUp(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
 
     def test_filtering(self):
-        User.objects.create(username='alex')
-        User.objects.create(username='jacob')
-        User.objects.create(username='aaron')
-
         class F(FilterSet):
-            username = MethodFilter(action='filter_username')
+            username = CharFilter(method='filter_username')
 
             class Meta:
                 model = User
                 fields = ['username']
 
-            def filter_username(self, queryset, value):
-                return queryset.filter(
-                    username=value
-                )
+            def filter_username(self, queryset, name, value):
+                return queryset.filter(**{name: value})
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'}).qs),
@@ -917,18 +915,12 @@ class MethodFilterTests(TestCase):
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
 
-    def test_filtering_external(self):
-        User.objects.create(username='alex')
-        User.objects.create(username='jacob')
-        User.objects.create(username='aaron')
-
-        def filter_username(queryset, value):
-            return queryset.filter(
-                username=value
-            )
+    def test_filtering_callable(self):
+        def filter_username(queryset, name, value):
+            return queryset.filter(**{name: value})
 
         class F(FilterSet):
-            username = MethodFilter(action=filter_username)
+            username = CharFilter(method=filter_username)
 
             class Meta:
                 model = User
@@ -939,55 +931,6 @@ class MethodFilterTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
-
-    def test_filtering_default_attribute_action(self):
-        User.objects.create(username='mike')
-        User.objects.create(username='jake')
-        User.objects.create(username='aaron')
-
-        class F(FilterSet):
-            username = MethodFilter()
-
-            class Meta:
-                model = User
-                fields = ['username']
-
-            def filter_username(self, queryset, value):
-                return queryset.filter(
-                    username__contains='ke'
-                )
-
-        self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'mike'}).qs),
-                         [User.objects.get(username='mike'),
-                          User.objects.get(username='jake')],)
-        self.assertEqual(list(F({'username': 'jake'}).qs),
-                         [User.objects.get(username='mike'),
-                          User.objects.get(username='jake')])
-        self.assertEqual(list(F({'username': 'aaron'}).qs),
-                         [User.objects.get(username='mike'),
-                          User.objects.get(username='jake')])
-
-    def test_filtering_default(self):
-        User.objects.create(username='mike')
-        User.objects.create(username='jake')
-        User.objects.create(username='aaron')
-
-        class F(FilterSet):
-            username = MethodFilter()
-            email = MethodFilter()
-
-            class Meta:
-                model = User
-                fields = ['username']
-
-        self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'mike'}).qs),
-                         list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'jake'}).qs),
-                         list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'aaron'}).qs),
-                         list(User.objects.all()))
 
 
 class O2ORelationshipTests(TestCase):
@@ -1678,19 +1621,6 @@ class MiscFilterSetTests(TestCase):
 
         f = F({'username': 'alex', 'status': '2'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.pk)
-
-    def test_filter_with_action(self):
-        class F(FilterSet):
-            username = CharFilter(action=lambda qs, value: (
-                qs.filter(**{'username__startswith': value})))
-
-            class Meta:
-                model = User
-                fields = ['username']
-
-        f = F({'username': 'a'}, queryset=User.objects.all())
-        self.assertQuerysetEqual(
-            f.qs, ['alex', 'aaron'], lambda o: o.username, False)
 
     def test_filter_with_initial(self):
         class F(FilterSet):
