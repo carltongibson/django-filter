@@ -8,7 +8,7 @@ import unittest
 import django
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, get_default_timezone
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
@@ -170,7 +170,7 @@ class IsoDateTimeFieldTests(TestCase):
     def test_datetime_timezone_awareness(self):
         # parsed datetimes should obey USE_TZ
         f = IsoDateTimeField()
-        r = make_aware(self.reference_dt, f.default_timezone)
+        r = make_aware(self.reference_dt, get_default_timezone())
 
         d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d.tzinfo, tzinfo))
@@ -185,10 +185,6 @@ class IsoDateTimeFieldTests(TestCase):
         # parsed datetimes should obey USE_TZ
         f = IsoDateTimeField()
         r = self.reference_dt.replace()
-
-        # It's necessary to override this here, since the field class is parsed
-        # when USE_TZ = True.
-        f.default_timezone = None
 
         d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(d.tzinfo is None)

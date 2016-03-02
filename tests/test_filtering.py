@@ -17,12 +17,15 @@ from django_filters.filters import BaseInFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
+from django_filters.filters import DateFromToRangeFilter
+from django_filters.filters import DateTimeFromToRangeFilter
 # from django_filters.filters import DateTimeFilter
 from django_filters.filters import MethodFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
+from django_filters.filters import TimeRangeFilter
 # from django_filters.widgets import LinkWidget
 
 from .models import User
@@ -619,6 +622,102 @@ class DateRangeFilterTests(TestCase):
 
     # it will be difficult to test for TZ related issues, where "today" means
     # different things to both user and server.
+
+
+class DateFromToRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        adam = User.objects.create(username='adam')
+        kwargs = {'text': 'test', 'author': adam, 'time': '10:00'}
+        Comment.objects.create(date=datetime.date(2016, 1, 1), **kwargs)
+        Comment.objects.create(date=datetime.date(2016, 1, 2), **kwargs)
+        Comment.objects.create(date=datetime.date(2016, 1, 3), **kwargs)
+        Comment.objects.create(date=datetime.date(2016, 1, 3), **kwargs)
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter(name='date')
+
+            class Meta:
+                model = Comment
+                fields = ['date']
+
+        results = F(data={
+            'published_0': '2016-01-02',
+            'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+    def test_filtering_ignores_time(self):
+        tz = timezone.get_current_timezone()
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2016-01-02',
+            'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+
+class DateTimeFromToRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        tz = timezone.get_current_timezone()
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+
+        class F(FilterSet):
+            published = DateTimeFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2016-01-02 10:00',
+            'published_1': '2016-01-03 19:00'})
+        self.assertEqual(len(results.qs), 2)
+
+
+class TimeRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        adam = User.objects.create(username='adam')
+        kwargs = {
+            'text': 'test', 'author': adam, 'date': datetime.date.today()}
+        Comment.objects.create(time='7:30', **kwargs)
+        Comment.objects.create(time='8:00', **kwargs)
+        Comment.objects.create(time='9:30', **kwargs)
+        Comment.objects.create(time='11:00', **kwargs)
+
+        class F(FilterSet):
+            time = TimeRangeFilter()
+
+            class Meta:
+                model = Comment
+                fields = ['time']
+
+        results = F(data={
+            'time_0': '8:00',
+            'time_1': '10:00'})
+        self.assertEqual(len(results.qs), 2)
 
 
 class AllValuesFilterTests(TestCase):
