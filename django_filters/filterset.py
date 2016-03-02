@@ -163,9 +163,10 @@ class FilterSetMetaclass(type):
         else:
             filters = declared_filters
 
-        if None in filters.values():
+        not_defined = next((k for k, v in filters.items() if v is None), False)
+        if not_defined:
             raise TypeError("Meta.fields contains a field that isn't defined "
-                            "on this FilterSet")
+                            "on this FilterSet: {}".format(not_defined))
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
