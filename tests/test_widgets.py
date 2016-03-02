@@ -149,6 +149,15 @@ class RangeWidgetTests(TestCase):
 class BooleanWidgetTests(TestCase):
     """
     """
+    def test_widget_render(self):
+        w = BooleanWidget()
+        self.assertHTMLEqual(w.render('price', ''), """
+            <select name="price">
+                <option selected="selected" value="">Unknown</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>""")
+
     def test_widget_value_from_datadict(self):
         """
         """
