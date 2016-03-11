@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import Iterable
 from itertools import chain
 try:
     from urllib.parse import urlencode
@@ -12,6 +13,7 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
+from django.utils.six import string_types
 from django.utils.translation import ugettext as _
 
 
@@ -96,21 +98,58 @@ class LookupTypeWidget(forms.MultiWidget):
         return value
 
 
-class BooleanWidget(forms.Widget):
+class BooleanWidget(forms.Select):
     """Convert true/false values into the internal Python True/False.
     This can be used for AJAX queries that pass true/false from JavaScript's
     internal types through.
     """
+    def __init__(self, attrs=None):
+        choices = (('', _('Unknown')),
+                   ('true', _('Yes')),
+                   ('false', _('No')))
+        super(BooleanWidget, self).__init__(attrs, choices)
+
+    def render(self, name, value, attrs=None):
+        try:
+            value = {
+                True: 'true',
+                False: 'false',
+                '1': 'true',
+                '0': 'false'
+            }[value]
+        except KeyError:
+            value = ''
+        return super(BooleanWidget, self).render(name, value, attrs)
+
     def value_from_datadict(self, data, files, name):
-        """
-        """
-        value = super(BooleanWidget, self).value_from_datadict(
-            data, files, name)
+        value = data.get(name, None)
+        if isinstance(value, string_types):
+            value = value.lower()
+
+        return {
+            '1': True,
+            '0': False,
+            'true': True,
+            'false': False,
+            True: True,
+            False: False,
+        }.get(value, None)
+
+
+class CSVWidget(forms.TextInput):
+    def _isiterable(self, value):
+        return isinstance(value, Iterable) and not isinstance(value, string_types)
+
+    def value_from_datadict(self, data, files, name):
+        value = super(CSVWidget, self).value_from_datadict(data, files, name)
 
         if value is not None:
-            if value.lower() == 'true':
-                value = True
-            elif value.lower() == 'false':
-                value = False
+            return value.split(',')
+        return None
 
-        return value
+    def render(self, name, value, attrs=None):
+        if self._isiterable(value):
+            value = [force_text(self._format_value(v)) for v in value]
+            value = ','.join(list(value))
+
+        return super(CSVWidget, self).render(name, value, attrs)

@@ -14,7 +14,9 @@ Contents:
 
     install
     usage
+    ref/filterset
     ref/filters
     ref/fields
     ref/widgets
+    ref/settings
     tests

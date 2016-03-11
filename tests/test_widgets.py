@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.forms import TextInput, Select
 
 from django_filters.widgets import BooleanWidget
+from django_filters.widgets import CSVWidget
 from django_filters.widgets import RangeWidget
 from django_filters.widgets import LinkWidget
 from django_filters.widgets import LookupTypeWidget
@@ -148,6 +149,15 @@ class RangeWidgetTests(TestCase):
 class BooleanWidgetTests(TestCase):
     """
     """
+    def test_widget_render(self):
+        w = BooleanWidget()
+        self.assertHTMLEqual(w.render('price', ''), """
+            <select name="price">
+                <option selected="selected" value="">Unknown</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>""")
+
     def test_widget_value_from_datadict(self):
         """
         """
@@ -162,4 +172,49 @@ class BooleanWidgetTests(TestCase):
         self.assertEqual(result, False)
 
         result = w.value_from_datadict({}, {}, 'active')
+        self.assertEqual(result, None)
+
+
+class CSVWidgetTests(TestCase):
+    def test_widget(self):
+        w = CSVWidget()
+        self.assertHTMLEqual(w.render('price', None), """
+            <input type="text" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', ''), """
+            <input type="text" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', '1,2'), """
+            <input type="text" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', ['1', '2']), """
+            <input type="text" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', [1, 2]), """
+            <input type="text" name="price" value="1,2" />""")
+
+    def test_widget_value_from_datadict(self):
+        w = CSVWidget()
+
+        data = {'price': None}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, None)
+
+        data = {'price': '1'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = {'price': '1,2'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1', '2'])
+
+        data = {'price': '1,,2'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1', '', '2'])
+
+        data = {'price': ''}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [''])
+
+        result = w.value_from_datadict({}, {}, 'price')
         self.assertEqual(result, None)

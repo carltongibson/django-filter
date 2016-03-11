@@ -6,8 +6,8 @@ querysets dynamically.
 
 Full documentation on `read the docs`_.
 
-.. image:: https://secure.travis-ci.org/alex/django-filter.png?branch=master
-   :target: http://travis-ci.org/alex/django-filter
+.. image:: https://travis-ci.org/carltongibson/django-filter.svg?branch=master
+    :target: https://travis-ci.org/carltongibson/django-filter
 
 Requirements
 ------------
@@ -24,7 +24,7 @@ Install using pip::
 
 Or clone the repo and add to your PYTHONPATH::
 
-    git clone git@github.com:alex/django-filter.git
+    git clone git@github.com:carltongibson/django-filter.git
 
 Usage
 -----
@@ -46,7 +46,7 @@ And then in your view you could do::
 
     def product_list(request):
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
-        return render_to_response('my_app/template.html', {'filter': filter})
+        return render(request, 'my_app/template.html', {'filter': filter})
 
 Django-filters additionally supports specifying FilterSet fields using a
 dictionary to specify filters with lookup types::

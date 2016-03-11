@@ -5,22 +5,27 @@ import datetime
 import mock
 import unittest
 
-from django.test import TestCase
+import django
+from django.test import TestCase, override_settings
 from django.utils import six
 from django.utils.timezone import now
 from django.utils import timezone
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import AllValuesFilter
+from django_filters.filters import BaseInFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
+from django_filters.filters import DateFromToRangeFilter
+from django_filters.filters import DateTimeFromToRangeFilter
 # from django_filters.filters import DateTimeFilter
 from django_filters.filters import MethodFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import RangeFilter
+from django_filters.filters import TimeRangeFilter
 # from django_filters.widgets import LinkWidget
 
 from .models import User
@@ -446,9 +451,9 @@ class NumberFilterTests(TestCase):
         f = F({'price': 10}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
 
-    def test_filtering_with_single_lookup_type(self):
+    def test_filtering_with_single_lookup_expr(self):
         class F(FilterSet):
-            price = NumberFilter(lookup_type='lt')
+            price = NumberFilter(lookup_expr='lt')
 
             class Meta:
                 model = Book
@@ -458,7 +463,7 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
-    def test_filtering_with_single_lookup_type_dictionary(self):
+    def test_filtering_with_single_lookup_expr_dictionary(self):
         class F(FilterSet):
             class Meta:
                 model = Book
@@ -468,9 +473,9 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
-    def test_filtering_with_multiple_lookup_types(self):
+    def test_filtering_with_multiple_lookup_exprs(self):
         class F(FilterSet):
-            price = NumberFilter(lookup_type=['lt', 'gt'])
+            price = NumberFilter(lookup_expr=['lt', 'gt'])
 
             class Meta:
                 model = Book
@@ -487,7 +492,7 @@ class NumberFilterTests(TestCase):
                                  lambda o: o.title, ordered=False)
 
         class F(FilterSet):
-            price = NumberFilter(lookup_type=['lt', 'gt', 'exact'])
+            price = NumberFilter(lookup_expr=['lt', 'gt', 'exact'])
 
             class Meta:
                 model = Book
@@ -617,6 +622,102 @@ class DateRangeFilterTests(TestCase):
 
     # it will be difficult to test for TZ related issues, where "today" means
     # different things to both user and server.
+
+
+class DateFromToRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        adam = User.objects.create(username='adam')
+        kwargs = {'text': 'test', 'author': adam, 'time': '10:00'}
+        Comment.objects.create(date=datetime.date(2016, 1, 1), **kwargs)
+        Comment.objects.create(date=datetime.date(2016, 1, 2), **kwargs)
+        Comment.objects.create(date=datetime.date(2016, 1, 3), **kwargs)
+        Comment.objects.create(date=datetime.date(2016, 1, 3), **kwargs)
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter(name='date')
+
+            class Meta:
+                model = Comment
+                fields = ['date']
+
+        results = F(data={
+            'published_0': '2016-01-02',
+            'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+    def test_filtering_ignores_time(self):
+        tz = timezone.get_current_timezone()
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2016-01-02',
+            'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+
+class DateTimeFromToRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        tz = timezone.get_current_timezone()
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+
+        class F(FilterSet):
+            published = DateTimeFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2016-01-02 10:00',
+            'published_1': '2016-01-03 19:00'})
+        self.assertEqual(len(results.qs), 2)
+
+
+class TimeRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        adam = User.objects.create(username='adam')
+        kwargs = {
+            'text': 'test', 'author': adam, 'date': datetime.date.today()}
+        Comment.objects.create(time='7:30', **kwargs)
+        Comment.objects.create(time='8:00', **kwargs)
+        Comment.objects.create(time='9:30', **kwargs)
+        Comment.objects.create(time='11:00', **kwargs)
+
+        class F(FilterSet):
+            time = TimeRangeFilter()
+
+            class Meta:
+                model = Comment
+                fields = ['time']
+
+        results = F(data={
+            'time_0': '8:00',
+            'time_1': '10:00'})
+        self.assertEqual(len(results.qs), 2)
 
 
 class AllValuesFilterTests(TestCase):
@@ -1238,6 +1339,189 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
         qs = DirectedNode.objects.all().order_by('pk')
         f = F({'inbound_nodes': ['1']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
+
+
+# use naive datetimes, as pytz is required to perform
+# date lookups when timezones are involved.
+@override_settings(USE_TZ=False)
+@unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
+class TransformedQueryExpressionFilterTests(TestCase):
+
+    def test_filtering(self):
+        now_dt = datetime.datetime.now()
+        after_5pm = now_dt.replace(hour=18)
+        before_5pm = now_dt.replace(hour=16)
+
+        u = User.objects.create(username='alex')
+        a = Article.objects.create(author=u, published=after_5pm)
+        Article.objects.create(author=u, published=before_5pm)
+
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'published': ['hour__gte']}
+
+        qs = Article.objects.all()
+        f = F({'published__hour__gte': 17}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertQuerysetEqual(f.qs, [a.pk], lambda o: o.pk)
+
+
+# use naive datetimes, as pytz is required to perform
+# date lookups when timezones are involved.
+@override_settings(USE_TZ=False)
+class CSVFilterTests(TestCase):
+
+    def setUp(self):
+        u1 = User.objects.create(username='alex', status=1)
+        u2 = User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        now_dt = datetime.datetime.now()
+        after_5pm = now_dt.replace(hour=18)
+        before_5pm = now_dt.replace(hour=16)
+
+        Article.objects.create(author=u1, published=after_5pm)
+        Article.objects.create(author=u2, published=after_5pm)
+        Article.objects.create(author=u1, published=before_5pm)
+        Article.objects.create(author=u2, published=before_5pm)
+
+        class UserFilter(FilterSet):
+            class Meta:
+                model = User
+                fields = {
+                    'username': ['in'],
+                    'status': ['in'],
+                }
+
+        class ArticleFilter(FilterSet):
+            class Meta:
+                model = Article
+                fields = {
+                    'author': ['in'],
+                    'published': ['in'],
+                }
+
+        self.user_filter = UserFilter
+        self.article_filter = ArticleFilter
+
+        self.after_5pm = after_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+        self.before_5pm = before_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    def test_numeric_filtering(self):
+        F = self.user_filter
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'status__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'status__in': '0'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+        f = F({'status__in': '0,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 3)
+        self.assertEqual(f.count(), 3)
+
+        f = F({'status__in': '0,,1'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'status__in': '2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+    def test_string_filtering(self):
+        F = self.user_filter
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'username__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'username__in': 'alex'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+        f = F({'username__in': 'alex,aaron'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'username__in': 'alex,,aaron'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'username__in': 'alex,'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertEqual(f.count(), 1)
+
+    def test_datetime_filtering(self):
+        F = self.article_filter
+        after = self.after_5pm
+        before = self.before_5pm
+
+        qs = Article.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'published__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'published__in': '%s' % (after, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'published__in': '%s,%s' % (after, before, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'published__in': '%s,,%s' % (after, before, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'published__in': '%s,' % (after, )}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+    def test_related_filtering(self):
+        F = self.article_filter
+
+        qs = Article.objects.all()
+        f = F(queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'author__in': ''}, queryset=qs)
+        self.assertEqual(len(f.qs), 0)
+        self.assertEqual(f.count(), 0)
+
+        f = F({'author__in': '1'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
+
+        f = F({'author__in': '1,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'author__in': '1,,2'}, queryset=qs)
+        self.assertEqual(len(f.qs), 4)
+        self.assertEqual(f.count(), 4)
+
+        f = F({'author__in': '1,'}, queryset=qs)
+        self.assertEqual(len(f.qs), 2)
+        self.assertEqual(f.count(), 2)
 
 
 class MiscFilterSetTests(TestCase):

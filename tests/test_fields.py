@@ -8,15 +8,31 @@ import unittest
 import django
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, get_default_timezone
 
 from django_filters.widgets import RangeWidget
 from django_filters.fields import (
-    RangeField, LookupTypeField, Lookup, DateRangeField, TimeRangeField, IsoDateTimeField)
+    Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
+    DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
+)
 
 
 def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
+
+
+class LookupBoolTests(TestCase):
+    def test_lookup_true(self):
+        self.assertTrue(Lookup(True, 'exact'))
+        self.assertTrue(Lookup(1, 'exact'))
+        self.assertTrue(Lookup('1', 'exact'))
+        self.assertTrue(Lookup(datetime.now(), 'exact'))
+
+    def test_lookup_false(self):
+        self.assertFalse(Lookup(False, 'exact'))
+        self.assertFalse(Lookup(0, 'exact'))
+        self.assertFalse(Lookup('', 'exact'))
+        self.assertFalse(Lookup(None, 'exact'))
 
 
 class RangeFieldTests(TestCase):
@@ -40,14 +56,30 @@ class DateRangeFieldTests(TestCase):
         f = DateRangeField()
         self.assertEqual(len(f.fields), 2)
 
+    @override_settings(USE_TZ=False)
     def test_clean(self):
         w = RangeWidget()
         f = DateRangeField(widget=w)
-
         self.assertEqual(
             f.clean(['2015-01-01', '2015-01-10']),
-            slice(datetime(2015, 1, 1, 0, 0 , 0),
+            slice(datetime(2015, 1, 1, 0, 0, 0),
                   datetime(2015, 1, 10, 23, 59, 59, 999999)))
+
+
+class DateTimeRangeFieldTests(TestCase):
+
+    def test_field(self):
+        f = DateTimeRangeField()
+        self.assertEqual(len(f.fields), 2)
+
+    @override_settings(USE_TZ=False)
+    def test_clean(self):
+        w = RangeWidget()
+        f = DateTimeRangeField(widget=w)
+        self.assertEqual(
+            f.clean(['2015-01-01 10:30', '2015-01-10 8:45']),
+            slice(datetime(2015, 1, 1, 10, 30, 0),
+                  datetime(2015, 1, 10, 8, 45, 0)))
 
 
 class TimeRangeFieldTests(TestCase):
@@ -138,7 +170,7 @@ class IsoDateTimeFieldTests(TestCase):
     def test_datetime_timezone_awareness(self):
         # parsed datetimes should obey USE_TZ
         f = IsoDateTimeField()
-        r = make_aware(self.reference_dt, f.default_timezone)
+        r = make_aware(self.reference_dt, get_default_timezone())
 
         d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d.tzinfo, tzinfo))
@@ -154,10 +186,6 @@ class IsoDateTimeFieldTests(TestCase):
         f = IsoDateTimeField()
         r = self.reference_dt.replace()
 
-        # It's necessary to override this here, since the field class is parsed
-        # when USE_TZ = True.
-        f.default_timezone = None
-
         d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
         self.assertTrue(d.tzinfo is None)
         self.assertEqual(d, r - timedelta(hours=1))
@@ -165,3 +193,50 @@ class IsoDateTimeFieldTests(TestCase):
         d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
         self.assertTrue(d.tzinfo is None)
         self.assertEqual(d, r)
+
+
+class BaseCSVFieldTests(TestCase):
+    def setUp(self):
+        class DecimalCSVField(BaseCSVField, forms.DecimalField):
+            pass
+
+        self.field = DecimalCSVField()
+
+    def test_clean(self):
+        self.assertEqual(self.field.clean(None), None)
+        self.assertEqual(self.field.clean(''), [])
+        self.assertEqual(self.field.clean(['1']), [1])
+        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
+        self.assertEqual(self.field.clean(['1', '2', '3']), [1, 2, 3])
+
+    def test_validation_error(self):
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean([''])
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean(['a', 'b', 'c'])
+
+
+class BaseRangeFieldTests(TestCase):
+    def setUp(self):
+        class DecimalRangeField(BaseRangeField, forms.DecimalField):
+            pass
+
+        self.field = DecimalRangeField()
+
+    def test_clean(self):
+        self.assertEqual(self.field.clean(None), None)
+        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
+
+    def test_validation_error(self):
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean('')
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean([''])
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean(['1'])
+
+        with self.assertRaises(forms.ValidationError):
+            self.field.clean(['1', '2', '3'])

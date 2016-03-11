@@ -1,0 +1,164 @@
+FilterSet Guide
+===============
+
+This document provides a guide on using additional FilterSet features.
+
+Meta options
+------------
+
+- model
+- fields
+- exclude
+- :ref:`order_by <order-by>`
+- :ref:`form <form>`
+- :ref:`together <together>`
+
+
+.. _order-by:
+
+Ordering using ``order_by``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can allow the user to control ordering by providing the
+``order_by`` argument in the Filter's Meta class.  ``order_by`` can be either a
+``list`` or ``tuple`` of field names, in which case those are the options, or
+it can be a ``bool`` which, if True, indicates that all fields that
+the user can filter on can also be sorted on. An example of ordering using a list::
+
+    import django_filters
+
+    class ProductFilter(django_filters.FilterSet):
+        price = django_filters.NumberFilter(lookup_expr='lt')
+        class Meta:
+            model = Product
+            fields = ['price', 'release_date']
+            order_by = ['price']
+
+If you want to control the display of items in ``order_by``, you can set it to
+a list or tuple of 2-tuples in the format ``(field_name, display_name)``.
+This lets you override the displayed names for your ordering fields::
+
+    order_by = (
+        ('name', 'Company Name'),
+        ('average_rating', 'Stars'),
+    )
+
+Note that the default query parameter name used for ordering is ``o``.  You
+can override this by setting an ``order_by_field`` attribute on the
+``FilterSet`` class to the string value you would like to use.
+
+
+.. _form:
+
+Custom Forms using ``form``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
+form class from which ``FilterSet.form`` will subclass.  This works similar to
+the ``form`` option on a ``ModelAdmin.``
+
+
+.. _together:
+
+Group fields with ``together``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The inner ``Meta`` class also takes an optional ``together`` argument.  This
+is a list of lists, each containing field names. For convenience can be a
+single list/tuple when dealing with a single set of fields. Fields within a
+field set must either be all or none present in the request for
+``FilterSet.form`` to be valid::
+
+    import django_filters
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = ['price', 'release_date', 'rating']
+            together = ['rating', 'price']
+
+
+Non-Meta options
+----------------
+
+Note that these options do not go in the Meta class, they are specified directly
+in your FilterSet class.
+
+- filter_overrides
+- order_by_field
+- :ref:`strict <strict>`
+
+
+.. _strict:
+
+``strict``
+~~~~~~~~~~
+
+The ``strict`` option controls whether results are returned when an invalid
+value is specified by the user for any filter field. By default, ``strict`` is
+set to ``STRICTNESS.RETURN_NO_RESULTS`` meaning that an empty queryset is
+returned if any field contains an invalid value. You can loosen this behavior
+by setting ``strict`` to ``STRICTNESS.IGNORE`` which will effectively ignore a
+filter field if its value is invalid. A third option of
+``STRICTNESS.RAISE_VALIDATION_ERROR`` will cause a ``ValidationError`` to be
+raised if any field contains an invalid value.
+
+Overriding ``FilterSet`` methods
+--------------------------------
+
+``filter_for_lookup()``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to version 0.13.0, filter generation did not take into account the
+``lookup_expr`` used. This commonly caused malformed filters to be generated
+for 'isnull', 'in', and 'range' lookups (as well as transformed lookups). The
+current implementation provides the following behavior:
+
+- 'isnull' lookups return a ``BooleanFilter``
+- 'in' lookups return a filter derived from the CSV-based ``BaseInFilter``.
+- 'range' lookups return a filter derived from the CSV-based ``BaseRangeFilter``.
+
+If you want to override the ``filter_class`` and ``params`` used to instantiate
+filters for a model field, you can override ``filter_for_lookup()``. Ex::
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {
+                'release_date': ['exact', 'range'],
+            }
+
+        @classmethod
+        def filter_for_lookup(cls, f, lookup_type):
+            # override date range lookups
+            if isinstance(f, models.DateField) and lookup_type == 'range':
+                return django_filters.DateRangeFiler, {}
+
+            # use default behavior otherwise
+            return super(ProductFilter, cls).filter_for_lookup(f, lookup_type)
+
+
+``get_ordering_field()``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to use a custom widget, or in any other way override the ordering
+field you can override the ``get_ordering_field()`` method on a ``FilterSet``.
+This method just needs to return a Form Field.
+
+Ordering on multiple fields, or other complex orderings can be achieved by
+overriding the ``FilterSet.get_order_by()`` method. This is passed the selected
+``order_by`` value, and is expected to return an iterable of values to pass to
+``QuerySet.order_by``. For example, to sort a ``User`` table by last name, then
+first name::
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            order_by = (
+                ('username', 'Username'),
+                ('last_name', 'Last Name')
+            )
+
+        def get_order_by(self, order_value):
+            if order_value == 'last_name':
+                return ['last_name', 'first_name']
+            return super(UserFilter, self).get_order_by(order_value)
