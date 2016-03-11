@@ -6,7 +6,7 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
-version = '0.12.0'
+version = '0.13.0'
 
 if sys.argv[-1] == 'publish':
     if os.system("pip freeze | grep wheel"):
@@ -30,7 +30,9 @@ setup(
     long_description=readme,
     author='Alex Gaynor',
     author_email='alex.gaynor@gmail.com',
-    url='http://github.com/alex/django-filter/tree/master',
+    maintainer='Carlton Gibson',
+    maintainer_email='carlton.gibson@noumenal.es',
+    url='http://github.com/carltongibson/django-filter/tree/master',
     packages=find_packages(exclude=['tests']),
     package_data = {
         'django_filters': [

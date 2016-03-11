@@ -1,3 +1,15 @@
+Version 0.13.0 (2016-03-11)
+---------------------------
+
+* Add support for filtering by CSV #363
+
+* Add DateTimeFromToRangeFilter #376
+
+* Add Chinese translation #359
+
+* Lots of fixes.
+
+
 Version 0.12.0 (2016-01-07)
 ---------------------------
 

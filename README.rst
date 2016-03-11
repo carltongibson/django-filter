@@ -24,7 +24,7 @@ Install using pip::
 
 Or clone the repo and add to your PYTHONPATH::
 
-    git clone git@github.com:alex/django-filter.git
+    git clone git@github.com:carltongibson/django-filter.git
 
 Usage
 -----
