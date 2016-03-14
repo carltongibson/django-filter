@@ -18,7 +18,8 @@ from django.utils.translation import ugettext as _
 from .compat import remote_field, remote_model
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
+                      DurationFilter)
 from .utils import try_dbfield, get_model_field, resolve_field
 
 
@@ -194,6 +195,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     },
     models.TimeField: {
         'filter_class': TimeFilter
+    },
+    models.DurationField: {
+        'filter_class': DurationFilter
     },
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,

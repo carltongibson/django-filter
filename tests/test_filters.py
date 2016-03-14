@@ -27,6 +27,7 @@ from django_filters.filters import (
     DateFilter,
     DateTimeFilter,
     TimeFilter,
+    DurationFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     NumberFilter,
@@ -473,6 +474,14 @@ class TimeFilterTests(TestCase):
         f = TimeFilter()
         field = f.field
         self.assertIsInstance(field, forms.TimeField)
+
+
+class DurationFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = DurationFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.DurationField)
 
 
 class ModelChoiceFilterTests(TestCase):
