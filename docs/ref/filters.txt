@@ -245,6 +245,15 @@ Example. ::
             fields = ['published']
 
 
+``DurationFilter``
+~~~~~~~~~~~~~~~~~~
+
+Matches on a duration.  Used with ``DurationField`` by default.
+
+Supports both Django ('%d %H:%M:%S.%f') and ISO 8601 formatted durations (but
+only the sections that are accepted by Python's timedelta, so no year, month,
+and week designators, e.g. 'P3DT10H22M').
+
 
 ``ModelChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~

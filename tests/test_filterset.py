@@ -86,6 +86,7 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.SmallIntegerField,
             models.TextField,
             models.TimeField,
+            models.DurationField,
             models.URLField,
             models.ForeignKey,
             models.OneToOneField,
