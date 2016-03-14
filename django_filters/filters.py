@@ -25,7 +25,7 @@ __all__ = [
     'DateTimeFilter', 'IsoDateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
     'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
     'DateRangeFilter', 'DateFromToRangeFilter', 'DateTimeFromToRangeFilter',
-    'TimeRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'TimeRangeFilter', 'AllValuesFilter', 'MethodFilter', 'DurationFilter',
 ]
 
 
@@ -245,6 +245,10 @@ class IsoDateTimeFilter(DateTimeFilter):
 
 class TimeFilter(Filter):
     field_class = forms.TimeField
+
+
+class DurationFilter(Filter):
+    field_class = forms.DurationField
 
 
 class ModelChoiceFilter(Filter):
