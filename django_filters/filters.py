@@ -25,7 +25,7 @@ __all__ = [
     'DateTimeFilter', 'IsoDateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
     'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
     'DateRangeFilter', 'DateFromToRangeFilter', 'DateTimeFromToRangeFilter',
-    'TimeRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'TimeRangeFilter', 'AllValuesFilter', 'MethodFilter', 'UUIDFilter',
 ]
 
 
