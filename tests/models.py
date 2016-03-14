@@ -182,3 +182,13 @@ class Business(models.Model):
 
 class UUIDTestModel(models.Model):
     uuid = models.UUIDField()
+
+
+class SpacewalkRecord(models.Model):
+    """Cumulative space walk record.
+
+    See: https://en.wikipedia.org/wiki/List_of_cumulative_spacewalk_records
+
+    """
+    astronaut = models.CharField(max_length=100)
+    duration = models.DurationField()
