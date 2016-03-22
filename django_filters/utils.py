@@ -60,7 +60,16 @@ def get_model_field(model, field_name):
     try:
         return opts.get_field(parts[-1])
     except FieldDoesNotExist:
+        pass
+
+    annotations = get_model_annotations(opts.model)
+    if annotations is None or parts[-1] not in annotations:
         return None
+
+    # get output_field and bind model so it behaves like a proper model field.
+    field = annotations[parts[-1]].output_field
+    field.model = opts.model
+    return field
 
 
 def resolve_field(model_field, lookup_expr):

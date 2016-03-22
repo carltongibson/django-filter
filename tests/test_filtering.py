@@ -1443,8 +1443,11 @@ class AnnotatedFieldTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        User.objects.create(username='alex', first_name='Alex', last_name='Gaynor')
-        User.objects.create(username='carl', first_name='Carl', last_name='Gibson')
+        u1 = User.objects.create(username='alex', first_name='Alex', last_name='Gaynor')
+        u2 = User.objects.create(username='carl', first_name='Carl', last_name='Gibson')
+
+        Article.objects.create(author=u1, published=timezone.now())
+        Article.objects.create(author=u2, published=timezone.now())
 
     def test_filtering(self):
         class F(FilterSet):
@@ -1454,6 +1457,32 @@ class AnnotatedFieldTests(TestCase):
 
         qs = User.objects.all()
         f = F({'full_name__icontains': 'alex'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
+
+    # Django 1.9 does not support filtering annotations across relationships.
+    # https://code.djangoproject.com/ticket/26393
+    @unittest.expectedFailure
+    def test_related_filtering(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'author__full_name': ['exact']}
+
+        qs = Article.objects.all()
+        f = F({'author__full_name': 'Alex Gaynor'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
+
+    @unittest.expectedFailure
+    def test_related_filtering_lookup(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {'author__full_name': ['icontains']}
+
+        qs = Article.objects.all()
+        f = F({'author__full_name__icontains': 'alex'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
         self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
 
