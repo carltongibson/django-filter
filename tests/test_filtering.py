@@ -1437,6 +1437,27 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
 
 
+class AnnotatedFieldTests(TestCase):
+    # Meta.fields should support annotated fields so long as default queryset
+    # for the model contains the annotations.
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create(username='alex', first_name='Alex', last_name='Gaynor')
+        User.objects.create(username='carl', first_name='Carl', last_name='Gibson')
+
+    def test_filtering(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = {'full_name': ['icontains']}
+
+        qs = User.objects.all()
+        f = F({'full_name__icontains': 'alex'}, queryset=qs)
+        self.assertEqual(len(f.qs), 1)
+        self.assertQuerysetEqual(f.qs, [1], lambda o: o.pk)
+
+
 # use naive datetimes, as pytz is required to perform
 # date lookups when timezones are involved.
 @override_settings(USE_TZ=False)

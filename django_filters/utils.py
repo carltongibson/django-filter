@@ -29,6 +29,10 @@ def try_dbfield(fn, field_class):
             return data
 
 
+def get_model_annotations(model):
+    return model._default_manager.get_queryset().query._annotations
+
+
 def get_model_field(model, field_name):
     """
     Get a ``model`` field, traversing relationships

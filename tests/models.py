@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db import models
+from django.db.models import Value as V
+from django.db.models.functions import Concat
 from django.utils.encoding import python_2_unicode_compatible
 
 
@@ -39,6 +41,18 @@ class SubnetMaskField(models.Field):
         return super(SubnetMaskField, self).formfield(**defaults)
 
 
+class UserManager(models.Manager):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        queryset = super(UserManager, self).get_queryset()
+        queryset = queryset.annotate(full_name=Concat(
+            'first_name', V(' '), 'last_name',
+            output_field=models.CharField()
+        ))
+        return queryset
+
+
 @python_2_unicode_compatible
 class User(models.Model):
     username = models.CharField(max_length=255)
@@ -50,6 +64,8 @@ class User(models.Model):
     is_active = models.BooleanField(default=False)
 
     favorite_books = models.ManyToManyField('Book', related_name='lovers')
+
+    objects = UserManager()
 
     def __str__(self):
         return self.username
