@@ -7,13 +7,19 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.core.exceptions import FieldError
 
-from django_filters.utils import get_model_field, resolve_field
+from django_filters.utils import get_model_annotations, get_model_field, resolve_field
 
 from .models import User
 from .models import Article
 from .models import Book
 from .models import HiredWorker
 from .models import Business
+
+
+class GetModelAnnotationsTests(TestCase):
+    def test_annotations(self):
+        annotations = get_model_annotations(User)
+        self.assertIn('full_name', annotations)
 
 
 class GetModelFieldTests(TestCase):
@@ -25,6 +31,22 @@ class GetModelFieldTests(TestCase):
     def test_related_field(self):
         result = get_model_field(Business, 'hiredworker__worker')
         self.assertEqual(result, HiredWorker._meta.get_field('worker'))
+
+    def test_annotated_field(self):
+        # we cannot test for equality here as each queryset is unique,
+        # thus each annotation's output_field is also unique.
+        annotations = get_model_annotations(User)
+        annotation_class = annotations['full_name'].output_field.__class__
+
+        result = get_model_field(User, 'full_name')
+        self.assertIsInstance(result, annotation_class)
+
+    def test_related_annotated_field(self):
+        annotations = get_model_annotations(User)
+        annotation_class = annotations['full_name'].output_field.__class__
+
+        result = get_model_field(Article, 'author__full_name')
+        self.assertIsInstance(result, annotation_class)
 
 
 class ResolveFieldTests(TestCase):
