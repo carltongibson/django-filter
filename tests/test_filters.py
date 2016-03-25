@@ -283,7 +283,6 @@ class BooleanFilterTests(TestCase):
         qs.exclude.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
-    @unittest.expectedFailure
     def test_filtering_skipped_with_blank_value(self):
         qs = mock.Mock()
         f = BooleanFilter(name='somefield')
@@ -380,7 +379,6 @@ class MultipleChoiceFilterTests(TestCase):
         result = f.filter(qs, ['other', 'values', 'there'])
         self.assertEqual(qs, result)
 
-    @unittest.expectedFailure
     def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
         qs = mock.Mock(spec=[])
         f = MultipleChoiceFilter(name='somefield')
