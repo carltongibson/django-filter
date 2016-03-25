@@ -482,7 +482,6 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(list(F.base_filters), list(ProxyF.base_filters))
 
-    @unittest.expectedFailure
     def test_filterset_for_mti_model(self):
         class F(FilterSet):
             class Meta:
