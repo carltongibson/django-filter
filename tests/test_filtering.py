@@ -653,8 +653,6 @@ class RangeFilterTests(TestCase):
                                  lambda o: o.title)
 
 
-
-@unittest.skip('date-range is funky')
 class DateRangeFilterTests(TestCase):
 
     def setUp(self):
@@ -693,7 +691,6 @@ class DateRangeFilterTests(TestCase):
         f = F({'date': '3'})  # this month
         self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
 
-    @unittest.expectedFailure
     def test_filtering_for_week(self):
         class F(FilterSet):
             date = DateRangeFilter()

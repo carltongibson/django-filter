@@ -677,18 +677,18 @@ class DateRangeFilterTests(TestCase):
 
     def test_filtering_for_7_days(self):
         qs = mock.Mock(spec=['filter'])
-        with mock.patch('django_filters.filters.now'):
-            with mock.patch('django_filters.filters.timedelta') as mock_td:
-                with mock.patch(
-                        'django_filters.filters._truncate') as mock_truncate:
-                    mock_dt1, mock_dt2 = mock.MagicMock(), mock.MagicMock()
-                    mock_truncate.side_effect = [mock_dt1, mock_dt2]
-                    f = DateRangeFilter()
-                    f.filter(qs, '2')
-                    self.assertEqual(mock_td.call_args_list,
-                        [mock.call(days=7), mock.call(days=1)])
-                    qs.filter.assert_called_once_with(
-                        None__lt=mock_dt2, None__gte=mock_dt1)
+        with mock.patch('django_filters.filters.now'), \
+                mock.patch('django_filters.filters.timedelta') as mock_td, \
+                mock.patch('django_filters.filters._truncate') as mock_truncate:
+            mock_d1, mock_d2 = mock.MagicMock(), mock.MagicMock()
+            mock_truncate.side_effect = [mock_d1, mock_d2]
+            f = DateRangeFilter()
+            f.filter(qs, '2')
+            self.assertEqual(
+                mock_td.call_args_list,
+                [mock.call(days=7), mock.call(days=1)]
+            )
+            qs.filter.assert_called_once_with(None__lt=mock_d2, None__gte=mock_d1)
 
     def test_filtering_for_today(self):
         qs = mock.Mock(spec=['filter'])
