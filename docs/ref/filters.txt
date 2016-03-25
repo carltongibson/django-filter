@@ -299,7 +299,7 @@ the Postgres Numerical Range Fields, including `IntegerRangeField`, `BigIntegerR
 available since Django 1.8. The default widget used is the `RangeField`.
 
 RangeField lookup_exprs can be used, including `overlap`, `contains`, and `contained_by`. More lookups can be
-found in the Django docs ([https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields](https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields)).
+found in the Django docs (https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields).
 
 If the lower limit value is provided, the filter automatically defaults to `__startswith` as the lookup
 type and if only the upper limit value is provided, the filter uses `__endswith`.
