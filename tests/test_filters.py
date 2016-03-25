@@ -644,14 +644,7 @@ class DateRangeFilterTests(TestCase):
         self.assertIsInstance(field, forms.ChoiceField)
 
     def test_filtering(self):
-        qs = mock.Mock(spec=['all'])
-        f = DateRangeFilter()
-        f.filter(qs, '')
-        qs.all.assert_called_once_with()
-
-    # the correct behavior fails right now
-    @unittest.expectedFailure
-    def test_filtering_skipped_with_blank_value(self):
+        # skip filtering, as it's an empty value
         qs = mock.Mock(spec=[])
         f = DateRangeFilter()
         result = f.filter(qs, '')
