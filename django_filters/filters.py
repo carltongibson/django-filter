@@ -336,6 +336,8 @@ class DateRangeFilter(ChoiceFilter):
             value = int(value)
         except (ValueError, TypeError):
             value = ''
+
+        assert value in self.options
         qs = self.options[value][1](qs, self.name)
         if self.distinct:
             qs = qs.distinct()

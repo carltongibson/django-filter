@@ -650,12 +650,12 @@ class DateRangeFilterTests(TestCase):
         result = f.filter(qs, '')
         self.assertEqual(qs, result)
 
-    @unittest.expectedFailure
     def test_filtering_skipped_with_out_of_range_value(self):
+        # Field validation should prevent this from occuring
         qs = mock.Mock(spec=[])
         f = DateRangeFilter()
-        result = f.filter(qs, 999)
-        self.assertEqual(qs, result)
+        with self.assertRaises(AssertionError):
+            f.filter(qs, 999)
 
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=['filter'])
