@@ -574,14 +574,6 @@ class NumericRangeFilterTests(TestCase):
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__overlap=(20, 30))
 
-    @unittest.expectedFailure
-    def test_filtering_lower_field_higher_than_upper_field(self):
-        qs = mock.Mock(spec=['filter'])
-        value = mock.Mock(start=35, stop=30)
-        f = NumericRangeFilter()
-        result = f.filter(qs, value)
-        self.assertEqual(qs, result)
-
     def test_zero_to_zero(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=0, stop=0)
