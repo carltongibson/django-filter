@@ -794,11 +794,11 @@ class DateTimeFromToRangeFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
-    def test_filtering_ignores_lookup_type(self):
+    def test_filtering_ignores_lookup_expr(self):
         qs = mock.Mock()
         value = mock.Mock(
             start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
-        f = DateTimeFromToRangeFilter(lookup_type='gte')
+        f = DateTimeFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
