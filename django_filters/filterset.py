@@ -63,8 +63,11 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     field_dict = OrderedDict()
     opts = model._meta
     if fields is None:
-        fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
-                  if not isinstance(f, models.AutoField)]
+        fields = [
+            f.name for f in sorted(opts.fields + opts.many_to_many)
+            if not isinstance(f, models.AutoField) and
+            not (getattr(remote_field(f), 'parent_link', False))
+        ]
     # Loop through the list of fields.
     for f in fields:
         # Skip the field if excluded.

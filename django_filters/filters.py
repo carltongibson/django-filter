@@ -297,12 +297,12 @@ class RangeFilter(Filter):
 
 
 def _truncate(dt):
-    return dt.replace(hour=0, minute=0, second=0)
+    return dt.date()
 
 
 class DateRangeFilter(ChoiceFilter):
     options = {
-        '': (_('Any date'), lambda qs, name: qs.all()),
+        '': (_('Any date'), lambda qs, name: qs),
         1: (_('Today'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month,
@@ -336,6 +336,8 @@ class DateRangeFilter(ChoiceFilter):
             value = int(value)
         except (ValueError, TypeError):
             value = ''
+
+        assert value in self.options
         qs = self.options[value][1](qs, self.name)
         if self.distinct:
             qs = qs.distinct()
