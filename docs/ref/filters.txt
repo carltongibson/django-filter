@@ -469,7 +469,7 @@ Example. ::
         pass
 
     class F(FilterSet):
-        id__in = NumberInFilter(name=id, lookup_expr='in')
+        id__in = NumberInFilter(name='id', lookup_expr='in')
 
         class Meta:
             model = User
@@ -494,7 +494,7 @@ Example. ::
         pass
 
     class F(FilterSet):
-        id__range = NumberRangeFilter(name=id, lookup_expr='range')
+        id__range = NumberRangeFilter(name='id', lookup_expr='range')
 
         class Meta:
             model = User
