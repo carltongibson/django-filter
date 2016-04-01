@@ -40,6 +40,8 @@ additional ones that django-filter provides which may be useful:
     * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
       value and converts it into a list of string values. It is expected that
       the field class handle a list of values as well as type conversion.
+    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
+      to generate two form input elements using a single field.
 
 ``action``
 ~~~~~~~~~~

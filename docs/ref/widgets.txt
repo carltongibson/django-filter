@@ -42,3 +42,17 @@ To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``::
 This widget expects a comma separated value and converts it into a list of
 string values. It is expected that the field class handle a list of values as
 well as type conversion.
+
+
+.. _range-widget:
+
+``RangeWidget``
+~~~~~~~~~~~~~~~
+
+This widget is used with ``RangeFilter`` and its subclasses. It generates two
+form input elements which generally act as start/end values in a range.
+Under the hood, it is django's ``forms.TextInput`` widget and excepts
+the same arguments and values. To use it, pass it to ``widget`` argument of
+a ``RangeField``::
+
+  date_range = DateFromToRangeFilter(widget=RangeWidget(attrs={'placeholder': 'YYYY/MM/DD'}))
