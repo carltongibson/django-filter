@@ -653,6 +653,13 @@ class RangeFilterTests(TestCase):
                                  lambda o: o.title)
 
 
+# TODO:
+# year & month filtering could be better. The problem is that the test dates
+# are relative to today, which is always changing. So, two_weeks_ago is not a
+# valid date for 'this month' during the first half of the month, but is during
+# the second half. Similary, five_days_ago is not during 'this year' when the
+# tests are ran on January 1. All we can test is what is absolutely never valid
+# eg, a date from two_years_ago is never a valid date for 'this year'.
 class DateRangeFilterTests(TestCase):
 
     def setUp(self):
@@ -661,6 +668,7 @@ class DateRangeFilterTests(TestCase):
         two_weeks_ago = today - datetime.timedelta(days=14)
         two_months_ago = today - datetime.timedelta(days=62)
         two_years_ago = today - datetime.timedelta(days=800)
+
         alex = User.objects.create(username='alex')
         time = now().time()
         Comment.objects.create(date=two_weeks_ago, author=alex, time=time)
@@ -678,7 +686,10 @@ class DateRangeFilterTests(TestCase):
                 fields = ['date']
 
         f = F({'date': '4'})  # this year
-        self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
+
+        # assert what is NOT valid for now.
+        # self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
+        self.assertNotIn(2, f.qs.values_list('pk', flat=True))
 
     def test_filtering_for_month(self):
         class F(FilterSet):
@@ -689,7 +700,11 @@ class DateRangeFilterTests(TestCase):
                 fields = ['date']
 
         f = F({'date': '3'})  # this month
-        self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
+
+        # assert what is NOT valid for now.
+        # self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
+        self.assertNotIn(2, f.qs.values_list('pk', flat=True))
+        self.assertNotIn(5, f.qs.values_list('pk', flat=True))
 
     def test_filtering_for_week(self):
         class F(FilterSet):
