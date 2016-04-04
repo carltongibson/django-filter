@@ -104,7 +104,7 @@ lookup type. Under the hood, this will incorrectly be resolved as::
 
     Produce.objects.filter(price__gt__exact=value)
 
-This will mostly likely generate a ``FieldError``. The correct configuration
+The above will most likely generate a ``FieldError``. The correct configuration
 would be::
 
     class ProductFilter(django_filters.FilterSet):
@@ -124,8 +124,8 @@ Filter and lookup expression mismatch (in, range, isnull)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 It's not always appropriate to directly match a filter to its model field's
-type as some lookups change the expected type of value for the query. This is a
-commonly found issue with ``in``, ``range``, and ``isnull`` lookups. Let's look
+type, as some lookups expect different types of values. This is a commonly
+found issue with ``in``, ``range``, and ``isnull`` lookups. Let's look
 at the following product model::
 
     class Product(models.Model):
@@ -153,7 +153,7 @@ products and products for a set of categories::
         categories = NumberInFilter(name='category', lookup_expr='in')
         uncategorized = django_filters.BooleanFilter(name='category', lookup_expr='isnull')
 
-More info on constructing IN :ref:`filters <base-in-filter>`.
+More info on constructing IN and RANGE csv :ref:`filters <base-in-filter>`.
 
 
 Generating filters with Meta.fields
