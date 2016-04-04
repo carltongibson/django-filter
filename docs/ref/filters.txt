@@ -460,10 +460,15 @@ database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
+.. _base-in-filter:
+
 ``BaseInFilter``
 ~~~~~~~~~~~~~~~~
 
-This is a base class used for generating IN lookup filters. Values are expected to be comma separated.
+This is a base class used for creating IN lookup filters. It is expected that
+this filter class is used in conjunction with another filter class, as this
+class **only** validates that the incoming value is comma-separated. The secondary
+filter is then used to validate the individual values.
 
 Example. ::
 
@@ -488,7 +493,9 @@ Example. ::
 ``BaseRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
 
-This is a base class used for generating RANGE lookup filters. The base class expects two values two, separated by a comma.
+This is a base class used for creating RANGE lookup filters. It behaves
+identically to ``BaseInFilter`` with the exception that it expects only two
+comma-separated values.
 
 Example. ::
 
