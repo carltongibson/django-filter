@@ -299,7 +299,12 @@ class FilterSetClassCreationTests(TestCase):
                 }
 
         self.assertEqual(len(F.declared_filters), 0)
-        self.assertEqual(len(F.base_filters), 36)
+
+        if django.VERSION < (1, 9):
+            # django < 1.9 is a bit looser with lookups
+            self.assertEqual(len(F.base_filters), 50)
+        else:
+            self.assertEqual(len(F.base_filters), 36)
 
     def test_declaring_filter(self):
         class F(FilterSet):
