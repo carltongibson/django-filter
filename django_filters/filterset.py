@@ -8,6 +8,7 @@ from collections import OrderedDict
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
 from django.core.validators import EMPTY_VALUES
+from django.core.exceptions import FieldError
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -426,7 +427,10 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):
-        f, lookup_type = resolve_field(f, lookup_expr)
+        try:
+            f, lookup_type = resolve_field(f, lookup_expr)
+        except FieldError:
+            return
 
         default = {
             'name': name,
