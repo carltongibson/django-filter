@@ -160,9 +160,7 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
         if opts.model:
-            filters = filters_for_model(opts.model, opts.fields, opts.exclude,
-                                        new_class.filter_for_field,
-                                        new_class.filter_for_reverse_field)
+            filters = new_class.filters_for_model(opts.model, opts)
             filters.update(declared_filters)
         else:
             filters = declared_filters
@@ -423,6 +421,14 @@ class BaseFilterSet(object):
         if _filter and filter_api_name != _filter.name:
             return [inverted + _filter.name]
         return [order_choice]
+
+    @classmethod
+    def filters_for_model(cls, model, opts):
+        return filters_for_model(
+            model, opts.fields, opts.exclude,
+            cls.filter_for_field,
+            cls.filter_for_reverse_field
+        )
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):
