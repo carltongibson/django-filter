@@ -15,7 +15,7 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import remote_field, remote_model
+from .compat import remote_field, remote_model, remote_queryset
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
@@ -203,24 +203,21 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
+            'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
         }
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
-            'to_field_name': remote_field(f).field_name
+            'queryset': remote_queryset(f),
+            'to_field_name': remote_field(f).field_name,
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
+            'queryset': remote_queryset(f),
         }
     },
     models.DecimalField: {
