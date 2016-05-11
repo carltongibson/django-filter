@@ -277,6 +277,8 @@ class NumericRangeFilter(Filter):
                     qs = self.get_method(qs)(**{'%s__startswith' % self.name: value.start})
                 if value.stop is not None:
                     qs = self.get_method(qs)(**{'%s__endswith' % self.name: value.stop})
+            if self.distinct:
+                qs = qs.distinct()
         return qs
 
 
@@ -293,6 +295,8 @@ class RangeFilter(Filter):
                     qs = self.get_method(qs)(**{'%s__gte' % self.name: value.start})
                 if value.stop is not None:
                     qs = self.get_method(qs)(**{'%s__lte' % self.name: value.stop})
+            if self.distinct:
+                qs = qs.distinct()
         return qs
 
 
