@@ -358,13 +358,13 @@ You must provide either a ``model`` or ``filterset_class`` argument, similar to
 ``ListView`` in Django itself::
 
     # urls.py
-    from django.conf.urls import patterns, url
+    from django.conf.urls import url
     from django_filters.views import FilterView
     from myapp.models import Product
 
-    urlpatterns = patterns('',
-        (r'^list/$', FilterView.as_view(model=Product)),
-    )
+    urlpatterns = [
+        url(r'^list/$', FilterView.as_view(model=Product)),
+    ]
 
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
 context parameter ``filter``.  Additionally, the context will contain
@@ -376,12 +376,13 @@ its use is deprecated.  It can be found at
 to it as the class based view::
 
     # urls.py
-    from django.conf.urls import patterns, url
+    from django.conf.urls import url
+    from django_filters.views import object_filter
     from myapp.models import Product
 
-    urlpatterns = patterns('',
-        (r'^list/$', 'django_filters.views.object_filter', {'model': Product}),
-    )
+    urlpatterns = [
+        url(r'^list/$', object_filter, {'model': Product}),
+    ]
 
 The needed template and its context variables will also be the same as the
 class-based view above.
