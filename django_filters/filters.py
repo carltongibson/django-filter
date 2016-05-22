@@ -368,6 +368,13 @@ class AllValuesFilter(ChoiceFilter):
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
 
+class AllValuesMultipleFilter(MultipleChoiceFilter):
+    @property
+    def field(self):
+        qs = self.model._default_manager.distinct()
+        qs = qs.order_by(self.name).values_list(self.name, flat=True)
+        self.extra['choices'] = [(o, o) for o in qs]
+        return super(AllValuesMultipleFilter, self).field
 
 class BaseCSVFilter(Filter):
     """
