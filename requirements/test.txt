@@ -2,3 +2,4 @@ coverage==3.7.1
 django-discover-runner
 mock
 sphinx-autobuild
+Django==1.9.7
