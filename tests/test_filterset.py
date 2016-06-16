@@ -584,26 +584,24 @@ class FilterSetOrderingTests(TestCase):
 
     def test_ordering_on_unknown_value_results_in_default_ordering_without_strict(self):
         class F(FilterSet):
-            strict = STRICTNESS.IGNORE
-
             class Meta:
                 model = User
                 fields = ['username', 'status']
                 order_by = ['status']
+                strict = STRICTNESS.IGNORE
 
-        self.assertFalse(F.strict)
+        self.assertFalse(F._meta.strict)
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
 
     def test_ordering_on_unknown_value_results_in_default_ordering_with_strict_raise(self):
         class F(FilterSet):
-            strict = STRICTNESS.RAISE_VALIDATION_ERROR
-
             class Meta:
                 model = User
                 fields = ['username', 'status']
                 order_by = ['status']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
 
         f = F({'o': 'username'}, queryset=self.qs)
         with self.assertRaises(ValidationError) as excinfo:

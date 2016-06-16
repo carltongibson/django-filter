@@ -140,6 +140,8 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
         self.ordering_param = getattr(options, 'ordering_param', ORDERING_PARAM)
 
+        self.strict = getattr(options, 'strict', STRICTNESS.RETURN_NO_RESULTS)
+
         self.form = getattr(options, 'form', forms.Form)
 
         self.together = getattr(options, 'together', None)
@@ -171,6 +173,10 @@ class FilterSetMetaclass(type):
         if not_defined:
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
+
+        if hasattr(new_class, 'strict'):
+            warnings.warn('strict has been deprecated. Use Meta.strict instead.', DeprecationWarning, stacklevel=2)
+            new_class._meta.strict = new_class.strict
 
         if hasattr(new_class, 'order_by_field'):
             warnings.warn('order_by_field has been deprecated. Use Meta.ordering_param instead.', DeprecationWarning, stacklevel=2)
@@ -273,8 +279,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 
 class BaseFilterSet(object):
     filter_overrides = {}
-    # What to do on on validation errors
-    strict = STRICTNESS.RETURN_NO_RESULTS
 
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
@@ -283,8 +287,9 @@ class BaseFilterSet(object):
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
         self.form_prefix = prefix
-        if strict is not None:
-            self.strict = strict
+
+        # What to do on on validation errors
+        self.strict = self._meta.strict if strict is None else strict
 
         self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
