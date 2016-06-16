@@ -485,6 +485,13 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
+    def test_custom_field_ignored(self):
+        class F(FilterSet):
+            class Meta:
+                model = NetworkSetting
+
+        self.assertEqual(list(F.base_filters.keys()), ['ip'])
+
     def test_custom_field_gets_filter_from_override(self):
         class F(FilterSet):
             class Meta:
