@@ -211,30 +211,28 @@ class FilterSetMetaclass(type):
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
-    models.AutoField: {
-        'filter_class': NumberFilter
-    },
-    models.CharField: {
-        'filter_class': CharFilter
-    },
-    models.TextField: {
-        'filter_class': CharFilter
-    },
-    models.BooleanField: {
-        'filter_class': BooleanFilter
-    },
-    models.DateField: {
-        'filter_class': DateFilter
-    },
-    models.DateTimeField: {
-        'filter_class': DateTimeFilter
-    },
-    models.TimeField: {
-        'filter_class': TimeFilter
-    },
-    models.DurationField: {
-        'filter_class': DurationFilter
-    },
+    models.AutoField:                   {'filter_class': NumberFilter},
+    models.CharField:                   {'filter_class': CharFilter},
+    models.TextField:                   {'filter_class': CharFilter},
+    models.BooleanField:                {'filter_class': BooleanFilter},
+    models.DateField:                   {'filter_class': DateFilter},
+    models.DateTimeField:               {'filter_class': DateTimeFilter},
+    models.TimeField:                   {'filter_class': TimeFilter},
+    models.DurationField:               {'filter_class': DurationFilter},
+    models.DecimalField:                {'filter_class': NumberFilter},
+    models.SmallIntegerField:           {'filter_class': NumberFilter},
+    models.IntegerField:                {'filter_class': NumberFilter},
+    models.PositiveIntegerField:        {'filter_class': NumberFilter},
+    models.PositiveSmallIntegerField:   {'filter_class': NumberFilter},
+    models.FloatField:                  {'filter_class': NumberFilter},
+    models.NullBooleanField:            {'filter_class': BooleanFilter},
+    models.SlugField:                   {'filter_class': CharFilter},
+    models.EmailField:                  {'filter_class': CharFilter},
+    models.FilePathField:               {'filter_class': CharFilter},
+    models.URLField:                    {'filter_class': CharFilter},
+    models.GenericIPAddressField:       {'filter_class': CharFilter},
+    models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
+    models.UUIDField:                   {'filter_class': UUIDFilter},
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
@@ -255,52 +253,12 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
             'queryset': remote_queryset(f),
         }
     },
-    models.DecimalField: {
-        'filter_class': NumberFilter,
-    },
-    models.SmallIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.IntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.PositiveIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.PositiveSmallIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.FloatField: {
-        'filter_class': NumberFilter,
-    },
-    models.NullBooleanField: {
-        'filter_class': BooleanFilter,
-    },
-    models.SlugField: {
-        'filter_class': CharFilter,
-    },
-    models.EmailField: {
-        'filter_class': CharFilter,
-    },
-    models.FilePathField: {
-        'filter_class': CharFilter,
-    },
-    models.URLField: {
-        'filter_class': CharFilter,
-    },
-    models.GenericIPAddressField: {
-        'filter_class': CharFilter,
-    },
-    models.CommaSeparatedIntegerField: {
-        'filter_class': CharFilter,
-    },
-    models.UUIDField: {
-        'filter_class': UUIDFilter,
-    },
 }
 
 
 class BaseFilterSet(object):
+    FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
+
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
         self.data = data or {}
@@ -506,7 +464,7 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_lookup(cls, f, lookup_type):
-        DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
+        DEFAULTS = dict(cls.FILTER_DEFAULTS)
         if hasattr(cls, '_meta'):
             DEFAULTS.update(cls._meta.filter_overrides)
 
