@@ -227,14 +227,15 @@ class FilterSetFilterForLookupTests(TestCase):
 
     def test_isnull_with_filter_overrides(self):
         class OFilterSet(FilterSet):
-            filter_overrides = {
-                models.BooleanField: {
-                    'filter_class': BooleanFilter,
-                    'extra': lambda f: {
-                        'widget': BooleanWidget,
+            class Meta:
+                filter_overrides = {
+                    models.BooleanField: {
+                        'filter_class': BooleanFilter,
+                        'extra': lambda f: {
+                            'widget': BooleanWidget,
+                        },
                     },
-                },
-            }
+                }
 
         f = Article._meta.get_field('author')
         result, params = OFilterSet.filter_for_lookup(f, 'isnull')
@@ -483,12 +484,13 @@ class FilterSetClassCreationTests(TestCase):
 
     def test_custom_field_gets_filter_from_override(self):
         class F(FilterSet):
-            filter_overrides = {
-                SubnetMaskField: {'filter_class': CharFilter}}
-
             class Meta:
                 model = NetworkSetting
                 fields = '__all__'
+
+                filter_overrides = {
+                    SubnetMaskField: {'filter_class': CharFilter}
+                }
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 

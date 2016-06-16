@@ -95,12 +95,12 @@ class FilterSetMetaDeprecationTests(TestCase):
             warnings.simplefilter("always")
 
             class F(FilterSet):
-                filter_overrides = {
-                    SubnetMaskField: {'filter_class': CharFilter}
-                }
 
                 class Meta:
                     model = NetworkSetting
+                    filter_overrides = {
+                        SubnetMaskField: {'filter_class': CharFilter},
+                    }
 
             self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
             self.assertIn("Not setting Meta.fields with Meta.model is undocumented behavior", str(w[-1].message))
@@ -128,3 +128,36 @@ class StrictnessDeprecationTests(TestCase):
                 strict = False
 
             self.assertEqual(F._meta.strict, False)
+
+
+class FilterOverridesDeprecationTests(TestCase):
+
+    def test_notification(self):
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            class F(FilterSet):
+                filter_overrides = {}
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+
+    def test_passthrough(self):
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+
+            class F(FilterSet):
+                filter_overrides = {
+                    SubnetMaskField: {'filter_class': CharFilter},
+                }
+
+                class Meta:
+                    model = NetworkSetting
+                    fields = '__all__'
+
+        self.assertDictEqual(F._meta.filter_overrides, {
+            SubnetMaskField: {'filter_class': CharFilter},
+        })
+
+        self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])

@@ -151,6 +151,8 @@ class FilterSetOptions(object):
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
 
+        self.filter_overrides = getattr(options, 'filter_overrides', {})
+
         self.order_by = getattr(options, 'order_by', False)
 
         self.strict = getattr(options, 'strict', STRICTNESS.RETURN_NO_RESULTS)
@@ -176,6 +178,10 @@ class FilterSetMetaclass(type):
 
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
+
+        if hasattr(new_class, 'filter_overrides'):
+            deprecate('filter_overrides has been moved to the Meta class.')
+            new_class._meta.filter_overrides = new_class.filter_overrides
 
         # TODO: replace with deprecations
         # if opts.model and opts.fields:
@@ -290,7 +296,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 
 
 class BaseFilterSet(object):
-    filter_overrides = {}
     order_by_field = ORDER_BY_FIELD
 
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
@@ -452,7 +457,7 @@ class BaseFilterSet(object):
         fields = opts.fields
         if fields is None:
             DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-            DEFAULTS.update(cls.filter_overrides)
+            DEFAULTS.update(opts.filter_overrides)
             fields = get_all_model_fields(model, field_types=DEFAULTS.keys())
 
         return filters_for_model(
@@ -499,7 +504,8 @@ class BaseFilterSet(object):
     @classmethod
     def filter_for_lookup(cls, f, lookup_type):
         DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-        DEFAULTS.update(cls.filter_overrides)
+        if hasattr(cls, '_meta'):
+            DEFAULTS.update(cls._meta.filter_overrides)
 
         data = try_dbfield(DEFAULTS.get, f.__class__) or {}
         filter_class = data.get('filter_class')
