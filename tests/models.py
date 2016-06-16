@@ -58,6 +58,7 @@ class User(models.Model):
     def __str__(self):
         return self.username
 
+
 @python_2_unicode_compatible
 class UsersOfManager(models.Model):
     users = models.ManyToManyField(User,
@@ -65,7 +66,8 @@ class UsersOfManager(models.Model):
                                    related_name='users_of_manager')
     manager = models.ForeignKey(User,
                                 limit_choices_to=lambda: {'status': 1},
-                                related_name='his_users')
+                                related_name='his_users',
+                                on_delete=models.CASCADE)
 
     def __str__(self):
         return self.manager.name + '_group'
