@@ -16,7 +16,7 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import remote_field, remote_model, remote_queryset
+from .compat import remote_field, remote_queryset
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
@@ -27,10 +27,10 @@ from .utils import try_dbfield, get_model_field, resolve_field
 ORDER_BY_FIELD = 'o'
 
 
-def deprecate(msg):
+def deprecate(msg, level_modifier=0):
     warnings.warn(
         "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
-        DeprecationWarning, stacklevel=3)
+        DeprecationWarning, stacklevel=3 + level_modifier)
 
 
 class STRICTNESS(object):
@@ -142,6 +142,7 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
+        self.filter_overrides = getattr(options, 'filter_overrides', {})
 
         self.order_by = getattr(options, 'order_by', False)
 
@@ -177,36 +178,38 @@ class FilterSetMetaclass(type):
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
 
+        if hasattr(new_class, 'filter_overrides'):
+            deprecate('filter_overrides has been moved to the Meta class.', -1)
+            new_class._meta.filter_overrides = new_class.filter_overrides
+
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
         return new_class
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
-    models.AutoField: {
-        'filter_class': NumberFilter
-    },
-    models.CharField: {
-        'filter_class': CharFilter
-    },
-    models.TextField: {
-        'filter_class': CharFilter
-    },
-    models.BooleanField: {
-        'filter_class': BooleanFilter
-    },
-    models.DateField: {
-        'filter_class': DateFilter
-    },
-    models.DateTimeField: {
-        'filter_class': DateTimeFilter
-    },
-    models.TimeField: {
-        'filter_class': TimeFilter
-    },
-    models.DurationField: {
-        'filter_class': DurationFilter
-    },
+    models.AutoField:                   {'filter_class': NumberFilter},
+    models.CharField:                   {'filter_class': CharFilter},
+    models.TextField:                   {'filter_class': CharFilter},
+    models.BooleanField:                {'filter_class': BooleanFilter},
+    models.DateField:                   {'filter_class': DateFilter},
+    models.DateTimeField:               {'filter_class': DateTimeFilter},
+    models.TimeField:                   {'filter_class': TimeFilter},
+    models.DurationField:               {'filter_class': DurationFilter},
+    models.DecimalField:                {'filter_class': NumberFilter},
+    models.SmallIntegerField:           {'filter_class': NumberFilter},
+    models.IntegerField:                {'filter_class': NumberFilter},
+    models.PositiveIntegerField:        {'filter_class': NumberFilter},
+    models.PositiveSmallIntegerField:   {'filter_class': NumberFilter},
+    models.FloatField:                  {'filter_class': NumberFilter},
+    models.NullBooleanField:            {'filter_class': BooleanFilter},
+    models.SlugField:                   {'filter_class': CharFilter},
+    models.EmailField:                  {'filter_class': CharFilter},
+    models.FilePathField:               {'filter_class': CharFilter},
+    models.URLField:                    {'filter_class': CharFilter},
+    models.GenericIPAddressField:       {'filter_class': CharFilter},
+    models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
+    models.UUIDField:                   {'filter_class': UUIDFilter},
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
@@ -227,53 +230,12 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
             'queryset': remote_queryset(f),
         }
     },
-    models.DecimalField: {
-        'filter_class': NumberFilter,
-    },
-    models.SmallIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.IntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.PositiveIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.PositiveSmallIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.FloatField: {
-        'filter_class': NumberFilter,
-    },
-    models.NullBooleanField: {
-        'filter_class': BooleanFilter,
-    },
-    models.SlugField: {
-        'filter_class': CharFilter,
-    },
-    models.EmailField: {
-        'filter_class': CharFilter,
-    },
-    models.FilePathField: {
-        'filter_class': CharFilter,
-    },
-    models.URLField: {
-        'filter_class': CharFilter,
-    },
-    models.GenericIPAddressField: {
-        'filter_class': CharFilter,
-    },
-    models.CommaSeparatedIntegerField: {
-        'filter_class': CharFilter,
-    },
-    models.UUIDField: {
-        'filter_class': UUIDFilter,
-    },
 }
 
 
 class BaseFilterSet(object):
-    filter_overrides = {}
+    FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
+
     order_by_field = ORDER_BY_FIELD
     # What to do on on validation errors
     strict = STRICTNESS.RETURN_NO_RESULTS
@@ -470,8 +432,9 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_lookup(cls, f, lookup_type):
-        DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-        DEFAULTS.update(cls.filter_overrides)
+        DEFAULTS = dict(cls.FILTER_DEFAULTS)
+        if hasattr(cls, '_meta'):
+            DEFAULTS.update(cls._meta.filter_overrides)
 
         data = try_dbfield(DEFAULTS.get, f.__class__) or {}
         filter_class = data.get('filter_class')
