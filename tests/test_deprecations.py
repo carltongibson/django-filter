@@ -161,3 +161,25 @@ class FilterOverridesDeprecationTests(TestCase):
         })
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
+
+
+class OrderByFieldDeprecationTests(TestCase):
+    def test_notification(self):
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            class F(FilterSet):
+                order_by_field = 'field'
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+
+    def test_passthrough(self):
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+
+            class F(FilterSet):
+                order_by_field = 'field'
+
+            self.assertEqual(F._meta.order_by_field, 'field')

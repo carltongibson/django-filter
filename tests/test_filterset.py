@@ -683,16 +683,15 @@ class FilterSetOrderingTests(TestCase):
 
     def test_ordering_with_overridden_field_name(self):
         """
-        Set the `order_by_field` on the queryset and ensure that the
+        Set the `order_by_field` on the filterset and ensure that the
         field name is respected.
         """
         class F(FilterSet):
-            order_by_field = 'order'
-
             class Meta:
                 model = User
                 fields = ['username', 'status']
                 order_by = ['status']
+                order_by_field = 'order'
 
         f = F({'order': 'status'}, queryset=self.qs)
         self.assertQuerysetEqual(
