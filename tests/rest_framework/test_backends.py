@@ -23,7 +23,7 @@ factory = APIRequestFactory()
 class FilterableItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterableItem
-        fields = '__all__'
+        fields = ['id', 'text', 'decimal', 'date']
 
 
 # Basic filter on a list view.
@@ -331,7 +331,7 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
 class DjangoFilterOrderingSerializer(serializers.ModelSerializer):
     class Meta:
         model = DjangoFilterOrderingModel
-        fields = '__all__'
+        fields = ['id', 'date', 'text']
 
 
 class DjangoFilterOrderingTests(TestCase):
