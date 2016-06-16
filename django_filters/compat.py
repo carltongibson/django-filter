@@ -2,6 +2,13 @@
 import django
 
 
+# django-crispy-forms is optional
+try:
+    import crispy_forms
+except ImportError:
+    crispy_forms = None
+
+
 def remote_field(field):
     """
     https://docs.djangoproject.com/en/1.9/releases/1.9/#field-rel-changes
