@@ -12,12 +12,12 @@ python:
 
 env:
   - DJANGO='https://github.com/django/django/archive/master.tar.gz'
-  - DJANGO='django>=1.10.0,<1.11.0'
-  - DJANGO='django>=1.9.0,<1.10.0'
-  - DJANGO='django>=1.8.0,<1.9.0'
-
+  - DJANGO='django>=1.10.0,<1.11.0' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
+  - DJANGO='django>=1.9.0,<1.10.0' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
+  - DJANGO='django>=1.8.0,<1.9.0' REST_FRAMEWORK='djangorestframework>=3.2,<3.3'
+  
 install:
-  - travis_retry pip install $DJANGO
+  - travis_retry pip install $DJANGO $REST_FRAMEWORK
   - travis_retry pip install -r requirements/travis-ci.txt
 
 script:
@@ -29,12 +29,16 @@ notifications:
 
 matrix:
   exclude:
+      - python: "3.2"
+      env: DJANGO='https://github.com/django/django/archive/master.tar.gz' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
+    - python: "3.2"
+      env: DJANGO='django>=1.9.0,<1.10.0' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
     - python: "3.3"
-      env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
+      env: DJANGO='https://github.com/django/django/archive/master.tar.gz' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
     - python: "3.3"
-      env: DJANGO='django>=1.10.0,<1.11.0'
+      env: DJANGO='django>=1.10.0,<1.11.0' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
     - python: "3.3"
-      env: DJANGO='django>=1.9.0,<1.10.0'
+      env: DJANGO='django>=1.9.0,<1.10.0' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
   allow_failures:
-    - env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
+    - env: DJANGO='https://github.com/django/django/archive/master.tar.gz' REST_FRAMEWORK='djangorestframework>=3.3,<3.4'
   fast_finish: true
