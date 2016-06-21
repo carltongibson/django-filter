@@ -29,6 +29,7 @@ __all__ = [
     'DateRangeFilter',
     'DateTimeFilter',
     'DateTimeFromToRangeFilter',
+    'DurationFilter',
     'Filter',
     'IsoDateTimeFilter',
     'MethodFilter',
