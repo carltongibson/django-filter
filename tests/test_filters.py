@@ -7,7 +7,7 @@ import mock
 import warnings
 
 from django import forms
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from django_filters import filters, widgets
 from django_filters.fields import (
@@ -64,27 +64,6 @@ class FilterTests(TestCase):
         f = Filter()
         field = f.field
         self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, 'Filter')
-
-    def test_field_with_exclusion(self):
-        f = Filter(exclude=True)
-        field = f.field
-        self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, 'This is an exclusion filter')
-
-    @override_settings(FILTERS_HELP_TEXT_FILTER=False)
-    def test_default_field_settings(self):
-        f = Filter()
-        field = f.field
-        self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, '')
-
-    @override_settings(FILTERS_HELP_TEXT_EXCLUDE=False)
-    def test_field_with_exclusion_settings(self):
-        f = Filter(exclude=True)
-        field = f.field
-        self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, '')
 
     def test_field_with_single_lookup_expr(self):
         f = Filter(lookup_expr='iexact')
@@ -102,7 +81,6 @@ class FilterTests(TestCase):
         f = Filter(lookup_expr=None, exclude=True)
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
-        self.assertEqual(field.help_text, 'This is an exclusion filter')
 
     def test_field_with_list_lookup_expr(self):
         f = Filter(lookup_expr=('istartswith', 'iendswith'))
@@ -119,8 +97,7 @@ class FilterTests(TestCase):
             f.field
             mocked.assert_called_once_with(required=False,
                                            label='somelabel',
-                                           widget='somewidget',
-                                           help_text=mock.ANY)
+                                           widget='somewidget')
 
     def test_field_extra_params(self):
         with mock.patch.object(Filter, 'field_class',
@@ -128,8 +105,8 @@ class FilterTests(TestCase):
             f = Filter(someattr='someattr')
             f.field
             mocked.assert_called_once_with(required=mock.ANY,
-                                           label=mock.ANY, widget=mock.ANY,
-                                           help_text=mock.ANY,
+                                           label=mock.ANY,
+                                           widget=mock.ANY,
                                            someattr='someattr')
 
     def test_field_with_required_filter(self):
@@ -137,8 +114,9 @@ class FilterTests(TestCase):
                                spec=['__call__']) as mocked:
             f = Filter(required=True)
             f.field
-            mocked.assert_called_once_with(required=True, label=mock.ANY,
-                                           widget=mock.ANY, help_text=mock.ANY)
+            mocked.assert_called_once_with(required=True,
+                                           label=mock.ANY,
+                                           widget=mock.ANY)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
