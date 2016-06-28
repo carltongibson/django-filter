@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import copy
 import re
+import warnings
 from collections import OrderedDict
 
 from django import forms
@@ -23,7 +24,7 @@ from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRange
 from .utils import try_dbfield, get_model_field, resolve_field
 
 
-ORDER_BY_FIELD = 'o'
+ORDERING_PARAM = 'o'
 
 
 class STRICTNESS(object):
@@ -137,6 +138,9 @@ class FilterSetOptions(object):
         self.exclude = getattr(options, 'exclude', None)
 
         self.order_by = getattr(options, 'order_by', False)
+        self.ordering_param = getattr(options, 'ordering_param', ORDERING_PARAM)
+
+        self.strict = getattr(options, 'strict', STRICTNESS.RETURN_NO_RESULTS)
 
         self.form = getattr(options, 'form', forms.Form)
 
@@ -169,6 +173,14 @@ class FilterSetMetaclass(type):
         if not_defined:
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
+
+        if hasattr(new_class, 'strict'):
+            warnings.warn('strict has been deprecated. Use Meta.strict instead.', DeprecationWarning, stacklevel=2)
+            new_class._meta.strict = new_class.strict
+
+        if hasattr(new_class, 'order_by_field'):
+            warnings.warn('order_by_field has been deprecated. Use Meta.ordering_param instead.', DeprecationWarning, stacklevel=2)
+            new_class._meta.ordering_param = new_class.order_by_field
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
@@ -267,9 +279,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 
 class BaseFilterSet(object):
     filter_overrides = {}
-    order_by_field = ORDER_BY_FIELD
-    # What to do on on validation errors
-    strict = STRICTNESS.RETURN_NO_RESULTS
 
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
@@ -278,8 +287,9 @@ class BaseFilterSet(object):
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
         self.form_prefix = prefix
-        if strict is not None:
-            self.strict = strict
+
+        # What to do on on validation errors
+        self.strict = self._meta.strict if strict is None else strict
 
         self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -335,8 +345,8 @@ class BaseFilterSet(object):
                     qs = filter_.filter(qs, value)
 
             if self._meta.order_by:
-                order_field = self.form.fields[self.order_by_field]
-                data = self.form[self.order_by_field].data
+                order_field = self.form.fields[self._meta.ordering_param]
+                data = self.form[self._meta.ordering_param].data
                 ordered_value = None
                 try:
                     ordered_value = order_field.clean(data)
@@ -346,7 +356,7 @@ class BaseFilterSet(object):
                 # With a None-queryset, ordering must be enforced (#84).
                 if (ordered_value in EMPTY_VALUES and
                         self.strict == STRICTNESS.RETURN_NO_RESULTS):
-                    ordered_value = self.form.fields[self.order_by_field].choices[0][0]
+                    ordered_value = self.form.fields[self._meta.ordering_param].choices[0][0]
 
                 if ordered_value:
                     qs = qs.order_by(*self.get_order_by(ordered_value))
@@ -364,7 +374,7 @@ class BaseFilterSet(object):
             fields = OrderedDict([
                 (name, filter_.field)
                 for name, filter_ in six.iteritems(self.filters)])
-            fields[self.order_by_field] = self.ordering_field
+            fields[self._meta.ordering_param] = self.ordering_field
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
             if self._meta.together:
