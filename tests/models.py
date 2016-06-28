@@ -95,6 +95,7 @@ class Comment(models.Model):
 
 
 class Article(models.Model):
+    name = models.CharField(verbose_name='title', max_length=200, blank=True)
     published = models.DateTimeField()
     author = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
 

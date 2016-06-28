@@ -8,6 +8,8 @@ from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import RelatedField, ForeignObjectRel
 from django.utils import six, timezone
+from django.utils.encoding import force_text
+from django.utils.translation import ugettext as _
 
 try:
     from django.forms.utils import pretty_name
@@ -155,3 +157,82 @@ def handle_timezone(value):
     elif not settings.USE_TZ and timezone.is_aware(value):
         return timezone.make_naive(value, timezone.UTC())
     return value
+
+
+def verbose_field_name(model, field_name):
+    """
+    Get the verbose name for a given ``field_name``. The ``field_name``
+    will be traversed across relationships. Returns '[invalid name]' for
+    any field name that cannot be traversed.
+
+    ex::
+
+        >>> verbose_field_name(Article, 'author__name')
+        'author name'
+
+    """
+    if field_name is None:
+        return '[invalid name]'
+
+    parts = get_field_parts(model, field_name)
+    if not parts:
+        return '[invalid name]'
+
+    names = []
+    for part in parts:
+        if isinstance(part, ForeignObjectRel):
+            names.append(part.related_name)
+        else:
+            names.append(part.verbose_name)
+
+    return ' '.join(names)
+
+
+def verbose_lookup_expr(lookup_expr):
+    """
+    Get a verbose, more humanized expression for a given ``lookup_expr``.
+    Each part in the expression is looked up in the ``FILTERS_VERBOSE_LOOKUPS``
+    dictionary. Missing keys will simply default to itself.
+
+    ex::
+
+        >>> verbose_lookup_expr('year__lt')
+        'year is less than'
+
+        # with `FILTERS_VERBOSE_LOOKUPS = {}`
+        >>> verbose_lookup_expr('year__lt')
+        'year lt'
+
+    """
+    from .conf import settings as app_settings
+
+    VERBOSE_LOOKUPS = app_settings.VERBOSE_LOOKUPS or {}
+    lookups = [
+        force_text(VERBOSE_LOOKUPS.get(lookup, _(lookup)))
+        for lookup in lookup_expr.split(LOOKUP_SEP)
+    ]
+
+    return ' '.join(lookups)
+
+
+def label_for_filter(model, field_name, lookup_expr, exclude=False):
+    """
+    Create a generic label suitable for a filter.
+
+    ex::
+
+        >>> label_for_filter(Article, 'author__name', 'in')
+        'auther name is in'
+
+    """
+    name = verbose_field_name(model, field_name)
+    verbose_expression = [_('exclude'), name] if exclude else [name]
+
+    # iterable lookups indicate a LookupTypeField, which should not be verbose
+    if isinstance(lookup_expr, six.string_types):
+        verbose_expression += [verbose_lookup_expr(lookup_expr)]
+
+    verbose_expression = [force_text(part) for part in verbose_expression if part]
+    verbose_expression = pretty_name(' '.join(verbose_expression))
+
+    return verbose_expression

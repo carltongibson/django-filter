@@ -2,12 +2,15 @@
 import unittest
 
 import django
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 
-from django_filters.utils import get_field_parts, get_model_field, resolve_field
+from django_filters.utils import (
+    get_field_parts, get_model_field, resolve_field,
+    verbose_field_name, verbose_lookup_expr, label_for_filter
+)
 from django_filters.exceptions import FieldLookupError
 
 from .models import User
@@ -201,3 +204,75 @@ class ResolveFieldTests(TestCase):
         exc = str(context.exception)
         self.assertIn(str(model_field), exc)
         self.assertIn('date__invalid_lookup', exc)
+
+
+class VerboseFieldNameTests(TestCase):
+
+    def test_none(self):
+        verbose_name = verbose_field_name(Article, None)
+        self.assertEqual(verbose_name, '[invalid name]')
+
+    def test_invalid_name(self):
+        verbose_name = verbose_field_name(Article, 'foobar')
+        self.assertEqual(verbose_name, '[invalid name]')
+
+    def test_field(self):
+        verbose_name = verbose_field_name(Article, 'author')
+        self.assertEqual(verbose_name, 'author')
+
+    def test_field_with_verbose_name(self):
+        verbose_name = verbose_field_name(Article, 'name')
+        self.assertEqual(verbose_name, 'title')
+
+    def test_forwards_related_field(self):
+        verbose_name = verbose_field_name(Article, 'author__username')
+        self.assertEqual(verbose_name, 'author username')
+
+    def test_backwards_related_field(self):
+        verbose_name = verbose_field_name(Book, 'lovers__first_name')
+        self.assertEqual(verbose_name, 'lovers first name')
+
+
+class VerboseLookupExprTests(TestCase):
+
+    def test_exact(self):
+        # Exact should default to empty. A verbose expression is unnecessary,
+        # and this behavior works well with list syntax for `Meta.fields`.
+        verbose_lookup = verbose_lookup_expr('exact')
+        self.assertEqual(verbose_lookup, '')
+
+    def test_verbose_expression(self):
+        verbose_lookup = verbose_lookup_expr('date__lt')
+        self.assertEqual(verbose_lookup, 'date is less than')
+
+    def test_missing_keys(self):
+        verbose_lookup = verbose_lookup_expr('foo__bar__lt')
+        self.assertEqual(verbose_lookup, 'foo bar is less than')
+
+    @override_settings(FILTERS_VERBOSE_LOOKUPS={'exact': 'is equal to'})
+    def test_overridden_settings(self):
+        verbose_lookup = verbose_lookup_expr('exact')
+        self.assertEqual(verbose_lookup, 'is equal to')
+
+
+class LabelForFilterTests(TestCase):
+
+    def test_standard_label(self):
+        label = label_for_filter(Article, 'name', 'in')
+        self.assertEqual(label, 'Title is in')
+
+    def test_related_model(self):
+        label = label_for_filter(Article, 'author__first_name', 'in')
+        self.assertEqual(label, 'Author first name is in')
+
+    def test_exclusion_label(self):
+        label = label_for_filter(Article, 'name', 'in', exclude=True)
+        self.assertEqual(label, 'Exclude title is in')
+
+    def test_related_model_exclusion(self):
+        label = label_for_filter(Article, 'author__first_name', 'in', exclude=True)
+        self.assertEqual(label, 'Exclude author first name is in')
+
+    def test_exact_lookup(self):
+        label = label_for_filter(Article, 'name', 'exact')
+        self.assertEqual(label, 'Title')
