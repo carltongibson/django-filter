@@ -20,13 +20,29 @@ from .fields import (
 
 
 __all__ = [
-    'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
-    'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
-    'DateTimeFilter', 'IsoDateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
-    'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
-    'DateRangeFilter', 'DateFromToRangeFilter', 'DateTimeFromToRangeFilter',
-    'TimeRangeFilter', 'AllValuesFilter', 'MethodFilter', 'UUIDFilter',
+    'AllValuesFilter',
+    'BooleanFilter',
+    'CharFilter',
+    'ChoiceFilter',
+    'DateFilter',
+    'DateFromToRangeFilter',
+    'DateRangeFilter',
+    'DateTimeFilter',
+    'DateTimeFromToRangeFilter',
     'DurationFilter',
+    'Filter',
+    'IsoDateTimeFilter',
+    'MethodFilter',
+    'ModelChoiceFilter',
+    'ModelMultipleChoiceFilter',
+    'MultipleChoiceFilter',
+    'NumberFilter',
+    'NumericRangeFilter',
+    'RangeFilter',
+    'TimeFilter',
+    'TimeRangeFilter',
+    'TypedChoiceFilter',
+    'UUIDFilter',
 ]
 
 
