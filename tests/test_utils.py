@@ -5,8 +5,9 @@ import django
 from django.test import TestCase
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.fields.related import ForeignObjectRel
 
-from django_filters.utils import get_model_field, resolve_field
+from django_filters.utils import get_field_parts, get_model_field, resolve_field
 from django_filters.exceptions import FieldLookupError
 
 from .models import User
@@ -14,6 +15,34 @@ from .models import Article
 from .models import Book
 from .models import HiredWorker
 from .models import Business
+
+
+class GetFieldPartsTests(TestCase):
+
+    def test_field(self):
+        parts = get_field_parts(User, 'username')
+
+        self.assertEqual(len(parts), 1)
+        self.assertIsInstance(parts[0], models.CharField)
+
+    def test_non_existent_field(self):
+        result = get_model_field(User, 'unknown__name')
+        self.assertIsNone(result)
+
+    def test_forwards_related_field(self):
+        parts = get_field_parts(User, 'favorite_books__title')
+
+        self.assertEqual(len(parts), 2)
+        self.assertIsInstance(parts[0], models.ManyToManyField)
+        self.assertIsInstance(parts[1], models.CharField)
+
+    def test_reverse_related_field(self):
+        parts = get_field_parts(User, 'manager_of__users__username')
+
+        self.assertEqual(len(parts), 3)
+        self.assertIsInstance(parts[0], ForeignObjectRel)
+        self.assertIsInstance(parts[1], models.ManyToManyField)
+        self.assertIsInstance(parts[2], models.CharField)
 
 
 class GetModelFieldTests(TestCase):

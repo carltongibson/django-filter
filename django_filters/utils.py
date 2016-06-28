@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
-from django.db.models.fields.related import ForeignObjectRel
+from django.db.models.fields.related import RelatedField, ForeignObjectRel
 from django.utils import six, timezone
 
 try:
@@ -73,24 +73,40 @@ def get_model_field(model, field_name):
         f = get_model_field(Book, 'author__first_name')
 
     """
+    fields = get_field_parts(model, field_name)
+    return fields[-1] if fields else None
+
+
+def get_field_parts(model, field_name):
+    """
+    Get the field parts that represent the traversable relationships from the
+    base ``model`` to the final field, described by ``field_name``.
+
+    ex::
+
+        >>> parts = get_field_parts(Book, 'author__first_name')
+        >>> [p.verbose_name for p in parts]
+        ['author', 'first name']
+
+    """
     parts = field_name.split(LOOKUP_SEP)
     opts = model._meta
+    fields = []
 
     # walk relationships
-    for name in parts[:-1]:
+    for name in parts:
         try:
-            rel = opts.get_field(name)
+            field = opts.get_field(name)
         except FieldDoesNotExist:
             return None
-        if isinstance(rel, ForeignObjectRel):
-            opts = rel.related_model._meta
-        else:
-            opts = remote_model(rel)._meta
 
-    try:
-        return opts.get_field(parts[-1])
-    except FieldDoesNotExist:
-        return None
+        fields.append(field)
+        if isinstance(field, RelatedField):
+            opts = remote_model(field)._meta
+        elif isinstance(field, ForeignObjectRel):
+            opts = field.related_model._meta
+
+    return fields
 
 
 def resolve_field(model_field, lookup_expr):
