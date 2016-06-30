@@ -4,13 +4,11 @@ import mock
 import unittest
 
 import django
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase
 
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
-from django_filters.filterset import STRICTNESS
 from django_filters.filters import Filter
 from django_filters.filters import BooleanFilter
 from django_filters.filters import CharFilter
@@ -563,156 +561,6 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = F(queryset=m)
         self.assertEqual(f.queryset, m)
-
-
-class FilterSetOrderingTests(TestCase):
-
-    def setUp(self):
-        self.alex = User.objects.create(username='alex', status=1)
-        self.jacob = User.objects.create(username='jacob', status=2)
-        self.aaron = User.objects.create(username='aaron', status=2)
-        self.carl = User.objects.create(username='carl', status=0)
-        # user_ids = list(User.objects.all().values_list('pk', flat=True))
-        self.qs = User.objects.all().order_by('id')
-
-    def test_ordering(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = ['username', 'status']
-
-        f = F({'o': 'username'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
-
-        f = F({'o': 'status'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
-
-    def test_ordering_on_unknown_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = ['status']
-
-        f = F({'o': 'username'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, [], lambda o: o.username)
-
-    def test_ordering_on_unknown_value_results_in_default_ordering_without_strict(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = ['status']
-                strict = STRICTNESS.IGNORE
-
-        self.assertFalse(F._meta.strict)
-        f = F({'o': 'username'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
-
-    def test_ordering_on_unknown_value_results_in_default_ordering_with_strict_raise(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = ['status']
-                strict = STRICTNESS.RAISE_VALIDATION_ERROR
-
-        f = F({'o': 'username'}, queryset=self.qs)
-        with self.assertRaises(ValidationError) as excinfo:
-            f.qs.all()
-        self.assertEqual(excinfo.exception.message_dict,
-                         {'o': ['Select a valid choice. username is not one '
-                                'of the available choices.']})
-
-        # No default order_by should get applied.
-        f = F({}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
-
-    def test_ordering_on_different_field(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = True
-
-        f = F({'o': 'username'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
-
-        f = F({'o': 'status'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
-
-    def test_ordering_uses_filter_name(self):
-        class F(FilterSet):
-            account = CharFilter(name='username')
-
-            class Meta:
-                model = User
-                fields = ['account', 'status']
-                order_by = True
-
-        f = F({'o': 'account'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
-
-    def test_reverted_ordering_uses_filter_name(self):
-        class F(FilterSet):
-            account = CharFilter(name='username')
-
-            class Meta:
-                model = User
-                fields = ['account', 'status']
-                order_by = True
-
-        f = F({'o': '-account'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
-
-    def test_ordering_with_overridden_field_name(self):
-        """
-        Set the `order_by_field` on the filterset and ensure that the
-        field name is respected.
-        """
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = ['status']
-                order_by_field = 'order'
-
-        f = F({'order': 'status'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
-
-    def test_ordering_descending_set(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = ['username', '-username']
-
-        f = F({'o': '-username'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
-
-    def test_ordering_descending_unset(self):
-        """ Test ordering descending works when order_by=True. """
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                order_by = True
-
-        f = F({'o': '-username'}, queryset=self.qs)
-        self.assertQuerysetEqual(
-            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
 
 
 class FilterSetTogetherTests(TestCase):

@@ -151,6 +151,12 @@ class FilterSetOptions(object):
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
+        if hasattr(options, 'order_by'):
+            deprecate('Meta.order_by has been deprecated.', 1)
+
+        if hasattr(options, 'order_by_field'):
+            deprecate('Meta.order_by_field has been deprecated.', 1)
+
         self.order_by = getattr(options, 'order_by', False)
         self.order_by_field = getattr(options, 'order_by_field', ORDER_BY_FIELD)
 
@@ -190,6 +196,14 @@ class FilterSetMetaclass(type):
             deprecate('filter_overrides has been moved to the Meta class.')
             new_class._meta.filter_overrides = new_class.filter_overrides
 
+        assert not hasattr(new_class, 'get_order_by'), \
+            'get_order_by() has been deprecated. Subclass OrderingFilter and override .filter() instead. ' \
+            'See: https://django-filter.readthedocs.io/en/latest/migration.html"'
+
+        assert not hasattr(new_class, 'get_ordering_field'), \
+            'get_ordering_field() has been deprecated. Use OrderingFilter instead. ' \
+            'See: https://django-filter.readthedocs.io/en/latest/migration.html"'
+
         # TODO: replace with deprecations
         # if opts.model and opts.fields:
         if opts.model:
@@ -203,6 +217,7 @@ class FilterSetMetaclass(type):
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
 
+        # TODO: remove with deprecations
         # check key existence instead of setdefault - prevents unnecessary filter construction
         order_by_field = new_class._meta.order_by_field
         if opts.order_by and order_by_field not in filters:

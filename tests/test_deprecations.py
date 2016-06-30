@@ -2,10 +2,12 @@
 import functools
 import warnings
 import mock
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from django_filters import FilterSet
 from django_filters.filters import Filter, CharFilter, MethodFilter
+from django_filters.filterset import STRICTNESS
 from .models import User
 from .models import NetworkSetting
 from .models import SubnetMaskField
@@ -366,3 +368,327 @@ class OrderByFieldDeprecationTests(TestCase):
                 order_by_field = 'field'
 
             self.assertEqual(F._meta.order_by_field, 'field')
+
+
+class OrderByDeprecationTests(TestCase):
+    def test_order_by_notification(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            class F(FilterSet):
+                class Meta:
+                    order_by = True
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+
+    def test_order_by_field_notification(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            class F(FilterSet):
+                class Meta:
+                    order_by_field = 'field'
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+
+    def test_get_order_by_assertion(self):
+        with self.assertRaises(AssertionError):
+            class F(FilterSet):
+                def get_order_by(self):
+                    pass
+
+    def test_get_ordering_field_assertion(self):
+        with self.assertRaises(AssertionError):
+            class F(FilterSet):
+                def get_ordering_field(self):
+                    pass
+
+
+class DeprecatedOrderingFilterSetTests(TestCase):
+    def setUp(self):
+        self.alex = User.objects.create(username='alex', status=1)
+        self.jacob = User.objects.create(username='jacob', status=2)
+        self.aaron = User.objects.create(username='aaron', status=2)
+        self.carl = User.objects.create(username='carl', status=0)
+        self.qs = User.objects.all().order_by('id')
+
+    # old filterset tests
+    @silence
+    def test_ordering(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', 'status']
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
+
+    @silence
+    def test_ordering_on_unknown_value(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, [], lambda o: o.username)
+
+    @silence
+    def test_ordering_on_unknown_value_results_in_default_ordering_without_strict(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+                strict = STRICTNESS.IGNORE
+
+        self.assertFalse(F._meta.strict)
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
+
+    @silence
+    def test_ordering_on_unknown_value_results_in_default_ordering_with_strict_raise(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        with self.assertRaises(ValidationError) as excinfo:
+            f.qs.all()
+        self.assertEqual(excinfo.exception.message_dict,
+                         {'o': ['Select a valid choice. username is not one '
+                                'of the available choices.']})
+
+        # No default order_by should get applied.
+        f = F({}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
+
+    @silence
+    def test_ordering_on_different_field(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+        f = F({'o': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
+
+    @silence
+    def test_ordering_uses_filter_name(self):
+        class F(FilterSet):
+            account = CharFilter(name='username')
+
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+
+        f = F({'o': 'account'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+    @silence
+    def test_reverted_ordering_uses_filter_name(self):
+        class F(FilterSet):
+            account = CharFilter(name='username')
+
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+
+        f = F({'o': '-account'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
+
+    @silence
+    def test_ordering_with_overridden_field_name(self):
+        """
+        Set the `order_by_field` on the filterset and ensure that the
+        field name is respected.
+        """
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+                order_by_field = 'order'
+
+        f = F({'order': 'status'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['carl', 'alex', 'jacob', 'aaron'], lambda o: o.username)
+
+    @silence
+    def test_ordering_descending_set(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['username', '-username']
+
+        f = F({'o': '-username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
+
+    @silence
+    def test_ordering_descending_unset(self):
+        """ Test ordering descending works when order_by=True. """
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+
+        f = F({'o': '-username'}, queryset=self.qs)
+        self.assertQuerysetEqual(
+            f.qs, ['jacob', 'carl', 'alex', 'aaron'], lambda o: o.username)
+
+
+class DeprecatedOrderingFormTests(TestCase):
+    @silence
+    def test_ordering(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+
+        f = F().form
+        self.assertEqual(len(f.fields), 3)
+        self.assertIn('o', f.fields)
+        self.assertEqual(f.fields['o'].choices, [('status', 'Status')])
+
+    @silence
+    def test_ordering_uses_all_fields(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+
+        f = F().form
+        self.assertEqual(f.fields['o'].choices, [
+            ('username', 'Username'),
+            ('-username', 'Username (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
+
+    @silence
+    def test_ordering_uses_filter_label(self):
+        class F(FilterSet):
+            username = CharFilter(label='Account')
+
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+
+        f = F().form
+        self.assertEqual(f.fields['o'].choices, [
+            ('username', 'Account'),
+            ('-username', 'Account (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
+
+    @silence
+    def test_ordering_uses_explicit_filter_name(self):
+        class F(FilterSet):
+            account = CharFilter(name='username')
+
+            class Meta:
+                model = User
+                fields = ['account', 'status']
+                order_by = True
+
+        f = F().form
+        self.assertEqual(f.fields['o'].choices, [
+            ('account', 'Account'),
+            ('-account', 'Account (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
+
+    @silence
+    def test_ordering_with_overridden_field_name(self):
+        """
+        Set the `order_by_field` on the filterset and ensure that the
+        field name is respected.
+        """
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status']
+                order_by_field = 'order'
+
+        f = F().form
+        self.assertNotIn('o', f.fields)
+        self.assertIn('order', f.fields)
+        self.assertEqual(f.fields['order'].choices, [('status', 'Status')])
+
+    @silence
+    def test_ordering_with_overridden_field_name_and_descending(self):
+        """
+        Set the `order_by_field` on the filterset and ensure that the
+        field name is respected.
+        """
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = ['status', '-status']
+                order_by_field = 'order'
+
+        f = F().form
+        self.assertNotIn('o', f.fields)
+        self.assertIn('order', f.fields)
+        self.assertEqual(f.fields['order'].choices, [('status', 'Status'), ('-status', 'Status (descending)')])
+
+    @silence
+    def test_ordering_with_overridden_field_name_and_using_all_fields(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = True
+                order_by_field = 'order'
+
+        f = F().form
+        self.assertIn('order', f.fields)
+        self.assertEqual(f.fields['order'].choices, [
+            ('username', 'Username'),
+            ('-username', 'Username (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
+
+    @silence
+    def test_ordering_with_custom_display_names(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                order_by = [('status', 'Current status')]
+
+        f = F().form
+        self.assertEqual(
+            f.fields['o'].choices, [('status', 'Current status')])
