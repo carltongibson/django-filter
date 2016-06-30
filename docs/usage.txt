@@ -339,13 +339,13 @@ And lastly we need a template::
             {{ filter.form.as_p }}
             <input type="submit" />
         </form>
-        {% for obj in filter %}
+        {% for obj in filter.qs %}
             {{ obj.name }} - ${{ obj.price }}<br />
         {% endfor %}
     {% endblock %}
 
 And that's all there is to it!  The ``form`` attribute contains a normal
-Django form, and when we iterate over the ``FilterSet`` we get the objects in
+Django form, and when we iterate over the ``FilterSet.qs`` we get the objects in
 the resulting queryset.
 
 
