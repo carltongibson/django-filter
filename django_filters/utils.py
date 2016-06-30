@@ -9,6 +9,11 @@ from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six, timezone
 
+try:
+    from django.forms.utils import pretty_name
+except ImportError:  # Django 1.8
+    from django.forms.forms import pretty_name
+
 from .compat import remote_field, remote_model
 from .exceptions import FieldLookupError
 
