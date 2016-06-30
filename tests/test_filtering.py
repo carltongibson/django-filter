@@ -844,9 +844,9 @@ class AllValuesFilterTests(TestCase):
                 fields = ['username']
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'alex'})),
+        self.assertEqual(list(F({'username': 'alex'}).qs),
                          [User.objects.get(username='alex')])
-        self.assertEqual(list(F({'username': 'jose'})),
+        self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
 
     def test_filtering_without_strict(self):
@@ -863,9 +863,9 @@ class AllValuesFilterTests(TestCase):
                 fields = ['username']
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'alex'})),
+        self.assertEqual(list(F({'username': 'alex'}).qs),
                          [User.objects.get(username='alex')])
-        self.assertEqual(list(F({'username': 'jose'})),
+        self.assertEqual(list(F({'username': 'jose'}).qs),
                          list(User.objects.all()))
 
 
@@ -889,9 +889,9 @@ class MethodFilterTests(TestCase):
                 )
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'alex'})),
+        self.assertEqual(list(F({'username': 'alex'}).qs),
                          [User.objects.get(username='alex')])
-        self.assertEqual(list(F({'username': 'jose'})),
+        self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
 
     def test_filtering_external(self):
@@ -912,9 +912,9 @@ class MethodFilterTests(TestCase):
                 fields = ['username']
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'alex'})),
+        self.assertEqual(list(F({'username': 'alex'}).qs),
                          [User.objects.get(username='alex')])
-        self.assertEqual(list(F({'username': 'jose'})),
+        self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
 
 
@@ -936,13 +936,13 @@ class MethodFilterTests(TestCase):
                 )
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'mike'})),
+        self.assertEqual(list(F({'username': 'mike'}).qs),
                          [User.objects.get(username='mike'),
                           User.objects.get(username='jake')],)
-        self.assertEqual(list(F({'username': 'jake'})),
+        self.assertEqual(list(F({'username': 'jake'}).qs),
                          [User.objects.get(username='mike'),
                           User.objects.get(username='jake')])
-        self.assertEqual(list(F({'username': 'aaron'})),
+        self.assertEqual(list(F({'username': 'aaron'}).qs),
                          [User.objects.get(username='mike'),
                           User.objects.get(username='jake')])
 
@@ -961,11 +961,11 @@ class MethodFilterTests(TestCase):
                 fields = ['username']
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'mike'})),
+        self.assertEqual(list(F({'username': 'mike'}).qs),
                          list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'jake'})),
+        self.assertEqual(list(F({'username': 'jake'}).qs),
                          list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'aaron'})),
+        self.assertEqual(list(F({'username': 'aaron'}).qs),
                          list(User.objects.all()))
 
 

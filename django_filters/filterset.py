@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import copy
 import re
+import warnings
 from collections import OrderedDict
 
 from django import forms
@@ -291,13 +292,16 @@ class BaseFilterSet(object):
             filter_.parent = self
 
     def __iter__(self):
+        warnings.warn('FilterSet no longer emulates a container. Iterate over .qs instead.', DeprecationWarning, stacklevel=2)
         for obj in self.qs:
             yield obj
 
     def __len__(self):
+        warnings.warn('FilterSet no longer emulates a container. Get the length of .qs instead.', DeprecationWarning, stacklevel=2)
         return self.qs.count()
 
     def __getitem__(self, key):
+        warnings.warn('FilterSet no longer emulates a container. Perform lookups on .qs instead.', DeprecationWarning, stacklevel=2)
         return self.qs[key]
 
     @property
