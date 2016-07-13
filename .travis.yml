@@ -38,4 +38,3 @@ matrix:
   allow_failures:
     - env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
   fast_finish: true
-
