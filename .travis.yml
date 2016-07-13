@@ -2,6 +2,8 @@ language: python
 
 sudo: false
 
+cache: pip
+
 python:
   - "2.7"
   - "3.2"
@@ -38,4 +40,3 @@ matrix:
   allow_failures:
     - env: DJANGO='https://github.com/django/django/archive/master.tar.gz'
   fast_finish: true
-
