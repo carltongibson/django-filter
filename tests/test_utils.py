@@ -5,9 +5,9 @@ import django
 from django.test import TestCase
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
-from django.core.exceptions import FieldError
 
 from django_filters.utils import get_model_field, resolve_field
+from django_filters.exceptions import FieldLookupError
 
 from .models import User
 from .models import Article
@@ -156,11 +156,19 @@ class ResolveFieldTests(TestCase):
     def test_invalid_lookup_expression(self):
         model_field = Article._meta.get_field('published')
 
-        with self.assertRaises(FieldError):
-            field, lookup = resolve_field(model_field, 'invalid_lookup')
+        with self.assertRaises(FieldLookupError) as context:
+            resolve_field(model_field, 'invalid_lookup')
+
+        exc = str(context.exception)
+        self.assertIn(str(model_field), exc)
+        self.assertIn('invalid_lookup', exc)
 
     def test_invalid_transformed_lookup_expression(self):
         model_field = Article._meta.get_field('published')
 
-        with self.assertRaises(FieldError):
-            field, lookup = resolve_field(model_field, 'date__invalid_lookup')
+        with self.assertRaises(FieldLookupError) as context:
+            resolve_field(model_field, 'date__invalid_lookup')
+
+        exc = str(context.exception)
+        self.assertIn(str(model_field), exc)
+        self.assertIn('date__invalid_lookup', exc)

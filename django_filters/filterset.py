@@ -15,10 +15,11 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import remote_field, remote_model
+from .compat import remote_field, remote_model, remote_queryset
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
+                      DurationFilter)
 from .utils import try_dbfield, get_model_field, resolve_field
 
 
@@ -62,8 +63,11 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
     field_dict = OrderedDict()
     opts = model._meta
     if fields is None:
-        fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
-                  if not isinstance(f, models.AutoField)]
+        fields = [
+            f.name for f in sorted(opts.fields + opts.many_to_many)
+            if not isinstance(f, models.AutoField) and
+            not (getattr(remote_field(f), 'parent_link', False))
+        ]
     # Loop through the list of fields.
     for f in fields:
         # Skip the field if excluded.
@@ -156,9 +160,7 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
         if opts.model:
-            filters = filters_for_model(opts.model, opts.fields, opts.exclude,
-                                        new_class.filter_for_field,
-                                        new_class.filter_for_reverse_field)
+            filters = new_class.filters_for_model(opts.model, opts)
             filters.update(declared_filters)
         else:
             filters = declared_filters
@@ -195,27 +197,27 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.TimeField: {
         'filter_class': TimeFilter
     },
+    models.DurationField: {
+        'filter_class': DurationFilter
+    },
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
+            'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
         }
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
-            'to_field_name': remote_field(f).field_name
+            'queryset': remote_queryset(f),
+            'to_field_name': remote_field(f).field_name,
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
+            'queryset': remote_queryset(f),
         }
     },
     models.DecimalField: {
@@ -416,6 +418,14 @@ class BaseFilterSet(object):
         if _filter and filter_api_name != _filter.name:
             return [inverted + _filter.name]
         return [order_choice]
+
+    @classmethod
+    def filters_for_model(cls, model, opts):
+        return filters_for_model(
+            model, opts.fields, opts.exclude,
+            cls.filter_for_field,
+            cls.filter_for_reverse_field
+        )
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):

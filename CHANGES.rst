@@ -1,3 +1,9 @@
+Version 0.14.0 (unreleased)
+---------------------------
+
+* Add support for filtering on DurationField (new in Django 1.8).
+
+
 Version 0.13.0 (2016-03-11)
 ---------------------------
 

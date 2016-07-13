@@ -240,3 +240,15 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
+
+
+# see:
+# https://github.com/snide/sphinx_rtd_theme#using-this-theme-locally-then-building-on-read-the-docs
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+# only import and set the theme if we're building docs locally
+if not on_rtd:
+    import sphinx_rtd_theme
+
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]

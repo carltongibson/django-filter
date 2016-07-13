@@ -27,6 +27,7 @@ from django_filters.filters import (
     DateFilter,
     DateTimeFilter,
     TimeFilter,
+    DurationFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     NumberFilter,
@@ -282,7 +283,6 @@ class BooleanFilterTests(TestCase):
         qs.exclude.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
-    @unittest.expectedFailure
     def test_filtering_skipped_with_blank_value(self):
         qs = mock.Mock()
         f = BooleanFilter(name='somefield')
@@ -379,7 +379,6 @@ class MultipleChoiceFilterTests(TestCase):
         result = f.filter(qs, ['other', 'values', 'there'])
         self.assertEqual(qs, result)
 
-    @unittest.expectedFailure
     def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
         qs = mock.Mock(spec=[])
         f = MultipleChoiceFilter(name='somefield')
@@ -475,6 +474,14 @@ class TimeFilterTests(TestCase):
         self.assertIsInstance(field, forms.TimeField)
 
 
+class DurationFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = DurationFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.DurationField)
+
+
 class ModelChoiceFilterTests(TestCase):
 
     def test_default_field_without_queryset(self):
@@ -567,14 +574,6 @@ class NumericRangeFilterTests(TestCase):
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__overlap=(20, 30))
 
-    @unittest.expectedFailure
-    def test_filtering_lower_field_higher_than_upper_field(self):
-        qs = mock.Mock(spec=['filter'])
-        value = mock.Mock(start=35, stop=30)
-        f = NumericRangeFilter()
-        result = f.filter(qs, value)
-        self.assertEqual(qs, result)
-
     def test_zero_to_zero(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=0, stop=0)
@@ -645,25 +644,18 @@ class DateRangeFilterTests(TestCase):
         self.assertIsInstance(field, forms.ChoiceField)
 
     def test_filtering(self):
-        qs = mock.Mock(spec=['all'])
-        f = DateRangeFilter()
-        f.filter(qs, '')
-        qs.all.assert_called_once_with()
-
-    # the correct behavior fails right now
-    @unittest.expectedFailure
-    def test_filtering_skipped_with_blank_value(self):
+        # skip filtering, as it's an empty value
         qs = mock.Mock(spec=[])
         f = DateRangeFilter()
         result = f.filter(qs, '')
         self.assertEqual(qs, result)
 
-    @unittest.expectedFailure
     def test_filtering_skipped_with_out_of_range_value(self):
+        # Field validation should prevent this from occuring
         qs = mock.Mock(spec=[])
         f = DateRangeFilter()
-        result = f.filter(qs, 999)
-        self.assertEqual(qs, result)
+        with self.assertRaises(AssertionError):
+            f.filter(qs, 999)
 
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=['filter'])
@@ -685,18 +677,18 @@ class DateRangeFilterTests(TestCase):
 
     def test_filtering_for_7_days(self):
         qs = mock.Mock(spec=['filter'])
-        with mock.patch('django_filters.filters.now'):
-            with mock.patch('django_filters.filters.timedelta') as mock_td:
-                with mock.patch(
-                        'django_filters.filters._truncate') as mock_truncate:
-                    mock_dt1, mock_dt2 = mock.MagicMock(), mock.MagicMock()
-                    mock_truncate.side_effect = [mock_dt1, mock_dt2]
-                    f = DateRangeFilter()
-                    f.filter(qs, '2')
-                    self.assertEqual(mock_td.call_args_list,
-                        [mock.call(days=7), mock.call(days=1)])
-                    qs.filter.assert_called_once_with(
-                        None__lt=mock_dt2, None__gte=mock_dt1)
+        with mock.patch('django_filters.filters.now'), \
+                mock.patch('django_filters.filters.timedelta') as mock_td, \
+                mock.patch('django_filters.filters._truncate') as mock_truncate:
+            mock_d1, mock_d2 = mock.MagicMock(), mock.MagicMock()
+            mock_truncate.side_effect = [mock_d1, mock_d2]
+            f = DateRangeFilter()
+            f.filter(qs, '2')
+            self.assertEqual(
+                mock_td.call_args_list,
+                [mock.call(days=7), mock.call(days=1)]
+            )
+            qs.filter.assert_called_once_with(None__lt=mock_d2, None__gte=mock_d1)
 
     def test_filtering_for_today(self):
         qs = mock.Mock(spec=['filter'])
@@ -802,11 +794,11 @@ class DateTimeFromToRangeFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
-    def test_filtering_ignores_lookup_type(self):
+    def test_filtering_ignores_lookup_expr(self):
         qs = mock.Mock()
         value = mock.Mock(
             start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
-        f = DateTimeFromToRangeFilter(lookup_type='gte')
+        f = DateTimeFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
