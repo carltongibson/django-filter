@@ -471,6 +471,9 @@ class BaseFilterSet(object):
             return None, {}
 
         # perform lookup specific checks
+        if lookup_type == 'exact' and f.choices:
+            return ChoiceFilter, {'choices': f.choices}
+
         if lookup_type == 'isnull':
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
 
@@ -495,10 +498,6 @@ class BaseFilterSet(object):
             )
 
             return ConcreteRangeFilter, params
-
-        # Default behavior
-        if f.choices:
-            return ChoiceFilter, {'choices': f.choices}
 
         return filter_class, params
 
