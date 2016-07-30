@@ -27,6 +27,12 @@ from .utils import try_dbfield, get_model_field, resolve_field
 ORDER_BY_FIELD = 'o'
 
 
+def deprecate(msg):
+    warnings.warn(
+        "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
+        DeprecationWarning, stacklevel=3)
+
+
 class STRICTNESS(object):
     """
     Values of False & True chosen for backward compatability reasons.
@@ -292,20 +298,20 @@ class BaseFilterSet(object):
             filter_.parent = self
 
     def __iter__(self):
-        warnings.warn('FilterSet no longer emulates a container. Iterate over .qs instead.', DeprecationWarning, stacklevel=2)
+        deprecate('QuerySet methods are no longer proxied.')
         for obj in self.qs:
             yield obj
 
     def __len__(self):
-        warnings.warn('FilterSet no longer emulates a container. Get the length of .qs instead.', DeprecationWarning, stacklevel=2)
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs.count()
 
     def __getitem__(self, key):
-        warnings.warn('FilterSet no longer emulates a container. Perform lookups on .qs instead.', DeprecationWarning, stacklevel=2)
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs[key]
 
     def count(self):
-        warnings.warn('FilterSet no longer emulates a container. Call .qs.count() instead.', DeprecationWarning, stacklevel=2)
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs.count()
 
     @property
