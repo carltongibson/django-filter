@@ -1524,27 +1524,27 @@ class CSVFilterTests(TestCase):
         qs = User.objects.all()
         f = F(queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'status__in': ''}, queryset=qs)
         self.assertEqual(len(f.qs), 0)
-        self.assertEqual(f.count(), 0)
+        self.assertEqual(f.qs.count(), 0)
 
         f = F({'status__in': '0'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
-        self.assertEqual(f.count(), 1)
+        self.assertEqual(f.qs.count(), 1)
 
         f = F({'status__in': '0,2'}, queryset=qs)
         self.assertEqual(len(f.qs), 3)
-        self.assertEqual(f.count(), 3)
+        self.assertEqual(f.qs.count(), 3)
 
         f = F({'status__in': '0,,1'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
         f = F({'status__in': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
     def test_string_filtering(self):
         F = self.user_filter
@@ -1552,27 +1552,27 @@ class CSVFilterTests(TestCase):
         qs = User.objects.all()
         f = F(queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'username__in': ''}, queryset=qs)
         self.assertEqual(len(f.qs), 0)
-        self.assertEqual(f.count(), 0)
+        self.assertEqual(f.qs.count(), 0)
 
         f = F({'username__in': 'alex'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
-        self.assertEqual(f.count(), 1)
+        self.assertEqual(f.qs.count(), 1)
 
         f = F({'username__in': 'alex,aaron'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
         f = F({'username__in': 'alex,,aaron'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
         f = F({'username__in': 'alex,'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
-        self.assertEqual(f.count(), 1)
+        self.assertEqual(f.qs.count(), 1)
 
     def test_datetime_filtering(self):
         F = self.article_filter
@@ -1582,27 +1582,27 @@ class CSVFilterTests(TestCase):
         qs = Article.objects.all()
         f = F(queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'published__in': ''}, queryset=qs)
         self.assertEqual(len(f.qs), 0)
-        self.assertEqual(f.count(), 0)
+        self.assertEqual(f.qs.count(), 0)
 
         f = F({'published__in': '%s' % (after, )}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
         f = F({'published__in': '%s,%s' % (after, before, )}, queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'published__in': '%s,,%s' % (after, before, )}, queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'published__in': '%s,' % (after, )}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
     def test_related_filtering(self):
         F = self.article_filter
@@ -1610,27 +1610,27 @@ class CSVFilterTests(TestCase):
         qs = Article.objects.all()
         f = F(queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'author__in': ''}, queryset=qs)
         self.assertEqual(len(f.qs), 0)
-        self.assertEqual(f.count(), 0)
+        self.assertEqual(f.qs.count(), 0)
 
         f = F({'author__in': '1'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
         f = F({'author__in': '1,2'}, queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'author__in': '1,,2'}, queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'author__in': '1,'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
 
 class MiscFilterSetTests(TestCase):
@@ -1706,19 +1706,19 @@ class MiscFilterSetTests(TestCase):
         qs = User.objects.all()
         f = F(queryset=qs)
         self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.count(), 4)
+        self.assertEqual(f.qs.count(), 4)
 
         f = F({'status': '0'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
-        self.assertEqual(f.count(), 1)
+        self.assertEqual(f.qs.count(), 1)
 
         f = F({'status': '1'}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
-        self.assertEqual(f.count(), 1)
+        self.assertEqual(f.qs.count(), 1)
 
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
-        self.assertEqual(f.count(), 2)
+        self.assertEqual(f.qs.count(), 2)
 
     def test_invalid_field_lookup(self):
         # We want to ensure that non existent lookups (or just simple misspellings)

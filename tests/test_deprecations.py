@@ -39,3 +39,11 @@ class FilterSetContainerDeprecationTests(TestCase):
             len(UserFilter())
 
             self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
+
+    def test__count__notification(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            UserFilter().count()
+
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))

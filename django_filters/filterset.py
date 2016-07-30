@@ -304,6 +304,10 @@ class BaseFilterSet(object):
         warnings.warn('FilterSet no longer emulates a container. Perform lookups on .qs instead.', DeprecationWarning, stacklevel=2)
         return self.qs[key]
 
+    def count(self):
+        warnings.warn('FilterSet no longer emulates a container. Call .qs.count() instead.', DeprecationWarning, stacklevel=2)
+        return self.qs.count()
+
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
@@ -358,9 +362,6 @@ class BaseFilterSet(object):
             self._qs = qs
 
         return self._qs
-
-    def count(self):
-        return self.qs.count()
 
     @property
     def form(self):
