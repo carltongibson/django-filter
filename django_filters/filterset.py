@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import copy
 import re
+import warnings
 from collections import OrderedDict
 
 from django import forms
@@ -24,6 +25,12 @@ from .utils import try_dbfield, get_model_field, resolve_field
 
 
 ORDER_BY_FIELD = 'o'
+
+
+def deprecate(msg):
+    warnings.warn(
+        "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
+        DeprecationWarning, stacklevel=3)
 
 
 class STRICTNESS(object):
@@ -291,14 +298,21 @@ class BaseFilterSet(object):
             filter_.parent = self
 
     def __iter__(self):
+        deprecate('QuerySet methods are no longer proxied.')
         for obj in self.qs:
             yield obj
 
     def __len__(self):
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs.count()
 
     def __getitem__(self, key):
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs[key]
+
+    def count(self):
+        deprecate('QuerySet methods are no longer proxied.')
+        return self.qs.count()
 
     @property
     def qs(self):
@@ -354,9 +368,6 @@ class BaseFilterSet(object):
             self._qs = qs
 
         return self._qs
-
-    def count(self):
-        return self.qs.count()
 
     @property
     def form(self):

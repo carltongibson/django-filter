@@ -719,7 +719,6 @@ class FilterSetOrderingTests(TestCase):
             f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
 
 
-
 class FilterSetTogetherTests(TestCase):
 
     def setUp(self):
@@ -759,3 +758,20 @@ class FilterSetTogetherTests(TestCase):
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+
+
+@unittest.skip('remove when relevant deprecations have been completed')
+class MiscFilterSetTests(TestCase):
+
+    def test_no__getitem__(self):
+        # The DTL processes variable lookups by the following rules:
+        # https://docs.djangoproject.com/en/1.9/ref/templates/language/#variables
+        # A __getitem__ implementation precedes normal attribute access, and in
+        # the case of #58, will force the queryset to evaluate when it should
+        # not (eg, when rendering a blank form).
+        self.assertFalse(hasattr(FilterSet, '__getitem__'))
+
+    def test_no_qs_proxying(self):
+        # The FilterSet should not proxy .qs methods - just access .qs directly
+        self.assertFalse(hasattr(FilterSet, '__len__'))
+        self.assertFalse(hasattr(FilterSet, '__iter__'))
