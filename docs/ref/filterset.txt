@@ -6,12 +6,87 @@ This document provides a guide on using additional FilterSet features.
 Meta options
 ------------
 
-- model
-- fields
-- exclude
+- :ref:`model <model>`
+- :ref:`fields <fields>`
+- :ref:`exclude <exclude>`
 - :ref:`order_by <order-by>`
 - :ref:`form <form>`
 - :ref:`together <together>`
+
+
+.. _model:
+
+Automatic filter generation with ``model``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``FilterSet`` is capable of automatically generating filters for a given
+``model``'s fields. Similar to Django's ``ModelForm``, filters are created
+based on the underlying model field's type. This option must be combined with
+either the ``fields`` or ``exclude`` option, which is the same requirement for
+Django's ``ModelForm`` class, detailed `here`__.
+
+__ https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#selecting-the-fields-to-use
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'last_login']
+
+
+.. _fields:
+
+Declaring filterable ``fields``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``fields`` option is combined with ``model`` to automatically generate
+filters. Note that generated filters will not overwrite filters declared on
+the ``FilterSet``. The ``fields`` option accepts two syntaxes:
+
+* a list of field names
+* a dictionary of field names mapped to a list of lookups
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'last_login']
+
+    # or
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = {
+                'username': ['exact', 'contains'],
+                'last_login': ['exact', 'year__gt'],
+            }
+
+The list syntax will create an ``exact`` lookup filter for each field included
+in ``fields``. The dictionary syntax will create a filter for each lookup
+expression declared for its corresponding model field. These expressions may
+include both transforms and lookups, as detailed in the `lookup reference`__.
+
+__ https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
+
+
+.. _exclude:
+
+Disable filter fields with ``exclude``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``exclude`` option accepts a blacklist of field names to exclude from
+automatic filter generation. Note that this option will not disable filters
+declared directly  on the ``FilterSet``.
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            exclude = ['password']
 
 
 .. _order-by:
