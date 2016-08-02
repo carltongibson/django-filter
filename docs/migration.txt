@@ -27,3 +27,28 @@ no longer proxied from the queryset. To fix this, call the methods on the
     # 1.0
     for obj in f.qs:
         ...
+
+
+Move FilterSet options to Meta class
+------------------------------------
+Details: https://github.com/carltongibson/django-filter/issues/430
+
+Several ``FilterSet`` options have been moved to the ``Meta`` class to prevent
+potential conflicts with declared filter names. This includes:
+
+* ``filterset_class``
+* ``strict``
+
+.. code-block:: python
+
+    # 0.x
+    class UserFilter(FilterSet):
+        filter_overrides = {}
+        ...
+
+    # 1.0
+    class UserFilter(FilterSet):
+        ...
+
+        class Meta:
+            filter_overrides = {}
