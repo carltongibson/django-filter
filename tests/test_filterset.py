@@ -153,6 +153,17 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, 'first_name')
         self.assertIsInstance(result, CharFilter)
 
+    def test_unknown_field_type_error(self):
+        f = NetworkSetting._meta.get_field('mask')
+
+        with self.assertRaises(AssertionError) as excinfo:
+            FilterSet.filter_for_field(f, 'mask')
+
+        self.assertIn(
+            "FilterSet resolved field 'mask' with 'exact' lookup "
+            "to an unrecognized field type SubnetMaskField",
+            excinfo.exception.args[0])
+
     def test_symmetrical_selfref_m2m_field(self):
         f = Node._meta.get_field('adjacents')
         result = FilterSet.filter_for_field(f, 'adjacents')
