@@ -301,6 +301,7 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Book
+                fields = '__all__'
 
         self.assertEqual(len(F.declared_filters), 0)
         self.assertEqual(len(F.base_filters), 3)
@@ -313,6 +314,7 @@ class FilterSetClassCreationTests(TestCase):
 
             class Meta:
                 model = Book
+                fields = '__all__'
 
         self.assertEqual(len(F.declared_filters), 1)
         self.assertEqual(len(F.base_filters), 4)
@@ -421,10 +423,22 @@ class FilterSetClassCreationTests(TestCase):
         self.assertListEqual(list(F.base_filters),
                              ['username', 'price'])
 
+    def test_meta_exlude_with_no_fields(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                exclude = ('price', )
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 2)
+        self.assertListEqual(list(F.base_filters),
+                             ['title', 'average_rating'])
+
     def test_filterset_class_inheritance(self):
         class F(FilterSet):
             class Meta:
                 model = Book
+                fields = '__all__'
 
         class G(F):
             pass
@@ -435,6 +449,7 @@ class FilterSetClassCreationTests(TestCase):
 
             class Meta:
                 model = Book
+                fields = '__all__'
 
         class G(F):
             pass
@@ -444,6 +459,7 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Restaurant
+                fields = '__all__'
 
         self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
@@ -454,13 +470,6 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
-    def test_custom_field_ignored(self):
-        class F(FilterSet):
-            class Meta:
-                model = NetworkSetting
-
-        self.assertEqual(list(F.base_filters.keys()), ['ip'])
-
     def test_custom_field_gets_filter_from_override(self):
         class F(FilterSet):
             filter_overrides = {
@@ -468,6 +477,7 @@ class FilterSetClassCreationTests(TestCase):
 
             class Meta:
                 model = NetworkSetting
+                fields = '__all__'
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 
@@ -475,10 +485,12 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = User
+                fields = '__all__'
 
         class ProxyF(FilterSet):
             class Meta:
                 model = AdminUser
+                fields = '__all__'
 
         self.assertEqual(list(F.base_filters), list(ProxyF.base_filters))
 
@@ -486,10 +498,12 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Account
+                fields = '__all__'
 
         class FtiF(FilterSet):
             class Meta:
                 model = BankAccount
+                fields = '__all__'
 
         # fails due to 'account_ptr' getting picked up
         self.assertEqual(
@@ -760,7 +774,7 @@ class FilterSetTogetherTests(TestCase):
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
 
 
-@unittest.skip('remove when relevant deprecations have been completed')
+@unittest.skip('TODO: remove when relevant deprecations have been completed')
 class MiscFilterSetTests(TestCase):
 
     def test_no__getitem__(self):

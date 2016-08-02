@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import copy
 import re
-import warnings
 from collections import OrderedDict
 
 from django import forms
@@ -21,16 +20,10 @@ from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRange
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
                       DurationFilter)
-from .utils import try_dbfield, get_model_field, resolve_field
+from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field, deprecate
 
 
 ORDER_BY_FIELD = 'o'
-
-
-def deprecate(msg):
-    warnings.warn(
-        "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
-        DeprecationWarning, stacklevel=3)
 
 
 class STRICTNESS(object):
@@ -68,13 +61,15 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
                       filter_for_reverse_field=None):
     field_dict = OrderedDict()
-    opts = model._meta
-    if fields is None:
-        fields = [
-            f.name for f in sorted(opts.fields + opts.many_to_many)
-            if not isinstance(f, models.AutoField) and
-            not (getattr(remote_field(f), 'parent_link', False))
-        ]
+
+    # Setting exclude with no fields implies all other fields.
+    if exclude is not None and fields is None:
+        fields = '__all__'
+
+    # All implies all db fields associated with a filter_class.
+    if fields == '__all__':
+        fields = get_all_model_fields(model)
+
     # Loop through the list of fields.
     for f in fields:
         # Skip the field if excluded.
@@ -139,6 +134,19 @@ def get_full_clean_override(together):
 
 class FilterSetOptions(object):
     def __init__(self, options=None):
+        if getattr(options, 'model', None) is not None:
+            if not hasattr(options, 'fields') and not hasattr(options, 'exclude'):
+                deprecate(
+                    "Not setting Meta.fields with Meta.model is undocumented behavior "
+                    "and may result in unintentionally exposing filter fields. This has "
+                    "been deprecated in favor of setting Meta.fields = '__all__' or by "
+                    "setting the Meta.exclude attribute.", 1)
+
+            elif getattr(options, 'fields', -1) is None:
+                deprecate(
+                    "Setting 'Meta.fields = None' is undocumented behavior and has been "
+                    "deprecated in favor of Meta.fields = '__all__'.", 1)
+
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
@@ -166,6 +174,9 @@ class FilterSetMetaclass(type):
 
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
+
+        # TODO: replace with deprecations
+        # if opts.model and opts.fields:
         if opts.model:
             filters = new_class.filters_for_model(opts.model, opts)
             filters.update(declared_filters)
@@ -432,8 +443,15 @@ class BaseFilterSet(object):
 
     @classmethod
     def filters_for_model(cls, model, opts):
+        # TODO: remove with deprecations - this emulates the old behavior
+        fields = opts.fields
+        if fields is None:
+            DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
+            DEFAULTS.update(cls.filter_overrides)
+            fields = get_all_model_fields(model, field_types=DEFAULTS.keys())
+
         return filters_for_model(
-            model, opts.fields, opts.exclude,
+            model, fields, opts.exclude,
             cls.filter_for_field,
             cls.filter_for_reverse_field
         )
@@ -543,7 +561,7 @@ class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
 
 
 def filterset_factory(model):
-    meta = type(str('Meta'), (object,), {'model': model})
+    meta = type(str('Meta'), (object,), {'model': model, 'fields': '__all__'})
     filterset = type(str('%sFilterSet' % model._meta.object_name),
                      (FilterSet,), {'Meta': meta})
     return filterset
