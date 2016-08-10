@@ -1526,6 +1526,9 @@ class CSVFilterTests(TestCase):
         self.assertEqual(f.qs.count(), 4)
 
         f = F({'status__in': ''}, queryset=qs)
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'status__in': ','}, queryset=qs)
         self.assertEqual(f.qs.count(), 0)
 
         f = F({'status__in': '0'}, queryset=qs)
@@ -1548,6 +1551,9 @@ class CSVFilterTests(TestCase):
         self.assertEqual(f.qs.count(), 4)
 
         f = F({'username__in': ''}, queryset=qs)
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'username__in': ','}, queryset=qs)
         self.assertEqual(f.qs.count(), 0)
 
         f = F({'username__in': 'alex'}, queryset=qs)
@@ -1573,6 +1579,9 @@ class CSVFilterTests(TestCase):
         self.assertEqual(f.qs.count(), 4)
 
         f = F({'published__in': ''}, queryset=qs)
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'published__in': ','}, queryset=qs)
         self.assertEqual(f.qs.count(), 0)
 
         f = F({'published__in': '%s' % (after, )}, queryset=qs)
@@ -1595,6 +1604,9 @@ class CSVFilterTests(TestCase):
         self.assertEqual(f.qs.count(), 4)
 
         f = F({'author__in': ''}, queryset=qs)
+        self.assertEqual(f.qs.count(), 4)
+
+        f = F({'author__in': ','}, queryset=qs)
         self.assertEqual(f.qs.count(), 0)
 
         f = F({'author__in': '1'}, queryset=qs)

@@ -144,6 +144,8 @@ class CSVWidget(forms.TextInput):
         value = super(CSVWidget, self).value_from_datadict(data, files, name)
 
         if value is not None:
+            if value == '':  # empty value should parse as an empty list
+                return []
             return value.split(',')
         return None
 
