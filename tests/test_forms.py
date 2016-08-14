@@ -39,6 +39,7 @@ class FilterSetFormTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Book
+                fields = '__all__'
                 form = MyForm
 
         f = F().form

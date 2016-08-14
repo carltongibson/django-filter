@@ -390,6 +390,7 @@ class DurationFilterTests(TestCase):
 
             class Meta:
                 model = SpacewalkRecord
+                fields = '__all__'
 
         qs = SpacewalkRecord.objects.order_by('duration')
 

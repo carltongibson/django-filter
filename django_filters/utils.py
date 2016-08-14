@@ -1,3 +1,5 @@
+import warnings
+
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db import models
@@ -7,8 +9,14 @@ from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six, timezone
 
-from .compat import remote_model
+from .compat import remote_field, remote_model
 from .exceptions import FieldLookupError
+
+
+def deprecate(msg, level_modifier=0):
+    warnings.warn(
+        "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
+        DeprecationWarning, stacklevel=3 + level_modifier)
 
 
 def try_dbfield(fn, field_class):
@@ -29,6 +37,25 @@ def try_dbfield(fn, field_class):
         data = fn(cls)
         if data:
             return data
+
+
+# TODO: remove field_types arg with deprecations
+def get_all_model_fields(model, field_types=None):
+    opts = model._meta
+
+    if field_types is not None:
+        return [
+            f.name for f in sorted(opts.fields + opts.many_to_many)
+            if not isinstance(f, models.AutoField) and
+            not (getattr(remote_field(f), 'parent_link', False)) and
+            f.__class__ in field_types
+        ]
+
+    return [
+        f.name for f in sorted(opts.fields + opts.many_to_many)
+        if not isinstance(f, models.AutoField) and
+        not (getattr(remote_field(f), 'parent_link', False))
+    ]
 
 
 def get_model_field(model, field_name):

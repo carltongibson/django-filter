@@ -461,7 +461,7 @@ each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
 ``AllValuesMultipleFilter``
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is a ``MultipleChoiceFilter`` whose choices are the current values in the
 database.  So if in the DB for the given field you have values of 5, 7, and 9
