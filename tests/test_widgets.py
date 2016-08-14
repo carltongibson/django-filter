@@ -212,9 +212,17 @@ class CSVWidgetTests(TestCase):
         result = w.value_from_datadict(data, {}, 'price')
         self.assertEqual(result, ['1', '', '2'])
 
+        data = {'price': '1,'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1', ''])
+
+        data = {'price': ','}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['', ''])
+
         data = {'price': ''}
         result = w.value_from_datadict(data, {}, 'price')
-        self.assertEqual(result, [''])
+        self.assertEqual(result, [])
 
         result = w.value_from_datadict({}, {}, 'price')
         self.assertEqual(result, None)

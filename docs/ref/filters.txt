@@ -40,6 +40,8 @@ additional ones that django-filter provides which may be useful:
     * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
       value and converts it into a list of string values. It is expected that
       the field class handle a list of values as well as type conversion.
+    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
+      to generate two form input elements using a single field.
 
 ``action``
 ~~~~~~~~~~
@@ -245,6 +247,15 @@ Example. ::
             fields = ['published']
 
 
+``DurationFilter``
+~~~~~~~~~~~~~~~~~~
+
+Matches on a duration.  Used with ``DurationField`` by default.
+
+Supports both Django ('%d %H:%M:%S.%f') and ISO 8601 formatted durations (but
+only the sections that are accepted by Python's timedelta, so no year, month,
+and week designators, e.g. 'P3DT10H22M').
+
 
 ``ModelChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -290,7 +301,7 @@ the Postgres Numerical Range Fields, including `IntegerRangeField`, `BigIntegerR
 available since Django 1.8. The default widget used is the `RangeField`.
 
 RangeField lookup_exprs can be used, including `overlap`, `contains`, and `contained_by`. More lookups can be
-found in the Django docs ([https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields](https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields)).
+found in the Django docs (https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields).
 
 If the lower limit value is provided, the filter automatically defaults to `__startswith` as the lookup
 type and if only the upper limit value is provided, the filter uses `__endswith`.
@@ -449,10 +460,23 @@ database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
+``AllValuesMultipleFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is a ``MultipleChoiceFilter`` whose choices are the current values in the
+database.  So if in the DB for the given field you have values of 5, 7, and 9
+each of those is present as an option.  This is similar to the default behavior
+of the admin.
+
+.. _base-in-filter:
+
 ``BaseInFilter``
 ~~~~~~~~~~~~~~~~
 
-This is a base class used for generating IN lookup filters. Values are expected to be comma separated.
+This is a base class used for creating IN lookup filters. It is expected that
+this filter class is used in conjunction with another filter class, as this
+class **only** validates that the incoming value is comma-separated. The secondary
+filter is then used to validate the individual values.
 
 Example. ::
 
@@ -460,7 +484,7 @@ Example. ::
         pass
 
     class F(FilterSet):
-        id__in = NumberInFilter(name=id, lookup_expr='in')
+        id__in = NumberInFilter(name='id', lookup_expr='in')
 
         class Meta:
             model = User
@@ -477,7 +501,9 @@ Example. ::
 ``BaseRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
 
-This is a base class used for generating RANGE lookup filters. The base class expects two values two, separated by a comma.
+This is a base class used for creating RANGE lookup filters. It behaves
+identically to ``BaseInFilter`` with the exception that it expects only two
+comma-separated values.
 
 Example. ::
 
@@ -485,7 +511,7 @@ Example. ::
         pass
 
     class F(FilterSet):
-        id__range = NumberRangeFilter(name=id, lookup_expr='range')
+        id__range = NumberRangeFilter(name='id', lookup_expr='range')
 
         class Meta:
             model = User

@@ -8,9 +8,9 @@ from django_filters.filterset import FilterSet
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 
-from .models import User
+from .models import User, ManagerGroup
 from .models import Book
-from .models import STATUS_CHOICES
+from .models import STATUS_CHOICES, REGULAR, MANAGER
 
 
 class FilterSetFormTests(TestCase):
@@ -39,6 +39,7 @@ class FilterSetFormTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Book
+                fields = '__all__'
                 form = MyForm
 
         f = F().form
@@ -229,7 +230,7 @@ class FilterSetFormTests(TestCase):
         self.assertNotIn('o', f.fields)
         self.assertIn('order', f.fields)
         self.assertEqual(f.fields['order'].choices, [('status', 'Status')])
-    
+
     def test_ordering_with_overridden_field_name_and_descending(self):
         """
         Set the `order_by_field` on the queryset and ensure that the
@@ -272,3 +273,20 @@ class FilterSetFormTests(TestCase):
         f = F().form
         self.assertEqual(
             f.fields['o'].choices, [('status', 'Current status')])
+
+    def test_limit_choices_to(self):
+        User.objects.create(username='inactive', is_active=False, status=REGULAR)
+        User.objects.create(username='active', is_active=True, status=REGULAR)
+        User.objects.create(username='manager', is_active=False, status=MANAGER)
+
+        class F(FilterSet):
+            class Meta:
+                model = ManagerGroup
+                fields = ['users', 'manager']
+        f = F().form
+        self.assertEquals(
+            list(f.fields['users'].choices), [(2, 'active')]
+        )
+        self.assertEquals(
+            list(f.fields['manager'].choices), [('', '---------'), (3, 'manager')]
+        )

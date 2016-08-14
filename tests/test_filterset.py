@@ -86,6 +86,7 @@ class DbFieldDefaultFiltersTests(TestCase):
             models.SmallIntegerField,
             models.TextField,
             models.TimeField,
+            models.DurationField,
             models.URLField,
             models.ForeignKey,
             models.OneToOneField,
@@ -151,6 +152,17 @@ class FilterSetFilterForFieldTests(TestCase):
         f = User._meta.get_field('first_name')
         result = FilterSet.filter_for_field(f, 'first_name')
         self.assertIsInstance(result, CharFilter)
+
+    def test_unknown_field_type_error(self):
+        f = NetworkSetting._meta.get_field('mask')
+
+        with self.assertRaises(AssertionError) as excinfo:
+            FilterSet.filter_for_field(f, 'mask')
+
+        self.assertIn(
+            "FilterSet resolved field 'mask' with 'exact' lookup "
+            "to an unrecognized field type SubnetMaskField",
+            excinfo.exception.args[0])
 
     def test_symmetrical_selfref_m2m_field(self):
         f = Node._meta.get_field('adjacents')
@@ -300,6 +312,7 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Book
+                fields = '__all__'
 
         self.assertEqual(len(F.declared_filters), 0)
         self.assertEqual(len(F.base_filters), 3)
@@ -312,6 +325,7 @@ class FilterSetClassCreationTests(TestCase):
 
             class Meta:
                 model = Book
+                fields = '__all__'
 
         self.assertEqual(len(F.declared_filters), 1)
         self.assertEqual(len(F.base_filters), 4)
@@ -420,10 +434,22 @@ class FilterSetClassCreationTests(TestCase):
         self.assertListEqual(list(F.base_filters),
                              ['username', 'price'])
 
+    def test_meta_exlude_with_no_fields(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                exclude = ('price', )
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 2)
+        self.assertListEqual(list(F.base_filters),
+                             ['title', 'average_rating'])
+
     def test_filterset_class_inheritance(self):
         class F(FilterSet):
             class Meta:
                 model = Book
+                fields = '__all__'
 
         class G(F):
             pass
@@ -434,6 +460,7 @@ class FilterSetClassCreationTests(TestCase):
 
             class Meta:
                 model = Book
+                fields = '__all__'
 
         class G(F):
             pass
@@ -443,6 +470,7 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = Restaurant
+                fields = '__all__'
 
         self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
@@ -453,13 +481,6 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(set(F.base_filters), set(['name', 'serves_pizza']))
 
-    def test_custom_field_ignored(self):
-        class F(FilterSet):
-            class Meta:
-                model = NetworkSetting
-
-        self.assertEqual(list(F.base_filters.keys()), ['ip'])
-
     def test_custom_field_gets_filter_from_override(self):
         class F(FilterSet):
             filter_overrides = {
@@ -467,6 +488,7 @@ class FilterSetClassCreationTests(TestCase):
 
             class Meta:
                 model = NetworkSetting
+                fields = '__all__'
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 
@@ -474,22 +496,25 @@ class FilterSetClassCreationTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = User
+                fields = '__all__'
 
         class ProxyF(FilterSet):
             class Meta:
                 model = AdminUser
+                fields = '__all__'
 
         self.assertEqual(list(F.base_filters), list(ProxyF.base_filters))
 
-    @unittest.expectedFailure
     def test_filterset_for_mti_model(self):
         class F(FilterSet):
             class Meta:
                 model = Account
+                fields = '__all__'
 
         class FtiF(FilterSet):
             class Meta:
                 model = BankAccount
+                fields = '__all__'
 
         # fails due to 'account_ptr' getting picked up
         self.assertEqual(
@@ -719,7 +744,6 @@ class FilterSetOrderingTests(TestCase):
             f.qs, ['carl', 'alex', 'aaron', 'jacob'], lambda o: o.username)
 
 
-
 class FilterSetTogetherTests(TestCase):
 
     def setUp(self):
@@ -759,3 +783,20 @@ class FilterSetTogetherTests(TestCase):
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+
+
+@unittest.skip('TODO: remove when relevant deprecations have been completed')
+class MiscFilterSetTests(TestCase):
+
+    def test_no__getitem__(self):
+        # The DTL processes variable lookups by the following rules:
+        # https://docs.djangoproject.com/en/1.9/ref/templates/language/#variables
+        # A __getitem__ implementation precedes normal attribute access, and in
+        # the case of #58, will force the queryset to evaluate when it should
+        # not (eg, when rendering a blank form).
+        self.assertFalse(hasattr(FilterSet, '__getitem__'))
+
+    def test_no_qs_proxying(self):
+        # The FilterSet should not proxy .qs methods - just access .qs directly
+        self.assertFalse(hasattr(FilterSet, '__len__'))
+        self.assertFalse(hasattr(FilterSet, '__iter__'))

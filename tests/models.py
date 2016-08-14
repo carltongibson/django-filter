@@ -6,10 +6,14 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 
+REGULAR = 0
+MANAGER = 1
+ADMIN = 2
+
 STATUS_CHOICES = (
-    (0, 'Regular'),
-    (1, 'Manager'),
-    (2, 'Admin'),
+    (REGULAR, 'Regular'),
+    (MANAGER, 'Manager'),
+    (ADMIN, 'Admin'),
 )
 
 
@@ -53,6 +57,20 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
+
+
+@python_2_unicode_compatible
+class ManagerGroup(models.Model):
+    users = models.ManyToManyField(User,
+                                   limit_choices_to={'is_active': True},
+                                   related_name='member_of')
+    manager = models.ForeignKey(User,
+                                limit_choices_to=lambda: {'status': MANAGER},
+                                related_name='manager_of',
+                                on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.manager.name + ' group'
 
 
 @python_2_unicode_compatible
@@ -182,3 +200,13 @@ class Business(models.Model):
 
 class UUIDTestModel(models.Model):
     uuid = models.UUIDField()
+
+
+class SpacewalkRecord(models.Model):
+    """Cumulative space walk record.
+
+    See: https://en.wikipedia.org/wiki/List_of_cumulative_spacewalk_records
+
+    """
+    astronaut = models.CharField(max_length=100)
+    duration = models.DurationField()

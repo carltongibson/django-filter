@@ -20,12 +20,29 @@ from .fields import (
 
 
 __all__ = [
-    'Filter', 'CharFilter', 'BooleanFilter', 'ChoiceFilter',
-    'TypedChoiceFilter', 'MultipleChoiceFilter', 'DateFilter',
-    'DateTimeFilter', 'IsoDateTimeFilter', 'TimeFilter', 'ModelChoiceFilter',
-    'ModelMultipleChoiceFilter', 'NumberFilter', 'NumericRangeFilter', 'RangeFilter',
-    'DateRangeFilter', 'DateFromToRangeFilter', 'DateTimeFromToRangeFilter',
-    'TimeRangeFilter', 'AllValuesFilter', 'MethodFilter'
+    'AllValuesFilter',
+    'BooleanFilter',
+    'CharFilter',
+    'ChoiceFilter',
+    'DateFilter',
+    'DateFromToRangeFilter',
+    'DateRangeFilter',
+    'DateTimeFilter',
+    'DateTimeFromToRangeFilter',
+    'DurationFilter',
+    'Filter',
+    'IsoDateTimeFilter',
+    'MethodFilter',
+    'ModelChoiceFilter',
+    'ModelMultipleChoiceFilter',
+    'MultipleChoiceFilter',
+    'NumberFilter',
+    'NumericRangeFilter',
+    'RangeFilter',
+    'TimeFilter',
+    'TimeRangeFilter',
+    'TypedChoiceFilter',
+    'UUIDFilter',
 ]
 
 
@@ -247,6 +264,10 @@ class TimeFilter(Filter):
     field_class = forms.TimeField
 
 
+class DurationFilter(Filter):
+    field_class = forms.DurationField
+
+
 class ModelChoiceFilter(Filter):
     field_class = forms.ModelChoiceField
 
@@ -272,6 +293,8 @@ class NumericRangeFilter(Filter):
                     qs = self.get_method(qs)(**{'%s__startswith' % self.name: value.start})
                 if value.stop is not None:
                     qs = self.get_method(qs)(**{'%s__endswith' % self.name: value.stop})
+            if self.distinct:
+                qs = qs.distinct()
         return qs
 
 
@@ -288,16 +311,18 @@ class RangeFilter(Filter):
                     qs = self.get_method(qs)(**{'%s__gte' % self.name: value.start})
                 if value.stop is not None:
                     qs = self.get_method(qs)(**{'%s__lte' % self.name: value.stop})
+            if self.distinct:
+                qs = qs.distinct()
         return qs
 
 
 def _truncate(dt):
-    return dt.replace(hour=0, minute=0, second=0)
+    return dt.date()
 
 
 class DateRangeFilter(ChoiceFilter):
     options = {
-        '': (_('Any date'), lambda qs, name: qs.all()),
+        '': (_('Any date'), lambda qs, name: qs),
         1: (_('Today'), lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month,
@@ -331,6 +356,8 @@ class DateRangeFilter(ChoiceFilter):
             value = int(value)
         except (ValueError, TypeError):
             value = ''
+
+        assert value in self.options
         qs = self.options[value][1](qs, self.name)
         if self.distinct:
             qs = qs.distinct()
@@ -356,6 +383,15 @@ class AllValuesFilter(ChoiceFilter):
         qs = qs.order_by(self.name).values_list(self.name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
+
+
+class AllValuesMultipleFilter(MultipleChoiceFilter):
+    @property
+    def field(self):
+        qs = self.model._default_manager.distinct()
+        qs = qs.order_by(self.name).values_list(self.name, flat=True)
+        self.extra['choices'] = [(o, o) for o in qs]
+        return super(AllValuesMultipleFilter, self).field
 
 
 class BaseCSVFilter(Filter):

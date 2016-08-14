@@ -15,11 +15,12 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import remote_field, remote_model
+from .compat import remote_field, remote_model, remote_queryset
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter)
-from .utils import try_dbfield, get_model_field, resolve_field
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
+                      DurationFilter)
+from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field, deprecate
 
 
 ORDER_BY_FIELD = 'o'
@@ -60,10 +61,15 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
                       filter_for_reverse_field=None):
     field_dict = OrderedDict()
-    opts = model._meta
-    if fields is None:
-        fields = [f.name for f in sorted(opts.fields + opts.many_to_many)
-                  if not isinstance(f, models.AutoField)]
+
+    # Setting exclude with no fields implies all other fields.
+    if exclude is not None and fields is None:
+        fields = '__all__'
+
+    # All implies all db fields associated with a filter_class.
+    if fields == '__all__':
+        fields = get_all_model_fields(model)
+
     # Loop through the list of fields.
     for f in fields:
         # Skip the field if excluded.
@@ -128,6 +134,19 @@ def get_full_clean_override(together):
 
 class FilterSetOptions(object):
     def __init__(self, options=None):
+        if getattr(options, 'model', None) is not None:
+            if not hasattr(options, 'fields') and not hasattr(options, 'exclude'):
+                deprecate(
+                    "Not setting Meta.fields with Meta.model is undocumented behavior "
+                    "and may result in unintentionally exposing filter fields. This has "
+                    "been deprecated in favor of setting Meta.fields = '__all__' or by "
+                    "setting the Meta.exclude attribute.", 1)
+
+            elif getattr(options, 'fields', -1) is None:
+                deprecate(
+                    "Setting 'Meta.fields = None' is undocumented behavior and has been "
+                    "deprecated in favor of Meta.fields = '__all__'.", 1)
+
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
@@ -155,10 +174,11 @@ class FilterSetMetaclass(type):
 
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
+
+        # TODO: replace with deprecations
+        # if opts.model and opts.fields:
         if opts.model:
-            filters = filters_for_model(opts.model, opts.fields, opts.exclude,
-                                        new_class.filter_for_field,
-                                        new_class.filter_for_reverse_field)
+            filters = new_class.filters_for_model(opts.model, opts)
             filters.update(declared_filters)
         else:
             filters = declared_filters
@@ -195,27 +215,27 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.TimeField: {
         'filter_class': TimeFilter
     },
+    models.DurationField: {
+        'filter_class': DurationFilter
+    },
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
+            'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
         }
     },
     models.ForeignKey: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
-            'to_field_name': remote_field(f).field_name
+            'queryset': remote_queryset(f),
+            'to_field_name': remote_field(f).field_name,
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
-            'queryset': remote_model(f)._default_manager.complex_filter(
-                remote_field(f).limit_choices_to),
+            'queryset': remote_queryset(f),
         }
     },
     models.DecimalField: {
@@ -289,14 +309,21 @@ class BaseFilterSet(object):
             filter_.parent = self
 
     def __iter__(self):
+        deprecate('QuerySet methods are no longer proxied.')
         for obj in self.qs:
             yield obj
 
     def __len__(self):
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs.count()
 
     def __getitem__(self, key):
+        deprecate('QuerySet methods are no longer proxied.')
         return self.qs[key]
+
+    def count(self):
+        deprecate('QuerySet methods are no longer proxied.')
+        return self.qs.count()
 
     @property
     def qs(self):
@@ -352,9 +379,6 @@ class BaseFilterSet(object):
             self._qs = qs
 
         return self._qs
-
-    def count(self):
-        return self.qs.count()
 
     @property
     def form(self):
@@ -418,6 +442,21 @@ class BaseFilterSet(object):
         return [order_choice]
 
     @classmethod
+    def filters_for_model(cls, model, opts):
+        # TODO: remove with deprecations - this emulates the old behavior
+        fields = opts.fields
+        if fields is None:
+            DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
+            DEFAULTS.update(cls.filter_overrides)
+            fields = get_all_model_fields(model, field_types=DEFAULTS.keys())
+
+        return filters_for_model(
+            model, fields, opts.exclude,
+            cls.filter_for_field,
+            cls.filter_for_reverse_field
+        )
+
+    @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):
         f, lookup_type = resolve_field(f, lookup_expr)
 
@@ -430,8 +469,13 @@ class BaseFilterSet(object):
         filter_class, params = cls.filter_for_lookup(f, lookup_type)
         default.update(params)
 
-        if filter_class is not None:
-            return filter_class(**default)
+        assert filter_class is not None, (
+            "%s resolved field '%s' with '%s' lookup to an unrecognized field "
+            "type %s. Try adding an override to 'filter_overrides'. See: "
+            "https://django-filter.readthedocs.io/en/latest/usage.html#overriding-default-filters"
+        ) % (cls.__name__, name, lookup_expr, f.__class__.__name__)
+
+        return filter_class(**default)
 
     @classmethod
     def filter_for_reverse_field(cls, f, name):
@@ -461,6 +505,9 @@ class BaseFilterSet(object):
             return None, {}
 
         # perform lookup specific checks
+        if lookup_type == 'exact' and f.choices:
+            return ChoiceFilter, {'choices': f.choices}
+
         if lookup_type == 'isnull':
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
 
@@ -485,10 +532,6 @@ class BaseFilterSet(object):
             )
 
             return ConcreteRangeFilter, params
-
-        # Default behavior
-        if f.choices:
-            return ChoiceFilter, {'choices': f.choices}
 
         return filter_class, params
 
@@ -523,7 +566,7 @@ class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
 
 
 def filterset_factory(model):
-    meta = type(str('Meta'), (object,), {'model': model})
+    meta = type(str('Meta'), (object,), {'model': model, 'fields': '__all__'})
     filterset = type(str('%sFilterSet' % model._meta.object_name),
                      (FilterSet,), {'Meta': meta})
     return filterset

@@ -12,8 +12,8 @@ Full documentation on `read the docs`_.
 Requirements
 ------------
 
-* Python 2.7, 3.2, 3.3, 3.4, 3.5
-* Django 1.8, 1.9
+* Python 2.7, 3.3, 3.4, 3.5
+* Django 1.8, 1.9, 1.10
 
 Installation
 ------------
@@ -69,5 +69,5 @@ Support
 If you have questions about usage or development you can join the
 `mailing list`_.
 
-.. _`read the docs`: https://django-filter.readthedocs.org/en/latest/
+.. _`read the docs`: https://django-filter.readthedocs.io/en/latest/
 .. _`mailing list`: http://groups.google.com/group/django-filter

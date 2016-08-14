@@ -1,12 +1,22 @@
+import warnings
+
 from django.conf import settings
+from django.core.exceptions import FieldError
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel
-from django.utils import timezone
+from django.utils import six, timezone
 
-from .compat import remote_model
+from .compat import remote_field, remote_model
+from .exceptions import FieldLookupError
+
+
+def deprecate(msg, level_modifier=0):
+    warnings.warn(
+        "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
+        DeprecationWarning, stacklevel=3 + level_modifier)
 
 
 def try_dbfield(fn, field_class):
@@ -27,6 +37,25 @@ def try_dbfield(fn, field_class):
         data = fn(cls)
         if data:
             return data
+
+
+# TODO: remove field_types arg with deprecations
+def get_all_model_fields(model, field_types=None):
+    opts = model._meta
+
+    if field_types is not None:
+        return [
+            f.name for f in sorted(opts.fields + opts.many_to_many)
+            if not isinstance(f, models.AutoField) and
+            not (getattr(remote_field(f), 'parent_link', False)) and
+            f.__class__ in field_types
+        ]
+
+    return [
+        f.name for f in sorted(opts.fields + opts.many_to_many)
+        if not isinstance(f, models.AutoField) and
+        not (getattr(remote_field(f), 'parent_link', False))
+    ]
 
 
 def get_model_field(model, field_name):
@@ -78,22 +107,25 @@ def resolve_field(model_field, lookup_expr):
 
     assert len(lookups) > 0
 
-    while lookups:
-        name = lookups[0]
-        # If there is just one part left, try first get_lookup() so
-        # that if the lhs supports both transform and lookup for the
-        # name, then lookup will be picked.
-        if len(lookups) == 1:
-            final_lookup = lhs.get_lookup(name)
-            if not final_lookup:
-                # We didn't find a lookup. We are going to interpret
-                # the name as transform, and do an Exact lookup against
-                # it.
-                lhs = query.try_transform(lhs, name, lookups)
-                final_lookup = lhs.get_lookup('exact')
-            return lhs.output_field, final_lookup.lookup_name
-        lhs = query.try_transform(lhs, name, lookups)
-        lookups = lookups[1:]
+    try:
+        while lookups:
+            name = lookups[0]
+            # If there is just one part left, try first get_lookup() so
+            # that if the lhs supports both transform and lookup for the
+            # name, then lookup will be picked.
+            if len(lookups) == 1:
+                final_lookup = lhs.get_lookup(name)
+                if not final_lookup:
+                    # We didn't find a lookup. We are going to interpret
+                    # the name as transform, and do an Exact lookup against
+                    # it.
+                    lhs = query.try_transform(lhs, name, lookups)
+                    final_lookup = lhs.get_lookup('exact')
+                return lhs.output_field, final_lookup.lookup_name
+            lhs = query.try_transform(lhs, name, lookups)
+            lookups = lookups[1:]
+    except FieldError as e:
+        six.raise_from(FieldLookupError(model_field, lookup_expr), e)
 
 
 def handle_timezone(value):
