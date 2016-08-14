@@ -1,8 +1,19 @@
-Version 0.14.0 (unreleased)
+Version 0.14.0 (2016-08-14)
 ---------------------------
 
 * Add support for filtering on DurationField (new in Django 1.8).
 
+* Fix UUIDFilter import issue
+
+* Improve FieldLookupError message
+
+* Add filters_for_model to improve extensibility
+
+* Fix limit_choices_to behavior with callables
+
+* Fix distinct behavior for range filters
+
+* Various Minor Clean up issues.
 
 Version 0.13.0 (2016-03-11)
 ---------------------------
