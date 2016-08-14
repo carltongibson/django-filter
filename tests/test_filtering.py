@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import AllValuesFilter
-from django_filters.filters import BaseInFilter
+from django_filters.filters import AllValuesMultipleFilter
 from django_filters.filters import CharFilter
 from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
@@ -867,6 +867,29 @@ class AllValuesFilterTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list(User.objects.all()))
+
+
+class AllValuesMultipleFilterTests(TestCase):
+
+    def test_filtering(self):
+        User.objects.create(username='alex')
+        User.objects.create(username='jacob')
+        User.objects.create(username='aaron')
+
+        class F(FilterSet):
+            username = AllValuesMultipleFilter()
+
+            class Meta:
+                model = User
+                fields = ['username']
+
+        self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F({'username': ['alex']}).qs),
+                         [User.objects.get(username='alex')])
+        self.assertEqual(list(F({'username': ['alex', 'jacob']}).qs),
+                         list(User.objects.filter(username__in=['alex', 'jacob'])))
+        self.assertEqual(list(F({'username': ['jose']}).qs),
+                         list())
 
 
 class MethodFilterTests(TestCase):
