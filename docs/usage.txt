@@ -245,7 +245,7 @@ filtering. View more information in the :ref:`method reference <filter-method>`.
 .. code-block:: python
 
     class F(django_filters.FilterSet):
-        username = MethodFilter(action='my_custom_filter')
+        username = CharFilter(method='my_custom_filter')
 
         class Meta:
             model = User
