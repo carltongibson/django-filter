@@ -114,7 +114,7 @@ Any additional keyword arguments are stored as the ``extra`` parameter on the fi
 ModelChoiceFilter and ModelMultipleChoiceFilter arguments
 ---------------------------------------------------------
 
-These arguments apply specifically to ModelChoiceFiler and
+These arguments apply specifically to ModelChoiceFilter and
 ModelMultipleChoiceFilter only.
 
 ``queryset``

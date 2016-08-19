@@ -174,21 +174,21 @@ class UUIDFilter(Filter):
 
 class MultipleChoiceFilter(Filter):
     """
-    This filter preforms OR(by default) or AND(using conjoined=True) query
+    This filter performs OR(by default) or AND(using conjoined=True) query
     on the selected options.
 
-    Advanced Use
-    ------------
+    Advanced usage
+    --------------
     Depending on your application logic, when all or no choices are selected,
-    filtering may be a noop. In this case you may wish to avoid the filtering
-    overhead, particularly if using a `distinct` call.
+    filtering may be a no-operation. In this case you may wish to avoid the
+    filtering overhead, particularly if using a `distinct` call.
 
-    Set `always_filter` to False after instantiation to enable the default
-    `is_noop` test.
+    Set `always_filter` to `False` after instantiation to enable the default
+    `is_noop` test. You can override `is_noop` if you need a different test
+    for your application.
 
-    Override `is_noop` if you require a different test for your application.
-
-    `distinct` defaults to True on this class to preserve backward compatibility.
+    `distinct` defaults to `True` on this class to preserve backward
+    compatibility.
     """
     field_class = forms.MultipleChoiceField
 
@@ -205,7 +205,8 @@ class MultipleChoiceFilter(Filter):
 
     def is_noop(self, qs, value):
         """
-        Return True to short-circuit unnecessary and potentially slow filtering.
+        Return `True` to short-circuit unnecessary and potentially slow
+        filtering.
         """
         if self.always_filter:
             return False
