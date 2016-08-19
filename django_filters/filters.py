@@ -195,12 +195,8 @@ class MultipleChoiceFilter(Filter):
     always_filter = True
 
     def __init__(self, *args, **kwargs):
-        distinct = kwargs.get('distinct', True)
-        kwargs['distinct'] = distinct
-
-        conjoined = kwargs.pop('conjoined', False)
-        self.conjoined = conjoined
-
+        kwargs['distinct'] = kwargs.get('distinct', True)
+        self.conjoined = kwargs.pop('conjoined', False)
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
