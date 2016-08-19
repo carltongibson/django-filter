@@ -37,7 +37,6 @@ from .models import BankAccount
 from .models import Node
 from .models import DirectedNode
 from .models import Worker
-from .models import HiredWorker
 from .models import Business
 from .models import UUIDTestModel
 
