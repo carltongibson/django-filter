@@ -217,26 +217,26 @@ class MultipleChoiceFilter(Filter):
         return False
 
     def filter(self, qs, value):
-        value = value or ()  # Make sure we have an iterable
+        if not value:
+            # Even though not a noop, no point filtering if empty.
+            return qs
 
         if self.is_noop(qs, value):
             return qs
 
-        # Even though not a noop, no point filtering if empty
-        if not value:
-            return qs
-
-        q = Q()
+        if not self.conjoined:
+            q = Q()
         for v in set(value):
+            predicate = {self.name: v}
             if self.conjoined:
-                qs = self.get_method(qs)(**{self.name: v})
+                qs = self.get_method(qs)(**predicate)
             else:
-                q |= Q(**{self.name: v})
+                q |= Q(**predicate)
 
-        if self.distinct:
-            return self.get_method(qs)(q).distinct()
+        if not self.conjoined:
+            qs = self.get_method(qs)(q)
 
-        return self.get_method(qs)(q)
+        return qs.distinct() if self.distinct else qs
 
 
 class DateFilter(Filter):
