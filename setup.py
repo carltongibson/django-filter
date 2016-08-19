@@ -34,7 +34,7 @@ setup(
     maintainer_email='carlton.gibson@noumenal.es',
     url='http://github.com/carltongibson/django-filter/tree/master',
     packages=find_packages(exclude=['tests']),
-    package_data = {
+    package_data={
         'django_filters': [
             'locale/*/LC_MESSAGES/*',
         ],

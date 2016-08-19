@@ -153,7 +153,6 @@ class ChoiceFilterTests(TestCase):
         f = F({'status': '0'})
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
 
-
     def test_filtering_on_explicitly_defined_field(self):
         """
         Test for #30.
@@ -167,6 +166,7 @@ class ChoiceFilterTests(TestCase):
 
         class F(FilterSet):
             status = ChoiceFilter(choices=STATUS_CHOICES)
+
             class Meta:
                 model = User
                 fields = ['status']
@@ -184,7 +184,6 @@ class ChoiceFilterTests(TestCase):
 
         f = F({'status': '0'})
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
-
 
 
 class MultipleChoiceFilterTests(TestCase):
@@ -941,7 +940,6 @@ class MethodFilterTests(TestCase):
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
 
-
     def test_filtering_default_attribute_action(self):
         User.objects.create(username='mike')
         User.objects.create(username='jake')
@@ -969,7 +967,6 @@ class MethodFilterTests(TestCase):
         self.assertEqual(list(F({'username': 'aaron'}).qs),
                          [User.objects.get(username='mike'),
                           User.objects.get(username='jake')])
-
 
     def test_filtering_default(self):
         User.objects.create(username='mike')
