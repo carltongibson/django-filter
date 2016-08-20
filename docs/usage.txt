@@ -249,16 +249,16 @@ filter attribute ``username``
 ::
 
     class F(django_filters.FilterSet):
-            username = MethodFilter(action='my_custom_filter')
+        username = MethodFilter(action='my_custom_filter')
 
-            class Meta:
-                model = User
-                fields = ['username']
+        class Meta:
+            model = User
+            fields = ['username']
 
-            def my_custom_filter(self, queryset, value):
-                return queryset.filter(
-                    username=value
-                )
+        def my_custom_filter(self, queryset, value):
+            return queryset.filter(
+                username=value
+            )
 
 
 The filter function can also be defined outside of the filter class scope.
