@@ -252,7 +252,7 @@ class MultipleChoiceFilter(Filter):
         if not self.conjoined:
             q = Q()
         for v in set(value):
-            predicate = {self.name: v}
+            predicate = self.get_filter_predicate(v)
             if self.conjoined:
                 qs = self.get_method(qs)(**predicate)
             else:
@@ -262,6 +262,9 @@ class MultipleChoiceFilter(Filter):
             qs = self.get_method(qs)(q)
 
         return qs.distinct() if self.distinct else qs
+
+    def get_filter_predicate(self, v):
+        return {self.name: v}
 
 
 class DateFilter(Filter):
