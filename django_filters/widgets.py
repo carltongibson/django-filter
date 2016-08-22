@@ -68,9 +68,9 @@ class LinkWidget(forms.Widget):
         except AttributeError:
             url = urlencode(data)
         return self.option_string() % {
-             'attrs': selected and ' class="selected"' or '',
-             'query_string': url,
-             'label': force_text(option_label)
+            'attrs': selected and ' class="selected"' or '',
+            'query_string': url,
+            'label': force_text(option_label)
         }
 
     def option_string(self):

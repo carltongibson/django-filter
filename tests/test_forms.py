@@ -184,8 +184,11 @@ class FilterSetFormTests(TestCase):
                 order_by = True
 
         f = F().form
-        self.assertEqual(f.fields['o'].choices,
-            [('username', 'Username'), ('-username', 'Username (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
+        self.assertEqual(f.fields['o'].choices, [
+            ('username', 'Username'),
+            ('-username', 'Username (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
 
     def test_ordering_uses_filter_label(self):
         class F(FilterSet):
@@ -197,8 +200,11 @@ class FilterSetFormTests(TestCase):
                 order_by = True
 
         f = F().form
-        self.assertEqual(f.fields['o'].choices,
-            [('username', 'Account'), ('-username', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
+        self.assertEqual(f.fields['o'].choices, [
+            ('username', 'Account'),
+            ('-username', 'Account (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
 
     def test_ordering_uses_explicit_filter_name(self):
         class F(FilterSet):
@@ -210,8 +216,11 @@ class FilterSetFormTests(TestCase):
                 order_by = True
 
         f = F().form
-        self.assertEqual(f.fields['o'].choices,
-            [('account', 'Account'), ('-account', 'Account (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
+        self.assertEqual(f.fields['o'].choices, [
+            ('account', 'Account'),
+            ('-account', 'Account (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
 
     def test_ordering_with_overridden_field_name(self):
         """
@@ -260,8 +269,11 @@ class FilterSetFormTests(TestCase):
 
         f = F().form
         self.assertIn('order', f.fields)
-        self.assertEqual(f.fields['order'].choices,
-            [('username', 'Username'), ('-username', 'Username (descending)'), ('status', 'Status'), ('-status', 'Status (descending)')])
+        self.assertEqual(f.fields['order'].choices, [
+            ('username', 'Username'),
+            ('-username', 'Username (descending)'),
+            ('status', 'Status'),
+            ('-status', 'Status (descending)')])
 
     def test_ordering_with_custom_display_names(self):
         class F(FilterSet):

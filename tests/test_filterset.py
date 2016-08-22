@@ -37,7 +37,6 @@ from .models import BankAccount
 from .models import Node
 from .models import DirectedNode
 from .models import Worker
-from .models import HiredWorker
 from .models import Business
 from .models import UUIDTestModel
 
@@ -392,9 +391,10 @@ class FilterSetClassCreationTests(TestCase):
 
                 class Meta:
                     model = Book
-                    fields = ('username', 'price', 'other')
+                    fields = ('username', 'price', 'other', 'another')
         self.assertEqual(excinfo.exception.args, (
-            "Meta.fields contains a field that isn't defined on this FilterSet: other",))
+            "Meta.fields contains a field that isn't defined "
+            "on this FilterSet: other",))
 
     def test_meta_fields_dictionary_containing_unknown(self):
         with self.assertRaises(TypeError):
@@ -405,7 +405,7 @@ class FilterSetClassCreationTests(TestCase):
                     fields = {'id': ['exact'],
                               'title': ['exact'],
                               'other': ['exact'],
-                             }
+                              }
 
     def test_meta_exlude_with_declared_and_declared_wins(self):
         class F(FilterSet):
@@ -660,6 +660,7 @@ class FilterSetOrderingTests(TestCase):
     def test_ordering_uses_filter_name(self):
         class F(FilterSet):
             account = CharFilter(name='username')
+
             class Meta:
                 model = User
                 fields = ['account', 'status']
@@ -672,6 +673,7 @@ class FilterSetOrderingTests(TestCase):
     def test_reverted_ordering_uses_filter_name(self):
         class F(FilterSet):
             account = CharFilter(name='username')
+
             class Meta:
                 model = User
                 fields = ['account', 'status']
@@ -725,6 +727,7 @@ class FilterSetOrderingTests(TestCase):
 
         class F(FilterSet):
             debug = True
+
             class Meta:
                 model = User
                 fields = ['username', 'status']

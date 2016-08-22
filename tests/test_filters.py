@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from datetime import date, time, timedelta, datetime
 import mock
 import warnings
-import unittest
 
 from django import forms
 from django.test import TestCase, override_settings
@@ -112,29 +111,32 @@ class FilterTests(TestCase):
 
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
-                spec=['__call__']) as mocked:
+                               spec=['__call__']) as mocked:
             f = Filter(name='somefield', label='somelabel',
-                widget='somewidget')
+                       widget='somewidget')
             f.field
             mocked.assert_called_once_with(required=False,
-                label='somelabel', widget='somewidget', help_text=mock.ANY)
+                                           label='somelabel',
+                                           widget='somewidget',
+                                           help_text=mock.ANY)
 
     def test_field_extra_params(self):
         with mock.patch.object(Filter, 'field_class',
-                spec=['__call__']) as mocked:
+                               spec=['__call__']) as mocked:
             f = Filter(someattr='someattr')
             f.field
             mocked.assert_called_once_with(required=mock.ANY,
-                label=mock.ANY, widget=mock.ANY, help_text=mock.ANY,
-                someattr='someattr')
+                                           label=mock.ANY, widget=mock.ANY,
+                                           help_text=mock.ANY,
+                                           someattr='someattr')
 
     def test_field_with_required_filter(self):
         with mock.patch.object(Filter, 'field_class',
-                spec=['__call__']) as mocked:
+                               spec=['__call__']) as mocked:
             f = Filter(required=True)
             f.field
-            mocked.assert_called_once_with(required=True,
-                label=mock.ANY, widget=mock.ANY, help_text=mock.ANY)
+            mocked.assert_called_once_with(required=True, label=mock.ANY,
+                                           widget=mock.ANY, help_text=mock.ANY)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
@@ -436,7 +438,7 @@ class MultipleChoiceFilterTests(TestCase):
              [5, ]),
             ((books[3].pk, books[4].pk),
              []),
-            )
+        )
         users = User.objects.all()
 
         for item in filter_list:
@@ -858,7 +860,8 @@ class AllValuesFilterTests(TestCase):
     def test_default_field_with_assigning_model(self):
         mocked = mock.Mock()
         chained_call = '.'.join(['_default_manager', 'distinct.return_value',
-            'order_by.return_value', 'values_list.return_value'])
+                                 'order_by.return_value',
+                                 'values_list.return_value'])
         mocked.configure_mock(**{chained_call: iter([])})
         f = AllValuesFilter()
         f.model = mocked

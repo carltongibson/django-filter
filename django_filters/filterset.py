@@ -15,7 +15,7 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import remote_field, remote_model, remote_queryset
+from .compat import remote_field, remote_queryset
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
