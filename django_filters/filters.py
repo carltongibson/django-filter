@@ -264,7 +264,10 @@ class MultipleChoiceFilter(Filter):
         return qs.distinct() if self.distinct else qs
 
     def get_filter_predicate(self, v):
-        return {self.name: v}
+        try:
+            return {self.name: getattr(v, self.field.to_field_name)}
+        except (AttributeError, TypeError):
+            return {self.name: v}
 
 
 class DateFilter(Filter):
