@@ -211,6 +211,11 @@ class MultipleChoiceFilter(Filter):
     filtering may be a no-operation. In this case you may wish to avoid the
     filtering overhead, particularly if using a `distinct` call.
 
+    You can override `get_filter_predicate` to use a custom filter.
+    By default it will use the filter's name for the key, and the value will
+    be the model object - or in case of passing in `to_field_name` the
+    value of that attribute on the model.
+
     Set `always_filter` to `False` after instantiation to enable the default
     `is_noop` test. You can override `is_noop` if you need a different test
     for your application.

@@ -158,7 +158,15 @@ ModelMultipleChoiceFilter only.
 ``queryset``
 ~~~~~~~~~~~~
 
-``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to
+operate on which must be passed as a kwarg.
+
+``to_field_name``
+~~~~~~~~~~~~~~~~~
+
+If you pass in ``to_field_name`` (which gets forwarded to the Django field),
+it will be used also in the default ``get_filter_predicate`` implementation
+as the model's attribute.
 
 
 Filters
@@ -324,6 +332,33 @@ for ``ManyToManyField`` by default.
 As with ``ModelChoiceFilter``, if automatically instantiated,
 ``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
 field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+
+To use a custom field name for the lookup, you can use ``to_field_name``::
+
+    class FooFilter(BaseFilterSet):
+        foo = django_filters.filters.ModelMultipleChoiceFilter(
+            name='attr__uuid',
+            to_field_name='uuid',
+            queryset=Foo.objects.all(),
+        )
+
+If you want to use a custom queryset, e.g. to add annotated fields, this can be
+done as follows::
+
+    class MyMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilter):
+        def get_filter_predicate(self, v):
+            return {'annotated_field': v.annotated_field}
+
+        def filter(self, qs, value):
+            if value:
+                qs = qs.qs_with_annotated_field()
+                qs = super().filter(qs, value)
+            return qs
+
+    foo = MyMultipleChoiceFilter(
+        to_field_name='annotated_field',
+        queryset=Model.objects.qs_with_annotated_field(),
+    )
 
 ``NumberFilter``
 ~~~~~~~~~~~~~~~~
