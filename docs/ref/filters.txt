@@ -274,7 +274,7 @@ Matches on a date and time.  Used with ``DateTimeField`` by default.
 
 Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often used in APIs, and are employed by default by Django REST Framework.
 
-Example. ::
+Example::
 
     class F(FilterSet):
         """Filter for Books by date published, using ISO 8601 formatted dates"""
@@ -301,10 +301,11 @@ and week designators, e.g. 'P3DT10H22M').
 Similar to a ``ChoiceFilter`` except it works with related models, used for
 ``ForeignKey`` by default.
 
-If automatically instantiated ``ModelChoiceFilter`` will use the default ``QuerySet`` for the
-related field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+If automatically instantiated, ``ModelChoiceFilter`` will use the default
+``QuerySet`` for the related field. If manually instantiated you **must**
+provide the ``queryset`` kwarg.
 
-Example. ::
+Example::
 
     class F(FilterSet):
         """Filter for books by author"""
@@ -320,9 +321,9 @@ Example. ::
 Similar to a ``MultipleChoiceFilter`` except it works with related models, used
 for ``ManyToManyField`` by default.
 
-As with ``ModelChoiceFilter``, if automatically instantiated ``ModelMultipleChoiceFilter`` will use
-the default ``QuerySet`` for the related field. If manually instantiated you **must** provide the
-``queryset`` kwarg.
+As with ``ModelChoiceFilter``, if automatically instantiated,
+``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
+field. If manually instantiated you **must** provide the ``queryset`` kwarg.
 
 ``NumberFilter``
 ~~~~~~~~~~~~~~~~
@@ -516,7 +517,7 @@ this filter class is used in conjunction with another filter class, as this
 class **only** validates that the incoming value is comma-separated. The secondary
 filter is then used to validate the individual values.
 
-Example. ::
+Example::
 
     class NumberInFilter(BaseInFilter, NumericFilter):
         pass
@@ -543,7 +544,7 @@ This is a base class used for creating RANGE lookup filters. It behaves
 identically to ``BaseInFilter`` with the exception that it expects only two
 comma-separated values.
 
-Example. ::
+Example::
 
     class NumberRangeFilter(BaseInFilter, NumericFilter):
         pass
@@ -571,7 +572,7 @@ This is a ``Filter`` that will allow you to run a method that exists on the filt
 this filter is a property of. Set the `action` to a string that will map to a method on the
 filter set class. `action` will default to ``filter_{value-of-name-attribute}``
 
-Example. ::
+Example::
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
