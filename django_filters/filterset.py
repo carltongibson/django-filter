@@ -151,7 +151,12 @@ class FilterSetOptions(object):
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
 
+        self.filter_overrides = getattr(options, 'filter_overrides', {})
+
         self.order_by = getattr(options, 'order_by', False)
+        self.order_by_field = getattr(options, 'order_by_field', ORDER_BY_FIELD)
+
+        self.strict = getattr(options, 'strict', STRICTNESS.RETURN_NO_RESULTS)
 
         self.form = getattr(options, 'form', forms.Form)
 
@@ -175,6 +180,10 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
 
+        if hasattr(new_class, 'filter_overrides'):
+            deprecate('filter_overrides has been moved to the Meta class.')
+            new_class._meta.filter_overrides = new_class.filter_overrides
+
         # TODO: replace with deprecations
         # if opts.model and opts.fields:
         if opts.model:
@@ -187,6 +196,14 @@ class FilterSetMetaclass(type):
         if not_defined:
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
+
+        if hasattr(new_class, 'strict'):
+            deprecate('strict has been deprecated. Use Meta.strict instead.')
+            new_class._meta.strict = new_class.strict
+
+        if hasattr(new_class, 'order_by_field'):
+            deprecate('order_by_field has been moved to the Meta class.')
+            new_class._meta.order_by_field = new_class.order_by_field
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
@@ -284,11 +301,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 
 
 class BaseFilterSet(object):
-    filter_overrides = {}
-    order_by_field = ORDER_BY_FIELD
-    # What to do on on validation errors
-    strict = STRICTNESS.RETURN_NO_RESULTS
-
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
         self.data = data or {}
@@ -296,8 +308,9 @@ class BaseFilterSet(object):
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
         self.form_prefix = prefix
-        if strict is not None:
-            self.strict = strict
+
+        # What to do on on validation errors
+        self.strict = self._meta.strict if strict is None else strict
 
         self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -360,8 +373,8 @@ class BaseFilterSet(object):
                     qs = filter_.filter(qs, value)
 
             if self._meta.order_by:
-                order_field = self.form.fields[self.order_by_field]
-                data = self.form[self.order_by_field].data
+                order_field = self.form.fields[self._meta.order_by_field]
+                data = self.form[self._meta.order_by_field].data
                 ordered_value = None
                 try:
                     ordered_value = order_field.clean(data)
@@ -371,7 +384,7 @@ class BaseFilterSet(object):
                 # With a None-queryset, ordering must be enforced (#84).
                 if (ordered_value in EMPTY_VALUES and
                         self.strict == STRICTNESS.RETURN_NO_RESULTS):
-                    ordered_value = self.form.fields[self.order_by_field].choices[0][0]
+                    ordered_value = self.form.fields[self._meta.order_by_field].choices[0][0]
 
                 if ordered_value:
                     qs = qs.order_by(*self.get_order_by(ordered_value))
@@ -386,7 +399,7 @@ class BaseFilterSet(object):
             fields = OrderedDict([
                 (name, filter_.field)
                 for name, filter_ in six.iteritems(self.filters)])
-            fields[self.order_by_field] = self.ordering_field
+            fields[self._meta.order_by_field] = self.ordering_field
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
             if self._meta.together:
@@ -447,7 +460,7 @@ class BaseFilterSet(object):
         fields = opts.fields
         if fields is None:
             DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-            DEFAULTS.update(cls.filter_overrides)
+            DEFAULTS.update(opts.filter_overrides)
             fields = get_all_model_fields(model, field_types=DEFAULTS.keys())
 
         return filters_for_model(
@@ -494,7 +507,8 @@ class BaseFilterSet(object):
     @classmethod
     def filter_for_lookup(cls, f, lookup_type):
         DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-        DEFAULTS.update(cls.filter_overrides)
+        if hasattr(cls, '_meta'):
+            DEFAULTS.update(cls._meta.filter_overrides)
 
         data = try_dbfield(DEFAULTS.get, f.__class__) or {}
         filter_class = data.get('filter_class')

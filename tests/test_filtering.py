@@ -855,11 +855,11 @@ class AllValuesFilterTests(TestCase):
 
         class F(FilterSet):
             username = AllValuesFilter()
-            strict = False
 
             class Meta:
                 model = User
                 fields = ['username']
+                strict = False
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'}).qs),
