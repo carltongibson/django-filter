@@ -195,7 +195,7 @@ class MultipleChoiceFilter(Filter):
     always_filter = True
 
     def __init__(self, *args, **kwargs):
-        kwargs['distinct'] = kwargs.get('distinct', True)
+        kwargs.setdefault('distinct', True)
         self.conjoined = kwargs.pop('conjoined', False)
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
