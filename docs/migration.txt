@@ -8,6 +8,42 @@ release has also been created to help with migration. It is compatible with
 both the existing and new APIs and will raise warnings for deprecated behavior.
 
 
+MethodFilter and Filter.action replaced by Filter.method
+--------------------------------------------------------
+Details: https://github.com/carltongibson/django-filter/pull/382
+
+The functionality of ``MethodFilter`` and ``Filter.action`` has been merged
+together and replaced by the ``Filter.method`` paramater. The ``method``
+parameter takes either a callable or the name of a ``FilterSet`` method. The
+signature now takes an additional ``name`` argument that is the name of the
+model field to be filtered on.
+
+Since ``method`` is now a parameter of all filters, inputs are validated and
+cleaned by its ``field_class``. The function will receive the cleaned value
+instead of the raw value.
+
+.. code-block:: python
+
+    # 0.x
+    class UserFilter(FilterSet):
+        last_login = filters.MethodFilter()
+
+        def filter_last_login(self, qs, value):
+            # try to convert value to datetime, which may fail.
+            if value and looks_like_a_date(value):
+                value = datetime(value)
+
+            return qs.filter(last_login=value})
+
+
+    # 1.0
+    class UserFilter(FilterSet):
+        last_login = filters.CharFilter(method='filter_last_login')
+
+        def filter_last_login(self, qs, name, value):
+            return qs.filter(**{name: value})
+
+
 QuerySet methods are no longer proxied
 --------------------------------------
 Details: https://github.com/carltongibson/django-filter/pull/440
