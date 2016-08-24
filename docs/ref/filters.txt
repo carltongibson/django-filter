@@ -351,14 +351,33 @@ done as follows::
 
         def filter(self, qs, value):
             if value:
-                qs = qs.qs_with_annotated_field()
+                qs = qs.annotate_with_custom_field()
                 qs = super().filter(qs, value)
             return qs
 
     foo = MyMultipleChoiceFilter(
         to_field_name='annotated_field',
-        queryset=Model.objects.qs_with_annotated_field(),
+        queryset=Model.objects.annotate_with_custom_field(),
     )
+
+The ``annotate_with_custom_field`` method would be defined through a custom
+QuerySet, which then gets used as the model's manager::
+
+    class CustomQuerySet(models.QuerySet):
+        def annotate_with_custom_field(self):
+            return self.annotate(
+                custom_field=Case(
+                    When(foo__isnull=False,
+                         then=F('foo__uuid')),
+                    When(bar__isnull=False,
+                         then=F('bar__uuid')),
+                    default=None,
+                ),
+            )
+
+    class MyModel(models.Model):
+        objects = CustomQuerySet.as_manager()
+
 
 ``NumberFilter``
 ~~~~~~~~~~~~~~~~
