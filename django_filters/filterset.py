@@ -180,6 +180,14 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
 
+        if hasattr(new_class, 'strict'):
+            deprecate('strict has been deprecated. Use Meta.strict instead.')
+            new_class._meta.strict = new_class.strict
+
+        if hasattr(new_class, 'order_by_field'):
+            deprecate('order_by_field has been moved to the Meta class.')
+            new_class._meta.order_by_field = new_class.order_by_field
+
         if hasattr(new_class, 'filter_overrides'):
             deprecate('filter_overrides has been moved to the Meta class.')
             new_class._meta.filter_overrides = new_class.filter_overrides
@@ -196,14 +204,6 @@ class FilterSetMetaclass(type):
         if not_defined:
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
-
-        if hasattr(new_class, 'strict'):
-            deprecate('strict has been deprecated. Use Meta.strict instead.')
-            new_class._meta.strict = new_class.strict
-
-        if hasattr(new_class, 'order_by_field'):
-            deprecate('order_by_field has been moved to the Meta class.')
-            new_class._meta.order_by_field = new_class.order_by_field
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
