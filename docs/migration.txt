@@ -13,7 +13,7 @@ MethodFilter and Filter.action replaced by Filter.method
 Details: https://github.com/carltongibson/django-filter/pull/382
 
 The functionality of ``MethodFilter`` and ``Filter.action`` has been merged
-together and replaced by the ``Filter.method`` paramater. The ``method``
+together and replaced by the ``Filter.method`` parameter. The ``method``
 parameter takes either a callable or the name of a ``FilterSet`` method. The
 signature now takes an additional ``name`` argument that is the name of the
 model field to be filtered on.
