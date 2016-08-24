@@ -90,6 +90,7 @@ the ``Meta.exclude`` attribute.
             exclude = ['password']
 
 
+
 Move FilterSet options to Meta class
 ------------------------------------
 Details: https://github.com/carltongibson/django-filter/issues/430
@@ -100,6 +101,7 @@ potential conflicts with declared filter names. This includes:
 * ``filter_overrides``
 * ``strict``
 * ``order_by_field``
+
 
 .. code-block:: python
 
