@@ -513,6 +513,21 @@ class ModelMultipleChoiceFilterTests(TestCase):
         self.assertIsInstance(field, forms.ModelMultipleChoiceField)
         self.assertEqual(field.queryset, qs)
 
+    def test_filtering_to_field_name(self):
+        qs = User.objects.all()
+        f = ModelMultipleChoiceFilter(name='first_name',
+                                      to_field_name='first_name',
+                                      queryset=qs)
+        user = User.objects.create(first_name='Firstname')
+
+        self.assertEqual(f.get_filter_predicate(user),
+                         {'first_name': 'Firstname'})
+        self.assertEqual(f.get_filter_predicate('FilterValue'),
+                         {'first_name': 'FilterValue'})
+
+        self.assertEqual(list(f.filter(qs, ['Firstname'])), [user])
+        self.assertEqual(list(f.filter(qs, [user])), [user])
+
 
 class NumberFilterTests(TestCase):
 
