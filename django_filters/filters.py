@@ -254,25 +254,23 @@ class MultipleChoiceFilter(Filter):
         if self.is_noop(qs, value):
             return qs
 
-        if not self.conjoined:
-            q = Q()
-        for v in set(value):
-            predicate = self.get_filter_predicate(v)
-            if self.conjoined:
-                qs = self.get_method(qs)(**predicate)
-            else:
-                q |= Q(**predicate)
+        values = set(self.map_values(set(value)))
+        if not values:
+            return qs
 
-        if not self.conjoined:
-            qs = self.get_method(qs)(q)
+        if self.conjoined:
+            for v in values:
+                qs = self.get_method(qs)(**{self.name: v})
+        else:
+            qs = self.get_method(qs)(**{'{!s}__in'.format(self.name): values})
 
         return qs.distinct() if self.distinct else qs
 
-    def get_filter_predicate(self, v):
+    def map_values(self, values):
         try:
-            return {self.name: getattr(v, self.field.to_field_name)}
-        except (AttributeError, TypeError):
-            return {self.name: v}
+            values = [getattr(v, self.field.to_field_name) for v in values]
+        except AttributeError:
+            return values
 
 
 class DateFilter(Filter):
