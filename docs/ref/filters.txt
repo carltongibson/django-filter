@@ -640,3 +640,81 @@ Example::
         class Meta:
             model = Book
             fields = ['published']
+
+
+.. _ordering-filter:
+
+``OrderingFilter``
+~~~~~~~~~~~~~~~~~~
+
+Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
+two additional arguments that are used to build the ordering choices.
+
+* ``fields`` is a mapping of {model field name: parameter name}. The
+  parameter names are exposed in the choices and mask/alias the field
+  names used in the ``order_by()`` call. Similar to field ``choices``,
+  ``fields`` accepts the 'list of two-tuples' syntax that retains order.
+  ``fields`` may also just be an iterable of strings. In this case, the
+  field names simply double as the exposed parameter names.
+
+* ``field_labels`` is an optional argument that allows you to customize
+  the display label for the corresponding parameter. It accepts a mapping
+  of {field name: human readable label}. Keep in mind that the key is the
+  field name, and not the exposed parameter name.
+
+.. code-block:: python
+
+    class UserFilter(FilterSet):
+        account = CharFilter(name='username')
+        status = NumberFilter(name='status')
+
+        o = OrderingFilter(
+            # tuple-mapping retains order
+            fields=(
+                ('username', 'account'),
+                ('first_name', 'first_name'),
+                ('last_name', 'last_name'),
+            },
+
+            # labels do not need to retain order
+            field_labels={
+                'username': 'User account',
+            }
+        )
+
+        class Meta:
+            model = User
+            fields = ['first_name', 'last_name']
+
+    >>> UserFilter().filter['o'].field.choices
+    [
+        ('account', 'User account'),
+        ('-account', 'User account (descending)'),
+        ('first_name', 'First name'),
+        ('-first_name', 'First name (descending)'),
+        ('last_name', 'Last name'),
+        ('-last_name', 'Last name (descending)'),
+    ]
+
+Additionally, you can just provide your own ``choices`` if you require
+explicit control over the exposed options. For example, when you might
+want to disable descending sort options.
+
+.. code-block:: python
+
+    class UserFilter(FilterSet):
+        account = CharFilter(name='username')
+        status = NumberFilter(name='status')
+
+        o = OrderingFilter(
+            choices=(
+                ('account', 'Account'),
+            ),
+            fields={
+                'username': 'account',
+            },
+        )
+
+This filter is also CSV-based, and accepts multiple ordering params. The
+default select widget does not enable the use of this, but it is useful
+for APIs.

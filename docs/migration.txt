@@ -118,3 +118,38 @@ potential conflicts with declared filter names. This includes:
             filter_overrides = {}
             strict = STRICTNESS.RAISE_VALIDATION_ERROR
             order_by_field = 'order'
+
+
+FilterSet ordering replaced by OrderingFilter
+---------------------------------------------
+Details: https://github.com/carltongibson/django-filter/pull/472
+
+The FilterSet ordering options and methods have been deprecated and replaced
+by :ref:`OrderingFilter <ordering-filter>`. Deprecated options include:
+
+
+* ``Meta.order_by``
+* ``Meta.order_by_field``
+
+These options retain backwards compatibility with the following caveats:
+
+* ``order_by`` asserts that ``Meta.fields`` is not using the dict syntax. This
+  previously was undefined behavior, however the migration code is unable to
+  support it.
+* Prior, if no ordering was specified in the request, the FilterSet implicitly
+  filtered by the first param in the ``order_by`` option. This behavior cannot
+  be easily emulated but can be fixed by ensuring that the passed in queryset
+  explicitly calls ``.order_by()``.
+
+  .. code-block:: python
+
+      filterset = MyFilterSet(queryset=MyModel.objects.order_by('field'))
+
+The following methods are deprecated and will raise an assertion if present
+on the FilterSet:
+
+* ``.get_order_by()``
+* ``.get_ordering_field()``
+
+To fix this, simply remove the methods from your class. You can subclass
+``OrderingFilter`` to migrate any custom logic.
