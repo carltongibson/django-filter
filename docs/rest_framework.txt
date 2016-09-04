@@ -1,0 +1,111 @@
+Django Rest Framework
+=====================
+
+Integration with `Django Rest Framework`__ is provided through a DRF-specific ``FilterSet`` and a `filter backend`__. These may be found in the ``rest_framework`` sub-package.
+
+__ http://www.django-rest-framework.org/
+__ http://www.django-rest-framework.org/api-guide/filtering/
+
+
+Quickstart
+----------
+
+Using the new ``FilterSet`` simply requires changing the import path. Instead of importing from ``django_filters``, import from the ``rest_framework`` sub-package.
+
+.. code-block:: python
+
+    from django_filters import rest_framework as filters
+
+    class ProductFilter(filters.FilterSet):
+        ...
+
+Your view class will also need to add ``DjangoFilterBackend`` to the ``filter_backends``.
+
+.. code-block:: python
+
+    from django_filters import rest_framework as filters
+
+    class ProductList(generics.ListAPIView):
+        queryset = Product.objects.all()
+        serializer_class = ProductSerializer
+        filter_backends = (filters.DjangoFilterBackend,)
+        filter_fields = ('category', 'in_stock')
+
+If you want to use the django-filter backend by default, add it to the ``DEFAULT_FILTER_BACKENDS`` setting.
+
+.. code-block:: python
+
+    # settings.py
+    REST_FRAMEWORK = {
+        'DEFAULT_FILTER_BACKENDS': (
+            'django_filters.rest_framework.DjangoFilterBackend',
+            ...
+        ),
+    }
+
+
+Adding a FilterSet with ``filter_class``
+----------------------------------------
+
+To enable filtering with a ``FilterSet``, add it to the ``filter_class`` parameter on your view class.
+
+.. code-block:: python
+
+    from rest_framework import generics
+    from django_filters import rest_framework as filters
+    from myapp import Product
+
+
+    class ProductFilter(filters.FilterSet):
+        min_price = django_filters.NumberFilter(name="price", lookup_expr='gte')
+        max_price = django_filters.NumberFilter(name="price", lookup_expr='lte')
+
+        class Meta:
+            model = Product
+            fields = ['category', 'in_stock', 'min_price', 'max_price']
+
+
+    class ProductList(generics.ListAPIView):
+        queryset = Product.objects.all()
+        serializer_class = ProductSerializer
+        filter_backends = (filters.DjangoFilterBackend,)
+        filter_class = ProductFilter
+
+
+Specifying ``filter_fields``
+----------------------------
+
+You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
+
+
+.. code-block:: python
+
+    from rest_framework import generics
+    from django_filters import rest_framework as filters
+    from myapp import Product
+
+
+    class ProductList(generics.ListAPIView):
+        queryset = Product.objects.all()
+        filter_backends = (filters.DjangoFilterBackend,)
+        filter_fields = ('category', 'in_stock')
+
+
+    # Equivalent FilterSet:
+    class ProductFilter(filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = ('category', 'in_stock')
+
+
+Crispy Forms
+------------
+If you are using DRF's browsable API or admin API you may also want to install `django-crispy-forms`, which will enhance the presentation of the filter forms in HTML views, by allowing them to render Bootstrap 3 HTML. Note that this isn't actively supported, although pull requests for bug fixes are welcome.
+
+.. code-block:: bash
+
+    pip install django-crispy-forms
+
+With crispy forms installed and added to Django's `INSTALLED_APPS`, the browsable API will present a filtering control for `DjangoFilterBackend`, like so:
+
+.. image:: img/form.png
