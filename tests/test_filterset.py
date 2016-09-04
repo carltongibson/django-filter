@@ -785,7 +785,6 @@ class FilterMethodTests(TestCase):
         self.assertIs(f.filter, TestFilter.filter)
 
 
-@unittest.skip('TODO: remove when relevant deprecations have been completed')
 class MiscFilterSetTests(TestCase):
 
     def test_no__getitem__(self):

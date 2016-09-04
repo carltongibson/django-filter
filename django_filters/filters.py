@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import warnings
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -19,7 +18,7 @@ from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
-from .utils import deprecate, label_for_filter, pretty_name
+from .utils import label_for_filter, pretty_name
 
 
 __all__ = [
@@ -39,7 +38,6 @@ __all__ = [
     'DurationFilter',
     'Filter',
     'IsoDateTimeFilter',
-    'MethodFilter',
     'ModelChoiceFilter',
     'ModelMultipleChoiceFilter',
     'MultipleChoiceFilter',
@@ -60,27 +58,16 @@ LOOKUP_TYPES = sorted(QUERY_TERMS)
 EMPTY_VALUES = ([], (), {}, '', None)
 
 
-def _lookup_type_warning():
-    warnings.warn('lookup_type is deprecated. Use lookup_expr instead.', DeprecationWarning, stacklevel=3)
-
-
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, name=None, label=None, widget=None, action=None, method=None,
-                 lookup_expr='exact', required=False, distinct=False, exclude=False, **kwargs):
+    def __init__(self, name=None, label=None, widget=None, method=None, lookup_expr='exact',
+                 required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
-        if action:
-            deprecate('Filter.action has been deprecated in favor of Filter.method')
-            self.filter = action
         self.method = method
-
         self.lookup_expr = lookup_expr
-        if 'lookup_type' in kwargs:
-            _lookup_type_warning()
-            self.lookup_expr = kwargs.pop('lookup_type')
 
         self.widget = widget
         self.required = required
@@ -118,18 +105,6 @@ class Filter(object):
 
         return locals()
     method = property(**method())
-
-    def lookup_type():
-        def fget(self):
-            _lookup_type_warning()
-            return self.lookup_expr
-
-        def fset(self, value):
-            _lookup_type_warning()
-            self.lookup_expr = value
-
-        return locals()
-    lookup_type = property(**lookup_type())
 
     def label():
         def fget(self):
@@ -691,49 +666,6 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
 
         # interleave the ascending and descending choices
         return [val for pair in zip(ascending, descending) for val in pair]
-
-
-class MethodFilter(Filter):
-    """
-    This filter will allow you to run a method that exists on the filterset class
-    """
-    def __init__(self, *args, **kwargs):
-        deprecate('MethodFilter has been deprecated in favor of Filter.method')
-
-        # Get the action out of the kwargs
-        action = kwargs.get('action', None)
-
-        # If the action is a string store the action and set the action to our own filter method
-        # so it can be backwards compatible and work as expected, the parent will still treat it as
-        # a filter that has an action
-        self.parent_action = ''
-        text_types = (str, six.text_type)
-        if type(action) in text_types:
-            self.parent_action = str(action)
-            kwargs.update({
-                'action': self.filter
-            })
-
-        # Call the parent
-        super(MethodFilter, self).__init__(*args, **kwargs)
-
-    def filter(self, qs, value):
-        """
-        This filter method will act as a proxy for the actual method we want to
-        call.
-
-        It will try to find the method on the parent filterset,
-        if not it attempts to search for the method `field_{{attribute_name}}`.
-        Otherwise it defaults to just returning the queryset.
-        """
-        parent = getattr(self, 'parent', None)
-        parent_filter_method = getattr(parent, self.parent_action, None)
-        if not parent_filter_method:
-            func_str = 'filter_{0}'.format(self.name)
-            parent_filter_method = getattr(parent, func_str, None)
-        if parent_filter_method is not None:
-            return parent_filter_method(qs, value)
-        return qs
 
 
 class FilterMethod(object):

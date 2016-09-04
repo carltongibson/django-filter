@@ -46,17 +46,8 @@ def try_dbfield(fn, field_class):
             return data
 
 
-# TODO: remove field_types arg with deprecations
-def get_all_model_fields(model, field_types=None):
+def get_all_model_fields(model):
     opts = model._meta
-
-    if field_types is not None:
-        return [
-            f.name for f in sorted(opts.fields + opts.many_to_many)
-            if not isinstance(f, models.AutoField) and
-            not (getattr(remote_field(f), 'parent_link', False)) and
-            f.__class__ in field_types
-        ]
 
     return [
         f.name for f in sorted(opts.fields + opts.many_to_many)

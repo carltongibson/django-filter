@@ -17,12 +17,8 @@ from .compat import remote_field, remote_queryset
 from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
-                      DurationFilter, OrderingFilter)
-from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field, pretty_name, deprecate
-
-
-ORDER_BY_FIELD = 'o'
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter)
+from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -123,33 +119,11 @@ def get_full_clean_override(together):
 
 class FilterSetOptions(object):
     def __init__(self, options=None):
-        if getattr(options, 'model', None) is not None:
-            if not hasattr(options, 'fields') and not hasattr(options, 'exclude'):
-                deprecate(
-                    "Not setting Meta.fields with Meta.model is undocumented behavior "
-                    "and may result in unintentionally exposing filter fields. This has "
-                    "been deprecated in favor of setting Meta.fields = '__all__' or by "
-                    "setting the Meta.exclude attribute.", 1)
-
-            elif getattr(options, 'fields', -1) is None:
-                deprecate(
-                    "Setting 'Meta.fields = None' is undocumented behavior and has been "
-                    "deprecated in favor of Meta.fields = '__all__'.", 1)
-
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
-
-        if hasattr(options, 'order_by'):
-            deprecate('Meta.order_by has been deprecated.', 1)
-
-        if hasattr(options, 'order_by_field'):
-            deprecate('Meta.order_by_field has been deprecated.', 1)
-
-        self.order_by = getattr(options, 'order_by', False)
-        self.order_by_field = getattr(options, 'order_by_field', ORDER_BY_FIELD)
 
         self.strict = getattr(options, 'strict', None)
 
@@ -175,26 +149,6 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
 
-        if hasattr(new_class, 'strict'):
-            deprecate('strict has been deprecated. Use Meta.strict instead.')
-            new_class._meta.strict = new_class.strict
-
-        if hasattr(new_class, 'order_by_field'):
-            deprecate('order_by_field has been moved to the Meta class.')
-            new_class._meta.order_by_field = new_class.order_by_field
-
-        if hasattr(new_class, 'filter_overrides'):
-            deprecate('filter_overrides has been moved to the Meta class.')
-            new_class._meta.filter_overrides = new_class.filter_overrides
-
-        assert not hasattr(new_class, 'get_order_by'), \
-            'get_order_by() has been deprecated. Subclass OrderingFilter and override .filter() instead. ' \
-            'See: https://django-filter.readthedocs.io/en/latest/migration.html"'
-
-        assert not hasattr(new_class, 'get_ordering_field'), \
-            'get_ordering_field() has been deprecated. Use OrderingFilter instead. ' \
-            'See: https://django-filter.readthedocs.io/en/latest/migration.html"'
-
         # TODO: replace with deprecations
         # if opts.model and opts.fields:
         if opts.model:
@@ -207,12 +161,6 @@ class FilterSetMetaclass(type):
         if not_defined:
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
-
-        # TODO: remove with deprecations
-        # check key existence instead of setdefault - prevents unnecessary filter construction
-        order_by_field = new_class._meta.order_by_field
-        if opts.order_by and order_by_field not in filters:
-            filters[order_by_field] = new_class.get_ordering_filter(opts, filters)
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
@@ -297,23 +245,6 @@ class BaseFilterSet(object):
         for filter_key, filter_ in six.iteritems(self.filters):
             filter_.parent = self
 
-    def __iter__(self):
-        deprecate('QuerySet methods are no longer proxied.')
-        for obj in self.qs:
-            yield obj
-
-    def __len__(self):
-        deprecate('QuerySet methods are no longer proxied.')
-        return self.qs.count()
-
-    def __getitem__(self, key):
-        deprecate('QuerySet methods are no longer proxied.')
-        return self.qs[key]
-
-    def count(self):
-        deprecate('QuerySet methods are no longer proxied.')
-        return self.qs.count()
-
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
@@ -359,59 +290,9 @@ class BaseFilterSet(object):
         return self._form
 
     @classmethod
-    def get_ordering_filter(cls, opts, filters):
-        assert not isinstance(opts.fields, dict), \
-            "'order_by' is not compatible with the 'fields' dict syntax. Use OrderingFilter instead."
-
-        def display_text(name, fltr):
-            """
-            ``name`` is the filter's attribute name on the FilterSet
-            ``text`` is the current display text, which is either the ``name``
-                     or an explicitly assigned label.
-            """
-            # TODO: use `fltr._label` in label-improvements branch
-            text = fltr.label or name.lstrip('-')
-            if name.startswith('-'):
-                text = _('%s (descending)' % text)
-
-            return pretty_name(text)
-
-        if isinstance(opts.order_by, (list, tuple)):
-
-            # e.g. (('field', 'Display name'), ...)
-            if isinstance(opts.order_by[0], (list, tuple)):
-                choices = [(f[0], f[1]) for f in opts.order_by]
-                fields = {filters.get(f[0].lstrip('-')).name: f[0] for f in opts.order_by}
-                return OrderingFilter(choices=choices, fields=fields, empty_label=None)
-
-            # e.g. ('field1', 'field2', ...)
-            else:
-                # (filter name, filter instance)
-                order_by = [(f, filters.get(f.lstrip('-'))) for f in opts.order_by]
-
-                # preference filter label over attribute name
-                choices = [(f, display_text(f, fltr)) for f, fltr in order_by]
-                fields = {fltr.name: f for f, fltr in order_by}
-                return OrderingFilter(choices=choices, fields=fields, empty_label=None)
-
-        # opts.order_by = True
-        order_by = filters.items()
-
-        fields = [(fltr.name, f) for f, fltr in order_by]
-        labels = {f: display_text(f, fltr) for f, fltr in order_by}
-        return OrderingFilter(fields=fields, field_labels=labels, empty_label=None)
-
-    @classmethod
     def filters_for_model(cls, model, opts):
-        # TODO: remove with deprecations - this emulates the old behavior
-        fields = opts.fields
-        if fields is None:
-            DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-            DEFAULTS.update(opts.filter_overrides)
-            fields = get_all_model_fields(model, field_types=DEFAULTS.keys())
-
         return filters_for_model(
-            model, fields, opts.exclude,
+            model, opts.fields, opts.exclude,
             cls.filter_for_field,
             cls.filter_for_reverse_field
         )
