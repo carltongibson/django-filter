@@ -10,6 +10,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django_filters',
     'tests',
+    'tests.rest_framework',
 )
 
 ROOT_URLCONF = 'tests.urls'
