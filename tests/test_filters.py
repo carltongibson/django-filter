@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import OrderedDict
 from datetime import date, time, timedelta, datetime
 import mock
 import warnings
@@ -41,6 +42,7 @@ from django_filters.filters import (
     BaseInFilter,
     BaseRangeFilter,
     UUIDFilter,
+    OrderingFilter,
     LOOKUP_TYPES)
 
 from tests.models import Book, User
@@ -994,3 +996,104 @@ class BaseRangeFilterTests(TestCase):
         f = NumberInFilter()
         f.filter(qs, [1, 2])
         qs.filter.assert_called_once_with(None__range=[1, 2])
+
+
+class OrderingFilterTests(TestCase):
+    def test_default_field(self):
+        f = OrderingFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.ChoiceField)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter()
+        f.filter(qs, ['a', 'b'])
+        qs.order_by.assert_called_once_with('a', 'b')
+
+    def test_filtering_descending(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter()
+        f.filter(qs, ['-a'])
+        qs.order_by.assert_called_once_with('-a')
+
+    def test_filtering_with_fields(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter(fields={'a': 'b'})
+        f.filter(qs, ['b', '-b'])
+        qs.order_by.assert_called_once_with('a', '-a')
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_choices_unaltered(self):
+        # provided 'choices' should not be altered when 'fields' is present
+        f = OrderingFilter(
+            choices=(('a', 'A'), ('b', 'B')),
+            fields=(('a', 'c'), ('b', 'd')),
+        )
+
+        self.assertSequenceEqual(f.field.choices, (
+            ('a', 'A'),
+            ('b', 'B'),
+        ))
+
+    def test_choices_from_fields(self):
+        f = OrderingFilter(
+            fields=(('a', 'c'), ('b', 'd')),
+        )
+
+        self.assertSequenceEqual(f.field.choices, (
+            ('c', 'C'),
+            ('-c', 'C (descending)'),
+            ('d', 'D'),
+            ('-d', 'D (descending)'),
+        ))
+
+    def test_field_labels(self):
+        f = OrderingFilter(
+            fields=(('a', 'c'), ('b', 'd')),
+            field_labels={'a': 'foo'},
+        )
+
+        self.assertSequenceEqual(f.field.choices, (
+            ('c', 'foo'),
+            ('-c', 'foo (descending)'),
+            ('d', 'D'),
+            ('-d', 'D (descending)'),
+        ))
+
+    def test_normalize_fields(self):
+        f = OrderingFilter.normalize_fields
+        O = OrderedDict
+
+        self.assertIn('a', f({'a': 'b'}))
+
+        self.assertEqual(
+            f(O([('a', 'b'), ('c', 'd')])),
+            O([('a', 'b'), ('c', 'd')])
+        )
+
+        self.assertEqual(
+            f([('a', 'b'), ('c', 'd')]),
+            O([('a', 'b'), ('c', 'd')])
+        )
+
+        self.assertEqual(
+            f(['a', 'b']),
+            O([('a', 'a'), ('b', 'b')])
+        )
+
+        with self.assertRaises(AssertionError) as ctx:
+            f(None)
+        self.assertEqual(str(ctx.exception), "'fields' must be an iterable (e.g., a list, tuple, or mapping).")
+
+        with self.assertRaises(AssertionError) as ctx:
+            f([('a', 'b', 'c')])
+        self.assertEqual(str(ctx.exception), "'fields' must contain strings or (field name, param name) pairs.")
+
+        with self.assertRaises(AssertionError) as ctx:
+            f([0, 1, 2])
+        self.assertEqual(str(ctx.exception), "'fields' must contain strings or (field name, param name) pairs.")

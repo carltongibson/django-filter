@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
 
 from django import forms
@@ -10,6 +11,7 @@ from django.db.models.sql.constants import QUERY_TERMS
 from django.db.models.constants import LOOKUP_SEP
 from django.conf import settings
 from django.utils import six
+from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
@@ -17,7 +19,7 @@ from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
-from .utils import deprecate
+from .utils import deprecate, pretty_name
 
 
 __all__ = [
@@ -39,6 +41,7 @@ __all__ = [
     'MultipleChoiceFilter',
     'NumberFilter',
     'NumericRangeFilter',
+    'OrderingFilter',
     'RangeFilter',
     'TimeFilter',
     'TimeRangeFilter',
@@ -487,6 +490,102 @@ class BaseRangeFilter(BaseCSVFilter):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'range')
         super(BaseRangeFilter, self).__init__(*args, **kwargs)
+
+
+class OrderingFilter(BaseCSVFilter, ChoiceFilter):
+    """
+    Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
+    two additional arguments that are used to build the ordering choices.
+
+    * ``fields`` is a mapping of {model field name: parameter name}. The
+      parameter names are exposed in the choices and mask/alias the field
+      names used in the ``order_by()`` call. Similar to field ``choices``,
+      ``fields`` accepts the 'list of two-tuples' syntax that retains order.
+      ``fields`` may also just be an iterable of strings. In this case, the
+      field names simply double as the exposed parameter names.
+
+    * ``field_labels`` is an optional argument that allows you to customize
+      the display label for the corresponding parameter. It accepts a mapping
+      of {field name: human readable label}. Keep in mind that the key is the
+      field name, and not the exposed parameter name.
+
+    Additionally, you can just provide your own ``choices`` if you require
+    explicit control over the exposed options. For example, when you might
+    want to disable descending sort options.
+
+    This filter is also CSV-based, and accepts multiple ordering params. The
+    default select widget does not enable the use of this, but it is useful
+    for APIs.
+
+    """
+    descending_fmt = _('%s (descending)')
+
+    def __init__(self, *args, **kwargs):
+        """
+        ``fields`` may be either a mapping or an iterable.
+        ``field_labels`` must be a map of field names to display labels
+        """
+        fields = kwargs.pop('fields', {})
+        fields = self.normalize_fields(fields)
+        field_labels = kwargs.pop('field_labels', {})
+
+        self.param_map = {v: k for k, v in fields.items()}
+
+        if 'choices' not in kwargs:
+            kwargs['choices'] = self.build_choices(fields, field_labels)
+
+        kwargs.setdefault('label', _('Ordering'))
+        super(OrderingFilter, self).__init__(*args, **kwargs)
+
+    def get_ordering_value(self, param):
+        descending = param.startswith('-')
+        param = param[1:] if descending else param
+        field_name = self.param_map.get(param, param)
+
+        return "-%s" % field_name if descending else field_name
+
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        ordering = [self.get_ordering_value(param) for param in value]
+        return qs.order_by(*ordering)
+
+    @classmethod
+    def normalize_fields(cls, fields):
+        """
+        Normalize the fields into an ordered map of {field name: param name}
+        """
+        # fields is a mapping, copy into new OrderedDict
+        if isinstance(fields, dict):
+            return OrderedDict(fields)
+
+        # convert iterable of values => iterable of pairs (field name, param name)
+        assert is_iterable(fields), \
+            "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
+
+        # fields is an iterable of field names
+        assert all(isinstance(field, six.string_types) or
+                   is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
+                   for field in fields), \
+            "'fields' must contain strings or (field name, param name) pairs."
+
+        return OrderedDict([
+            (f, f) if isinstance(f, six.string_types) else f for f in fields
+        ])
+
+    def build_choices(self, fields, labels):
+        ascending = [
+            (param, labels.get(field, pretty_name(param)))
+            for field, param in fields.items()
+        ]
+        descending = [
+            ('-%s' % pair[0], self.descending_fmt % pair[1])
+            for pair in ascending
+        ]
+
+        # interleave the ascending and descending choices
+        return [val for pair in zip(ascending, descending) for val in pair]
 
 
 class MethodFilter(Filter):
