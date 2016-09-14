@@ -3,9 +3,10 @@ import functools
 import warnings
 import mock
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_filters import FilterSet
+from django_filters.conf import Settings
 from django_filters.filters import Filter, CharFilter, MethodFilter
 from django_filters.filterset import STRICTNESS
 from .models import User
@@ -692,3 +693,26 @@ class DeprecatedOrderingFormTests(TestCase):
         f = F().form
         self.assertEqual(
             f.fields['o'].choices, [('status', 'Current status')])
+
+
+class DeprecatedSettingsTests(TestCase):
+
+    def test_filter_help_text(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            with override_settings(FILTERS_HELP_TEXT_FILTER=False):
+                Settings()
+
+        self.assertEqual(len(w), 1)
+        self.assertIn("The 'FILTERS_HELP_TEXT_FILTER' setting has been deprecated.", str(w[0].message))
+
+    def test_exclude_help_text(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            with override_settings(FILTERS_HELP_TEXT_EXCLUDE=False):
+                Settings()
+
+        self.assertEqual(len(w), 1)
+        self.assertIn("The 'FILTERS_HELP_TEXT_EXCLUDE' setting has been deprecated.", str(w[0].message))

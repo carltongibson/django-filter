@@ -9,12 +9,12 @@ from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.db.models.constants import LOOKUP_SEP
-from django.conf import settings
 from django.utils import six
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from .conf import settings
 from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
@@ -132,9 +132,9 @@ class Filter(object):
         if not hasattr(self, '_field'):
             help_text = self.extra.pop('help_text', None)
             if help_text is None:
-                if self.exclude and getattr(settings, "FILTERS_HELP_TEXT_EXCLUDE", True):
+                if self.exclude and settings.HELP_TEXT_EXCLUDE:
                     help_text = _('This is an exclusion filter')
-                elif not self.exclude and getattr(settings, "FILTERS_HELP_TEXT_FILTER", True):
+                elif not self.exclude and settings.HELP_TEXT_FILTER:
                     help_text = _('Filter')
                 else:
                     help_text = ''

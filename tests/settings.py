@@ -26,3 +26,9 @@ TEMPLATES = [{
 
 
 MIDDLEWARE = []
+
+
+# help verify that DEFAULTS is importable from conf.
+def FILTERS_VERBOSE_LOOKUPS():
+    from django_filters.conf import DEFAULTS
+    return DEFAULTS['VERBOSE_LOOKUPS']
