@@ -1,5 +1,6 @@
 
 import django
+from django.conf import settings
 
 
 # django-crispy-forms is optional
@@ -7,6 +8,8 @@ try:
     import crispy_forms
 except ImportError:
     crispy_forms = None
+
+is_crispy = 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms
 
 
 def remote_field(field):
