@@ -1,52 +1,21 @@
 
 from __future__ import absolute_import
 
-from django.conf import settings
 from django.template import loader
-from django.utils.translation import ugettext_lazy as _
-
-from rest_framework import compat
 from rest_framework.filters import BaseFilterBackend
 
-from ..compat import crispy_forms
+from .. import compat
 from . import filterset
 
 
-if 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms:
-    from crispy_forms.helper import FormHelper
-    from crispy_forms.layout import Layout, Submit
-
-    class FilterSet(filterset.FilterSet):
-        def __init__(self, *args, **kwargs):
-            super(FilterSet, self).__init__(*args, **kwargs)
-            for field in self.form.fields.values():
-                field.help_text = None
-
-            layout_components = list(self.form.fields.keys()) + [
-                Submit('', _('Submit'), css_class='btn-default'),
-            ]
-
-            helper = FormHelper()
-            helper.form_method = 'GET'
-            helper.template_pack = 'bootstrap3'
-            helper.layout = Layout(*layout_components)
-
-            self.form.helper = helper
-
+if compat.is_crispy:
     filter_template = 'django_filters/rest_framework/crispy_form.html'
-
 else:
-    class FilterSet(filterset.FilterSet):
-        def __init__(self, *args, **kwargs):
-            super(FilterSet, self).__init__(*args, **kwargs)
-            for field in self.form.fields.values():
-                field.help_text = None
-
     filter_template = 'django_filters/rest_framework/form.html'
 
 
 class DjangoFilterBackend(BaseFilterBackend):
-    default_filter_set = FilterSet
+    default_filter_set = filterset.FilterSet
     template = filter_template
 
     def get_filter_class(self, view, queryset=None):
