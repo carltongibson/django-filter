@@ -6,8 +6,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from django_filters import filterset
-from ..filters import BooleanFilter, IsoDateTimeFilter
-from ..widgets import BooleanWidget
+from .filters import BooleanFilter, IsoDateTimeFilter
 from .. import compat
 
 if compat.is_crispy:
@@ -18,12 +17,7 @@ if compat.is_crispy:
 FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
 FILTER_FOR_DBFIELD_DEFAULTS.update({
     models.DateTimeField: {'filter_class': IsoDateTimeFilter},
-    models.BooleanField: {
-        'filter_class': BooleanFilter,
-        'extra': lambda f: {
-            'widget': BooleanWidget,
-        },
-    },
+    models.BooleanField: {'filter_class': BooleanFilter},
 })
 
 
