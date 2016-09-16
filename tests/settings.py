@@ -25,6 +25,4 @@ TEMPLATES = [{
 }]
 
 
-SILENCED_SYSTEM_CHECKS = [
-    '1_7.W001',  # Unset MIDDLEWARE_CLASSES warning
-]
+MIDDLEWARE = []

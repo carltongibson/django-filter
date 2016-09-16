@@ -32,3 +32,9 @@ def remote_queryset(field):
     limit_choices_to = field.get_limit_choices_to()
 
     return model._default_manager.complex_filter(limit_choices_to)
+
+
+def format_value(widget, value):
+    if django.VERSION >= (1, 10):
+        return widget.format_value(value)
+    return widget._format_value(value)

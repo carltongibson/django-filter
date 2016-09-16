@@ -174,9 +174,9 @@ class FilterSetFormTests(TestCase):
                 model = ManagerGroup
                 fields = ['users', 'manager']
         f = F().form
-        self.assertEquals(
+        self.assertEqual(
             list(f.fields['users'].choices), [(2, 'active')]
         )
-        self.assertEquals(
+        self.assertEqual(
             list(f.fields['manager'].choices), [('', '---------'), (3, 'manager')]
         )

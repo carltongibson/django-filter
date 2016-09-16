@@ -4,10 +4,15 @@ import datetime
 from decimal import Decimal
 
 from django.conf.urls import url
-from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.dateparse import parse_date
+
+try:
+    from django.urls import reverse
+except ImportError:
+    # Django < 1.10 compatibility
+    from django.core.urlresolvers import reverse
 
 from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
@@ -36,9 +41,9 @@ class FilterFieldsRootView(generics.ListCreateAPIView):
 
 # These class are used to test a filter class.
 class SeveralFieldsFilter(FilterSet):
-    text = filters.CharFilter(lookup_type='icontains')
-    decimal = filters.NumberFilter(lookup_type='lt')
-    date = filters.DateFilter(lookup_type='gt')
+    text = filters.CharFilter(lookup_expr='icontains')
+    decimal = filters.NumberFilter(lookup_expr='lt')
+    date = filters.DateFilter(lookup_expr='gt')
 
     class Meta:
         model = FilterableItem
@@ -54,7 +59,7 @@ class FilterClassRootView(generics.ListCreateAPIView):
 
 # These classes are used to test a misconfigured filter class.
 class MisconfiguredFilter(FilterSet):
-    text = filters.CharFilter(lookup_type='icontains')
+    text = filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = BasicModel
@@ -81,6 +86,7 @@ class BaseFilterableItemFilter(FilterSet):
 
     class Meta:
         model = BaseFilterableItem
+        fields = '__all__'
 
 
 class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
