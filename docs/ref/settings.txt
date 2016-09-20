@@ -16,9 +16,13 @@ Default: ``True``
 
 Enable / disable the default field ``help_text`` on filters where ``exclude=True`` (:doc:`/ref/filters`). This does not affect fields which explicitly define ``help_text``.
 
+.. note:: This setting is pending deprecation.
+
 FILTERS_HELP_TEXT_FILTER
 ------------------------
 
 Default: ``True``
 
 Enable / disable the default field ``help_text`` on filters where ``exclude=False`` (:doc:`/ref/filters`). This does not affect fields which explicitly define ``help_text``.
+
+.. note:: This setting is pending deprecation.

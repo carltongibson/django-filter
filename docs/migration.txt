@@ -153,3 +153,13 @@ on the FilterSet:
 
 To fix this, simply remove the methods from your class. You can subclass
 ``OrderingFilter`` to migrate any custom logic.
+
+
+Deprecated ``FILTERS_HELP_TEXT_FILTER`` and ``FILTERS_HELP_TEXT_EXCLUDE``
+-------------------------------------------------------------------------
+Details: https://github.com/carltongibson/django-filter/pull/437
+
+Generated filter labels in 1.0 will be more descriptive, including humanized
+text about the lookup being performed and if the filter is an exclusion filter.
+
+These settings will no longer have an effect and will be removed in the 1.0 release.
