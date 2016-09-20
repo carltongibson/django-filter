@@ -13,13 +13,14 @@ pathtools==0.1.2
 pbr==1.7.0
 pkginfo==1.2.1
 Pygments==2.1.3
-pytz==2015.7
+pytz==2016.6.1
 PyYAML==3.11
 requests==2.9.1
 requests-toolbelt==0.6.0
 six==1.9.0
 snowballstemmer==1.2.1
 Sphinx==1.3.6
+sphinx-autobuild==0.6.0
 sphinx-rtd-theme==0.1.9
 tornado==4.2.1
 twine==1.6.5
