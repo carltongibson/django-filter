@@ -149,9 +149,7 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
 
-        # TODO: replace with deprecations
-        # if opts.model and opts.fields:
-        if opts.model:
+        if opts.model and (opts.fields is not None or opts.exclude is not None):
             filters = new_class.filters_for_model(opts.model, opts)
             filters.update(declared_filters)
         else:
