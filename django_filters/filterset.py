@@ -2,12 +2,10 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import copy
-import re
 from collections import OrderedDict
 
 from django import forms
 from django.forms.forms import NON_FIELD_ERRORS
-from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -15,12 +13,12 @@ from django.utils import six
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import remote_field, remote_model, remote_queryset
+from .compat import remote_field, remote_queryset
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
-                      DurationFilter)
-from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field, deprecate
+                      DurationFilter, OrderingFilter)
+from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field, pretty_name, deprecate
 
 
 ORDER_BY_FIELD = 'o'
@@ -151,7 +149,18 @@ class FilterSetOptions(object):
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
 
+        self.filter_overrides = getattr(options, 'filter_overrides', {})
+
+        if hasattr(options, 'order_by'):
+            deprecate('Meta.order_by has been deprecated.', 1)
+
+        if hasattr(options, 'order_by_field'):
+            deprecate('Meta.order_by_field has been deprecated.', 1)
+
         self.order_by = getattr(options, 'order_by', False)
+        self.order_by_field = getattr(options, 'order_by_field', ORDER_BY_FIELD)
+
+        self.strict = getattr(options, 'strict', STRICTNESS.RETURN_NO_RESULTS)
 
         self.form = getattr(options, 'form', forms.Form)
 
@@ -175,6 +184,26 @@ class FilterSetMetaclass(type):
         opts = new_class._meta = FilterSetOptions(
             getattr(new_class, 'Meta', None))
 
+        if hasattr(new_class, 'strict'):
+            deprecate('strict has been deprecated. Use Meta.strict instead.')
+            new_class._meta.strict = new_class.strict
+
+        if hasattr(new_class, 'order_by_field'):
+            deprecate('order_by_field has been moved to the Meta class.')
+            new_class._meta.order_by_field = new_class.order_by_field
+
+        if hasattr(new_class, 'filter_overrides'):
+            deprecate('filter_overrides has been moved to the Meta class.')
+            new_class._meta.filter_overrides = new_class.filter_overrides
+
+        assert not hasattr(new_class, 'get_order_by'), \
+            'get_order_by() has been deprecated. Subclass OrderingFilter and override .filter() instead. ' \
+            'See: https://django-filter.readthedocs.io/en/latest/migration.html"'
+
+        assert not hasattr(new_class, 'get_ordering_field'), \
+            'get_ordering_field() has been deprecated. Use OrderingFilter instead. ' \
+            'See: https://django-filter.readthedocs.io/en/latest/migration.html"'
+
         # TODO: replace with deprecations
         # if opts.model and opts.fields:
         if opts.model:
@@ -188,36 +217,40 @@ class FilterSetMetaclass(type):
             raise TypeError("Meta.fields contains a field that isn't defined "
                             "on this FilterSet: {}".format(not_defined))
 
+        # TODO: remove with deprecations
+        # check key existence instead of setdefault - prevents unnecessary filter construction
+        order_by_field = new_class._meta.order_by_field
+        if opts.order_by and order_by_field not in filters:
+            filters[order_by_field] = new_class.get_ordering_filter(opts, filters)
+
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
         return new_class
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
-    models.AutoField: {
-        'filter_class': NumberFilter
-    },
-    models.CharField: {
-        'filter_class': CharFilter
-    },
-    models.TextField: {
-        'filter_class': CharFilter
-    },
-    models.BooleanField: {
-        'filter_class': BooleanFilter
-    },
-    models.DateField: {
-        'filter_class': DateFilter
-    },
-    models.DateTimeField: {
-        'filter_class': DateTimeFilter
-    },
-    models.TimeField: {
-        'filter_class': TimeFilter
-    },
-    models.DurationField: {
-        'filter_class': DurationFilter
-    },
+    models.AutoField:                   {'filter_class': NumberFilter},
+    models.CharField:                   {'filter_class': CharFilter},
+    models.TextField:                   {'filter_class': CharFilter},
+    models.BooleanField:                {'filter_class': BooleanFilter},
+    models.DateField:                   {'filter_class': DateFilter},
+    models.DateTimeField:               {'filter_class': DateTimeFilter},
+    models.TimeField:                   {'filter_class': TimeFilter},
+    models.DurationField:               {'filter_class': DurationFilter},
+    models.DecimalField:                {'filter_class': NumberFilter},
+    models.SmallIntegerField:           {'filter_class': NumberFilter},
+    models.IntegerField:                {'filter_class': NumberFilter},
+    models.PositiveIntegerField:        {'filter_class': NumberFilter},
+    models.PositiveSmallIntegerField:   {'filter_class': NumberFilter},
+    models.FloatField:                  {'filter_class': NumberFilter},
+    models.NullBooleanField:            {'filter_class': BooleanFilter},
+    models.SlugField:                   {'filter_class': CharFilter},
+    models.EmailField:                  {'filter_class': CharFilter},
+    models.FilePathField:               {'filter_class': CharFilter},
+    models.URLField:                    {'filter_class': CharFilter},
+    models.GenericIPAddressField:       {'filter_class': CharFilter},
+    models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
+    models.UUIDField:                   {'filter_class': UUIDFilter},
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
@@ -238,56 +271,11 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
             'queryset': remote_queryset(f),
         }
     },
-    models.DecimalField: {
-        'filter_class': NumberFilter,
-    },
-    models.SmallIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.IntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.PositiveIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.PositiveSmallIntegerField: {
-        'filter_class': NumberFilter,
-    },
-    models.FloatField: {
-        'filter_class': NumberFilter,
-    },
-    models.NullBooleanField: {
-        'filter_class': BooleanFilter,
-    },
-    models.SlugField: {
-        'filter_class': CharFilter,
-    },
-    models.EmailField: {
-        'filter_class': CharFilter,
-    },
-    models.FilePathField: {
-        'filter_class': CharFilter,
-    },
-    models.URLField: {
-        'filter_class': CharFilter,
-    },
-    models.GenericIPAddressField: {
-        'filter_class': CharFilter,
-    },
-    models.CommaSeparatedIntegerField: {
-        'filter_class': CharFilter,
-    },
-    models.UUIDField: {
-        'filter_class': UUIDFilter,
-    },
 }
 
 
 class BaseFilterSet(object):
-    filter_overrides = {}
-    order_by_field = ORDER_BY_FIELD
-    # What to do on on validation errors
-    strict = STRICTNESS.RETURN_NO_RESULTS
+    FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
     def __init__(self, data=None, queryset=None, prefix=None, strict=None):
         self.is_bound = data is not None
@@ -296,8 +284,9 @@ class BaseFilterSet(object):
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
         self.form_prefix = prefix
-        if strict is not None:
-            self.strict = strict
+
+        # What to do on on validation errors
+        self.strict = self._meta.strict if strict is None else strict
 
         self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters
@@ -359,23 +348,6 @@ class BaseFilterSet(object):
                 if value is not None:  # valid & clean data
                     qs = filter_.filter(qs, value)
 
-            if self._meta.order_by:
-                order_field = self.form.fields[self.order_by_field]
-                data = self.form[self.order_by_field].data
-                ordered_value = None
-                try:
-                    ordered_value = order_field.clean(data)
-                except forms.ValidationError:
-                    pass
-
-                # With a None-queryset, ordering must be enforced (#84).
-                if (ordered_value in EMPTY_VALUES and
-                        self.strict == STRICTNESS.RETURN_NO_RESULTS):
-                    ordered_value = self.form.fields[self.order_by_field].choices[0][0]
-
-                if ordered_value:
-                    qs = qs.order_by(*self.get_order_by(ordered_value))
-
             self._qs = qs
 
         return self._qs
@@ -386,7 +358,7 @@ class BaseFilterSet(object):
             fields = OrderedDict([
                 (name, filter_.field)
                 for name, filter_ in six.iteritems(self.filters)])
-            fields[self.order_by_field] = self.ordering_field
+
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
             if self._meta.together:
@@ -397,49 +369,48 @@ class BaseFilterSet(object):
                 self._form = Form(prefix=self.form_prefix)
         return self._form
 
-    def get_ordering_field(self):
-        if self._meta.order_by:
-            if isinstance(self._meta.order_by, (list, tuple)):
-                if isinstance(self._meta.order_by[0], (list, tuple)):
-                    # e.g. (('field', 'Display name'), ...)
-                    choices = [(f[0], f[1]) for f in self._meta.order_by]
-                else:
-                    choices = []
-                    for f in self._meta.order_by:
-                        if f[0] == '-':
-                            label = _('%s (descending)' % capfirst(f[1:]))
-                        else:
-                            label = capfirst(f)
-                        choices.append((f, label))
+    @classmethod
+    def get_ordering_filter(cls, opts, filters):
+        assert not isinstance(opts.fields, dict), \
+            "'order_by' is not compatible with the 'fields' dict syntax. Use OrderingFilter instead."
+
+        def display_text(name, fltr):
+            """
+            ``name`` is the filter's attribute name on the FilterSet
+            ``text`` is the current display text, which is either the ``name``
+                     or an explicitly assigned label.
+            """
+            # TODO: use `fltr._label` in label-improvements branch
+            text = fltr.label or name.lstrip('-')
+            if name.startswith('-'):
+                text = _('%s (descending)' % text)
+
+            return pretty_name(text)
+
+        if isinstance(opts.order_by, (list, tuple)):
+
+            # e.g. (('field', 'Display name'), ...)
+            if isinstance(opts.order_by[0], (list, tuple)):
+                choices = [(f[0], f[1]) for f in opts.order_by]
+                fields = {filters.get(f[0].lstrip('-')).name: f[0] for f in opts.order_by}
+                return OrderingFilter(choices=choices, fields=fields)
+
+            # e.g. ('field1', 'field2', ...)
             else:
-                # add asc and desc field names
-                # use the filter's label if provided
-                choices = []
-                for f, fltr in self.filters.items():
-                    choices.extend([
-                        (f, fltr.label or capfirst(f)),
-                        ("-%s" % (f), _('%s (descending)' % (fltr.label or capfirst(f))))
-                    ])
-            return forms.ChoiceField(label=_("Ordering"), required=False,
-                                     choices=choices)
+                # (filter name, filter instance)
+                order_by = [(f, filters.get(f.lstrip('-'))) for f in opts.order_by]
 
-    @property
-    def ordering_field(self):
-        if not hasattr(self, '_ordering_field'):
-            self._ordering_field = self.get_ordering_field()
-        return self._ordering_field
+                # preference filter label over attribute name
+                choices = [(f, display_text(f, fltr)) for f, fltr in order_by]
+                fields = {fltr.name: f for f, fltr in order_by}
+                return OrderingFilter(choices=choices, fields=fields)
 
-    def get_order_by(self, order_choice):
-        re_ordering_field = re.compile(r'(?P<inverse>\-?)(?P<field>.*)')
-        m = re.match(re_ordering_field, order_choice)
-        inverted = m.group('inverse')
-        filter_api_name = m.group('field')
+        # opts.order_by = True
+        order_by = filters.items()
 
-        _filter = self.filters.get(filter_api_name, None)
-
-        if _filter and filter_api_name != _filter.name:
-            return [inverted + _filter.name]
-        return [order_choice]
+        fields = [(fltr.name, f) for f, fltr in order_by]
+        labels = {f: display_text(f, fltr) for f, fltr in order_by}
+        return OrderingFilter(fields=fields, field_labels=labels)
 
     @classmethod
     def filters_for_model(cls, model, opts):
@@ -447,7 +418,7 @@ class BaseFilterSet(object):
         fields = opts.fields
         if fields is None:
             DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-            DEFAULTS.update(cls.filter_overrides)
+            DEFAULTS.update(opts.filter_overrides)
             fields = get_all_model_fields(model, field_types=DEFAULTS.keys())
 
         return filters_for_model(
@@ -493,8 +464,9 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_lookup(cls, f, lookup_type):
-        DEFAULTS = dict(FILTER_FOR_DBFIELD_DEFAULTS)
-        DEFAULTS.update(cls.filter_overrides)
+        DEFAULTS = dict(cls.FILTER_DEFAULTS)
+        if hasattr(cls, '_meta'):
+            DEFAULTS.update(cls._meta.filter_overrides)
 
         data = try_dbfield(DEFAULTS.get, f.__class__) or {}
         filter_class = data.get('filter_class')

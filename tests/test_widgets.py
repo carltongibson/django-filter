@@ -78,15 +78,13 @@ class LinkWidgetTests(TestCase):
     def test_widget_with_option_groups(self):
         choices = (
             ('Audio', (
-                    ('vinyl', 'Vinyl'),
-                    ('cd', 'CD'),
-                )
-            ),
+                ('vinyl', 'Vinyl'),
+                ('cd', 'CD'),
+            )),
             ('Video', (
-                    ('vhs', 'VHS Tape'),
-                    ('dvd', 'DVD'),
-                )
-            ),
+                ('vhs', 'VHS Tape'),
+                ('dvd', 'DVD'),
+            )),
             ('unknown', 'Unknown'),
         )
 

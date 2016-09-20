@@ -236,71 +236,25 @@ default filters for all the models fields of the same kind using
             }
 
 
-Custom filtering with MethodFilter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Customize filtering with ``Filter.method``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want fine control over each individual filter attribute, you can use
-the ``MethodFilter`` filter.
+You can control the behavior of a filter by specifying a ``method`` to perform
+filtering. View more information in the :ref:`method reference <filter-method>`.
 
-By passing in the name of a custom defined filter function as an ``action``,
-the filter attribute gets linked to the custom filter function.
-Here is an example of overriding the filter function of the
-filter attribute ``username``
-::
+.. code-block:: python
 
     class F(django_filters.FilterSet):
-            username = MethodFilter(action='my_custom_filter')
+        username = CharFilter(method='my_custom_filter')
 
-            class Meta:
-                model = User
-                fields = ['username']
+        class Meta:
+            model = User
+            fields = ['username']
 
-            def my_custom_filter(self, queryset, value):
-                return queryset.filter(
-                    username=value
-                )
-
-
-The filter function can also be defined outside of the filter class scope.
-Though you would need to pass in the actual function value, not it's name.
-::
-
-        def my_custom_filter(queryset, value):
-            return queryset.filter(
-                username=value
-            )
-
-        class F(django_filters.FilterSet):
-	    # Notice: In this case, action accepts a func, not a string
-            username = MethodFilter(action=my_custom_filter)
-
-            class Meta:
-                model = User
-                fields = ['username']
-
-
-Lastly, when using a ``MethodFilter``, there is no need to define an action.
-You may simply do the following and ``filter_username`` will be auto-detected
-and used. ::
-
-        class F(FilterSet):
-            username = MethodFilter()
-
-            class Meta:
-                model = User
-                fields = ['username']
-
-            def filter_username(self, queryset, value):
-                return queryset.filter(
-                    username__contains='ke'
-                )
-
-Under the hood, if ``action`` is not defined, ``django_filter``
-searches for a class method with a name that follows the pattern
-``filter_{{ATTRIBUTE_NAME}}``. For example, if the attribute name is
-``email``, then the filter class will be scanned for the filter function
-``filter_email``. If no action is provided, and no filter class
-function is found, then the filter attribute will be left unfiltered.
+        def my_custom_filter(self, queryset, name, value):
+            return queryset.filter(**{
+                name: value,
+            })
 
 
 The view

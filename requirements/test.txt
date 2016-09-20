@@ -1,5 +1,3 @@
--r maintainer.txt
-coverage==3.7.1
-django-discover-runner
-mock
-sphinx-autobuild
+-r travis-ci.txt
+django
+djangorestframework

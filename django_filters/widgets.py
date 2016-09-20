@@ -16,6 +16,8 @@ from django.utils.safestring import mark_safe
 from django.utils.six import string_types
 from django.utils.translation import ugettext as _
 
+from .compat import format_value
+
 
 class LinkWidget(forms.Widget):
     def __init__(self, attrs=None, choices=()):
@@ -68,9 +70,9 @@ class LinkWidget(forms.Widget):
         except AttributeError:
             url = urlencode(data)
         return self.option_string() % {
-             'attrs': selected and ' class="selected"' or '',
-             'query_string': url,
-             'label': force_text(option_label)
+            'attrs': selected and ' class="selected"' or '',
+            'query_string': url,
+            'label': force_text(option_label)
         }
 
     def option_string(self):
@@ -151,7 +153,7 @@ class CSVWidget(forms.TextInput):
 
     def render(self, name, value, attrs=None):
         if self._isiterable(value):
-            value = [force_text(self._format_value(v)) for v in value]
+            value = [force_text(format_value(self, v)) for v in value]
             value = ','.join(list(value))
 
         return super(CSVWidget, self).render(name, value, attrs)

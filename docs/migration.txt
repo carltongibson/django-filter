@@ -8,6 +8,42 @@ release has also been created to help with migration. It is compatible with
 both the existing and new APIs and will raise warnings for deprecated behavior.
 
 
+MethodFilter and Filter.action replaced by Filter.method
+--------------------------------------------------------
+Details: https://github.com/carltongibson/django-filter/pull/382
+
+The functionality of ``MethodFilter`` and ``Filter.action`` has been merged
+together and replaced by the ``Filter.method`` parameter. The ``method``
+parameter takes either a callable or the name of a ``FilterSet`` method. The
+signature now takes an additional ``name`` argument that is the name of the
+model field to be filtered on.
+
+Since ``method`` is now a parameter of all filters, inputs are validated and
+cleaned by its ``field_class``. The function will receive the cleaned value
+instead of the raw value.
+
+.. code-block:: python
+
+    # 0.x
+    class UserFilter(FilterSet):
+        last_login = filters.MethodFilter()
+
+        def filter_last_login(self, qs, value):
+            # try to convert value to datetime, which may fail.
+            if value and looks_like_a_date(value):
+                value = datetime(value)
+
+            return qs.filter(last_login=value})
+
+
+    # 1.0
+    class UserFilter(FilterSet):
+        last_login = filters.CharFilter(method='filter_last_login')
+
+        def filter_last_login(self, qs, name, value):
+            return qs.filter(**{name: value})
+
+
 QuerySet methods are no longer proxied
 --------------------------------------
 Details: https://github.com/carltongibson/django-filter/pull/440
@@ -52,3 +88,78 @@ the ``Meta.exclude`` attribute.
         class Meta:
             model = User
             exclude = ['password']
+
+
+Move FilterSet options to Meta class
+------------------------------------
+Details: https://github.com/carltongibson/django-filter/issues/430
+
+Several ``FilterSet`` options have been moved to the ``Meta`` class to prevent
+potential conflicts with declared filter names. This includes:
+
+* ``filter_overrides``
+* ``strict``
+* ``order_by_field``
+
+.. code-block:: python
+
+    # 0.x
+    class UserFilter(FilterSet):
+        filter_overrides = {}
+        strict = STRICTNESS.RAISE_VALIDATION_ERROR
+        order_by_field = 'order'
+        ...
+
+    # 1.0
+    class UserFilter(FilterSet):
+        ...
+
+        class Meta:
+            filter_overrides = {}
+            strict = STRICTNESS.RAISE_VALIDATION_ERROR
+            order_by_field = 'order'
+
+
+FilterSet ordering replaced by OrderingFilter
+---------------------------------------------
+Details: https://github.com/carltongibson/django-filter/pull/472
+
+The FilterSet ordering options and methods have been deprecated and replaced
+by :ref:`OrderingFilter <ordering-filter>`. Deprecated options include:
+
+
+* ``Meta.order_by``
+* ``Meta.order_by_field``
+
+These options retain backwards compatibility with the following caveats:
+
+* ``order_by`` asserts that ``Meta.fields`` is not using the dict syntax. This
+  previously was undefined behavior, however the migration code is unable to
+  support it.
+* Prior, if no ordering was specified in the request, the FilterSet implicitly
+  filtered by the first param in the ``order_by`` option. This behavior cannot
+  be easily emulated but can be fixed by ensuring that the passed in queryset
+  explicitly calls ``.order_by()``.
+
+  .. code-block:: python
+
+      filterset = MyFilterSet(queryset=MyModel.objects.order_by('field'))
+
+The following methods are deprecated and will raise an assertion if present
+on the FilterSet:
+
+* ``.get_order_by()``
+* ``.get_ordering_field()``
+
+To fix this, simply remove the methods from your class. You can subclass
+``OrderingFilter`` to migrate any custom logic.
+
+
+Deprecated ``FILTERS_HELP_TEXT_FILTER`` and ``FILTERS_HELP_TEXT_EXCLUDE``
+-------------------------------------------------------------------------
+Details: https://github.com/carltongibson/django-filter/pull/437
+
+Generated filter labels in 1.0 will be more descriptive, including humanized
+text about the lookup being performed and if the filter is an exclusion filter.
+
+These settings will no longer have an effect and will be removed in the 1.0 release.

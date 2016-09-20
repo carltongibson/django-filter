@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import OrderedDict
 from datetime import date, time, timedelta, datetime
 import mock
 import warnings
-import unittest
 
 from django import forms
 from django.test import TestCase, override_settings
@@ -42,6 +42,7 @@ from django_filters.filters import (
     BaseInFilter,
     BaseRangeFilter,
     UUIDFilter,
+    OrderingFilter,
     LOOKUP_TYPES)
 
 from tests.models import Book, User
@@ -112,29 +113,32 @@ class FilterTests(TestCase):
 
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
-                spec=['__call__']) as mocked:
+                               spec=['__call__']) as mocked:
             f = Filter(name='somefield', label='somelabel',
-                widget='somewidget')
+                       widget='somewidget')
             f.field
             mocked.assert_called_once_with(required=False,
-                label='somelabel', widget='somewidget', help_text=mock.ANY)
+                                           label='somelabel',
+                                           widget='somewidget',
+                                           help_text=mock.ANY)
 
     def test_field_extra_params(self):
         with mock.patch.object(Filter, 'field_class',
-                spec=['__call__']) as mocked:
+                               spec=['__call__']) as mocked:
             f = Filter(someattr='someattr')
             f.field
             mocked.assert_called_once_with(required=mock.ANY,
-                label=mock.ANY, widget=mock.ANY, help_text=mock.ANY,
-                someattr='someattr')
+                                           label=mock.ANY, widget=mock.ANY,
+                                           help_text=mock.ANY,
+                                           someattr='someattr')
 
     def test_field_with_required_filter(self):
         with mock.patch.object(Filter, 'field_class',
-                spec=['__call__']) as mocked:
+                               spec=['__call__']) as mocked:
             f = Filter(required=True)
             f.field
-            mocked.assert_called_once_with(required=True,
-                label=mock.ANY, widget=mock.ANY, help_text=mock.ANY)
+            mocked.assert_called_once_with(required=True, label=mock.ANY,
+                                           widget=mock.ANY, help_text=mock.ANY)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
@@ -193,12 +197,12 @@ class FilterTests(TestCase):
         qs.filter.assert_called_once_with(somefield__exact='value')
         self.assertNotEqual(qs, result)
 
-    def test_filter_using_action(self):
+    def test_filter_using_method(self):
         qs = mock.NonCallableMock(spec=[])
-        action = mock.Mock(spec=['filter'])
-        f = Filter(action=action)
+        method = mock.Mock()
+        f = Filter(method=method)
         result = f.filter(qs, 'value')
-        action.assert_called_once_with(qs, 'value')
+        method.assert_called_once_with(qs, None, 'value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_uses_distinct(self):
@@ -436,7 +440,7 @@ class MultipleChoiceFilterTests(TestCase):
              [5, ]),
             ((books[3].pk, books[4].pk),
              []),
-            )
+        )
         users = User.objects.all()
 
         for item in filter_list:
@@ -510,6 +514,21 @@ class ModelMultipleChoiceFilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.ModelMultipleChoiceField)
         self.assertEqual(field.queryset, qs)
+
+    def test_filtering_to_field_name(self):
+        qs = User.objects.all()
+        f = ModelMultipleChoiceFilter(name='first_name',
+                                      to_field_name='first_name',
+                                      queryset=qs)
+        user = User.objects.create(first_name='Firstname')
+
+        self.assertEqual(f.get_filter_predicate(user),
+                         {'first_name': 'Firstname'})
+        self.assertEqual(f.get_filter_predicate('FilterValue'),
+                         {'first_name': 'FilterValue'})
+
+        self.assertEqual(list(f.filter(qs, ['Firstname'])), [user])
+        self.assertEqual(list(f.filter(qs, [user])), [user])
 
 
 class NumberFilterTests(TestCase):
@@ -858,7 +877,8 @@ class AllValuesFilterTests(TestCase):
     def test_default_field_with_assigning_model(self):
         mocked = mock.Mock()
         chained_call = '.'.join(['_default_manager', 'distinct.return_value',
-            'order_by.return_value', 'values_list.return_value'])
+                                 'order_by.return_value',
+                                 'values_list.return_value'])
         mocked.configure_mock(**{chained_call: iter([])})
         f = AllValuesFilter()
         f.model = mocked
@@ -976,3 +996,104 @@ class BaseRangeFilterTests(TestCase):
         f = NumberInFilter()
         f.filter(qs, [1, 2])
         qs.filter.assert_called_once_with(None__range=[1, 2])
+
+
+class OrderingFilterTests(TestCase):
+    def test_default_field(self):
+        f = OrderingFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.ChoiceField)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter()
+        f.filter(qs, ['a', 'b'])
+        qs.order_by.assert_called_once_with('a', 'b')
+
+    def test_filtering_descending(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter()
+        f.filter(qs, ['-a'])
+        qs.order_by.assert_called_once_with('-a')
+
+    def test_filtering_with_fields(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter(fields={'a': 'b'})
+        f.filter(qs, ['b', '-b'])
+        qs.order_by.assert_called_once_with('a', '-a')
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_choices_unaltered(self):
+        # provided 'choices' should not be altered when 'fields' is present
+        f = OrderingFilter(
+            choices=(('a', 'A'), ('b', 'B')),
+            fields=(('a', 'c'), ('b', 'd')),
+        )
+
+        self.assertSequenceEqual(f.field.choices, (
+            ('a', 'A'),
+            ('b', 'B'),
+        ))
+
+    def test_choices_from_fields(self):
+        f = OrderingFilter(
+            fields=(('a', 'c'), ('b', 'd')),
+        )
+
+        self.assertSequenceEqual(f.field.choices, (
+            ('c', 'C'),
+            ('-c', 'C (descending)'),
+            ('d', 'D'),
+            ('-d', 'D (descending)'),
+        ))
+
+    def test_field_labels(self):
+        f = OrderingFilter(
+            fields=(('a', 'c'), ('b', 'd')),
+            field_labels={'a': 'foo'},
+        )
+
+        self.assertSequenceEqual(f.field.choices, (
+            ('c', 'foo'),
+            ('-c', 'foo (descending)'),
+            ('d', 'D'),
+            ('-d', 'D (descending)'),
+        ))
+
+    def test_normalize_fields(self):
+        f = OrderingFilter.normalize_fields
+        O = OrderedDict
+
+        self.assertIn('a', f({'a': 'b'}))
+
+        self.assertEqual(
+            f(O([('a', 'b'), ('c', 'd')])),
+            O([('a', 'b'), ('c', 'd')])
+        )
+
+        self.assertEqual(
+            f([('a', 'b'), ('c', 'd')]),
+            O([('a', 'b'), ('c', 'd')])
+        )
+
+        self.assertEqual(
+            f(['a', 'b']),
+            O([('a', 'a'), ('b', 'b')])
+        )
+
+        with self.assertRaises(AssertionError) as ctx:
+            f(None)
+        self.assertEqual(str(ctx.exception), "'fields' must be an iterable (e.g., a list, tuple, or mapping).")
+
+        with self.assertRaises(AssertionError) as ctx:
+            f([('a', 'b', 'c')])
+        self.assertEqual(str(ctx.exception), "'fields' must contain strings or (field name, param name) pairs.")
+
+        with self.assertRaises(AssertionError) as ctx:
+            f([0, 1, 2])
+        self.assertEqual(str(ctx.exception), "'fields' must contain strings or (field name, param name) pairs.")

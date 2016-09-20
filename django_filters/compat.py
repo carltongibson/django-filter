@@ -1,5 +1,15 @@
 
 import django
+from django.conf import settings
+
+
+# django-crispy-forms is optional
+try:
+    import crispy_forms
+except ImportError:
+    crispy_forms = None
+
+is_crispy = 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms
 
 
 def remote_field(field):
@@ -22,3 +32,9 @@ def remote_queryset(field):
     limit_choices_to = field.get_limit_choices_to()
 
     return model._default_manager.complex_filter(limit_choices_to)
+
+
+def format_value(widget, value):
+    if django.VERSION >= (1, 10):
+        return widget.format_value(value)
+    return widget._format_value(value)

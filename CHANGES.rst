@@ -1,3 +1,36 @@
+Version 0.15.0 (2016-09-20)
+---------------------------
+
+This is a preparatory release for a 1.0. Lots of clean-up, lots of changes,
+mostly backwards compatible.
+
+Special thanks to Ryan P Kilby (@rpkilby) for lots of hard work.
+
+Most changes should raise a Deprecation Warning.
+
+**Note**: if you're doing *Clever Things™* with the various filter options
+— ``filter_overrides`` etc — you may run into an `AttributeError` since these
+are now defined on the metaclass and not on the filter itself.
+(See the discussion on #459)
+
+Summary: Highly Recommended, but take a moment to ensure everything still works.
+
+* Added the DRF backend. #481
+
+* Deprecated `MethodFilter` in favour of `Filter.method` #382
+
+* Move filter options to metaclass #459
+
+* Added `get_filter_predicate` hook. (Allows e.g. filtering on annotated fields) #469
+
+* Rework Ordering options into a filter #472
+
+* Hardened all deprecations for 1.0. Please do see the `Migration Notes`__
+
+__ https://github.com/carltongibson/django-filter/blob/develop/docs/migration.txt
+
+
+
 Version 0.14.0 (2016-08-14)
 ---------------------------
 
@@ -14,6 +47,7 @@ Version 0.14.0 (2016-08-14)
 * Fix distinct behavior for range filters
 
 * Various Minor Clean up issues.
+
 
 Version 0.13.0 (2016-03-11)
 ---------------------------

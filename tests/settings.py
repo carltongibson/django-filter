@@ -10,6 +10,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django_filters',
     'tests',
+    'tests.rest_framework',
 )
 
 ROOT_URLCONF = 'tests.urls'
@@ -24,6 +25,10 @@ TEMPLATES = [{
 }]
 
 
-SILENCED_SYSTEM_CHECKS = [
-    '1_7.W001',  # Unset MIDDLEWARE_CLASSES warning
-]
+MIDDLEWARE = []
+
+
+# help verify that DEFAULTS is importable from conf.
+def FILTERS_VERBOSE_LOOKUPS():
+    from django_filters.conf import DEFAULTS
+    return DEFAULTS['VERBOSE_LOOKUPS']

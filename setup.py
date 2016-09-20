@@ -6,7 +6,7 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
-version = '0.14.0'
+version = '0.15.0'
 
 if sys.argv[-1] == 'publish':
     if os.system("pip freeze | grep wheel"):
@@ -34,7 +34,7 @@ setup(
     maintainer_email='carlton.gibson@noumenal.es',
     url='http://github.com/carltongibson/django-filter/tree/master',
     packages=find_packages(exclude=['tests']),
-    package_data = {
+    package_data={
         'django_filters': [
             'locale/*/LC_MESSAGES/*',
         ],

@@ -2,21 +2,24 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
 
 from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.db.models.constants import LOOKUP_SEP
-from django.conf import settings
 from django.utils import six
+from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from .conf import settings
 from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
+from .utils import deprecate, pretty_name
 
 
 __all__ = [
@@ -38,6 +41,7 @@ __all__ = [
     'MultipleChoiceFilter',
     'NumberFilter',
     'NumericRangeFilter',
+    'OrderingFilter',
     'RangeFilter',
     'TimeFilter',
     'TimeRangeFilter',
@@ -49,6 +53,9 @@ __all__ = [
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
+EMPTY_VALUES = ([], (), {}, '', None)
+
+
 def _lookup_type_warning():
     warnings.warn('lookup_type is deprecated. Use lookup_expr instead.', DeprecationWarning, stacklevel=3)
 
@@ -57,12 +64,14 @@ class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, name=None, label=None, widget=None, action=None,
+    def __init__(self, name=None, label=None, widget=None, action=None, method=None,
                  lookup_expr='exact', required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         if action:
+            deprecate('Filter.action has been deprecated in favor of Filter.method')
             self.filter = action
+        self.method = method
 
         self.lookup_expr = lookup_expr
         if 'lookup_type' in kwargs:
@@ -84,6 +93,28 @@ class Filter(object):
         """
         return qs.exclude if self.exclude else qs.filter
 
+    def method():
+        """
+        Filter method needs to be lazily resolved, as it may be dependent on
+        the 'parent' FilterSet.
+        """
+        def fget(self):
+            return self._method
+
+        def fset(self, value):
+            self._method = value
+
+            # clear existing FilterMethod
+            if isinstance(self.filter, FilterMethod):
+                del self.filter
+
+            # override filter w/ FilterMethod.
+            if value is not None:
+                self.filter = FilterMethod(self)
+
+        return locals()
+    method = property(**method())
+
     def lookup_type():
         def fget(self):
             _lookup_type_warning()
@@ -101,9 +132,9 @@ class Filter(object):
         if not hasattr(self, '_field'):
             help_text = self.extra.pop('help_text', None)
             if help_text is None:
-                if self.exclude and getattr(settings, "FILTERS_HELP_TEXT_EXCLUDE", True):
+                if self.exclude and settings.HELP_TEXT_EXCLUDE:
                     help_text = _('This is an exclusion filter')
-                elif not self.exclude and getattr(settings, "FILTERS_HELP_TEXT_FILTER", True):
+                elif not self.exclude and settings.HELP_TEXT_FILTER:
                     help_text = _('Filter')
                 else:
                     help_text = ''
@@ -144,7 +175,7 @@ class Filter(object):
             value = value.value
         else:
             lookup = self.lookup_expr
-        if value in ([], (), {}, None, ''):
+        if value in EMPTY_VALUES:
             return qs
         if self.distinct:
             qs = qs.distinct()
@@ -174,38 +205,40 @@ class UUIDFilter(Filter):
 
 class MultipleChoiceFilter(Filter):
     """
-    This filter preforms OR(by default) or AND(using conjoined=True) query
+    This filter performs OR(by default) or AND(using conjoined=True) query
     on the selected options.
 
-    Advanced Use
-    ------------
+    Advanced usage
+    --------------
     Depending on your application logic, when all or no choices are selected,
-    filtering may be a noop. In this case you may wish to avoid the filtering
-    overhead, particularly if using a `distinct` call.
+    filtering may be a no-operation. In this case you may wish to avoid the
+    filtering overhead, particularly if using a `distinct` call.
 
-    Set `always_filter` to False after instantiation to enable the default
-    `is_noop` test.
+    You can override `get_filter_predicate` to use a custom filter.
+    By default it will use the filter's name for the key, and the value will
+    be the model object - or in case of passing in `to_field_name` the
+    value of that attribute on the model.
 
-    Override `is_noop` if you require a different test for your application.
+    Set `always_filter` to `False` after instantiation to enable the default
+    `is_noop` test. You can override `is_noop` if you need a different test
+    for your application.
 
-    `distinct` defaults to True on this class to preserve backward compatibility.
+    `distinct` defaults to `True` on this class to preserve backward
+    compatibility.
     """
     field_class = forms.MultipleChoiceField
 
     always_filter = True
 
     def __init__(self, *args, **kwargs):
-        distinct = kwargs.get('distinct', True)
-        kwargs['distinct'] = distinct
-
-        conjoined = kwargs.pop('conjoined', False)
-        self.conjoined = conjoined
-
+        kwargs.setdefault('distinct', True)
+        self.conjoined = kwargs.pop('conjoined', False)
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
         """
-        Return True to short-circuit unnecessary and potentially slow filtering.
+        Return `True` to short-circuit unnecessary and potentially slow
+        filtering.
         """
         if self.always_filter:
             return False
@@ -217,26 +250,32 @@ class MultipleChoiceFilter(Filter):
         return False
 
     def filter(self, qs, value):
-        value = value or ()  # Make sure we have an iterable
+        if not value:
+            # Even though not a noop, no point filtering if empty.
+            return qs
 
         if self.is_noop(qs, value):
             return qs
 
-        # Even though not a noop, no point filtering if empty
-        if not value:
-            return qs
-
-        q = Q()
+        if not self.conjoined:
+            q = Q()
         for v in set(value):
+            predicate = self.get_filter_predicate(v)
             if self.conjoined:
-                qs = self.get_method(qs)(**{self.name: v})
+                qs = self.get_method(qs)(**predicate)
             else:
-                q |= Q(**{self.name: v})
+                q |= Q(**predicate)
 
-        if self.distinct:
-            return self.get_method(qs)(q).distinct()
+        if not self.conjoined:
+            qs = self.get_method(qs)(q)
 
-        return self.get_method(qs)(q)
+        return qs.distinct() if self.distinct else qs
+
+    def get_filter_predicate(self, v):
+        try:
+            return {self.name: getattr(v, self.field.to_field_name)}
+        except (AttributeError, TypeError):
+            return {self.name: v}
 
 
 class DateFilter(Filter):
@@ -453,11 +492,109 @@ class BaseRangeFilter(BaseCSVFilter):
         super(BaseRangeFilter, self).__init__(*args, **kwargs)
 
 
+class OrderingFilter(BaseCSVFilter, ChoiceFilter):
+    """
+    Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
+    two additional arguments that are used to build the ordering choices.
+
+    * ``fields`` is a mapping of {model field name: parameter name}. The
+      parameter names are exposed in the choices and mask/alias the field
+      names used in the ``order_by()`` call. Similar to field ``choices``,
+      ``fields`` accepts the 'list of two-tuples' syntax that retains order.
+      ``fields`` may also just be an iterable of strings. In this case, the
+      field names simply double as the exposed parameter names.
+
+    * ``field_labels`` is an optional argument that allows you to customize
+      the display label for the corresponding parameter. It accepts a mapping
+      of {field name: human readable label}. Keep in mind that the key is the
+      field name, and not the exposed parameter name.
+
+    Additionally, you can just provide your own ``choices`` if you require
+    explicit control over the exposed options. For example, when you might
+    want to disable descending sort options.
+
+    This filter is also CSV-based, and accepts multiple ordering params. The
+    default select widget does not enable the use of this, but it is useful
+    for APIs.
+
+    """
+    descending_fmt = _('%s (descending)')
+
+    def __init__(self, *args, **kwargs):
+        """
+        ``fields`` may be either a mapping or an iterable.
+        ``field_labels`` must be a map of field names to display labels
+        """
+        fields = kwargs.pop('fields', {})
+        fields = self.normalize_fields(fields)
+        field_labels = kwargs.pop('field_labels', {})
+
+        self.param_map = {v: k for k, v in fields.items()}
+
+        if 'choices' not in kwargs:
+            kwargs['choices'] = self.build_choices(fields, field_labels)
+
+        kwargs.setdefault('label', _('Ordering'))
+        super(OrderingFilter, self).__init__(*args, **kwargs)
+
+    def get_ordering_value(self, param):
+        descending = param.startswith('-')
+        param = param[1:] if descending else param
+        field_name = self.param_map.get(param, param)
+
+        return "-%s" % field_name if descending else field_name
+
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        ordering = [self.get_ordering_value(param) for param in value]
+        return qs.order_by(*ordering)
+
+    @classmethod
+    def normalize_fields(cls, fields):
+        """
+        Normalize the fields into an ordered map of {field name: param name}
+        """
+        # fields is a mapping, copy into new OrderedDict
+        if isinstance(fields, dict):
+            return OrderedDict(fields)
+
+        # convert iterable of values => iterable of pairs (field name, param name)
+        assert is_iterable(fields), \
+            "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
+
+        # fields is an iterable of field names
+        assert all(isinstance(field, six.string_types) or
+                   is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
+                   for field in fields), \
+            "'fields' must contain strings or (field name, param name) pairs."
+
+        return OrderedDict([
+            (f, f) if isinstance(f, six.string_types) else f for f in fields
+        ])
+
+    def build_choices(self, fields, labels):
+        ascending = [
+            (param, labels.get(field, pretty_name(param)))
+            for field, param in fields.items()
+        ]
+        descending = [
+            ('-%s' % pair[0], self.descending_fmt % pair[1])
+            for pair in ascending
+        ]
+
+        # interleave the ascending and descending choices
+        return [val for pair in zip(ascending, descending) for val in pair]
+
+
 class MethodFilter(Filter):
     """
     This filter will allow you to run a method that exists on the filterset class
     """
     def __init__(self, *args, **kwargs):
+        deprecate('MethodFilter has been deprecated in favor of Filter.method')
+
         # Get the action out of the kwargs
         action = kwargs.get('action', None)
 
@@ -492,3 +629,43 @@ class MethodFilter(Filter):
         if parent_filter_method is not None:
             return parent_filter_method(qs, value)
         return qs
+
+
+class FilterMethod(object):
+    """
+    This helper is used to override Filter.filter() when a 'method' argument
+    is passed. It proxies the call to the actual method on the filter's parent.
+    """
+    def __init__(self, filter_instance):
+        self.f = filter_instance
+
+    def __call__(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        return self.method(qs, self.f.name, value)
+
+    @property
+    def method(self):
+        """
+        Resolve the method on the parent filterset.
+        """
+        instance = self.f
+
+        # noop if 'method' is a function
+        if callable(instance.method):
+            return instance.method
+
+        # otherwise, method is the name of a method on the parent FilterSet.
+        assert hasattr(instance, 'parent'), \
+            "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
+            (instance.name, instance.method)
+
+        parent = instance.parent
+        method = getattr(parent, instance.method, None)
+
+        assert callable(method), \
+            "Expected parent FilterSet '%s.%s' to have a '.%s()' method." % \
+            (parent.__class__.__module__, parent.__class__.__name__, instance.method)
+
+        return method

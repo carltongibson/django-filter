@@ -43,13 +43,51 @@ additional ones that django-filter provides which may be useful:
     * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
       to generate two form input elements using a single field.
 
-``action``
+.. _filter-method:
+
+``method``
 ~~~~~~~~~~
 
-An optional callable that tells the filter how to handle the queryset.  It
-recieves a ``QuerySet`` and the value to filter on and should return a
-``Queryset`` that is filtered appropriately. `action` will default to
-``filter_{value-of-name-attribute}``
+An optional argument that tells the filter how to handle the queryset. It can
+accept either a callable or the name of a method on the ``FilterSet``. The
+method receives a ``QuerySet``, the name of the model field to filter on, and
+the value to filter with. It should return a ``Queryset`` that is filtered
+appropriately.
+
+The passed in value is validated and cleaned by the filter's ``field_class``,
+so raw value transformation and empty value checking should be unnecessary.
+
+.. code-block:: python
+
+    class F(FilterSet):
+        """Filter for Books by if books are published or not"""
+        published = BooleanFilter(name='published_on', method='filter_published')
+
+        def filter_published(self, queryset, name, value):
+            # construct the full lookup expression.
+            lookup = '__'.join([name, 'isnull'])
+            return queryset.filter(**{lookup: False})
+
+            # alternatively, it may not be necessary to construct the lookup.
+            return queryset.filter(published_on__isnull=False)
+
+        class Meta:
+            model = Book
+            fields = ['published']
+
+
+    # Callables may also be defined out of the class scope.
+    def filter_not_empty(queryset, name, value):
+        lookup = '__'.join([name, 'isnull'])
+        return queryset.filter(**{lookup: False})
+
+    class F(FilterSet):
+        """Filter for Books by if books are published or not"""
+        published = BooleanFilter(name='published_on', method=filter_not_empty)
+
+        class Meta:
+            model = Book
+            fields = ['published']
 
 ``lookup_expr``
 ~~~~~~~~~~~~~~~
@@ -114,13 +152,21 @@ Any additional keyword arguments are stored as the ``extra`` parameter on the fi
 ModelChoiceFilter and ModelMultipleChoiceFilter arguments
 ---------------------------------------------------------
 
-These arguments apply specifically to ModelChoiceFiler and
+These arguments apply specifically to ModelChoiceFilter and
 ModelMultipleChoiceFilter only.
 
 ``queryset``
 ~~~~~~~~~~~~
 
-``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to operate on which must be passed as a kwarg.
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to
+operate on which must be passed as a kwarg.
+
+``to_field_name``
+~~~~~~~~~~~~~~~~~
+
+If you pass in ``to_field_name`` (which gets forwarded to the Django field),
+it will be used also in the default ``get_filter_predicate`` implementation
+as the model's attribute.
 
 
 Filters
@@ -236,7 +282,7 @@ Matches on a date and time.  Used with ``DateTimeField`` by default.
 
 Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often used in APIs, and are employed by default by Django REST Framework.
 
-Example. ::
+Example::
 
     class F(FilterSet):
         """Filter for Books by date published, using ISO 8601 formatted dates"""
@@ -263,10 +309,11 @@ and week designators, e.g. 'P3DT10H22M').
 Similar to a ``ChoiceFilter`` except it works with related models, used for
 ``ForeignKey`` by default.
 
-If automatically instantiated ``ModelChoiceFilter`` will use the default ``QuerySet`` for the
-related field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+If automatically instantiated, ``ModelChoiceFilter`` will use the default
+``QuerySet`` for the related field. If manually instantiated you **must**
+provide the ``queryset`` kwarg.
 
-Example. ::
+Example::
 
     class F(FilterSet):
         """Filter for books by author"""
@@ -282,9 +329,55 @@ Example. ::
 Similar to a ``MultipleChoiceFilter`` except it works with related models, used
 for ``ManyToManyField`` by default.
 
-As with ``ModelChoiceFilter``, if automatically instantiated ``ModelMultipleChoiceFilter`` will use
-the default ``QuerySet`` for the related field. If manually instantiated you **must** provide the
-``queryset`` kwarg.
+As with ``ModelChoiceFilter``, if automatically instantiated,
+``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
+field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+
+To use a custom field name for the lookup, you can use ``to_field_name``::
+
+    class FooFilter(BaseFilterSet):
+        foo = django_filters.filters.ModelMultipleChoiceFilter(
+            name='attr__uuid',
+            to_field_name='uuid',
+            queryset=Foo.objects.all(),
+        )
+
+If you want to use a custom queryset, e.g. to add annotated fields, this can be
+done as follows::
+
+    class MyMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilter):
+        def get_filter_predicate(self, v):
+            return {'annotated_field': v.annotated_field}
+
+        def filter(self, qs, value):
+            if value:
+                qs = qs.annotate_with_custom_field()
+                qs = super().filter(qs, value)
+            return qs
+
+    foo = MyMultipleChoiceFilter(
+        to_field_name='annotated_field',
+        queryset=Model.objects.annotate_with_custom_field(),
+    )
+
+The ``annotate_with_custom_field`` method would be defined through a custom
+QuerySet, which then gets used as the model's manager::
+
+    class CustomQuerySet(models.QuerySet):
+        def annotate_with_custom_field(self):
+            return self.annotate(
+                custom_field=Case(
+                    When(foo__isnull=False,
+                         then=F('foo__uuid')),
+                    When(bar__isnull=False,
+                         then=F('bar__uuid')),
+                    default=None,
+                ),
+            )
+
+    class MyModel(models.Model):
+        objects = CustomQuerySet.as_manager()
+
 
 ``NumberFilter``
 ~~~~~~~~~~~~~~~~
@@ -478,7 +571,7 @@ this filter class is used in conjunction with another filter class, as this
 class **only** validates that the incoming value is comma-separated. The secondary
 filter is then used to validate the individual values.
 
-Example. ::
+Example::
 
     class NumberInFilter(BaseInFilter, NumericFilter):
         pass
@@ -505,7 +598,7 @@ This is a base class used for creating RANGE lookup filters. It behaves
 identically to ``BaseInFilter`` with the exception that it expects only two
 comma-separated values.
 
-Example. ::
+Example::
 
     class NumberRangeFilter(BaseInFilter, NumericFilter):
         pass
@@ -533,7 +626,7 @@ This is a ``Filter`` that will allow you to run a method that exists on the filt
 this filter is a property of. Set the `action` to a string that will map to a method on the
 filter set class. `action` will default to ``filter_{value-of-name-attribute}``
 
-Example. ::
+Example::
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
@@ -547,3 +640,81 @@ Example. ::
         class Meta:
             model = Book
             fields = ['published']
+
+
+.. _ordering-filter:
+
+``OrderingFilter``
+~~~~~~~~~~~~~~~~~~
+
+Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
+two additional arguments that are used to build the ordering choices.
+
+* ``fields`` is a mapping of {model field name: parameter name}. The
+  parameter names are exposed in the choices and mask/alias the field
+  names used in the ``order_by()`` call. Similar to field ``choices``,
+  ``fields`` accepts the 'list of two-tuples' syntax that retains order.
+  ``fields`` may also just be an iterable of strings. In this case, the
+  field names simply double as the exposed parameter names.
+
+* ``field_labels`` is an optional argument that allows you to customize
+  the display label for the corresponding parameter. It accepts a mapping
+  of {field name: human readable label}. Keep in mind that the key is the
+  field name, and not the exposed parameter name.
+
+.. code-block:: python
+
+    class UserFilter(FilterSet):
+        account = CharFilter(name='username')
+        status = NumberFilter(name='status')
+
+        o = OrderingFilter(
+            # tuple-mapping retains order
+            fields=(
+                ('username', 'account'),
+                ('first_name', 'first_name'),
+                ('last_name', 'last_name'),
+            },
+
+            # labels do not need to retain order
+            field_labels={
+                'username': 'User account',
+            }
+        )
+
+        class Meta:
+            model = User
+            fields = ['first_name', 'last_name']
+
+    >>> UserFilter().filter['o'].field.choices
+    [
+        ('account', 'User account'),
+        ('-account', 'User account (descending)'),
+        ('first_name', 'First name'),
+        ('-first_name', 'First name (descending)'),
+        ('last_name', 'Last name'),
+        ('-last_name', 'Last name (descending)'),
+    ]
+
+Additionally, you can just provide your own ``choices`` if you require
+explicit control over the exposed options. For example, when you might
+want to disable descending sort options.
+
+.. code-block:: python
+
+    class UserFilter(FilterSet):
+        account = CharFilter(name='username')
+        status = NumberFilter(name='status')
+
+        o = OrderingFilter(
+            choices=(
+                ('account', 'Account'),
+            ),
+            fields={
+                'username': 'account',
+            },
+        )
+
+This filter is also CSV-based, and accepts multiple ordering params. The
+default select widget does not enable the use of this, but it is useful
+for APIs.
