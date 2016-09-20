@@ -4,6 +4,8 @@ Version 0.15.0 (2016-09-20)
 This is a preparatory release for a 1.0. Lots of clean-up, lots of changes,
 mostly backwards compatible.
 
+Special thanks to Ryan P Kilby (@rpkilby) for lots of hard work.
+
 Most changes should raise a Deprecation Warning.
 
 **Note**: if you're doing *Clever Things™* with the various filter options
