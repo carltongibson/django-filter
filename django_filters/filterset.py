@@ -317,9 +317,11 @@ class BaseFilterSet(object):
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
-            valid = self.is_bound and self.form.is_valid()
+            if not self.is_bound:
+                self._qs = self.queryset.all()
+                return self._qs
 
-            if self.is_bound and not valid:
+            if not self.form.is_valid():
                 if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
                     raise forms.ValidationError(self.form.errors)
                 elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
@@ -330,20 +332,7 @@ class BaseFilterSet(object):
             # start with all the results and filter from there
             qs = self.queryset.all()
             for name, filter_ in six.iteritems(self.filters):
-                value = None
-                if valid:
-                    value = self.form.cleaned_data[name]
-                else:
-                    raw_value = self.form[name].value()
-                    try:
-                        value = self.form.fields[name].clean(raw_value)
-                    except forms.ValidationError:
-                        if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                            raise
-                        elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                            self._qs = self.queryset.none()
-                            return self._qs
-                        # else STRICTNESS.IGNORE...  ignoring
+                value = self.form.cleaned_data.get(name)
 
                 if value is not None:  # valid & clean data
                     qs = filter_.filter(qs, value)
