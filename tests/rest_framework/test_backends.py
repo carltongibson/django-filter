@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 from decimal import Decimal
+from unittest import skipIf
 
 from django.conf.urls import url
 from django.test import TestCase
@@ -15,6 +16,7 @@ except ImportError:
     from django.core.urlresolvers import reverse
 
 from rest_framework import generics, serializers, status
+from rest_framework.compat import coreapi
 from rest_framework.test import APIRequestFactory
 
 from django_filters import filters
@@ -119,6 +121,35 @@ urlpatterns = [
     url(r'^$', FilterClassRootView.as_view(), name='root-view'),
     url(r'^get-queryset/$', GetQuerysetView.as_view(), name='get-queryset-view'),
 ]
+
+
+@skipIf(coreapi is None, 'coreapi must be installed')
+class GetSchemaFieldsTests(TestCase):
+    def test_fields_with_filter_fields_list(self):
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(FilterFieldsRootView())
+        fields = [f.name for f in fields]
+
+        self.assertEqual(fields, ['decimal', 'date'])
+
+    def test_fields_with_filter_fields_dict(self):
+        class DictFilterFieldsRootView(FilterFieldsRootView):
+            filter_fields = {
+                'decimal': ['exact', 'lt', 'gt'],
+            }
+
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(DictFilterFieldsRootView())
+        fields = [f.name for f in fields]
+
+        self.assertEqual(fields, ['decimal', 'decimal__lt', 'decimal__gt'])
+
+    def test_fields_with_filter_class(self):
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(FilterClassRootView())
+        fields = [f.name for f in fields]
+
+        self.assertEqual(fields, ['text', 'decimal', 'date'])
 
 
 class CommonFilteringTestCase(TestCase):
