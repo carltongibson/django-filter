@@ -89,3 +89,11 @@ For example, you could add verbose output for "exact" lookups.
             'exact': 'is equal to',
         })
         return verbose_lookups
+
+
+FILTERS_STRICTNESS
+------------------
+
+DEFAULT: ``STRICTNESS.RETURN_NO_RESULTS``
+
+Set the global default for FilterSet :ref:`strictness <strict>`.

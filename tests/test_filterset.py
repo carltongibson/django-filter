@@ -5,8 +5,9 @@ import unittest
 
 import django
 from django.db import models
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
+from django_filters.constants import STRICTNESS
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filters import Filter
@@ -571,6 +572,45 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = F(request=m)
         self.assertEqual(f.request, m)
+
+
+class FilterSetStrictnessTests(TestCase):
+
+    def test_settings_default(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+
+        # Ensure default is not IGNORE
+        self.assertEqual(F().strict, STRICTNESS.RETURN_NO_RESULTS)
+
+        # override and test
+        with override_settings(FILTERS_STRICTNESS=STRICTNESS.IGNORE):
+            self.assertEqual(F().strict, STRICTNESS.IGNORE)
+
+    def test_meta_value(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                strict = STRICTNESS.IGNORE
+
+        self.assertEqual(F().strict, STRICTNESS.IGNORE)
+
+    def test_init_default(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                strict = STRICTNESS.IGNORE
+
+        strict = STRICTNESS.RAISE_VALIDATION_ERROR
+        self.assertEqual(F(strict=strict).strict, strict)
+
+    def test_legacy_value(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+
+        self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
 
 
 class FilterSetTogetherTests(TestCase):

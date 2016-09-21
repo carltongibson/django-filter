@@ -453,7 +453,6 @@ class DeprecatedOrderingFilterSetTests(TestCase):
                 order_by = ['status']
                 strict = STRICTNESS.IGNORE
 
-        self.assertFalse(F._meta.strict)
         f = F({'o': 'username'}, queryset=self.qs)
         self.assertQuerysetEqual(
             f.qs, ['alex', 'jacob', 'aaron', 'carl'], lambda o: o.username)
