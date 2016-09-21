@@ -1644,7 +1644,7 @@ class MiscFilterSetTests(TestCase):
                 model = User
                 fields = ['account']
 
-        qs = mock.MagicMock()
+        qs = mock.NonCallableMagicMock()
         f = F({'account': 'jdoe'}, queryset=qs)
         result = f.qs
         self.assertNotEqual(qs, result)

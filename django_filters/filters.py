@@ -307,11 +307,62 @@ class DurationFilter(Filter):
     field_class = forms.DurationField
 
 
-class ModelChoiceFilter(Filter):
+class QuerySetRequestMixin(object):
+    """
+    Add callable functionality to filters that support the ``queryset``
+    argument. If the ``queryset`` is callable, then it **must** accept the
+    ``request`` object as a single argument.
+
+    This is useful for filtering querysets by properties on the ``request``
+    object, such as the user.
+
+    Example::
+
+        def departments(request):
+            company = request.user.company
+            return company.department_set.all()
+
+        class EmployeeFilter(filters.FilterSet):
+            department = filters.ModelChoiceFilter(queryset=departments)
+            ...
+
+    The above example restricts the set of departments to those in the logged-in
+    user's associated company.
+
+    """
+    def __init__(self, *args, **kwargs):
+        self.queryset = kwargs.get('queryset')
+        super(QuerySetRequestMixin, self).__init__(*args, **kwargs)
+
+    def get_request(self):
+        try:
+            return self.parent.request
+        except AttributeError:
+            return None
+
+    def get_queryset(self, request):
+        queryset = self.queryset
+
+        if callable(queryset):
+            return queryset(request)
+        return queryset
+
+    @property
+    def field(self):
+        request = self.get_request()
+        queryset = self.get_queryset(request)
+
+        if queryset is not None:
+            self.extra['queryset'] = queryset
+
+        return super(QuerySetRequestMixin, self).field
+
+
+class ModelChoiceFilter(QuerySetRequestMixin, Filter):
     field_class = forms.ModelChoiceField
 
 
-class ModelMultipleChoiceFilter(MultipleChoiceFilter):
+class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
     field_class = forms.ModelMultipleChoiceField
 
 
