@@ -280,16 +280,52 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @override_settings(INSTALLED_APPS=['rest_framework', 'django_filters'])
     def test_html_rendering(self):
         """
-        Make sure templates can be loaded.
+        Make sure response renders w/ backend
         """
         view = FilterFieldsRootView.as_view()
         request = factory.get('/')
         request.META['HTTP_ACCEPT'] = 'text/html'
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_backend_output(self):
+        """
+        Ensure backend renders default if template path does not exist
+        """
+        view = FilterFieldsRootView()
+        backend = view.filter_backends[0]
+        request = view.initialize_request(factory.get('/'))
+        html = backend().to_html(request, view.get_queryset(), view)
+
+        self.assertHTMLEqual(html, """
+        <h2>Field filters</h2>
+        <form class="form" action="" method="get">
+            <p>
+                <label for="id_decimal">Decimal:</label>
+                <input id="id_decimal" name="decimal" step="any" type="number" />
+                <span class="helptext">Filter</span>
+            </p>
+            <p>
+                <label for="id_date">Date:</label>
+                <input id="id_date" name="date" type="text" />
+                <span class="helptext">Filter</span>
+            </p>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        """)
+
+    def test_template_path(self):
+        view = FilterFieldsRootView()
+
+        class Backend(view.filter_backends[0]):
+            template = 'filter_template.html'
+
+        request = view.initialize_request(factory.get('/'))
+        html = Backend().to_html(request, view.get_queryset(), view)
+
+        self.assertHTMLEqual(html, "Test")
 
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_backends')
