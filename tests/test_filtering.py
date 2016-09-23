@@ -6,12 +6,13 @@ import mock
 import unittest
 
 import django
+from django import forms
 from django.test import TestCase, override_settings
 from django.utils import six
 from django.utils.timezone import now
 from django.utils import timezone
 
-from django_filters.filterset import FilterSet
+from django_filters.filterset import FilterSet, STRICTNESS
 from django_filters.filters import AllValuesFilter
 from django_filters.filters import AllValuesMultipleFilter
 from django_filters.filters import CharFilter
@@ -24,6 +25,7 @@ from django_filters.filters import DurationFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
+from django_filters.filters import OrderingFilter
 from django_filters.filters import RangeFilter
 from django_filters.filters import TimeRangeFilter
 # from django_filters.widgets import LinkWidget
@@ -1584,6 +1586,50 @@ class CSVFilterTests(TestCase):
 
         f = F({'author__in': '1,'}, queryset=qs)
         self.assertEqual(f.qs.count(), 2)
+
+
+class OrderingFilterTests(TestCase):
+
+    def setUp(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+    def test_ordering(self):
+        class F(FilterSet):
+            o = OrderingFilter(
+                fields=('username',)
+            )
+
+            class Meta:
+                model = User
+                fields = ['username',]
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
+
+        qs = User.objects.all()
+        f = F({'o': 'username'}, queryset=qs)
+        names = f.qs.values_list("username", flat=True)
+        self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob',])
+
+    def test_ordering_with_select_widget(self):
+        class F(FilterSet):
+            o = OrderingFilter(
+                widget=forms.Select(),
+                fields=('username',)
+            )
+
+            class Meta:
+                model = User
+                fields = ['username',]
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
+
+        qs = User.objects.all()
+        f = F({'o': 'username'}, queryset=qs)
+        names = f.qs.values_list("username", flat=True)
+        self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob',])
 
 
 class MiscFilterSetTests(TestCase):
