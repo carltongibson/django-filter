@@ -280,6 +280,17 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @override_settings(INSTALLED_APPS=['rest_framework', 'django_filters'])
+    def test_html_rendering(self):
+        """
+        Make sure templates can be loaded.
+        """
+        view = FilterFieldsRootView.as_view()
+        request = factory.get('/')
+        request.META['HTTP_ACCEPT'] = 'text/html'
+        response = view(request).render()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_backends')
 class IntegrationTestDetailFiltering(CommonFilteringTestCase):
