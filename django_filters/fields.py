@@ -2,13 +2,14 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from datetime import datetime, time
-from collections import namedtuple
+from collections import namedtuple, Iterable
 
 from django import forms
 from django.utils.dateparse import parse_datetime
 
 from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
+from django.utils.six import string_types
 
 from .utils import handle_timezone
 from .widgets import RangeWidget, LookupTypeWidget, CSVWidget
@@ -134,6 +135,10 @@ class BaseCSVField(forms.Field):
     def clean(self, value):
         if value is None:
             return None
+
+        if isinstance(value, string_types) and value != '':
+            value = [value]
+
         return [super(BaseCSVField, self).clean(v) for v in value]
 
 
