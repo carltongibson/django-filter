@@ -674,7 +674,7 @@ two additional arguments that are used to build the ordering choices.
                 ('username', 'account'),
                 ('first_name', 'first_name'),
                 ('last_name', 'last_name'),
-            },
+            ),
 
             # labels do not need to retain order
             field_labels={
@@ -686,7 +686,7 @@ two additional arguments that are used to build the ordering choices.
             model = User
             fields = ['first_name', 'last_name']
 
-    >>> UserFilter().filter['o'].field.choices
+    >>> UserFilter().filters['o'].field.choices
     [
         ('account', 'User account'),
         ('-account', 'User account (descending)'),
