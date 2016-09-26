@@ -7,11 +7,14 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'django.contrib.contenttypes',
+    'django.contrib.staticfiles',
     'django.contrib.auth',
-    'django_filters',
-    'tests',
+    'rest_framework',
     'tests.rest_framework',
+    'tests',
 )
+
+MIDDLEWARE = []
 
 ROOT_URLCONF = 'tests.urls'
 
@@ -25,7 +28,7 @@ TEMPLATES = [{
 }]
 
 
-MIDDLEWARE = []
+STATIC_URL = '/static/'
 
 
 # help verify that DEFAULTS is importable from conf.
