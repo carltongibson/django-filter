@@ -11,7 +11,7 @@ from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 
 from .utils import handle_timezone
-from .widgets import RangeWidget, LookupTypeWidget, CSVWidget
+from .widgets import RangeWidget, LookupTypeWidget, CSVWidget, BaseCSVWidget
 
 
 class RangeField(forms.MultiValueField):
@@ -129,7 +129,28 @@ class BaseCSVField(forms.Field):
             pass
 
     """
-    widget = CSVWidget
+    base_widget_class = BaseCSVWidget
+
+    def __init__(self, *args, **kwargs):
+        widget = kwargs.get('widget') or self.widget
+        kwargs['widget'] = self._get_widget_class(widget)
+
+        super(BaseCSVField, self).__init__(*args, **kwargs)
+
+    def _get_widget_class(self, widget):
+        # passthrough, allows for override
+        if isinstance(widget, BaseCSVWidget) or (
+                isinstance(widget, type) and
+                issubclass(widget, BaseCSVWidget)):
+            return widget
+
+        # complain since we are unable to reconstruct widget instances
+        assert isinstance(widget, type), \
+            "'%s.widget' must be a widget class, not %s." \
+            % (self.__class__.__name__, repr(widget))
+
+        bases = (self.base_widget_class, widget, )
+        return type(str('CSV%s' % widget.__name__), bases, {})
 
     def clean(self, value):
         if value is None:
@@ -138,6 +159,10 @@ class BaseCSVField(forms.Field):
 
 
 class BaseRangeField(BaseCSVField):
+    # Force use of text input, as range must always have two inputs. A date
+    # input would only allow a user to input one value and would always fail.
+    widget = CSVWidget
+
     default_error_messages = {
         'invalid_values': _('Range query expects two values.')
     }

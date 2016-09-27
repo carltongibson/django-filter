@@ -3,14 +3,12 @@ from __future__ import unicode_literals
 
 from datetime import datetime, time, timedelta, tzinfo
 import decimal
-import unittest
 
-import django
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils.timezone import make_aware, get_default_timezone
 
-from django_filters.widgets import RangeWidget
+from django_filters.widgets import BaseCSVWidget, CSVWidget, RangeWidget
 from django_filters.fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
@@ -195,6 +193,25 @@ class BaseCSVFieldTests(TestCase):
 
         with self.assertRaises(forms.ValidationError):
             self.field.clean(['a', 'b', 'c'])
+
+    def test_derived_widget(self):
+        with self.assertRaises(AssertionError) as excinfo:
+            BaseCSVField(widget=RangeWidget())
+
+        msg = str(excinfo.exception)
+        self.assertIn("'BaseCSVField.widget' must be a widget class", msg)
+        self.assertIn("RangeWidget", msg)
+
+        widget = CSVWidget()
+        field = BaseCSVField(widget=widget)
+        self.assertIs(field.widget, widget)
+
+        field = BaseCSVField(widget=CSVWidget)
+        self.assertIsInstance(field.widget, CSVWidget)
+
+        field = BaseCSVField(widget=forms.Select)
+        self.assertIsInstance(field.widget, forms.Select)
+        self.assertIsInstance(field.widget, BaseCSVWidget)
 
 
 class BaseRangeFieldTests(TestCase):

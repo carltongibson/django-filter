@@ -138,12 +138,12 @@ class BooleanWidget(forms.Select):
         }.get(value, None)
 
 
-class CSVWidget(forms.TextInput):
+class BaseCSVWidget(forms.Widget):
     def _isiterable(self, value):
         return isinstance(value, Iterable) and not isinstance(value, string_types)
 
     def value_from_datadict(self, data, files, name):
-        value = super(CSVWidget, self).value_from_datadict(data, files, name)
+        value = super(BaseCSVWidget, self).value_from_datadict(data, files, name)
 
         if value is not None:
             if value == '':  # empty value should parse as an empty list
@@ -152,8 +152,22 @@ class CSVWidget(forms.TextInput):
         return None
 
     def render(self, name, value, attrs=None):
-        if self._isiterable(value):
-            value = [force_text(format_value(self, v)) for v in value]
-            value = ','.join(list(value))
+        if not self._isiterable(value):
+            value = [value]
 
-        return super(CSVWidget, self).render(name, value, attrs)
+        if len(value) <= 1:
+            # delegate to main widget (Select, etc...) if not multiple values
+            value = value[0] if value else value
+            return super(BaseCSVWidget, self).render(name, value, attrs)
+
+        # if we have multiple values, we need to force render as a text input
+        # (otherwise, the additional values are lost)
+        surrogate = forms.TextInput()
+        value = [force_text(format_value(surrogate, v)) for v in value]
+        value = ','.join(list(value))
+
+        return surrogate.render(name, value, attrs)
+
+
+class CSVWidget(BaseCSVWidget, forms.TextInput):
+    pass

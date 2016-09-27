@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.forms import TextInput, Select
 
 from django_filters.widgets import BooleanWidget
+from django_filters.widgets import BaseCSVWidget
 from django_filters.widgets import CSVWidget
 from django_filters.widgets import RangeWidget
 from django_filters.widgets import LinkWidget
@@ -182,6 +183,9 @@ class CSVWidgetTests(TestCase):
         self.assertHTMLEqual(w.render('price', ''), """
             <input type="text" name="price" />""")
 
+        self.assertHTMLEqual(w.render('price', '1'), """
+            <input type="text" name="price" value="1" />""")
+
         self.assertHTMLEqual(w.render('price', '1,2'), """
             <input type="text" name="price" value="1,2" />""")
 
@@ -224,3 +228,54 @@ class CSVWidgetTests(TestCase):
 
         result = w.value_from_datadict({}, {}, 'price')
         self.assertEqual(result, None)
+
+
+class CSVSelectTests(TestCase):
+    class CSVSelect(BaseCSVWidget, Select):
+        pass
+
+    def test_widget(self):
+        w = self.CSVSelect(choices=((1, 'a'), (2, 'b')))
+        self.assertHTMLEqual(
+            w.render('price', None),
+            """
+            <select name="price">
+                <option value="1">a</option>
+                <option value="2">b</option>
+            </select>
+            """
+        )
+
+        self.assertHTMLEqual(
+            w.render('price', ''),
+            """
+            <select name="price">
+                <option value="1">a</option>
+                <option value="2">b</option>
+            </select>
+            """)
+
+        self.assertHTMLEqual(
+            w.render('price', '1'),
+            """
+            <select name="price">
+                <option selected="selected" value="1">a</option>
+                <option value="2">b</option>
+            </select>
+            """)
+
+        self.assertHTMLEqual(
+            w.render('price', '1,2'),
+            """
+            <select name="price">
+                <option value="1">a</option>
+                <option value="2">b</option>
+            </select>
+            """
+        )
+
+        self.assertHTMLEqual(w.render('price', ['1', '2']), """
+            <input type="text" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', [1, 2]), """
+            <input type="text" name="price" value="1,2" />""")
