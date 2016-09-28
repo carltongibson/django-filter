@@ -1,3 +1,14 @@
+Version 0.15.1 (2016-09-28)
+---------------------------
+
+A couple of quick bug fixes:
+
+* #496 OrderingFilter not working with Select widget
+
+* #498 DRF Backend Templates not loading
+
+
+
 Version 0.15.0 (2016-09-20)
 ---------------------------
 

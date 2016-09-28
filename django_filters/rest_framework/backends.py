@@ -1,22 +1,45 @@
 
 from __future__ import absolute_import
 
-from django.template import loader
+from django.template import Template, TemplateDoesNotExist, loader
+from rest_framework.compat import template_render
 from rest_framework.filters import BaseFilterBackend
 
 from .. import compat
 from . import filterset
 
 
+CRISPY_TEMPLATE = """
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+<h2>{% trans "Field filters" %}</h2>
+{% crispy filter.form %}
+"""
+
+
+FILTER_TEMPLATE = """
+{% load i18n %}
+<h2>{% trans "Field filters" %}</h2>
+<form class="form" action="" method="get">
+    {{ filter.form.as_p }}
+    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+</form>
+"""
+
+
 if compat.is_crispy:
-    filter_template = 'django_filters/rest_framework/crispy_form.html'
+    template_path = 'django_filters/rest_framework/crispy_form.html'
+    template_default = Template(CRISPY_TEMPLATE)
+
 else:
-    filter_template = 'django_filters/rest_framework/form.html'
+    template_path = 'django_filters/rest_framework/form.html'
+    template_default = Template(FILTER_TEMPLATE)
 
 
 class DjangoFilterBackend(BaseFilterBackend):
     default_filter_set = filterset.FilterSet
-    template = filter_template
+    template = template_path
 
     def get_filter_class(self, view, queryset=None):
         """
@@ -57,8 +80,12 @@ class DjangoFilterBackend(BaseFilterBackend):
         if not filter_class:
             return None
         filter_instance = filter_class(request.query_params, queryset=queryset)
-        context = {
+
+        try:
+            template = loader.get_template(self.template)
+        except TemplateDoesNotExist:
+            template = template_default
+
+        return template_render(template, context={
             'filter': filter_instance
-        }
-        template = loader.get_template(self.template)
-        return compat.template_render(template, context)
+        })

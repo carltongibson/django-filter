@@ -9,7 +9,7 @@ import warnings
 from django import forms
 from django.test import TestCase, override_settings
 
-from django_filters import filters
+from django_filters import filters, widgets
 from django_filters.fields import (
     Lookup,
     RangeField,
@@ -1097,3 +1097,10 @@ class OrderingFilterTests(TestCase):
         with self.assertRaises(AssertionError) as ctx:
             f([0, 1, 2])
         self.assertEqual(str(ctx.exception), "'fields' must contain strings or (field name, param name) pairs.")
+
+    def test_widget(self):
+        f = OrderingFilter()
+        widget = f.field.widget
+
+        self.assertIsInstance(widget, widgets.BaseCSVWidget)
+        self.assertIsInstance(widget, forms.Select)
