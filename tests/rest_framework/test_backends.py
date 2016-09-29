@@ -19,6 +19,7 @@ from rest_framework.test import APIRequestFactory
 
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from django_filters.rest_framework import backends
 
 from .models import BaseFilterableItem, BasicModel, FilterableItem, DjangoFilterOrderingModel
 
@@ -326,6 +327,17 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         html = Backend().to_html(request, view.get_queryset(), view)
 
         self.assertHTMLEqual(html, "Test")
+
+    @override_settings(TEMPLATES=[])
+    def test_DTL_missing(self):
+        # The backend should be importable even if the DTL is not used.
+        # See: https://github.com/carltongibson/django-filter/issues/506
+        try:
+            from importlib import reload  # python 3.4
+        except ImportError:
+            from imp import reload
+
+        reload(backends)
 
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_backends')
