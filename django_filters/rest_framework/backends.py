@@ -30,11 +30,11 @@ FILTER_TEMPLATE = """
 
 if compat.is_crispy:
     template_path = 'django_filters/rest_framework/crispy_form.html'
-    template_default = Template(CRISPY_TEMPLATE)
+    template_default = CRISPY_TEMPLATE
 
 else:
     template_path = 'django_filters/rest_framework/form.html'
-    template_default = Template(FILTER_TEMPLATE)
+    template_default = FILTER_TEMPLATE
 
 
 class DjangoFilterBackend(BaseFilterBackend):
@@ -84,7 +84,7 @@ class DjangoFilterBackend(BaseFilterBackend):
         try:
             template = loader.get_template(self.template)
         except TemplateDoesNotExist:
-            template = template_default
+            template = Template(template_default)
 
         return template_render(template, context={
             'filter': filter_instance
