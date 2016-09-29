@@ -1,3 +1,10 @@
+
+Version 0.15.2 (2016-09-29)
+---------------------------
+
+* #507 Fix compatibility issue when not using the DTL
+
+
 Version 0.15.1 (2016-09-28)
 ---------------------------
 
