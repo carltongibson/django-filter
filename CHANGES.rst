@@ -52,6 +52,8 @@ __ https://github.com/carltongibson/django-filter/blob/develop/docs/migration.tx
 Version 0.14.0 (2016-08-14)
 ---------------------------
 
+* Confirmed support for Django 1.10.
+
 * Add support for filtering on DurationField (new in Django 1.8).
 
 * Fix UUIDFilter import issue
