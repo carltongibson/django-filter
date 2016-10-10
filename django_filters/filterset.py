@@ -174,6 +174,7 @@ class FilterSetMetaclass(type):
         except NameError:
             # We are defining FilterSet itself here
             parents = None
+        orig_attrs = copy.copy(attrs)
         declared_filters = get_declared_filters(bases, attrs, False)
         new_class = super(
             FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
@@ -219,9 +220,11 @@ class FilterSetMetaclass(type):
 
         # TODO: remove with deprecations
         # check key existence instead of setdefault - prevents unnecessary filter construction
-        order_by_field = new_class._meta.order_by_field
-        if opts.order_by and order_by_field not in attrs:
-            filters[order_by_field] = new_class.get_ordering_filter(opts, filters)
+        if opts.order_by:
+            order_by_field = new_class._meta.order_by_field
+            if order_by_field not in orig_attrs:
+                filters[order_by_field] = new_class.get_ordering_filter(
+                    opts, filters)
 
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
