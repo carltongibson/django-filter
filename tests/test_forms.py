@@ -66,8 +66,10 @@ class FilterSetFormTests(TestCase):
         f = F().form
         self.assertEqual(len(f.fields), 1)
         self.assertIn('status', f.fields)
-        self.assertEqual(sorted(f.fields['status'].choices),
-                         sorted(STATUS_CHOICES))
+        self.assertSequenceEqual(
+            f.fields['status'].choices,
+            (('', '---------'), ) + STATUS_CHOICES
+        )
 
     def test_form_fields_exclusion(self):
         class F(FilterSet):
@@ -106,7 +108,8 @@ class FilterSetFormTests(TestCase):
     def test_form_fields_using_widget(self):
         class F(FilterSet):
             status = ChoiceFilter(widget=forms.RadioSelect,
-                                  choices=STATUS_CHOICES)
+                                  choices=STATUS_CHOICES,
+                                  empty_label=None)
 
             class Meta:
                 model = User
@@ -116,8 +119,10 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(len(f.fields), 2)
         self.assertIn('status', f.fields)
         self.assertIn('username', f.fields)
-        self.assertEqual(sorted(f.fields['status'].choices),
-                         sorted(STATUS_CHOICES))
+        self.assertSequenceEqual(
+            f.fields['status'].choices,
+            STATUS_CHOICES
+        )
         self.assertIsInstance(f.fields['status'].widget, forms.RadioSelect)
 
     def test_form_field_with_custom_label(self):

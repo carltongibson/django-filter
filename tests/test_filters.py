@@ -1077,6 +1077,7 @@ class OrderingFilterTests(TestCase):
         )
 
         self.assertSequenceEqual(f.field.choices, (
+            ('', '---------'),
             ('a', 'A'),
             ('b', 'B'),
         ))
@@ -1087,6 +1088,7 @@ class OrderingFilterTests(TestCase):
         )
 
         self.assertSequenceEqual(f.field.choices, (
+            ('', '---------'),
             ('c', 'C'),
             ('-c', 'C (descending)'),
             ('d', 'D'),
@@ -1100,6 +1102,7 @@ class OrderingFilterTests(TestCase):
         )
 
         self.assertSequenceEqual(f.field.choices, (
+            ('', '---------'),
             ('c', 'foo'),
             ('-c', 'foo (descending)'),
             ('d', 'D'),
