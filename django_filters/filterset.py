@@ -277,7 +277,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, prefix=None, strict=None):
+    def __init__(self, data=None, queryset=None, prefix=None, strict=None, request=None):
         self.is_bound = data is not None
         self.data = data or {}
         if queryset is None:
@@ -287,6 +287,8 @@ class BaseFilterSet(object):
 
         # What to do on on validation errors
         self.strict = self._meta.strict if strict is None else strict
+
+        self.request = request
 
         self.filters = copy.deepcopy(self.base_filters)
         # propagate the model being used through the filters

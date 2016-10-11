@@ -562,6 +562,16 @@ class FilterSetInstantiationTests(TestCase):
         f = F(queryset=m)
         self.assertEqual(f.queryset, m)
 
+    def test_creating_with_request(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username']
+
+        m = mock.Mock()
+        f = F(request=m)
+        self.assertEqual(f.request, m)
+
 
 class FilterSetTogetherTests(TestCase):
 
@@ -641,6 +651,20 @@ class FilterMethodTests(TestCase):
         self.assertEqual(f.filters['f'].method, filter_f)
         self.assertEqual(f.filters['f'].filter.method, filter_f)
         self.assertIsInstance(f.filters['f'].filter, FilterMethod)
+
+    def test_request_available_during_method_called(self):
+        class F(FilterSet):
+            f = Filter(method='filter_f')
+
+            def filter_f(self, qs, name, value):
+                # call mock request object to prove self.request can be accessed
+                self.request()
+
+        m = mock.Mock()
+        f = F({}, queryset=User.objects.all(), request=m)
+        # call the filter
+        f.filters['f'].filter.method(User.objects.all(), 'f', '')
+        m.assert_called_once_with()
 
     def test_method_with_overridden_filter(self):
         # Some filter classes override the base filter() method. We need
