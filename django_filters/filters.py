@@ -9,6 +9,7 @@ from django import forms
 from django.db.models import Q
 from django.db.models.sql.constants import QUERY_TERMS
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models import NullBooleanField
 from django.utils import six
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
@@ -179,8 +180,10 @@ class Filter(object):
             return qs
         if self.distinct:
             qs = qs.distinct()
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
-        return qs
+
+        # if original field is a NullBooleanField, we need to transform 'None' value as None
+        if isinstance(self.model._meta.get_field(self.name), NullBooleanField) and value in ('None',):
+            value = None
 
 
 class CharFilter(Filter):
