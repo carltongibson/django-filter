@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 
 from django.template import Template, TemplateDoesNotExist, loader
-from rest_framework.compat import coreapi, template_render
+from rest_framework.compat import template_render
 from rest_framework.filters import BaseFilterBackend
 
 from .. import compat
@@ -94,10 +94,10 @@ class DjangoFilterBackend(BaseFilterBackend):
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
-        assert coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
+        assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
         filter_class = self.get_filter_class(view, view.get_queryset())
 
         return [] if not filter_class else [
-            coreapi.Field(name=field_name, required=False, location='query')
+            compat.coreapi.Field(name=field_name, required=False, location='query')
             for field_name in filter_class().filters.keys()
         ]

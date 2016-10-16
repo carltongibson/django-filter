@@ -16,10 +16,9 @@ except ImportError:
     from django.core.urlresolvers import reverse
 
 from rest_framework import generics, serializers, status
-from rest_framework.compat import coreapi
 from rest_framework.test import APIRequestFactory
 
-from django_filters import filters
+from django_filters import compat, filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django_filters.rest_framework import backends
 
@@ -123,7 +122,7 @@ urlpatterns = [
 ]
 
 
-@skipIf(coreapi is None, 'coreapi must be installed')
+@skipIf(compat.coreapi is None, 'coreapi must be installed')
 class GetSchemaFieldsTests(TestCase):
     def test_fields_with_filter_fields_list(self):
         backend = DjangoFilterBackend()
