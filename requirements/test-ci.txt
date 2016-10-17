@@ -1,3 +1,5 @@
+coreapi
+
 coverage
 mock
 pytz

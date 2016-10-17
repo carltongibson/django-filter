@@ -1,4 +1,6 @@
 
+from __future__ import absolute_import
+
 import django
 from django.conf import settings
 
@@ -10,6 +12,13 @@ except ImportError:
     crispy_forms = None
 
 is_crispy = 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms
+
+
+# coreapi only compatible with DRF 3.4+
+try:
+    from rest_framework.compat import coreapi
+except ImportError:
+    coreapi = None
 
 
 def remote_field(field):

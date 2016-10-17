@@ -12,6 +12,8 @@ Meta options
 - :ref:`order_by <order-by>`
 - :ref:`form <form>`
 - :ref:`together <together>`
+- filter_overrides
+- :ref:`strict <strict>`
 
 
 .. _model:
@@ -120,7 +122,7 @@ This lets you override the displayed names for your ordering fields::
 
 Note that the default query parameter name used for ordering is ``o``.  You
 can override this by setting an ``order_by_field`` attribute on the
-``FilterSet`` class to the string value you would like to use.
+``FilterSet``'s Meta class to the string value you would like to use.
 
 
 .. _form:
@@ -151,18 +153,6 @@ field set must either be all or none present in the request for
             model = Product
             fields = ['price', 'release_date', 'rating']
             together = ['rating', 'price']
-
-
-Non-Meta options
-----------------
-
-Note that these options do not go in the Meta class, they are specified directly
-in your FilterSet class.
-
-- filter_overrides
-- order_by_field
-- :ref:`strict <strict>`
-
 
 .. _strict:
 
