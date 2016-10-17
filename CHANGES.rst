@@ -1,3 +1,11 @@
+Version 0.15.3 (2016-10-17)
+---------------------------
+
+Adds compatibility for DRF (3.5+) get_schema_fields filter backend
+introspection.
+
+* #492 Port get_schema_fields from DRF
+
 
 Version 0.15.2 (2016-09-29)
 ---------------------------
