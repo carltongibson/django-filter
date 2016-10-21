@@ -317,6 +317,82 @@ class ChoiceFilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
 
+    def test_empty_choice(self):
+        # default value
+        f = ChoiceFilter(choices=[('a', 'a')])
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+        ])
+
+        # set value, allow blank label
+        f = ChoiceFilter(choices=[('a', 'a')], empty_label='')
+        self.assertEqual(f.field.choices, [
+            ('', ''),
+            ('a', 'a'),
+        ])
+
+        # disable empty choice w/ None
+        f = ChoiceFilter(choices=[('a', 'a')], empty_label=None)
+        self.assertEqual(f.field.choices, [
+            ('a', 'a'),
+        ])
+
+    def test_null_choice(self):
+        # default is to be disabled
+        f = ChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+        ])
+
+        # set label, allow blank label
+        f = ChoiceFilter(choices=[('a', 'a')], null_label='')
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('null', ''),
+            ('a', 'a'),
+        ])
+
+        # set null value
+        f = ChoiceFilter(choices=[('a', 'a')], null_value='NULL', null_label='')
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('NULL', ''),
+            ('a', 'a'),
+        ])
+
+        # explicitly disable
+        f = ChoiceFilter(choices=[('a', 'a')], null_label=None)
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+        ])
+
+    @override_settings(
+        FILTERS_EMPTY_CHOICE_LABEL='EMPTY LABEL',
+        FILTERS_NULL_CHOICE_LABEL='NULL LABEL',
+        FILTERS_NULL_CHOICE_VALUE='NULL VALUE', )
+    def test_settings_overrides(self):
+        f = ChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(f.field.choices, [
+            ('', 'EMPTY LABEL'),
+            ('NULL VALUE', 'NULL LABEL'),
+            ('a', 'a'),
+        ])
+
+    def test_callable_choices(self):
+        def choices():
+            yield ('a', 'a')
+            yield ('b', 'b')
+
+        f = ChoiceFilter(choices=choices)
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+            ('b', 'b'),
+        ])
+
 
 class MultipleChoiceFilterTests(TestCase):
 

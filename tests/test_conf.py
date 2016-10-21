@@ -19,6 +19,15 @@ class DefaultSettingsTests(TestCase):
     def test_help_text_exclude(self):
         self.assertTrue(settings.HELP_TEXT_EXCLUDE)
 
+    def test_empty_choice_label(self):
+        self.assertEqual(settings.EMPTY_CHOICE_LABEL, '---------')
+
+    def test_null_choice_label(self):
+        self.assertIsNone(settings.NULL_CHOICE_LABEL)
+
+    def test_null_choice_value(self):
+        self.assertEqual(settings.NULL_CHOICE_VALUE, 'null')
+
 
 class OverrideSettingsTests(TestCase):
 
