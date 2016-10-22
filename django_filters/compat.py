@@ -14,9 +14,11 @@ except ImportError:
 is_crispy = 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms
 
 
-# coreapi only compatible with DRF 3.4+
+# coreapi is optional (Note that uritemplate is a dependency of coreapi)
+# Fixes #525 - cannot simply import from rest_framework.compat, due to
+# import issues w/ django-guardian.
 try:
-    from rest_framework.compat import coreapi
+    import coreapi
 except ImportError:
     coreapi = None
 
