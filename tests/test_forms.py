@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django import forms
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import CharFilter
@@ -203,3 +203,24 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(
             list(f.fields['manager'].choices), [('', '---------'), (3, 'manager')]
         )
+
+    def test_disabled_help_text(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = {
+                    # 'in' lookups are CSV-based, which have a `help_text`.
+                    'title': ['in']
+                }
+
+        self.assertEqual(
+            F().form.fields['title__in'].help_text,
+            'Multiple values may be separated by commas.'
+        )
+
+        with override_settings(FILTERS_DISABLE_HELP_TEXT=True):
+
+            self.assertEqual(
+                F().form.fields['title__in'].help_text,
+                ''
+            )

@@ -7,6 +7,7 @@ from .utils import deprecate
 
 
 DEFAULTS = {
+    'DISABLE_HELP_TEXT': False,
     'HELP_TEXT_FILTER': True,
     'HELP_TEXT_EXCLUDE': True,
     'VERBOSE_LOOKUPS': {

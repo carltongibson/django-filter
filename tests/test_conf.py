@@ -10,6 +10,9 @@ class DefaultSettingsTests(TestCase):
         self.assertIsInstance(settings.VERBOSE_LOOKUPS, dict)
         self.assertIn('exact', settings.VERBOSE_LOOKUPS)
 
+    def test_disable_help_text(self):
+        self.assertFalse(settings.DISABLE_HELP_TEXT)
+
     def test_help_text_filter(self):
         self.assertTrue(settings.HELP_TEXT_FILTER)
 

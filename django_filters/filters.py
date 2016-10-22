@@ -145,6 +145,11 @@ class Filter(object):
     @property
     def field(self):
         if not hasattr(self, '_field'):
+            field_kwargs = self.extra.copy()
+
+            if settings.DISABLE_HELP_TEXT:
+                field_kwargs.pop('help_text', None)
+
             if (self.lookup_expr is None or
                     isinstance(self.lookup_expr, (list, tuple))):
 
@@ -167,12 +172,12 @@ class Filter(object):
                                 lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
-                    required=self.required, widget=self.widget, **self.extra),
+                    required=self.required, widget=self.widget, **field_kwargs),
                     lookup, required=self.required, label=self.label)
             else:
                 self._field = self.field_class(required=self.required,
                                                label=self.label, widget=self.widget,
-                                               **self.extra)
+                                               **field_kwargs)
         return self._field
 
     def filter(self, qs, value):
