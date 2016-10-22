@@ -71,7 +71,7 @@ class DjangoFilterBackend(BaseFilterBackend):
         filter_class = self.get_filter_class(view, queryset)
 
         if filter_class:
-            return filter_class(request.query_params, queryset=queryset).qs
+            return filter_class(request.query_params, queryset=queryset, request=request).qs
 
         return queryset
 
@@ -79,7 +79,7 @@ class DjangoFilterBackend(BaseFilterBackend):
         filter_class = self.get_filter_class(view, queryset)
         if not filter_class:
             return None
-        filter_instance = filter_class(request.query_params, queryset=queryset)
+        filter_instance = filter_class(request.query_params, queryset=queryset, request=request)
 
         try:
             template = loader.get_template(self.template)
