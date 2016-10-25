@@ -24,6 +24,7 @@ from .utils import deprecate, pretty_name
 
 __all__ = [
     'AllValuesFilter',
+    'AllValuesMultipleFilter',
     'BooleanFilter',
     'CharFilter',
     'ChoiceFilter',
