@@ -323,6 +323,22 @@ Example::
             model = Book
             fields = ['author']
 
+The ``queryset`` argument also supports callable behavior. If a callable is
+passed, it will be invoked with ``Filterset.request`` as its only argument.
+This allows you to easily filter by properties on the request object without
+having to override the ``FilterSet.__init__``.
+
+.. code-block:: python
+
+    def departments(request):
+        company = request.user.company
+        return company.department_set.all()
+
+    class EmployeeFilter(filters.FilterSet):
+        department = filters.ModelChoiceFilter(queryset=departments)
+        ...
+
+
 ``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -332,6 +348,7 @@ for ``ManyToManyField`` by default.
 As with ``ModelChoiceFilter``, if automatically instantiated,
 ``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
 field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+Like ``ModelChoiceFilter``, the ``queryset`` argument has callable behavior.
 
 To use a custom field name for the lookup, you can use ``to_field_name``::
 
