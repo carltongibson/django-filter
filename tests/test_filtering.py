@@ -20,24 +20,20 @@ from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
 from django_filters.filters import DateFromToRangeFilter
 from django_filters.filters import DateTimeFromToRangeFilter
-# from django_filters.filters import DateTimeFilter
 from django_filters.filters import DurationFilter
 from django_filters.filters import MultipleChoiceFilter
+from django_filters.filters import ModelChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import OrderingFilter
 from django_filters.filters import RangeFilter
 from django_filters.filters import TimeRangeFilter
-# from django_filters.widgets import LinkWidget
 from django_filters.exceptions import FieldLookupError
 
 from .models import User
 from .models import Comment
 from .models import Book
-# from .models import Restaurant
 from .models import Article
-# from .models import NetworkSetting
-# from .models import SubnetMaskField
 from .models import Company
 from .models import Location
 from .models import Account
@@ -417,6 +413,34 @@ class ModelChoiceFilterTests(TestCase):
         qs = Comment.objects.all()
         f = F({'author': jacob.pk}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
+
+    def test_callable_queryset(self):
+        # Sanity check for callable queryset arguments.
+        # Ensure that nothing is improperly cached
+        User.objects.create(username='alex')
+        jacob = User.objects.create(username='jacob')
+        aaron = User.objects.create(username='aaron')
+
+        def users(request):
+            return User.objects.filter(pk__lt=request.user.pk)
+
+        class F(FilterSet):
+            author = ModelChoiceFilter(name='author', queryset=users)
+
+            class Meta:
+                model = Comment
+                fields = ['author']
+
+        qs = Comment.objects.all()
+        request = mock.Mock()
+
+        request.user = jacob
+        f = F(queryset=qs, request=request).filters['author'].field
+        self.assertQuerysetEqual(f.queryset, [1], lambda o: o.pk, False)
+
+        request.user = aaron
+        f = F(queryset=qs, request=request).filters['author'].field
+        self.assertQuerysetEqual(f.queryset, [1, 2], lambda o: o.pk, False)
 
 
 class ModelMultipleChoiceFilterTests(TestCase):
