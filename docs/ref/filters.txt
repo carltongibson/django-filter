@@ -651,29 +651,6 @@ Example::
     assert len(f.qs) == 3
 
 
-``MethodFilter``
-~~~~~~~~~~~~~~~~
-
-This is a ``Filter`` that will allow you to run a method that exists on the filter set that
-this filter is a property of. Set the `action` to a string that will map to a method on the
-filter set class. `action` will default to ``filter_{value-of-name-attribute}``
-
-Example::
-
-    class F(FilterSet):
-        """Filter for Books by if books are published or not"""
-        published = MethodFilter()
-
-        def filter_published(self, queryset, value):
-            if value:
-                return queryset.filter(published__isnull=False)
-            return queryset
-
-        class Meta:
-            model = Book
-            fields = ['published']
-
-
 .. _ordering-filter:
 
 ``OrderingFilter``

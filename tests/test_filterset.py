@@ -321,6 +321,38 @@ class FilterSetClassCreationTests(TestCase):
         self.assertListEqual(list(F.base_filters),
                              ['title', 'price', 'average_rating'])
 
+    def test_model_no_fields_or_exclude(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 0)
+        self.assertListEqual(list(F.base_filters), [])
+
+    def test_model_exclude_is_none(self):
+        # equivalent to unset fields/exclude
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                exclude = None
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 0)
+        self.assertListEqual(list(F.base_filters), [])
+
+    def test_model_exclude_empty(self):
+        # equivalent to fields = '__all__'
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                exclude = []
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 3)
+        self.assertListEqual(list(F.base_filters),
+                             ['title', 'price', 'average_rating'])
+
     def test_declared_and_model_derived(self):
         class F(FilterSet):
             username = CharFilter()
@@ -785,7 +817,6 @@ class FilterMethodTests(TestCase):
         self.assertIs(f.filter, TestFilter.filter)
 
 
-@unittest.skip('TODO: remove when relevant deprecations have been completed')
 class MiscFilterSetTests(TestCase):
 
     def test_no__getitem__(self):

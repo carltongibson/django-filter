@@ -5,7 +5,6 @@ from collections import OrderedDict
 from datetime import date, time, timedelta, datetime
 import inspect
 import mock
-import warnings
 
 from django import forms
 from django.test import TestCase, override_settings
@@ -212,16 +211,6 @@ class FilterTests(TestCase):
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
-
-    def test_lookup_type_deprecation(self):
-        """
-        Make sure user is alerted when using deprecated ``lookup_type``.
-        """
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Filter(lookup_type='exact')
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
 
 class CustomFilterWithBooleanCheckTests(TestCase):
