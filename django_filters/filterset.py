@@ -10,10 +10,11 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
-from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
+from .conf import settings
 from .compat import remote_field, remote_queryset
+from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter,
@@ -22,16 +23,6 @@ from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_f
 
 
 ORDER_BY_FIELD = 'o'
-
-
-class STRICTNESS(object):
-    """
-    Values of False & True chosen for backward compatability reasons.
-    Originally, these were the only options.
-    """
-    IGNORE = False
-    RETURN_NO_RESULTS = True
-    RAISE_VALIDATION_ERROR = "RAISE"
 
 
 def get_declared_filters(bases, attrs, with_base_filters=True):
@@ -62,10 +53,10 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
 
     # Setting exclude with no fields implies all other fields.
     if exclude is not None and fields is None:
-        fields = '__all__'
+        fields = ALL_FIELDS
 
     # All implies all db fields associated with a filter_class.
-    if fields == '__all__':
+    if fields == ALL_FIELDS:
         fields = get_all_model_fields(model)
 
     # Loop through the list of fields.
@@ -160,7 +151,7 @@ class FilterSetOptions(object):
         self.order_by = getattr(options, 'order_by', False)
         self.order_by_field = getattr(options, 'order_by_field', ORDER_BY_FIELD)
 
-        self.strict = getattr(options, 'strict', STRICTNESS.RETURN_NO_RESULTS)
+        self.strict = getattr(options, 'strict', None)
 
         self.form = getattr(options, 'form', forms.Form)
 
@@ -286,7 +277,14 @@ class BaseFilterSet(object):
         self.form_prefix = prefix
 
         # What to do on on validation errors
-        self.strict = self._meta.strict if strict is None else strict
+        # Fallback to meta, then settings strictness
+        if strict is None:
+            strict = self._meta.strict
+        if strict is None:
+            strict = settings.STRICTNESS
+
+        # transform legacy values
+        self.strict = STRICTNESS._LEGACY.get(strict, strict)
 
         self.request = request
 
@@ -326,7 +324,7 @@ class BaseFilterSet(object):
             if not self.form.is_valid():
                 if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
                     raise forms.ValidationError(self.form.errors)
-                elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
                     self._qs = self.queryset.none()
                     return self._qs
                 # else STRICTNESS.IGNORE...  ignoring
@@ -527,7 +525,7 @@ class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
 
 
 def filterset_factory(model):
-    meta = type(str('Meta'), (object,), {'model': model, 'fields': '__all__'})
+    meta = type(str('Meta'), (object,), {'model': model, 'fields': ALL_FIELDS})
     filterset = type(str('%sFilterSet' % model._meta.object_name),
                      (FilterSet,), {'Meta': meta})
     return filterset
