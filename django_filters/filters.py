@@ -246,8 +246,8 @@ class MultipleChoiceFilter(Filter):
     `is_noop` test. You can override `is_noop` if you need a different test
     for your application.
 
-    `distinct` defaults to `True` on this class to preserve backward
-    compatibility.
+    `distinct` defaults to `True` as to-many relationships will generally
+    require this.
     """
     field_class = forms.MultipleChoiceField
 
