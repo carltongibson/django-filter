@@ -8,7 +8,7 @@ import mock
 import warnings
 
 from django import forms
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_filters import filters, widgets
 from django_filters.fields import (

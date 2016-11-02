@@ -696,6 +696,9 @@ class FilterMethodTests(TestCase):
         class F(FilterSet):
             f = CharFilter(method='filter_f')
 
+            class Meta:
+                model = User
+
             def filter_f(inner_self, qs, name, value):
                 self.assertIsInstance(inner_self, F)
                 self.assertIs(inner_self.request, request)
