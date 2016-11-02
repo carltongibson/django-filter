@@ -424,8 +424,7 @@ class BaseFilterSet(object):
 
         default = {
             'name': name,
-            'label': capfirst(f.verbose_name),
-            'lookup_expr': lookup_expr
+            'lookup_expr': lookup_expr,
         }
 
         filter_class, params = cls.filter_for_lookup(f, lookup_type)
@@ -445,7 +444,6 @@ class BaseFilterSet(object):
         queryset = f.field.model._default_manager.all()
         default = {
             'name': name,
-            'label': capfirst(rel.related_name),
             'queryset': queryset,
         }
         if rel.multiple:

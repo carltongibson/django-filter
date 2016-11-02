@@ -22,7 +22,9 @@ fields on a related model. eg, ``manufacturer__name``.
 ~~~~~~~~~
 
 The label as it will apear in the HTML, analogous to a form field's label
-argument.
+argument. If a label is not provided, a verbose label will be generated based
+on the field ``name`` and the parts of the ``lookup_expr``.
+(See: :ref:`verbose-lookups-setting`).
 
 ``widget``
 ~~~~~~~~~~

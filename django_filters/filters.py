@@ -19,7 +19,7 @@ from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
-from .utils import deprecate, pretty_name
+from .utils import deprecate, label_for_filter, pretty_name
 
 
 __all__ = [
@@ -131,17 +131,28 @@ class Filter(object):
         return locals()
     lookup_type = property(**lookup_type())
 
+    def label():
+        def fget(self):
+            if self._label is None and hasattr(self, 'parent'):
+                model = self.parent._meta.model
+                self._label = label_for_filter(
+                    model, self.name, self.lookup_expr, self.exclude
+                )
+            return self._label
+
+        def fset(self, value):
+            self._label = value
+
+        return locals()
+    label = property(**label())
+
     @property
     def field(self):
         if not hasattr(self, '_field'):
-            help_text = self.extra.pop('help_text', None)
-            if help_text is None:
-                if self.exclude and settings.HELP_TEXT_EXCLUDE:
-                    help_text = _('This is an exclusion filter')
-                elif not self.exclude and settings.HELP_TEXT_FILTER:
-                    help_text = _('Filter')
-                else:
-                    help_text = ''
+            field_kwargs = self.extra.copy()
+
+            if settings.DISABLE_HELP_TEXT:
+                field_kwargs.pop('help_text', None)
 
             if (self.lookup_expr is None or
                     isinstance(self.lookup_expr, (list, tuple))):
@@ -165,12 +176,12 @@ class Filter(object):
                                 lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
-                    required=self.required, widget=self.widget, **self.extra),
-                    lookup, required=self.required, label=self.label, help_text=help_text)
+                    required=self.required, widget=self.widget, **field_kwargs),
+                    lookup, required=self.required, label=self.label)
             else:
                 self._field = self.field_class(required=self.required,
                                                label=self.label, widget=self.widget,
-                                               help_text=help_text, **self.extra)
+                                               **field_kwargs)
         return self._field
 
     def filter(self, qs, value):
@@ -495,6 +506,7 @@ class BaseCSVFilter(Filter):
     base_field_class = BaseCSVField
 
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault('help_text', _('Multiple values may be separated by commas.'))
         super(BaseCSVFilter, self).__init__(*args, **kwargs)
 
         class ConcreteCSVField(self.base_field_class, self.field_class):

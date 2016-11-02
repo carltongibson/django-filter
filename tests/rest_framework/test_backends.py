@@ -336,12 +336,10 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
             <p>
                 <label for="id_decimal">Decimal:</label>
                 <input id="id_decimal" name="decimal" step="any" type="number" />
-                <span class="helptext">Filter</span>
             </p>
             <p>
                 <label for="id_date">Date:</label>
                 <input id="id_date" name="date" type="text" />
-                <span class="helptext">Filter</span>
             </p>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>

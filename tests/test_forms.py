@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django import forms
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import CharFilter
@@ -78,7 +78,30 @@ class FilterSetFormTests(TestCase):
                 fields = ('title',)
 
         f = F().form
-        self.assertEqual(f.fields['title'].help_text, "This is an exclusion filter")
+        self.assertEqual(f.fields['title'].label, "Exclude title")
+
+    def test_complex_form_fields(self):
+        class F(FilterSet):
+            username = CharFilter(label='Filter for users with username')
+            exclude_username = CharFilter(name='username', lookup_expr='iexact', exclude=True)
+
+            class Meta:
+                model = User
+                fields = {
+                    'status': ['exact', 'lt', 'gt'],
+                    'favorite_books__title': ['iexact', 'in'],
+                    'manager_of__users__username': ['exact'],
+                }
+
+        fields = F().form.fields
+        self.assertEqual(fields['username'].label, 'Filter for users with username')
+        self.assertEqual(fields['exclude_username'].label, 'Exclude username')
+        self.assertEqual(fields['status'].label, 'Status')
+        self.assertEqual(fields['status__lt'].label, 'Status is less than')
+        self.assertEqual(fields['status__gt'].label, 'Status is greater than')
+        self.assertEqual(fields['favorite_books__title__iexact'].label, 'Favorite books title')
+        self.assertEqual(fields['favorite_books__title__in'].label, 'Favorite books title is in')
+        self.assertEqual(fields['manager_of__users__username'].label, 'Manager of users username')
 
     def test_form_fields_using_widget(self):
         class F(FilterSet):
@@ -118,8 +141,8 @@ class FilterSetFormTests(TestCase):
                 fields = ('book_title',)
 
         f = F().form
-        self.assertEqual(f.fields['book_title'].label, None)
-        self.assertEqual(f['book_title'].label, 'Book title')
+        self.assertEqual(f.fields['book_title'].label, "Title")
+        self.assertEqual(f['book_title'].label, "Title")
 
     def test_form_field_with_manual_name_and_label(self):
         class F(FilterSet):
@@ -180,3 +203,24 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(
             list(f.fields['manager'].choices), [('', '---------'), (3, 'manager')]
         )
+
+    def test_disabled_help_text(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = {
+                    # 'in' lookups are CSV-based, which have a `help_text`.
+                    'title': ['in']
+                }
+
+        self.assertEqual(
+            F().form.fields['title__in'].help_text,
+            'Multiple values may be separated by commas.'
+        )
+
+        with override_settings(FILTERS_DISABLE_HELP_TEXT=True):
+
+            self.assertEqual(
+                F().form.fields['title__in'].help_text,
+                ''
+            )
