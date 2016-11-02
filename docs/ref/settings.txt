@@ -9,6 +9,30 @@ default values. All settings are prefixed with ``FILTERS_``, although this
 is a bit verbose it helps to make it easy to identify these settings.
 
 
+FILTERS_EMPTY_CHOICE_LABEL
+--------------------------
+
+Default: ``'---------'``
+
+Set the default value for ``ChoiceFilter.empty_label``. You may disable the empty choice by setting this to ``None``.
+
+
+FILTERS_NULL_CHOICE_LABEL
+-------------------------
+
+Default: ``None``
+
+Set the default value for ``ChoiceFilter.null_label``. You may enable the null choice by setting a non-``None`` value.
+
+
+FILTERS_NULL_CHOICE_VALUE
+-------------------------
+
+Default: ``'null'``
+
+Set the default value for ``ChoiceFilter.null_value``. You may want to change this value if the default ``'null'`` string conflicts with an actual choice.
+
+
 FILTERS_DISABLE_HELP_TEXT
 -------------------------
 

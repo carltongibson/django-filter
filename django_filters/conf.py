@@ -10,6 +10,12 @@ DEFAULTS = {
     'DISABLE_HELP_TEXT': False,
     'HELP_TEXT_FILTER': True,
     'HELP_TEXT_EXCLUDE': True,
+
+    # empty/null choices
+    'EMPTY_CHOICE_LABEL': '---------',
+    'NULL_CHOICE_LABEL': None,
+    'NULL_CHOICE_VALUE': 'null',
+
     'VERBOSE_LOOKUPS': {
         # transforms don't need to be verbose, since their expressions are chained
         'date': _('date'),

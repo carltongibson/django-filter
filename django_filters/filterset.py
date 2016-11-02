@@ -384,7 +384,7 @@ class BaseFilterSet(object):
             if isinstance(opts.order_by[0], (list, tuple)):
                 choices = [(f[0], f[1]) for f in opts.order_by]
                 fields = {filters.get(f[0].lstrip('-')).name: f[0] for f in opts.order_by}
-                return OrderingFilter(choices=choices, fields=fields)
+                return OrderingFilter(choices=choices, fields=fields, empty_label=None)
 
             # e.g. ('field1', 'field2', ...)
             else:
@@ -394,14 +394,14 @@ class BaseFilterSet(object):
                 # preference filter label over attribute name
                 choices = [(f, display_text(f, fltr)) for f, fltr in order_by]
                 fields = {fltr.name: f for f, fltr in order_by}
-                return OrderingFilter(choices=choices, fields=fields)
+                return OrderingFilter(choices=choices, fields=fields, empty_label=None)
 
         # opts.order_by = True
         order_by = filters.items()
 
         fields = [(fltr.name, f) for f, fltr in order_by]
         labels = {f: display_text(f, fltr) for f, fltr in order_by}
-        return OrderingFilter(fields=fields, field_labels=labels)
+        return OrderingFilter(fields=fields, field_labels=labels, empty_label=None)
 
     @classmethod
     def filters_for_model(cls, model, opts):

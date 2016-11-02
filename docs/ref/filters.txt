@@ -194,11 +194,10 @@ This filter matches a boolean, either ``True`` or ``False``, used with
 ``ChoiceFilter``
 ~~~~~~~~~~~~~~~~
 
-This filter matches an item of any type by choices, used with any field that
-has ``choices``.
+This filter matches values in its ``choices`` argument. The ``choices`` must be
+explicitly passed when the filter is declared on the ``FilterSet``. For example,
 
-
-Requires ``choices`` ``kwarg`` to be passed if explicitly declared on the ``FilterSet``. For example::
+.. code-block:: python
 
     class User(models.Model):
         username = models.CharField(max_length=255)
@@ -219,6 +218,20 @@ Requires ``choices`` ``kwarg`` to be passed if explicitly declared on the ``Filt
             model = User
             fields = ['status']
 
+
+``ChoiceFilter`` also has arguments that enable a choice for not filtering, as
+well as a choice for filtering by ``None`` values. Each of the arguments have a
+corresponding global setting (:doc:`/ref/settings`).
+
+* ``empty_label``: The display label to use for the select choice to not filter.
+  The choice may be disabled by setting this argument to ``None``. Defaults to
+  ``FILTERS_EMPTY_CHOICE_LABEL``.
+* ``null_label``: The display label to use for the choice to filter by ``None``
+  values. The choice may be disabled by setting this argument to ``None``.
+  Defaults to ``FILTERS_NULL_CHOICE_LABEL``.
+* ``null_value``: The special value to match to enable filtering by ``None``
+  values. This value defaults ``FILTERS_NULL_CHOICE_VALUE`` and needs to be
+  a non-empty value (``''``, ``None``, ``[]``, ``()``, ``{}``).
 
 
 ``TypedChoiceFilter``

@@ -125,12 +125,20 @@ class BooleanFilterTests(TestCase):
 
 class ChoiceFilterTests(TestCase):
 
-    def test_filtering(self):
+    @classmethod
+    def setUpTestData(cls):
         User.objects.create(username='alex', status=1)
         User.objects.create(username='jacob', status=2)
         User.objects.create(username='aaron', status=2)
         User.objects.create(username='carl', status=0)
 
+        Article.objects.create(author_id=1, published=now())
+        Article.objects.create(author_id=2, published=now())
+        Article.objects.create(author_id=3, published=now())
+        Article.objects.create(author_id=4, published=now())
+        Article.objects.create(author_id=None, published=now())
+
+    def test_filtering(self):
         class F(FilterSet):
             class Meta:
                 model = User
@@ -156,11 +164,6 @@ class ChoiceFilterTests(TestCase):
 
         If you explicitly declare ChoiceFilter fields you **MUST** pass `choices`.
         """
-        User.objects.create(username='alex', status=1)
-        User.objects.create(username='jacob', status=2)
-        User.objects.create(username='aaron', status=2)
-        User.objects.create(username='carl', status=0)
-
         class F(FilterSet):
             status = ChoiceFilter(choices=STATUS_CHOICES)
 
@@ -181,6 +184,37 @@ class ChoiceFilterTests(TestCase):
 
         f = F({'status': '0'})
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
+
+    def test_filtering_on_empty_choice(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['status']
+
+        f = F({'status': ''})
+        self.assertQuerysetEqual(f.qs,
+                                 ['aaron', 'alex', 'jacob', 'carl'],
+                                 lambda o: o.username, False)
+
+    def test_filtering_on_null_choice(self):
+        choices = [(u.pk, str(u)) for u in User.objects.order_by('id')]
+
+        class F(FilterSet):
+            author = ChoiceFilter(
+                choices=choices,
+                null_value='null',
+                null_label='NULL',
+            )
+
+            class Meta:
+                model = Article
+
+        # sanity check to make sure the filter is setup correctly
+        f = F({'author': '1'})
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: str(o.author), False)
+
+        f = F({'author': 'null'})
+        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
 
 
 class MultipleChoiceFilterTests(TestCase):

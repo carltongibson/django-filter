@@ -209,6 +209,39 @@ class BooleanFilter(Filter):
 class ChoiceFilter(Filter):
     field_class = forms.ChoiceField
 
+    def __init__(self, *args, **kwargs):
+        empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+        null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
+        null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
+
+        self.null_value = null_value
+
+        if 'choices' in kwargs:
+            choices = kwargs.get('choices')
+
+            # coerce choices to list
+            if callable(choices):
+                choices = choices()
+            choices = list(choices)
+
+            # create the empty/null choices that prepend the original choices
+            prepend = []
+            if empty_label is not None:
+                prepend.append(('', empty_label))
+            if null_label is not None:
+                prepend.append((null_value, null_label))
+
+            kwargs['choices'] = prepend + choices
+
+        super(ChoiceFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        if value != self.null_value:
+            return super(ChoiceFilter, self).filter(qs, value)
+
+        qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): None})
+        return qs.distinct() if self.distinct else qs
+
 
 class TypedChoiceFilter(Filter):
     field_class = forms.TypedChoiceField
@@ -454,6 +487,10 @@ class DateRangeFilter(ChoiceFilter):
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = [
             (key, value[0]) for key, value in six.iteritems(self.options)]
+
+        # empty/null choices not relevant
+        kwargs.setdefault('empty_label', None)
+        kwargs.setdefault('null_label', None)
         super(DateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
@@ -602,6 +639,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             kwargs['choices'] = self.build_choices(fields, field_labels)
 
         kwargs.setdefault('label', _('Ordering'))
+        kwargs.setdefault('null_label', None)
         super(OrderingFilter, self).__init__(*args, **kwargs)
 
     def get_ordering_value(self, param):
