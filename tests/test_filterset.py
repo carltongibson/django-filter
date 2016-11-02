@@ -688,6 +688,20 @@ class FilterMethodTests(TestCase):
         self.assertIn('parent', str(w.exception))
         self.assertIn('filter_f', str(w.exception))
 
+    def test_method_self_is_parent(self):
+        # Ensure the method isn't 're-parented' on the `FilterMethod` helper class.
+        # Filter methods should have access to the filterset's properties.
+        request = mock.Mock()
+
+        class F(FilterSet):
+            f = CharFilter(method='filter_f')
+
+            def filter_f(inner_self, qs, name, value):
+                self.assertIsInstance(inner_self, F)
+                self.assertIs(inner_self.request, request)
+
+        F({'f': 'foo'}, request=request, queryset=User.objects.all()).qs
+
     def test_method_unresolvable(self):
         class F(FilterSet):
             f = Filter(method='filter_f')

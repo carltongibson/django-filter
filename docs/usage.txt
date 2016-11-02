@@ -236,11 +236,63 @@ default filters for all the models fields of the same kind using
             }
 
 
+Request-based filtering
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``FilterSet`` may be initialized with an optional ``request`` argument. If
+a request object is passed, then you may access the request during filtering.
+This allows you to filter by properties on the request, such as the currently
+logged-in user or the ``Accepts-Languages`` header.
+
+
+Filtering the primary ``.qs``
+"""""""""""""""""""""""""""""
+
+To filter the primary queryset by the ``request`` object, simply override the
+``FilterSet.qs`` property. For example, you could filter blog articles to only
+those that are published and those that are owned by the logged-in user
+(presumably the author's draft articles).
+
+.. code-block:: python
+
+    class ArticleFilter(django_filters.FilterSet):
+
+        class Meta:
+            model = Article
+            fields = [...]
+
+        @property
+        def qs(self):
+            parent = super(ArticleFilter, self).qs
+            return parent.filter(is_published=True) \
+                | parent.filter(author=request.user)
+
+
+Filtering the related queryset for ``ModelChoiceFilter``
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+The ``queryset`` argument for ``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter``
+supports callable behavior. If a callable is passed, it will be invoked with the
+``request`` as its only argument. This allows you to perform the same kinds of
+request-based filtering without resorting to overriding ``FilterSet.__init__``.
+
+.. code-block:: python
+
+    def departments(request):
+        company = request.user.company
+        return company.department_set.all()
+
+    class EmployeeFilter(filters.FilterSet):
+        department = filters.ModelChoiceFilter(queryset=departments)
+        ...
+
+
 Customize filtering with ``Filter.method``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can control the behavior of a filter by specifying a ``method`` to perform
 filtering. View more information in the :ref:`method reference <filter-method>`.
+Note that you may access the filterset's properties, such as the ``request``.
 
 .. code-block:: python
 

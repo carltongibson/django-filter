@@ -523,6 +523,33 @@ class ModelChoiceFilterTests(TestCase):
         self.assertIsInstance(field, forms.ModelChoiceField)
         self.assertEqual(field.queryset, qs)
 
+    def test_callable_queryset(self):
+        request = mock.NonCallableMock(spec=[])
+        qs = mock.NonCallableMock(spec=[])
+
+        qs_callable = mock.Mock(return_value=qs)
+
+        f = ModelChoiceFilter(queryset=qs_callable)
+        f.parent = mock.Mock(request=request)
+        field = f.field
+
+        qs_callable.assert_called_with(request)
+        self.assertEqual(field.queryset, qs)
+
+    def test_get_queryset_override(self):
+        request = mock.NonCallableMock(spec=[])
+        qs = mock.NonCallableMock(spec=[])
+
+        class F(ModelChoiceFilter):
+            get_queryset = mock.create_autospec(ModelChoiceFilter.get_queryset, return_value=qs)
+
+        f = F()
+        f.parent = mock.Mock(request=request)
+        field = f.field
+
+        f.get_queryset.assert_called_with(f, request)
+        self.assertEqual(field.queryset, qs)
+
 
 class ModelMultipleChoiceFilterTests(TestCase):
 
@@ -552,6 +579,19 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
         self.assertEqual(list(f.filter(qs, ['Firstname'])), [user])
         self.assertEqual(list(f.filter(qs, [user])), [user])
+
+    def test_callable_queryset(self):
+        request = mock.NonCallableMock(spec=[])
+        qs = mock.NonCallableMock(spec=[])
+
+        qs_callable = mock.Mock(return_value=qs)
+
+        f = ModelMultipleChoiceFilter(queryset=qs_callable)
+        f.parent = mock.Mock(request=request)
+        field = f.field
+
+        qs_callable.assert_called_with(request)
+        self.assertEqual(field.queryset, qs)
 
 
 class NumberFilterTests(TestCase):
