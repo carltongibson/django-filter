@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 from datetime import date, time, timedelta, datetime
+import inspect
 import mock
 import warnings
 
@@ -46,6 +47,28 @@ from django_filters.filters import (
     LOOKUP_TYPES)
 
 from tests.models import Book, User
+
+
+class ModuleImportTests(TestCase):
+    def is_filter(self, name, value):
+        return (
+            isinstance(value, type) and issubclass(value, Filter)
+        )
+
+    def test_imports(self):
+        # msg = "Expected `filters.%s` to be imported in `filters.__all__`"
+        filter_classes = [
+            key for key, value
+            in inspect.getmembers(filters)
+            if isinstance(value, type) and issubclass(value, Filter)
+        ]
+
+        # sanity check
+        self.assertIn('Filter', filter_classes)
+        self.assertIn('BooleanFilter', filter_classes)
+
+        for f in filter_classes:
+            self.assertIn(f, filters.__all__)
 
 
 class FilterTests(TestCase):
