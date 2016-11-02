@@ -733,3 +733,28 @@ want to disable descending sort options.
 This filter is also CSV-based, and accepts multiple ordering params. The
 default select widget does not enable the use of this, but it is useful
 for APIs.
+
+Adding Custom filter choices
+""""""""""""""""""""""""""""
+
+If you wish to sort by non-model fields, you'll need to add custom handling to an
+``OrderingFilter`` subclass. For example, if you want to sort by a computed
+'relevance' factor, you would need to do something like the following:
+
+.. code-block:: python
+
+    class CustomOrderingFilter(django_filters.OrderingFilter):
+
+        def __init__(self, *args, **kwargs):
+            super(CustomOrderingFilter, self).__init__(*args, **kwargs)
+            self.choices += [
+                ('relevance', 'Relevance'),
+                ('-relevance', 'Relevance (descending)'),
+            ]
+
+
+        def filter(self, qs, value):
+            if value in ['relevance', '-relevance']:
+                # sort queryset by relevance
+                return ...
+            return super(CustomOrderingFilter, self).filter(qs, value)
