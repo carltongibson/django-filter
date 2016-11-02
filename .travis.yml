@@ -5,7 +5,7 @@ python: '3.5'
 cache: pip
 
 install:
-  - pip install tox
+  - pip install coverage tox
 
 script:
   - coverage erase
