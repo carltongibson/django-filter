@@ -1689,6 +1689,8 @@ class MiscFilterSetTests(TestCase):
         self.assertQuerysetEqual(f.qs, [], lambda o: o.pk)
 
     def test_filter_with_initial(self):
+        # Initial values are a form presentation option - the FilterSet should
+        # not use an initial value as a default value to filter by.
         class F(FilterSet):
             status = ChoiceFilter(choices=STATUS_CHOICES, initial=1)
 
@@ -1697,8 +1699,10 @@ class MiscFilterSetTests(TestCase):
                 fields = ['status']
 
         qs = User.objects.all()
+        users = ['alex', 'jacob', 'aaron', 'carl']
+
         f = F(queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs.order_by('pk'), users, lambda o: o.username)
 
         f = F({'status': 0}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username)
