@@ -269,7 +269,7 @@ those that are published and those that are owned by the logged-in user
 
 
 Filtering the related queryset for ``ModelChoiceFilter``
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The ``queryset`` argument for ``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter``
 supports callable behavior. If a callable is passed, it will be invoked with the
