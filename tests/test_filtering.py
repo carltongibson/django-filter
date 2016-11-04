@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import datetime
 import mock
@@ -11,6 +11,8 @@ from django.test import TestCase, override_settings
 from django.utils import six
 from django.utils.timezone import now
 from django.utils import timezone
+from django.utils import translation
+from django.utils.translation import ugettext as _
 
 from django_filters.filterset import FilterSet
 from django_filters.filters import AllValuesFilter
@@ -1684,6 +1686,68 @@ class OrderingFilterTests(TestCase):
         f = F({'o': 'username'}, queryset=qs)
         names = f.qs.values_list('username', flat=True)
         self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob'])
+
+    def test_ordering_translation_default_label(self):
+
+        with translation.override('pl'):
+            class F(FilterSet):
+                o = OrderingFilter(
+                    fields=['username']
+                )
+
+                class Meta:
+                    model = User
+                    fields = ['username']
+            qs = User.objects.all()
+            f = F({}, queryset=qs)
+            self.assertEqual(_("Username"), u'Nazwa użytkownika')
+            self.assertEqual(f.form.fields['o'].choices,
+                             [(u'', '---------'),
+                              ('username', u'Nazwa użytkownika'),
+                              (u'-username', u'Nazwa użytkownika (malejący)')])
+
+    def test_ordering_translation_override_label(self):
+        with translation.override('pl'):
+            class F(FilterSet):
+                o = OrderingFilter(
+                    fields=[u'username'],
+                    field_labels={
+                       'username': u'BLABLA',
+                    }
+                )
+
+                class Meta:
+                    model = User
+                    fields = ['username']
+            qs = User.objects.all()
+            f = F({}, queryset=qs)
+            self.assertEqual(f.form.fields['o'].choices,
+                             [(u'', '---------'),
+                              (u'username', u'BLABLA'),
+                              (u'-username', u'BLABLA (malejący)')])
+
+    def test_ordering_translation_all_ovverride(self):
+        with translation.override('pl'):
+            class F(FilterSet):
+                o = OrderingFilter(
+                    fields=[u'username'],
+                    field_labels={
+                       'username': u'BLABLA',
+                       '-username': u'XYZXYZ',
+
+                    }
+                )
+
+                class Meta:
+                    model = User
+                    fields = ['username']
+            qs = User.objects.all()
+            f = F({}, queryset=qs)
+            self.assertEqual(f.form.fields['o'].choices,
+                             [(u'', '---------'),
+                              (u'username', u'BLABLA'),
+                              (u'-username', u'XYZXYZ')])
+
 
 
 class MiscFilterSetTests(TestCase):
