@@ -660,8 +660,8 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             for field, param in fields.items()
         ]
         descending = [
-            ('-%s' % pair[0], self.descending_fmt % pair[1])
-            for pair in ascending
+            ('-%s' % param, labels.get('-%s' % param, self.descending_fmt % label))
+            for param, label in ascending
         ]
 
         # interleave the ascending and descending choices
