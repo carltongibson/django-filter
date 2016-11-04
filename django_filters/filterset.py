@@ -214,8 +214,9 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, prefix=None, strict=None, request=None):
+    def __init__(self, data=None, queryset=None, prefix=None, strict=None, request=None, context=None):
         self.is_bound = data is not None
+        self.context = context or {}
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()

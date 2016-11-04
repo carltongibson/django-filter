@@ -173,6 +173,52 @@ class CommonFilteringTestCase(TestCase):
         ]
 
 
+class ContextTests(TestCase):
+    def setup_view(self, view, request, *args, **kwargs):
+        """Mimic ``as_view()``, but returns view instance.
+        Use this function to get view instances on which you can run unit tests,
+        by testing specific methods."""
+
+        view.request = request
+        view.args = args
+        view.kwargs = kwargs
+        return view
+
+    def test_filter_context(self):
+        """
+        Context should be automatically provided from view to FilterSet instance
+        """
+
+        class FilterContextView(generics.ListCreateAPIView):
+            queryset = FilterableItem.objects.all()
+            serializer_class = FilterableItemSerializer
+            filter_class = SeveralFieldsFilter
+            filter_backends = (DjangoFilterBackend,)
+
+            def get_filter_context(self):
+                return {'foo': 'bar'}
+
+        class BadFilterContextView(generics.ListCreateAPIView):
+            queryset = FilterableItem.objects.all()
+            serializer_class = FilterableItemSerializer
+            filter_class = SeveralFieldsFilter
+            filter_backends = (DjangoFilterBackend,)
+
+            def get_filter_context(self):
+                return 123
+
+        request = factory.get('/')
+        view = self.setup_view(FilterContextView, request)()
+        backend = view.filter_backends[0]()
+
+        self.assertDictEqual(backend.get_context(view, request), view.get_filter_context())
+
+        # Context supposed to be a dict
+        view = self.setup_view(BadFilterContextView, request)()
+        backend = view.filter_backends[0]()
+        self.assertRaises(TypeError, backend.get_context, view, request)
+
+
 class IntegrationTestFiltering(CommonFilteringTestCase):
     """
     Integration tests for filtered list views.

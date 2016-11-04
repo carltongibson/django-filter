@@ -41,6 +41,29 @@ class DjangoFilterBackend(BaseFilterBackend):
     default_filter_set = filterset.FilterSet
     template = template_path
 
+    def get_context(self, view, request):
+        """Returns filtering context"""
+        get_filter_context = getattr(view, 'get_filter_context', None)
+        default_context = {
+            'view': view,
+            'request': request
+        }
+        filter_context = {}
+        if hasattr(get_filter_context, '__call__'):
+            filter_context = get_filter_context()
+            if not isinstance(filter_context, dict):
+                raise TypeError(
+                    "get_filter_context of {cls} expected to "
+                    "return dict, got {type} instead".format(
+                        cls=get_filter_context.im_class,
+                        type=filter_context)
+                )
+
+        if filter_context:
+            return filter_context
+        else:
+            return default_context
+
     def get_filter_class(self, view, queryset=None):
         """
         Return the django-filters `FilterSet` used to filter the queryset.
@@ -69,9 +92,10 @@ class DjangoFilterBackend(BaseFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         filter_class = self.get_filter_class(view, queryset)
+        context = self.get_context(view, request)
 
         if filter_class:
-            return filter_class(request.query_params, queryset=queryset, request=request).qs
+            return filter_class(request.query_params, queryset=queryset, request=request, context=context).qs
 
         return queryset
 
