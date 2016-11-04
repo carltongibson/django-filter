@@ -656,7 +656,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
 
     def build_choices(self, fields, labels):
         ascending = [
-            (param, labels.get(field, pretty_name(param)))
+            (param, labels.get(field, _(pretty_name(param))))
             for field, param in fields.items()
         ]
         descending = [
