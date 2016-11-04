@@ -10,7 +10,6 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
-from django.utils.translation import ugettext as _
 
 from .conf import settings
 from .compat import remote_field, remote_queryset
@@ -235,12 +234,10 @@ class BaseFilterSet(object):
         self.request = request
 
         self.filters = copy.deepcopy(self.base_filters)
-        # propagate the model being used through the filters
-        for filter_ in self.filters.values():
-            filter_.model = self._meta.model
 
-        # Apply the parent to the filters, this will allow the filters to access the filterset
-        for filter_key, filter_ in six.iteritems(self.filters):
+        for filter_ in self.filters.values():
+            # propagate the model and filterset to the filters
+            filter_.model = self._meta.model
             filter_.parent = self
 
     @property
