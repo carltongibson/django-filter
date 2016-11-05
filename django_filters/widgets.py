@@ -11,6 +11,7 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
+from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.six import string_types
@@ -171,3 +172,29 @@ class BaseCSVWidget(forms.Widget):
 
 class CSVWidget(BaseCSVWidget, forms.TextInput):
     pass
+
+
+class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
+    """
+    Enables request query array notation that might be consumed by MultipleChoiceFilter
+
+    1. Values can be provided as csv string: ?foo=bar,baz
+    2. Values can be provided as query array: ?foo[]=bar&foo[]=baz
+    """
+
+    def value_from_datadict(self, data, files, name):
+        if not isinstance(data, MultiValueDict):
+            data = MultiValueDict(data)
+
+        request_data = data.getlist(name, data.getlist('%s[]' % name))
+        if isinstance(request_data, string_types):
+            request_data = [request_data]
+
+        if not request_data:
+            return []
+
+        extracted_data = set()
+        for item in request_data:
+            extracted_data.update([x.strip() for x in item.rstrip(',').split(',') if x])
+
+        return list(extracted_data)
