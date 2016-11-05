@@ -51,13 +51,6 @@ class DjangoFilterBackend(BaseFilterBackend):
         filter_context = {}
         if hasattr(get_filter_context, '__call__'):
             filter_context = get_filter_context()
-            if not isinstance(filter_context, dict):
-                raise TypeError(
-                    "get_filter_context of {cls} expected to "
-                    "return dict, got {type} instead".format(
-                        cls=get_filter_context.im_class,
-                        type=filter_context)
-                )
 
         if filter_context:
             return filter_context

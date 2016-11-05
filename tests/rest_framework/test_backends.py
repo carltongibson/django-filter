@@ -198,25 +198,11 @@ class ContextTests(TestCase):
             def get_filter_context(self):
                 return {'foo': 'bar'}
 
-        class BadFilterContextView(generics.ListCreateAPIView):
-            queryset = FilterableItem.objects.all()
-            serializer_class = FilterableItemSerializer
-            filter_class = SeveralFieldsFilter
-            filter_backends = (DjangoFilterBackend,)
-
-            def get_filter_context(self):
-                return 123
-
         request = factory.get('/')
         view = self.setup_view(FilterContextView, request)()
         backend = view.filter_backends[0]()
 
         self.assertDictEqual(backend.get_context(view, request), view.get_filter_context())
-
-        # Context supposed to be a dict
-        view = self.setup_view(BadFilterContextView, request)()
-        backend = view.filter_backends[0]()
-        self.assertRaises(TypeError, backend.get_context, view, request)
 
 
 class IntegrationTestFiltering(CommonFilteringTestCase):
