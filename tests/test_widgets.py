@@ -297,11 +297,11 @@ class QueryArrayWidgetTests(TestCase):
 
         data = {'price': '1,2'}
         result = w.value_from_datadict(data, {}, 'price')
-        self.assertEqual(result, ['1', '2'])
+        self.assertEqual(sorted(result), ['1', '2'])
 
         data = {'price': '1,,2'}
         result = w.value_from_datadict(data, {}, 'price')
-        self.assertEqual(result, ['1', '2'])
+        self.assertEqual(sorted(result), ['1', '2'])
 
         data = {'price': '1,'}
         result = w.value_from_datadict(data, {}, 'price')
@@ -330,11 +330,11 @@ class QueryArrayWidgetTests(TestCase):
 
         data = {'price[]': ['1', '2']}
         result = w.value_from_datadict(data, {}, 'price')
-        self.assertEqual(result, ['1', '2'])
+        self.assertEqual(sorted(result), ['1', '2'])
 
         data = {'price[]': ['1', '', '2']}
         result = w.value_from_datadict(data, {}, 'price')
-        self.assertEqual(result, ['1', '2'])
+        self.assertEqual(sorted(result), ['1', '2'])
 
         data = {'price[]': ['1', '']}
         result = w.value_from_datadict(data, {}, 'price')
