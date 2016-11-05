@@ -23,6 +23,7 @@ from django_filters.filters import DateTimeFromToRangeFilter
 from django_filters.filters import DurationFilter
 from django_filters.filters import MultipleChoiceFilter
 from django_filters.filters import ModelChoiceFilter
+from django_filters.filters import TypedMultipleChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import OrderingFilter
@@ -249,6 +250,41 @@ class MultipleChoiceFilterTests(TestCase):
         f = F({'status': ['0', '1', '2']}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+
+class TypedMultipleChoiceFilterTests(TestCase):
+
+    def test_filtering(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+
+        class F(FilterSet):
+            status = TypedMultipleChoiceFilter(choices=STATUS_CHOICES, coerce=lambda x: x[0:2])
+
+            class Meta:
+                model = User
+                fields = ['status']
+
+        qs = User.objects.all().order_by('username')
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aa', 'ja', 'al', 'ca'],
+            lambda o: o.username[0:2], False)
+
+        f = F({'status': ['0']}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['ca'], lambda o: o.username[0:2])
+
+        f = F({'status': ['0', '1']}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['al', 'ca'], lambda o: o.username[0:2])
+
+        f = F({'status': ['0', '1', '2']}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aa', 'al', 'ca', 'ja'], lambda o: o.username[0:2])
 
 
 class DateFilterTests(TestCase):
