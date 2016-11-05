@@ -178,23 +178,32 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
     """
     Enables request query array notation that might be consumed by MultipleChoiceFilter
 
-    1. Values can be provided as csv string: ?foo=bar,baz
+    1. Values can be provided as csv string:  ?foo=bar,baz
     2. Values can be provided as query array: ?foo[]=bar&foo[]=baz
+    3. Values can be provided as query array: ?foo=bar&foo=baz
+
+    Note: Duplicate and empty values are skipped from results
     """
 
     def value_from_datadict(self, data, files, name):
         if not isinstance(data, MultiValueDict):
             data = MultiValueDict(data)
 
-        request_data = data.getlist(name, data.getlist('%s[]' % name))
-        if isinstance(request_data, string_types):
-            request_data = [request_data]
+        values_list = data.getlist(name, data.getlist('%s[]' % name)) or []
 
-        if not request_data:
-            return []
+        if isinstance(values_list, string_types):
+            values_list = [values_list]
 
-        extracted_data = set()
-        for item in request_data:
-            extracted_data.update([x.strip() for x in item.rstrip(',').split(',') if x])
+        # apparently its an array, so no need to process it's values as csv
+        # ?foo=1&foo=2 -> data.getlist(foo) -> foo = [1, 2]
+        # ?foo[]=1&foo[]=2 -> data.getlist(foo[]) -> foo = [1, 2]
+        if len(values_list) > 1:
+            ret = [x for x in values_list if x]
+        elif len(values_list) == 1:
+            # treat first element as csv string
+            # ?foo=1,2 -> data.getlist(foo) -> foo = ['1,2']
+            ret = [x.strip() for x in values_list[0].rstrip(',').split(',') if x]
+        else:
+            ret = []
 
-        return list(extracted_data)
+        return list(set(ret))
