@@ -8,3 +8,9 @@ Install with pip:
         pip install django-filter
 
 And then add ``'django_filters'`` to your ``INSTALLED_APPS``.
+
+.. note::
+
+    django-filter provides *some* localization for *some* languages. If you do
+    not need these translations (or would rather provide your own), then it is
+    unnecessary to add django-filter to the ``INSTALLED_APPS`` setting.
