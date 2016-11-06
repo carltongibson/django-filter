@@ -20,28 +20,6 @@ from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRange
 from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field
 
 
-def get_declared_filters(bases, attrs, with_base_filters=True):
-    filters = []
-    for filter_name, obj in list(attrs.items()):
-        if isinstance(obj, Filter):
-            obj = attrs.pop(filter_name)
-            if getattr(obj, 'name', None) is None:
-                obj.name = filter_name
-            filters.append((filter_name, obj))
-    filters.sort(key=lambda x: x[1].creation_counter)
-
-    if with_base_filters:
-        for base in bases[::-1]:
-            if hasattr(base, 'base_filters'):
-                filters = list(base.base_filters.items()) + filters
-    else:
-        for base in bases[::-1]:
-            if hasattr(base, 'declared_filters'):
-                filters = list(base.declared_filters.items()) + filters
-
-    return OrderedDict(filters)
-
-
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
                       filter_for_reverse_field=None):
     field_dict = OrderedDict()
@@ -138,7 +116,7 @@ class FilterSetMetaclass(type):
         except NameError:
             # We are defining FilterSet itself here
             parents = None
-        declared_filters = get_declared_filters(bases, attrs, False)
+        declared_filters = cls.get_declared_filters(bases, attrs)
         new_class = super(
             FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
 
@@ -162,6 +140,28 @@ class FilterSetMetaclass(type):
         new_class.declared_filters = declared_filters
         new_class.base_filters = filters
         return new_class
+
+    @classmethod
+    def get_declared_filters(cls, bases, attrs):
+        filters = [
+            (filter_name, attrs.pop(filter_name))
+            for filter_name, obj in list(attrs.items())
+            if isinstance(obj, Filter)
+        ]
+
+        # Default the `filter.name` to the attribute name on the filterset
+        for filter_name, f in filters:
+            if getattr(f, 'name', None) is None:
+                f.name = filter_name
+
+        filters.sort(key=lambda x: x[1].creation_counter)
+
+        # merge declared filters from base classes
+        for base in reversed(bases):
+            if hasattr(base, 'declared_filters'):
+                filters = list(base.declared_filters.items()) + filters
+
+        return OrderedDict(filters)
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
