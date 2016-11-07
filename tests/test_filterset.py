@@ -428,9 +428,12 @@ class FilterSetClassCreationTests(TestCase):
                 class Meta:
                     model = Book
                     fields = ('username', 'price', 'other', 'another')
-        self.assertEqual(excinfo.exception.args, (
-            "Meta.fields contains a field that isn't defined "
-            "on this FilterSet: other",))
+
+        self.assertEqual(
+            str(excinfo.exception),
+            "'Meta.fields' contains fields that are not defined on this FilterSet: "
+            "other, another"
+        )
 
     def test_meta_fields_dictionary_containing_unknown(self):
         with self.assertRaises(TypeError):
