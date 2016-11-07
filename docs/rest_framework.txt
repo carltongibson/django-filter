@@ -98,6 +98,65 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
             fields = ('category', 'in_stock')
 
 
+Schema Generation with Core API
+-------------------------------
+
+The backend class integrates with DRF's schema generation by implementing ``get_schema_fields()``. This is automatically enabled when Core API is installed. Schema generation usually functions seamlessly, however the implementation does expect to invoke the view's ``get_queryset()`` method. There is a caveat in that views are artificially constructed during schema generation, so the ``args`` and ``kwargs`` attributes will be empty. If you depend on arguments parsed from the URL, you will need to handle their absence in ``get_queryset()``.
+
+For example, your get queryset method may look like this:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_project(self):
+            return models.Project.objects.get(pk=self.kwargs['project_id'])
+
+        def get_queryset(self):
+            project = self.get_project()
+
+            return self.queryset \
+                .filter(project=project) \
+                .filter(author=self.request.user)
+
+This could be rewritten like so:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_project(self):
+            try:
+                return models.Project.objects.get(pk=self.kwargs['project_id'])
+            except models.Project.DoesNotExist:
+                return None
+
+        def get_queryset(self):
+            project = self.get_project()
+
+            if project is None:
+                return self.queryset.none()
+
+            return self.queryset \
+                .filter(project=project) \
+                .filter(author=self.request.user)
+
+Or more simply as:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_queryset(self):
+            # project_id may be None
+            return self.queryset \
+                .filter(project_id=self.kwargs.get('project_id')) \
+                .filter(author=self.request.user)
+
+
 Crispy Forms
 ------------
 
