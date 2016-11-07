@@ -532,6 +532,16 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 
+    def test_custom_declared_field_no_warning(self):
+        class F(FilterSet):
+            mask = CharFilter()
+
+            class Meta:
+                model = NetworkSetting
+                fields = ['mask']
+
+        self.assertEqual(list(F.base_filters.keys()), ['mask'])
+
     def test_filterset_for_proxy_model(self):
         class F(FilterSet):
             class Meta:
