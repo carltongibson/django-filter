@@ -557,6 +557,36 @@ class FilterSetClassCreationTests(TestCase):
             list(F.base_filters) + ['amount_saved'],
             list(FtiF.base_filters))
 
+    def test_meta_widgets(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = '__all__'
+                widgets = {
+                    'username': django.forms.Textarea(),
+                    'is_active': django.forms.RadioSelect(choices=[(True, 'Yes'), (False, 'No')])
+                }
+
+        self.assertEqual(django.forms.Textarea, type(F.base_filters['username'].widget))
+        self.assertEqual(django.forms.RadioSelect, type(F.base_filters['is_active'].widget))
+
+    def test_meta_labels(self):
+        USER_NAME_LABEL = 'User Name'
+        FIRST_NAME_LABEL = 'Forename'
+        LAST_NAME_LABEL = 'Surname'
+
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = '__all__'
+                labels = {
+                    'username': USER_NAME_LABEL,
+                    'first_name': FIRST_NAME_LABEL,
+                    'last_name': LAST_NAME_LABEL
+                }
+        self.assertEqual(USER_NAME_LABEL, F.base_filters['username'].label)
+        self.assertEqual(FIRST_NAME_LABEL, F.base_filters['first_name'].label)
+        self.assertEqual(LAST_NAME_LABEL, F.base_filters['last_name'].label)
 
 class FilterSetInstantiationTests(TestCase):
 

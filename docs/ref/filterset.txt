@@ -202,28 +202,20 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
             # use default behavior otherwise
             return super(ProductFilter, cls).filter_for_lookup(f, lookup_type)
 
+Custom Widgets and Labels
+-------------------------
 
-``get_ordering_field()``
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to use a custom widget, or in any other way override the ordering
-field you can override the ``get_ordering_field()`` method on a ``FilterSet``.
-This method just needs to return a Form Field.
-
-Ordering on multiple fields, or other complex orderings can be achieved by
-overriding the ``FilterSet.get_order_by()`` method. This is passed the selected
-``order_by`` value, and is expected to return an iterable of values to pass to
-``QuerySet.order_by``. For example, to sort a ``User`` table by last name, then
-first name::
+If you want to use a custom widget or label for an auto-generated field, you can
+do so in the same way as in Django's form syntax, using the Meta class::
 
     class UserFilter(django_filters.FilterSet):
         class Meta:
-            order_by = (
-                ('username', 'Username'),
-                ('last_name', 'Last Name')
-            )
-
-        def get_order_by(self, order_value):
-            if order_value == 'last_name':
-                return ['last_name', 'first_name']
-            return super(UserFilter, self).get_order_by(order_value)
+            fields = ['username', 'last_name']
+            widgets = {
+                'username': forms.Textarea(),
+                'last_name': forms.TextField(attrs = {'class': 'someclass'})
+            }
+            labels = {
+                'username': 'User Name',
+                'last_name': 'Surname'
+            }
