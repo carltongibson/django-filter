@@ -44,7 +44,7 @@ def get_declared_filters(bases, attrs, with_base_filters=True):
 
 
 def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
-                      filter_for_reverse_field=None, widgets=None):
+                      filter_for_reverse_field=None, widgets=None, labels=None):
     field_dict = OrderedDict()
 
     # Setting exclude with no fields implies all other fields.
@@ -67,7 +67,8 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
             continue
         if isinstance(field, ForeignObjectRel):
             widget = widgets[f] if widgets and f in widgets else None
-            filter_ = filter_for_reverse_field(field, f, widget)
+            label = labels[f] if labels and f in labels else None
+            filter_ = filter_for_reverse_field(field, f, widget=widget, label=label)
             if filter_:
                 field_dict[f] = filter_
         # If fields is a dictionary, it must contain lists.
@@ -75,7 +76,8 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
             # Create a filter for each lookup type.
             for lookup_expr in fields[f]:
                 widget = widgets[f] if widgets and f in widgets else None
-                filter_ = filter_for_field(field, f, lookup_expr, widget=widget)
+                label = labels[f] if labels and f in labels else None
+                filter_ = filter_for_field(field, f, lookup_expr, widget=widget, label=label)
 
                 if filter_:
                     filter_name = LOOKUP_SEP.join([f, lookup_expr])
@@ -89,7 +91,8 @@ def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
         # If fields is a list, it contains strings.
         else:
             widget = widgets[f] if widgets and f in widgets else None
-            filter_ = filter_for_field(field, f, widget=widget)
+            label = labels[f] if labels and f in labels else None
+            filter_ = filter_for_field(field, f, widget=widget, label=label)
             if filter_:
                 field_dict[f] = filter_
     return field_dict
@@ -130,6 +133,7 @@ class FilterSetOptions(object):
         self.form = getattr(options, 'form', forms.Form)
         self.together = getattr(options, 'together', None)
         self.widgets = getattr(options, 'widgets', None)
+        self.labels = getattr(options, 'labels', None)
 
 
 class FilterSetMetaclass(type):
@@ -293,11 +297,11 @@ class BaseFilterSet(object):
             model, opts.fields, opts.exclude,
             cls.filter_for_field,
             cls.filter_for_reverse_field,
-            opts.widgets
+            opts.widgets, opts.labels
         )
 
     @classmethod
-    def filter_for_field(cls, f, name, lookup_expr='exact', widget=None):
+    def filter_for_field(cls, f, name, lookup_expr='exact', widget=None, label=None):
         f, lookup_type = resolve_field(f, lookup_expr)
 
         default = {
@@ -307,6 +311,8 @@ class BaseFilterSet(object):
 
         if widget:
             default['widget'] = widget
+        if label:
+            default['label'] = label
 
         filter_class, params = cls.filter_for_lookup(f, lookup_type)
         default.update(params)
@@ -320,7 +326,7 @@ class BaseFilterSet(object):
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, f, name, widget=None):
+    def filter_for_reverse_field(cls, f, name, widget=None, label=None):
         rel = remote_field(f.field)
         queryset = f.field.model._default_manager.all()
         default = {
@@ -329,6 +335,9 @@ class BaseFilterSet(object):
         }
         if widget:
             default['widget'] = widget
+        if label:
+            default['label'] = label
+
         if rel.multiple:
             return ModelMultipleChoiceFilter(**default)
         else:
