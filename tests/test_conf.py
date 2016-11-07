@@ -39,6 +39,7 @@ class StrictnessTests(TestCase):
     class F(FilterSet):
         class Meta:
             model = User
+            fields = []
 
     def test_settings_default(self):
         self.assertEqual(self.F().strict, STRICTNESS.RETURN_NO_RESULTS)
