@@ -100,12 +100,13 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
 
 Crispy Forms
 ------------
-If you are using DRF's browsable API or admin API you may also want to install `django-crispy-forms`, which will enhance the presentation of the filter forms in HTML views, by allowing them to render Bootstrap 3 HTML. Note that this isn't actively supported, although pull requests for bug fixes are welcome.
+
+If you are using DRF's browsable API or admin API you may also want to install ``django-crispy-forms``, which will enhance the presentation of the filter forms in HTML views, by allowing them to render Bootstrap 3 HTML. Note that this isn't actively supported, although pull requests for bug fixes are welcome.
 
 .. code-block:: bash
 
     pip install django-crispy-forms
 
-With crispy forms installed and added to Django's `INSTALLED_APPS`, the browsable API will present a filtering control for `DjangoFilterBackend`, like so:
+With crispy forms installed and added to Django's ``INSTALLED_APPS``, the browsable API will present a filtering control for ``DjangoFilterBackend``, like so:
 
 .. image:: img/form.png
