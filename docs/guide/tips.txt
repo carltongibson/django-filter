@@ -142,6 +142,13 @@ the ``null_label`` parameter. More details in the ``ChoiceFilter`` reference
             queryset=Category.objects.all(),
         )
 
+Solution 3: Comining fields w/ ``MultiValueField``
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+An alternative approach is to use Django's ``MultiValueField`` to manually add
+in a ``BooleanField`` to handle null values. Proof of concept:
+https://github.com/carltongibson/django-filter/issues/446
+
 
 Filtering by an empty string
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -153,7 +160,7 @@ interpreted as a skipped filter.
 
     GET http://localhost/api/my-model?myfield=
 
-Solution 1: magic values
+Solution 1: Magic values
 """"""""""""""""""""""""
 
 You can override the ``filter()`` method of a filter class to specifically check
@@ -176,7 +183,7 @@ for magic values. This is similar to the ``ChoiceFilter``'s null value handling.
             return qs.distinct() if self.distinct else qs
 
 
-Solution 2: empty string filter
+Solution 2: Empty string filter
 """""""""""""""""""""""""""""""
 
 It would also be possible to create an empty value filter that exhibits the same
