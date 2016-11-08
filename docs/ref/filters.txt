@@ -192,6 +192,8 @@ This filter matches UUID values, used with ``models.UUIDField`` by default.
 This filter matches a boolean, either ``True`` or ``False``, used with
 ``BooleanField`` and ``NullBooleanField`` by default.
 
+.. _choice-filter:
+
 ``ChoiceFilter``
 ~~~~~~~~~~~~~~~~
 
