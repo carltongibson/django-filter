@@ -168,4 +168,4 @@ If you are using DRF's browsable API or admin API you may also want to install `
 
 With crispy forms installed and added to Django's ``INSTALLED_APPS``, the browsable API will present a filtering control for ``DjangoFilterBackend``, like so:
 
-.. image:: img/form.png
+.. image:: ../assets/form.png
