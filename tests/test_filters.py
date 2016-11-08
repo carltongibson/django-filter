@@ -27,6 +27,7 @@ from django_filters.filters import (
     BooleanFilter,
     ChoiceFilter,
     MultipleChoiceFilter,
+    TypedMultipleChoiceFilter,
     DateFilter,
     DateTimeFilter,
     TimeFilter,
@@ -514,6 +515,143 @@ class MultipleChoiceFilterTests(TestCase):
 
         for item in filter_list:
             f = MultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
+            queryset = f.filter(users, item[0])
+            expected_pks = [c[0] for c in queryset.values_list('pk')]
+            self.assertListEqual(
+                expected_pks,
+                item[1],
+                'Lists Differ: {0} != {1} for case {2}'.format(
+                    expected_pks, item[1], item[0]))
+
+
+class TypedMultipleChoiceFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = TypedMultipleChoiceFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.TypedMultipleChoiceField)
+
+    def test_filtering_requires_name(self):
+        qs = mock.Mock(spec=['filter'])
+        f = TypedMultipleChoiceFilter()
+        with self.assertRaises(TypeError):
+            f.filter(qs, ['value'])
+
+    def test_conjoined_default_value(self):
+        f = TypedMultipleChoiceFilter()
+        self.assertFalse(f.conjoined)
+
+    def test_conjoined_true(self):
+        f = TypedMultipleChoiceFilter(conjoined=True)
+        self.assertTrue(f.conjoined)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = TypedMultipleChoiceFilter(name='somefield')
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.filter.return_value.distinct.assert_called_once_with()
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = TypedMultipleChoiceFilter(name='somefield', exclude=True)
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.exclude.return_value.distinct.assert_called_once_with()
+
+    def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
+        qs = mock.Mock(spec=[])
+        f = TypedMultipleChoiceFilter(name='somefield', required=True)
+        f.always_filter = False
+        result = f.filter(qs, [])
+        self.assertEqual(len(f.field.choices), 0)
+        self.assertEqual(qs, result)
+
+        f.field.choices = ['some', 'values', 'here']
+        result = f.filter(qs, ['some', 'values', 'here'])
+        self.assertEqual(qs, result)
+
+        result = f.filter(qs, ['other', 'values', 'there'])
+        self.assertEqual(qs, result)
+
+    def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
+        qs = mock.Mock(spec=[])
+        f = TypedMultipleChoiceFilter(name='somefield')
+        f.field.choices = ['some', 'values', 'here']
+        result = f.filter(qs, [])
+        self.assertEqual(qs, result)
+
+    def test_filter_conjoined_true(self):
+        """Tests that a filter with `conjoined=True` returns objects that
+        have all the values included in `value`. For example filter
+        users that have all of this books.
+
+        """
+        book_kwargs = {'price': 1, 'average_rating': 1}
+        books = []
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+
+        user1 = User.objects.create()
+        user2 = User.objects.create()
+        user3 = User.objects.create()
+        user4 = User.objects.create()
+        user5 = User.objects.create()
+
+        user1.favorite_books.add(books[0], books[1])
+        user2.favorite_books.add(books[0], books[1], books[2])
+        user3.favorite_books.add(books[1], books[2])
+        user4.favorite_books.add(books[2], books[3])
+        user5.favorite_books.add(books[4], books[5])
+
+        filter_list = (
+            ((books[0].pk, books[0].pk),  # values
+             [1, 2]),  # list of user.pk that have `value` books
+            ((books[1].pk, books[1].pk),
+             [1, 2, 3]),
+            ((books[2].pk, books[2].pk),
+             [2, 3, 4]),
+            ((books[3].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[4].pk),
+             [5, ]),
+            ((books[0].pk, books[1].pk),
+             [1, 2]),
+            ((books[0].pk, books[2].pk),
+             [2, ]),
+            ((books[1].pk, books[2].pk),
+             [2, 3]),
+            ((books[2].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[5].pk),
+             [5, ]),
+            ((books[3].pk, books[4].pk),
+             []),
+        )
+        users = User.objects.all()
+
+        for item in filter_list:
+            f = TypedMultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list('pk')]
             self.assertListEqual(

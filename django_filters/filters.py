@@ -48,6 +48,7 @@ __all__ = [
     'TimeFilter',
     'TimeRangeFilter',
     'TypedChoiceFilter',
+    'TypedMultipleChoiceFilter',
     'UUIDFilter',
 ]
 
@@ -299,6 +300,10 @@ class MultipleChoiceFilter(Filter):
             return {self.name: getattr(v, self.field.to_field_name)}
         except (AttributeError, TypeError):
             return {self.name: v}
+
+
+class TypedMultipleChoiceFilter(MultipleChoiceFilter):
+    field_class = forms.TypedMultipleChoiceField
 
 
 class DateFilter(Filter):
