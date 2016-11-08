@@ -73,8 +73,8 @@ To enable filtering with a ``FilterSet``, add it to the ``filter_class`` paramet
         filter_class = ProductFilter
 
 
-Specifying ``filter_fields``
-----------------------------
+Using the ``filter_fields`` shortcut
+------------------------------------
 
 You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
 

@@ -148,7 +148,7 @@ default filters for all the models fields of the same kind using
             models.BooleanField: {
                 'filter_class': django_filters.BooleanFilter,
                 'extra': lambda f: {
-                    'widget': 'forms.CheckboxInput',
+                    'widget': forms.CheckboxInput,
                 },
             },
         }
