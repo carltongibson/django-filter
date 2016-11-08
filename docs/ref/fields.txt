@@ -11,7 +11,9 @@ Defines a class level attribute ``ISO_8601`` as constant for the format.
 
 Sets ``input_formats = [ISO_8601]`` — this means that by default ``IsoDateTimeField`` will **only** parse ISO 8601 formated dates.
 
-You may set ``input_formats`` to your list of required formats as per the `DateTimeField Docs`_, using the ``ISO_8601`` class level attribute to specify the  ISO 8601 format. ::
+You may set ``input_formats`` to your list of required formats as per the `DateTimeField Docs`_, using the ``ISO_8601`` class level attribute to specify the  ISO 8601 format.
+
+.. code-block:: python
 
     f = IsoDateTimeField()
     f.input_formats = [IsoDateTimeField.ISO_8601] + DateTimeField.input_formats

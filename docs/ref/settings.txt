@@ -92,6 +92,6 @@ For example, you could add verbose output for "exact" lookups.
 FILTERS_STRICTNESS
 ------------------
 
-DEFAULT: ``STRICTNESS.RETURN_NO_RESULTS``
+Default: ``STRICTNESS.RETURN_NO_RESULTS``
 
 Set the global default for FilterSet :ref:`strictness <strict>`.
