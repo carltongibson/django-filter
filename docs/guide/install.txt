@@ -1,5 +1,6 @@
-Installing django-filter
-------------------------
+============
+Installation
+============
 
 Install with pip:
 

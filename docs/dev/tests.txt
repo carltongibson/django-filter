@@ -1,5 +1,6 @@
-Running the django-filter tests
-===============================
+======================
+Running the Test Suite
+======================
 
 The easiest way to run the django-filter tests is to check out the source
 code into a virtualenv, where you can install the test dependencies.

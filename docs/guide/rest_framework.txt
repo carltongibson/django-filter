@@ -1,5 +1,6 @@
-Django Rest Framework
-=====================
+====================
+Integration with DRF
+====================
 
 Integration with `Django Rest Framework`__ is provided through a DRF-specific ``FilterSet`` and a `filter backend`__. These may be found in the ``rest_framework`` sub-package.
 

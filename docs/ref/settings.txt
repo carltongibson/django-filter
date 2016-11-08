@@ -1,7 +1,5 @@
-.. _ref-settings:
-
 ==================
-Available Settings
+Settings Reference
 ==================
 
 Here is a list of all available settings of django-filters and their

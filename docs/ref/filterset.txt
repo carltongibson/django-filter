@@ -1,5 +1,6 @@
-FilterSet Guide
-===============
+=================
+FilterSet Options
+=================
 
 This document provides a guide on using additional FilterSet features.
 
