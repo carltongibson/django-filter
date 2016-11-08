@@ -142,7 +142,7 @@ the ``null_label`` parameter. More details in the ``ChoiceFilter`` reference
             queryset=Category.objects.all(),
         )
 
-Solution 3: Comining fields w/ ``MultiValueField``
+Solution 3: Combining fields w/ ``MultiValueField``
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
 An alternative approach is to use Django's ``MultiValueField`` to manually add
