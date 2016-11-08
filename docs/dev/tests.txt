@@ -1,0 +1,67 @@
+======================
+Running the Test Suite
+======================
+
+The easiest way to run the django-filter tests is to check out the source
+code and create a virtualenv where you can install the test dependencies.
+Django-filter uses a custom test runner to configure the environment, so a
+wrapper script is available to set up and run the test suite.
+
+.. note::
+
+    The following assumes you have `virtualenv`__ and `git`__ installed.
+
+__ https://virtualenv.pypa.io/en/stable/
+__ https://git-scm.com
+
+Clone the repository
+--------------------
+
+Get the source code using the following command:
+
+.. code-block:: bash
+
+    $ git clone https://github.com/carltongibson/django-filter.git
+
+Switch to the django-filter directory:
+
+.. code-block:: bash
+
+    $ cd django-filter
+
+Set up the virtualenv
+---------------------
+
+Create a new virtualenv to run the test suite in:
+
+.. code-block:: bash
+
+    $ virtualenv venv
+
+Then activate the virtualenv and install the test requirements:
+
+.. code-block:: bash
+
+    $ source venv/bin/activate
+    $ pip install -r requirements/test.txt
+
+Execute the test runner
+-----------------------
+
+Run the tests with the runner script:
+
+.. code-block:: bash
+
+    $ python runtests.py
+
+
+Test all supported versions
+---------------------------
+
+You can also use the excellent tox testing tool to run the tests against all
+supported versions of Python and Django. Install tox, and then simply run:
+
+.. code-block:: bash
+
+    $ pip install tox
+    $ tox

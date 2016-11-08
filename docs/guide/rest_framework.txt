@@ -1,5 +1,6 @@
-Django Rest Framework
-=====================
+====================
+Integration with DRF
+====================
 
 Integration with `Django Rest Framework`__ is provided through a DRF-specific ``FilterSet`` and a `filter backend`__. These may be found in the ``rest_framework`` sub-package.
 
@@ -72,8 +73,8 @@ To enable filtering with a ``FilterSet``, add it to the ``filter_class`` paramet
         filter_class = ProductFilter
 
 
-Specifying ``filter_fields``
-----------------------------
+Using the ``filter_fields`` shortcut
+------------------------------------
 
 You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
 
@@ -168,4 +169,4 @@ If you are using DRF's browsable API or admin API you may also want to install `
 
 With crispy forms installed and added to Django's ``INSTALLED_APPS``, the browsable API will present a filtering control for ``DjangoFilterBackend``, like so:
 
-.. image:: img/form.png
+.. image:: ../assets/form.png

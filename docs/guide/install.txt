@@ -1,0 +1,33 @@
+============
+Installation
+============
+
+Django-filter can be installed from PyPI with tools like ``pip``:
+
+.. code-block:: bash
+
+    $ pip install django-filter
+
+Then add ``'django_filters'`` to your ``INSTALLED_APPS``.
+
+.. note::
+
+    django-filter provides *some* localization for *some* languages. If you do
+    not need these translations (or would rather provide your own), then it is
+    unnecessary to add django-filter to the ``INSTALLED_APPS`` setting.
+
+
+Requirements
+------------
+
+Django-filter is tested against all supported versions of Python and `Django`__,
+as well as the latest versions of Django REST Framework (`DRF`__).
+
+__ https://www.djangoproject.com/download/
+__ http://www.django-rest-framework.org/
+
+
+
+* **Python**: 2.7, 3.3, 3.4, 3.5
+* **Django**: 1.8, 1.9, 1.10
+* **DRF**: 3.4, 3.5
