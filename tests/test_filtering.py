@@ -209,6 +209,7 @@ class ChoiceFilterTests(TestCase):
 
             class Meta:
                 model = Article
+                fields = ['author']
 
         # sanity check to make sure the filter is setup correctly
         f = F({'author': '1'})

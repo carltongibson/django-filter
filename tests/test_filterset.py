@@ -322,20 +322,21 @@ class FilterSetClassCreationTests(TestCase):
                              ['title', 'price', 'average_rating'])
 
     def test_model_no_fields_or_exclude(self):
+        with self.assertRaises(AssertionError) as excinfo:
+            class F(FilterSet):
+                class Meta:
+                    model = Book
+
+        self.assertIn(
+            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude'",
+            str(excinfo.exception)
+        )
+
+    def test_model_fields_empty(self):
         class F(FilterSet):
             class Meta:
                 model = Book
-
-        self.assertEqual(len(F.declared_filters), 0)
-        self.assertEqual(len(F.base_filters), 0)
-        self.assertListEqual(list(F.base_filters), [])
-
-    def test_model_exclude_is_none(self):
-        # equivalent to unset fields/exclude
-        class F(FilterSet):
-            class Meta:
-                model = Book
-                exclude = None
+                fields = []
 
         self.assertEqual(len(F.declared_filters), 0)
         self.assertEqual(len(F.base_filters), 0)
@@ -427,9 +428,12 @@ class FilterSetClassCreationTests(TestCase):
                 class Meta:
                     model = Book
                     fields = ('username', 'price', 'other', 'another')
-        self.assertEqual(excinfo.exception.args, (
-            "Meta.fields contains a field that isn't defined "
-            "on this FilterSet: other",))
+
+        self.assertEqual(
+            str(excinfo.exception),
+            "'Meta.fields' contains fields that are not defined on this FilterSet: "
+            "other, another"
+        )
 
     def test_meta_fields_dictionary_containing_unknown(self):
         with self.assertRaises(TypeError):
@@ -528,6 +532,16 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 
+    def test_custom_declared_field_no_warning(self):
+        class F(FilterSet):
+            mask = CharFilter()
+
+            class Meta:
+                model = NetworkSetting
+                fields = ['mask']
+
+        self.assertEqual(list(F.base_filters.keys()), ['mask'])
+
     def test_filterset_for_proxy_model(self):
         class F(FilterSet):
             class Meta:
@@ -612,6 +626,7 @@ class FilterSetStrictnessTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = User
+                fields = []
 
         # Ensure default is not IGNORE
         self.assertEqual(F().strict, STRICTNESS.RETURN_NO_RESULTS)
@@ -624,6 +639,7 @@ class FilterSetStrictnessTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = User
+                fields = []
                 strict = STRICTNESS.IGNORE
 
         self.assertEqual(F().strict, STRICTNESS.IGNORE)
@@ -632,6 +648,7 @@ class FilterSetStrictnessTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = User
+                fields = []
                 strict = STRICTNESS.IGNORE
 
         strict = STRICTNESS.RAISE_VALIDATION_ERROR
@@ -641,6 +658,7 @@ class FilterSetStrictnessTests(TestCase):
         class F(FilterSet):
             class Meta:
                 model = User
+                fields = []
 
         self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
 
@@ -770,6 +788,7 @@ class FilterMethodTests(TestCase):
 
             class Meta:
                 model = User
+                fields = []
 
             def filter_f(inner_self, qs, name, value):
                 self.assertIsInstance(inner_self, F)

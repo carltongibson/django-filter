@@ -10,7 +10,6 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
-from django.utils.translation import ugettext as _
 
 from .conf import settings
 from .compat import remote_field, remote_queryset
@@ -21,75 +20,20 @@ from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRange
 from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field
 
 
-def get_declared_filters(bases, attrs, with_base_filters=True):
-    filters = []
-    for filter_name, obj in list(attrs.items()):
-        if isinstance(obj, Filter):
-            obj = attrs.pop(filter_name)
-            if getattr(obj, 'name', None) is None:
-                obj.name = filter_name
-            filters.append((filter_name, obj))
-    filters.sort(key=lambda x: x[1].creation_counter)
+def get_filter_name(field_name, lookup_expr):
+    """
+    Combine a field name and lookup expression into a usable filter name.
+    Exact lookups are the implicit default, so "exact" is stripped from the
+    end of the filter name.
+    """
+    filter_name = LOOKUP_SEP.join([field_name, lookup_expr])
 
-    if with_base_filters:
-        for base in bases[::-1]:
-            if hasattr(base, 'base_filters'):
-                filters = list(base.base_filters.items()) + filters
-    else:
-        for base in bases[::-1]:
-            if hasattr(base, 'declared_filters'):
-                filters = list(base.declared_filters.items()) + filters
+    # This also works with transformed exact lookups, such as 'date__exact'
+    _exact = LOOKUP_SEP + 'exact'
+    if filter_name.endswith(_exact):
+        filter_name = filter_name[:-len(_exact)]
 
-    return OrderedDict(filters)
-
-
-def filters_for_model(model, fields=None, exclude=None, filter_for_field=None,
-                      filter_for_reverse_field=None):
-    field_dict = OrderedDict()
-
-    # Setting exclude with no fields implies all other fields.
-    if exclude is not None and fields is None:
-        fields = ALL_FIELDS
-
-    # All implies all db fields associated with a filter_class.
-    if fields == ALL_FIELDS:
-        fields = get_all_model_fields(model)
-
-    # Loop through the list of fields.
-    for f in fields:
-        # Skip the field if excluded.
-        if exclude is not None and f in exclude:
-            continue
-        field = get_model_field(model, f)
-        # Do nothing if the field doesn't exist.
-        if field is None:
-            field_dict[f] = None
-            continue
-        if isinstance(field, ForeignObjectRel):
-            filter_ = filter_for_reverse_field(field, f)
-            if filter_:
-                field_dict[f] = filter_
-        # If fields is a dictionary, it must contain lists.
-        elif isinstance(fields, dict):
-            # Create a filter for each lookup type.
-            for lookup_expr in fields[f]:
-                filter_ = filter_for_field(field, f, lookup_expr)
-
-                if filter_:
-                    filter_name = LOOKUP_SEP.join([f, lookup_expr])
-
-                    # Don't add "exact" to filter names
-                    _exact = LOOKUP_SEP + 'exact'
-                    if filter_name.endswith(_exact):
-                        filter_name = filter_name[:-len(_exact)]
-
-                    field_dict[filter_name] = filter_
-        # If fields is a list, it contains strings.
-        else:
-            filter_ = filter_for_field(field, f)
-            if filter_:
-                field_dict[f] = filter_
-    return field_dict
+    return filter_name
 
 
 def get_full_clean_override(together):
@@ -134,35 +78,35 @@ class FilterSetOptions(object):
 
 class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
-        try:
-            parents = [b for b in bases if issubclass(b, FilterSet)]
-        except NameError:
-            # We are defining FilterSet itself here
-            parents = None
-        declared_filters = get_declared_filters(bases, attrs, False)
-        new_class = super(
-            FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
+        attrs['declared_filters'] = cls.get_declared_filters(bases, attrs)
 
-        if not parents:
-            return new_class
+        new_class = super(FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
+        new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
+        new_class.base_filters = new_class.get_filters()
 
-        opts = new_class._meta = FilterSetOptions(
-            getattr(new_class, 'Meta', None))
-
-        if opts.model and (opts.fields is not None or opts.exclude is not None):
-            filters = new_class.filters_for_model(opts.model, opts)
-            filters.update(declared_filters)
-        else:
-            filters = declared_filters
-
-        not_defined = next((k for k, v in filters.items() if v is None), False)
-        if not_defined:
-            raise TypeError("Meta.fields contains a field that isn't defined "
-                            "on this FilterSet: {}".format(not_defined))
-
-        new_class.declared_filters = declared_filters
-        new_class.base_filters = filters
         return new_class
+
+    @classmethod
+    def get_declared_filters(cls, bases, attrs):
+        filters = [
+            (filter_name, attrs.pop(filter_name))
+            for filter_name, obj in list(attrs.items())
+            if isinstance(obj, Filter)
+        ]
+
+        # Default the `filter.name` to the attribute name on the filterset
+        for filter_name, f in filters:
+            if getattr(f, 'name', None) is None:
+                f.name = filter_name
+
+        filters.sort(key=lambda x: x[1].creation_counter)
+
+        # merge declared filters from base classes
+        for base in reversed(bases):
+            if hasattr(base, 'declared_filters'):
+                filters = list(base.declared_filters.items()) + filters
+
+        return OrderedDict(filters)
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
@@ -235,12 +179,10 @@ class BaseFilterSet(object):
         self.request = request
 
         self.filters = copy.deepcopy(self.base_filters)
-        # propagate the model being used through the filters
-        for filter_ in self.filters.values():
-            filter_.model = self._meta.model
 
-        # Apply the parent to the filters, this will allow the filters to access the filterset
-        for filter_key, filter_ in six.iteritems(self.filters):
+        for filter_ in self.filters.values():
+            # propagate the model and filterset to the filters
+            filter_.model = self._meta.model
             filter_.parent = self
 
     @property
@@ -288,12 +230,88 @@ class BaseFilterSet(object):
         return self._form
 
     @classmethod
-    def filters_for_model(cls, model, opts):
-        return filters_for_model(
-            model, opts.fields, opts.exclude,
-            cls.filter_for_field,
-            cls.filter_for_reverse_field
-        )
+    def get_fields(cls):
+        """
+        Resolve the 'fields' argument that should be used for generating filters on the
+        filterset. This is 'Meta.fields' sans the fields in 'Meta.exclude'.
+        """
+        model = cls._meta.model
+        fields = cls._meta.fields
+        exclude = cls._meta.exclude
+
+        assert not (fields is None and exclude is None), \
+            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude' " \
+            "has been deprecated since 0.15.0 and is now disallowed. Add an explicit" \
+            "'Meta.fields' or 'Meta.exclude' to the %s class." % cls.__name__
+
+        # Setting exclude with no fields implies all other fields.
+        if exclude is not None and fields is None:
+            fields = ALL_FIELDS
+
+        # Resolve ALL_FIELDS into all fields for the filterset's model.
+        if fields == ALL_FIELDS:
+            fields = get_all_model_fields(model)
+
+        # Remove excluded fields
+        exclude = exclude or []
+        if not isinstance(fields, dict):
+            fields = [(f, ['exact']) for f in fields if f not in exclude]
+        else:
+            fields = [(f, lookups) for f, lookups in fields.items() if f not in exclude]
+
+        return OrderedDict(fields)
+
+    @classmethod
+    def get_filters(cls):
+        """
+        Get all filters for the filterset. This is the combination of declared and
+        generated filters.
+        """
+
+        # No model specified - skip filter generation
+        if not cls._meta.model:
+            return cls.declared_filters.copy()
+
+        # Determine the filters that should be included on the filterset.
+        filters = OrderedDict()
+        fields = cls.get_fields()
+        undefined = []
+
+        for field_name, lookups in fields.items():
+            field = get_model_field(cls._meta.model, field_name)
+
+            # warn if the field doesn't exist.
+            if field is None:
+                undefined.append(field_name)
+
+            # ForeignObjectRel does not support non-exact lookups
+            if isinstance(field, ForeignObjectRel):
+                filters[field_name] = cls.filter_for_reverse_field(field, field_name)
+                continue
+
+            for lookup_expr in lookups:
+                filter_name = get_filter_name(field_name, lookup_expr)
+
+                # If the filter is explicitly declared on the class, skip generation
+                if filter_name in cls.declared_filters:
+                    filters[filter_name] = cls.declared_filters[filter_name]
+                    continue
+
+                if field is not None:
+                    filters[filter_name] = cls.filter_for_field(field, field_name, lookup_expr)
+
+        # filter out declared filters
+        undefined = [f for f in undefined if f not in cls.declared_filters]
+        if undefined:
+            raise TypeError(
+                "'Meta.fields' contains fields that are not defined on this FilterSet: "
+                "%s" % ', '.join(undefined)
+            )
+
+        # Add in declared filters. This is necessary since we don't enforce adding
+        # declared filters to the 'Meta.fields' option
+        filters.update(cls.declared_filters)
+        return filters
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):
