@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -8,6 +9,8 @@ import mock
 
 from django import forms
 from django.test import TestCase, override_settings
+from django.utils import translation
+from django.utils.translation import ugettext as _
 
 from django_filters import filters, widgets
 from django_filters.fields import (
@@ -1174,6 +1177,21 @@ class OrderingFilterTests(TestCase):
             ('-d', 'D (descending)'),
         ))
 
+    def test_field_labels_descending(self):
+        f = OrderingFilter(
+            fields=['username'],
+            field_labels={
+                'username': 'BLABLA',
+                '-username': 'XYZXYZ',
+            }
+        )
+
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('username', 'BLABLA'),
+            ('-username', 'XYZXYZ'),
+        ])
+
     def test_normalize_fields(self):
         f = OrderingFilter.normalize_fields
         O = OrderedDict
@@ -1213,3 +1231,31 @@ class OrderingFilterTests(TestCase):
 
         self.assertIsInstance(widget, widgets.BaseCSVWidget)
         self.assertIsInstance(widget, forms.Select)
+
+    def test_translation_sanity(self):
+        with translation.override('pl'):
+            self.assertEqual(_('Username'), 'Nazwa użytkownika')
+            self.assertEqual(_('%s (descending)') % _('Username'), 'Nazwa użytkownika (malejąco)')
+
+    def test_translation_default_label(self):
+        with translation.override('pl'):
+            f = OrderingFilter(fields=['username'])
+
+            self.assertEqual(f.field.choices, [
+                ('', '---------'),
+                ('username', 'Nazwa użytkownika'),
+                ('-username', 'Nazwa użytkownika (malejąco)'),
+            ])
+
+    def test_translation_override_label(self):
+        with translation.override('pl'):
+            f = OrderingFilter(
+                fields=['username'],
+                field_labels={'username': 'BLABLA'},
+            )
+
+            self.assertEqual(f.field.choices, [
+                ('', '---------'),
+                ('username', 'BLABLA'),
+                ('-username', 'BLABLA (malejąco)'),
+            ])
