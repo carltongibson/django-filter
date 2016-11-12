@@ -172,9 +172,9 @@ def verbose_field_name(model, field_name):
     names = []
     for part in parts:
         if isinstance(part, ForeignObjectRel):
-            names.append(part.related_name)
+            names.append(force_text(part.related_name))
         else:
-            names.append(part.verbose_name)
+            names.append(force_text(part.verbose_name))
 
     return ' '.join(names)
 
