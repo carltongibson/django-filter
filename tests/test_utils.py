@@ -6,6 +6,7 @@ from django.test import TestCase, override_settings
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
+from django.utils.functional import Promise
 
 from django_filters.utils import (
     get_field_parts, get_model_field, resolve_field,
@@ -231,6 +232,14 @@ class VerboseFieldNameTests(TestCase):
     def test_backwards_related_field(self):
         verbose_name = verbose_field_name(Book, 'lovers__first_name')
         self.assertEqual(verbose_name, 'lovers first name')
+
+    def test_lazy_text(self):
+        # sanity check
+        field = User._meta.get_field('username')
+        self.assertIsInstance(field.verbose_name, Promise)
+
+        verbose_name = verbose_field_name(User, 'username')
+        self.assertEqual(verbose_name, 'username')
 
 
 class VerboseLookupExprTests(TestCase):
