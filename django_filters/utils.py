@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import warnings
 
 from django.conf import settings
@@ -172,9 +174,9 @@ def verbose_field_name(model, field_name):
     names = []
     for part in parts:
         if isinstance(part, ForeignObjectRel):
-            names.append(part.related_name)
+            names.append(str(part.related_name))
         else:
-            names.append(part.verbose_name)
+            names.append(str(part.verbose_name))
 
     return ' '.join(names)
 
