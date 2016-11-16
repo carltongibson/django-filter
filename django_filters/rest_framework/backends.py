@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 from django.template import Template, TemplateDoesNotExist, loader
+from django.utils import six
 from rest_framework.compat import template_render
 from rest_framework.filters import BaseFilterBackend
 
@@ -99,6 +100,6 @@ class DjangoFilterBackend(BaseFilterBackend):
 
         return [] if not filter_class else [
             compat.coreapi.Field(
-                name=field_name, required=False, location='query', description=str(field.field.help_text))
+                name=field_name, required=False, location='query', description=six.text_type(field.field.help_text))
             for field_name, field in filter_class().filters.items()
         ]
