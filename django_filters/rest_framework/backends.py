@@ -98,6 +98,7 @@ class DjangoFilterBackend(BaseFilterBackend):
         filter_class = self.get_filter_class(view, view.get_queryset())
 
         return [] if not filter_class else [
-            compat.coreapi.Field(name=field_name, required=False, location='query')
-            for field_name in filter_class().filters.keys()
+            compat.coreapi.Field(
+                name=field_name, required=False, location='query', description=str(field.field.help_text))
+            for field_name, field in filter_class().filters.items()
         ]
