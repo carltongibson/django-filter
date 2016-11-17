@@ -6,7 +6,7 @@ This release removes all the deprecated code from 0.14 and 0.15 for 1.0 #480.
 Please see the `Migration Notes`__ for details of how to migrate.
 Stick with 0.15.3 if you're not ready to update.
 
-__ https://github.com/carltongibson/django-filter/blob/develop/docs/migration.txt
+__ https://github.com/carltongibson/django-filter/blob/1.0.0/docs/guide/migration.txt
 
 The release includes a number of small fixes and documentation updates.
 
