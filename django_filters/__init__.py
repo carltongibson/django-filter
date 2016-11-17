@@ -4,7 +4,7 @@ from .constants import STRICTNESS
 from .filterset import FilterSet
 from .filters import *
 
-__version__ = '0.15.3'
+__version__ = '1.0.0'
 
 
 def parse_version(version):
