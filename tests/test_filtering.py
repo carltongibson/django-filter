@@ -20,24 +20,21 @@ from django_filters.filters import ChoiceFilter
 from django_filters.filters import DateRangeFilter
 from django_filters.filters import DateFromToRangeFilter
 from django_filters.filters import DateTimeFromToRangeFilter
-# from django_filters.filters import DateTimeFilter
 from django_filters.filters import DurationFilter
 from django_filters.filters import MultipleChoiceFilter
+from django_filters.filters import ModelChoiceFilter
+from django_filters.filters import TypedMultipleChoiceFilter
 from django_filters.filters import ModelMultipleChoiceFilter
 from django_filters.filters import NumberFilter
 from django_filters.filters import OrderingFilter
 from django_filters.filters import RangeFilter
 from django_filters.filters import TimeRangeFilter
-# from django_filters.widgets import LinkWidget
 from django_filters.exceptions import FieldLookupError
 
 from .models import User
 from .models import Comment
 from .models import Book
-# from .models import Restaurant
 from .models import Article
-# from .models import NetworkSetting
-# from .models import SubnetMaskField
 from .models import Company
 from .models import Location
 from .models import Account
@@ -129,12 +126,20 @@ class BooleanFilterTests(TestCase):
 
 class ChoiceFilterTests(TestCase):
 
-    def test_filtering(self):
+    @classmethod
+    def setUpTestData(cls):
         User.objects.create(username='alex', status=1)
         User.objects.create(username='jacob', status=2)
         User.objects.create(username='aaron', status=2)
         User.objects.create(username='carl', status=0)
 
+        Article.objects.create(author_id=1, published=now())
+        Article.objects.create(author_id=2, published=now())
+        Article.objects.create(author_id=3, published=now())
+        Article.objects.create(author_id=4, published=now())
+        Article.objects.create(author_id=None, published=now())
+
+    def test_filtering(self):
         class F(FilterSet):
             class Meta:
                 model = User
@@ -160,11 +165,6 @@ class ChoiceFilterTests(TestCase):
 
         If you explicitly declare ChoiceFilter fields you **MUST** pass `choices`.
         """
-        User.objects.create(username='alex', status=1)
-        User.objects.create(username='jacob', status=2)
-        User.objects.create(username='aaron', status=2)
-        User.objects.create(username='carl', status=0)
-
         class F(FilterSet):
             status = ChoiceFilter(choices=STATUS_CHOICES)
 
@@ -185,6 +185,38 @@ class ChoiceFilterTests(TestCase):
 
         f = F({'status': '0'})
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username, False)
+
+    def test_filtering_on_empty_choice(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['status']
+
+        f = F({'status': ''})
+        self.assertQuerysetEqual(f.qs,
+                                 ['aaron', 'alex', 'jacob', 'carl'],
+                                 lambda o: o.username, False)
+
+    def test_filtering_on_null_choice(self):
+        choices = [(u.pk, str(u)) for u in User.objects.order_by('id')]
+
+        class F(FilterSet):
+            author = ChoiceFilter(
+                choices=choices,
+                null_value='null',
+                null_label='NULL',
+            )
+
+            class Meta:
+                model = Article
+                fields = ['author']
+
+        # sanity check to make sure the filter is setup correctly
+        f = F({'author': '1'})
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: str(o.author), False)
+
+        f = F({'author': 'null'})
+        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
 
 
 class MultipleChoiceFilterTests(TestCase):
@@ -219,6 +251,41 @@ class MultipleChoiceFilterTests(TestCase):
         f = F({'status': ['0', '1', '2']}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+
+class TypedMultipleChoiceFilterTests(TestCase):
+
+    def test_filtering(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+
+        class F(FilterSet):
+            status = TypedMultipleChoiceFilter(choices=STATUS_CHOICES, coerce=lambda x: x[0:2])
+
+            class Meta:
+                model = User
+                fields = ['status']
+
+        qs = User.objects.all().order_by('username')
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aa', 'ja', 'al', 'ca'],
+            lambda o: o.username[0:2], False)
+
+        f = F({'status': ['0']}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['ca'], lambda o: o.username[0:2])
+
+        f = F({'status': ['0', '1']}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['al', 'ca'], lambda o: o.username[0:2])
+
+        f = F({'status': ['0', '1', '2']}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ['aa', 'al', 'ca', 'ja'], lambda o: o.username[0:2])
 
 
 class DateFilterTests(TestCase):
@@ -417,6 +484,34 @@ class ModelChoiceFilterTests(TestCase):
         qs = Comment.objects.all()
         f = F({'author': jacob.pk}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
+
+    def test_callable_queryset(self):
+        # Sanity check for callable queryset arguments.
+        # Ensure that nothing is improperly cached
+        User.objects.create(username='alex')
+        jacob = User.objects.create(username='jacob')
+        aaron = User.objects.create(username='aaron')
+
+        def users(request):
+            return User.objects.filter(pk__lt=request.user.pk)
+
+        class F(FilterSet):
+            author = ModelChoiceFilter(name='author', queryset=users)
+
+            class Meta:
+                model = Comment
+                fields = ['author']
+
+        qs = Comment.objects.all()
+        request = mock.Mock()
+
+        request.user = jacob
+        f = F(queryset=qs, request=request).filters['author'].field
+        self.assertQuerysetEqual(f.queryset, [1], lambda o: o.pk, False)
+
+        request.user = aaron
+        f = F(queryset=qs, request=request).filters['author'].field
+        self.assertQuerysetEqual(f.queryset, [1, 2], lambda o: o.pk, False)
 
 
 class ModelMultipleChoiceFilterTests(TestCase):
@@ -1644,7 +1739,7 @@ class MiscFilterSetTests(TestCase):
                 model = User
                 fields = ['account']
 
-        qs = mock.MagicMock()
+        qs = mock.NonCallableMagicMock()
         f = F({'account': 'jdoe'}, queryset=qs)
         result = f.qs
         self.assertNotEqual(qs, result)
@@ -1665,6 +1760,8 @@ class MiscFilterSetTests(TestCase):
         self.assertQuerysetEqual(f.qs, [], lambda o: o.pk)
 
     def test_filter_with_initial(self):
+        # Initial values are a form presentation option - the FilterSet should
+        # not use an initial value as a default value to filter by.
         class F(FilterSet):
             status = ChoiceFilter(choices=STATUS_CHOICES, initial=1)
 
@@ -1673,8 +1770,10 @@ class MiscFilterSetTests(TestCase):
                 fields = ['status']
 
         qs = User.objects.all()
+        users = ['alex', 'jacob', 'aaron', 'carl']
+
         f = F(queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+        self.assertQuerysetEqual(f.qs.order_by('pk'), users, lambda o: o.username)
 
         f = F({'status': 0}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['carl'], lambda o: o.username)

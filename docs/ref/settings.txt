@@ -1,7 +1,5 @@
-.. _ref-settings:
-
 ==================
-Available Settings
+Settings Reference
 ==================
 
 Here is a list of all available settings of django-filters and their
@@ -9,20 +7,91 @@ default values. All settings are prefixed with ``FILTERS_``, although this
 is a bit verbose it helps to make it easy to identify these settings.
 
 
-FILTERS_HELP_TEXT_EXCLUDE
+FILTERS_EMPTY_CHOICE_LABEL
+--------------------------
+
+Default: ``'---------'``
+
+Set the default value for ``ChoiceFilter.empty_label``. You may disable the empty choice by setting this to ``None``.
+
+
+FILTERS_NULL_CHOICE_LABEL
 -------------------------
 
-Default: ``True``
+Default: ``None``
 
-Enable / disable the default field ``help_text`` on filters where ``exclude=True`` (:doc:`/ref/filters`). This does not affect fields which explicitly define ``help_text``.
+Set the default value for ``ChoiceFilter.null_label``. You may enable the null choice by setting a non-``None`` value.
 
-.. note:: This setting is pending deprecation.
 
-FILTERS_HELP_TEXT_FILTER
-------------------------
+FILTERS_NULL_CHOICE_VALUE
+-------------------------
 
-Default: ``True``
+Default: ``'null'``
 
-Enable / disable the default field ``help_text`` on filters where ``exclude=False`` (:doc:`/ref/filters`). This does not affect fields which explicitly define ``help_text``.
+Set the default value for ``ChoiceFilter.null_value``. You may want to change this value if the default ``'null'`` string conflicts with an actual choice.
 
-.. note:: This setting is pending deprecation.
+
+FILTERS_DISABLE_HELP_TEXT
+-------------------------
+
+Default: ``False``
+
+Some filters provide informational ``help_text``. For example, csv-based
+filters (``filters.BaseCSVFilter``) inform users that "Multiple values may
+be separated by commas".
+
+You may set this to ``True`` to disable the ``help_text`` for **all**
+filters, removing the text from the rendered form's output.
+
+
+.. _verbose-lookups-setting:
+
+FILTERS_VERBOSE_LOOKUPS
+-----------------------
+
+.. note::
+
+    This is considered an advanced setting and is subject to change.
+
+Default:
+
+.. code-block:: python
+
+    # refer to 'django_filters.conf.DEFAULTS'
+    'VERBOSE_LOOKUPS': {
+        'exact': _(''),
+        'iexact': _(''),
+        'contains': _('contains'),
+        'icontains': _('contains'),
+        ...
+    }
+
+This setting controls the verbose output for generated filter labels. Instead
+of getting expression parts such as "lt" and "contained_by", the verbose label
+would contain "is less than" and "is contained by". Verbose output may be
+disabled by setting this to a falsy value.
+
+This setting also accepts callables. The callable should not require arguments
+and should return a dictionary. This is useful for extending or overriding the
+default terms without having to copy the entire set of terms to your settings.
+For example, you could add verbose output for "exact" lookups.
+
+.. code-block:: python
+
+    # settings.py
+    def FILTERS_VERBOSE_LOOKUPS():
+        from django_filters.conf import DEFAULTS
+
+        verbose_lookups = DEFAULTS['VERBOSE_LOOKUPS'].copy()
+        verbose_lookups.update({
+            'exact': 'is equal to',
+        })
+        return verbose_lookups
+
+
+FILTERS_STRICTNESS
+------------------
+
+Default: ``STRICTNESS.RETURN_NO_RESULTS``
+
+Set the global default for FilterSet :ref:`strictness <strict>`.

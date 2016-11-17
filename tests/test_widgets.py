@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.test import TestCase
 from django.forms import TextInput, Select
 
-from django_filters.widgets import BooleanWidget
+from django_filters.widgets import BooleanWidget, QueryArrayWidget
 from django_filters.widgets import BaseCSVWidget
 from django_filters.widgets import CSVWidget
 from django_filters.widgets import RangeWidget
@@ -279,3 +279,74 @@ class CSVSelectTests(TestCase):
 
         self.assertHTMLEqual(w.render('price', [1, 2]), """
             <input type="text" name="price" value="1,2" />""")
+
+
+class QueryArrayWidgetTests(TestCase):
+
+    def test_widget_value_from_datadict(self):
+        w = QueryArrayWidget()
+
+        # Values can be provided as csv string: ?foo=bar,baz
+        data = {'price': None}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        data = {'price': '1'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = {'price': '1,2'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(sorted(result), ['1', '2'])
+
+        data = {'price': '1,,2'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(sorted(result), ['1', '2'])
+
+        data = {'price': '1,'}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = {'price': ','}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        data = {'price': ''}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        result = w.value_from_datadict({}, {}, 'price')
+        self.assertEqual(result, [])
+
+        # Values can be provided as query array: ?foo[]=bar&foo[]=baz
+
+        data = {'price[]': None}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        data = {'price[]': ['1']}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = {'price[]': ['1', '2']}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(sorted(result), ['1', '2'])
+
+        data = {'price[]': ['1', '', '2']}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(sorted(result), ['1', '2'])
+
+        data = {'price[]': ['1', '']}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, ['1'])
+
+        data = {'price[]': ['', '']}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        data = {'price[]': []}
+        result = w.value_from_datadict(data, {}, 'price')
+        self.assertEqual(result, [])
+
+        result = w.value_from_datadict({}, {}, 'price')
+        self.assertEqual(result, [])

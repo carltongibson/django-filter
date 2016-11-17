@@ -1,3 +1,20 @@
+Version 1.0 (2016-11-17)
+------------------------
+
+This release removes all the deprecated code from 0.14 and 0.15 for 1.0 #480.
+
+Please see the `Migration Notes`__ for details of how to migrate.
+Stick with 0.15.3 if you're not ready to update.
+
+__ https://github.com/carltongibson/django-filter/blob/develop/docs/migration.txt
+
+The release includes a number of small fixes and documentation updates.
+
+See the `1.0 Milestone`__ for full details.
+
+__ https://github.com/carltongibson/django-filter/milestone/8?closed=1
+
+
 Version 0.15.3 (2016-10-17)
 ---------------------------
 
@@ -59,6 +76,8 @@ __ https://github.com/carltongibson/django-filter/blob/develop/docs/migration.tx
 
 Version 0.14.0 (2016-08-14)
 ---------------------------
+
+* Confirmed support for Django 1.10.
 
 * Add support for filtering on DurationField (new in Django 1.8).
 

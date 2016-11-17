@@ -5,8 +5,9 @@ import unittest
 
 import django
 from django.db import models
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
+from django_filters.constants import STRICTNESS
 from django_filters.filterset import FilterSet
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from django_filters.filters import Filter
@@ -320,6 +321,39 @@ class FilterSetClassCreationTests(TestCase):
         self.assertListEqual(list(F.base_filters),
                              ['title', 'price', 'average_rating'])
 
+    def test_model_no_fields_or_exclude(self):
+        with self.assertRaises(AssertionError) as excinfo:
+            class F(FilterSet):
+                class Meta:
+                    model = Book
+
+        self.assertIn(
+            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude'",
+            str(excinfo.exception)
+        )
+
+    def test_model_fields_empty(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = []
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 0)
+        self.assertListEqual(list(F.base_filters), [])
+
+    def test_model_exclude_empty(self):
+        # equivalent to fields = '__all__'
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                exclude = []
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 3)
+        self.assertListEqual(list(F.base_filters),
+                             ['title', 'price', 'average_rating'])
+
     def test_declared_and_model_derived(self):
         class F(FilterSet):
             username = CharFilter()
@@ -394,9 +428,12 @@ class FilterSetClassCreationTests(TestCase):
                 class Meta:
                     model = Book
                     fields = ('username', 'price', 'other', 'another')
-        self.assertEqual(excinfo.exception.args, (
-            "Meta.fields contains a field that isn't defined "
-            "on this FilterSet: other",))
+
+        self.assertEqual(
+            str(excinfo.exception),
+            "'Meta.fields' contains fields that are not defined on this FilterSet: "
+            "other, another"
+        )
 
     def test_meta_fields_dictionary_containing_unknown(self):
         with self.assertRaises(TypeError):
@@ -495,6 +532,16 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
 
+    def test_custom_declared_field_no_warning(self):
+        class F(FilterSet):
+            mask = CharFilter()
+
+            class Meta:
+                model = NetworkSetting
+                fields = ['mask']
+
+        self.assertEqual(list(F.base_filters.keys()), ['mask'])
+
     def test_filterset_for_proxy_model(self):
         class F(FilterSet):
             class Meta:
@@ -561,6 +608,59 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = F(queryset=m)
         self.assertEqual(f.queryset, m)
+
+    def test_creating_with_request(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username']
+
+        m = mock.Mock()
+        f = F(request=m)
+        self.assertEqual(f.request, m)
+
+
+class FilterSetStrictnessTests(TestCase):
+
+    def test_settings_default(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = []
+
+        # Ensure default is not IGNORE
+        self.assertEqual(F().strict, STRICTNESS.RETURN_NO_RESULTS)
+
+        # override and test
+        with override_settings(FILTERS_STRICTNESS=STRICTNESS.IGNORE):
+            self.assertEqual(F().strict, STRICTNESS.IGNORE)
+
+    def test_meta_value(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = []
+                strict = STRICTNESS.IGNORE
+
+        self.assertEqual(F().strict, STRICTNESS.IGNORE)
+
+    def test_init_default(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = []
+                strict = STRICTNESS.IGNORE
+
+        strict = STRICTNESS.RAISE_VALIDATION_ERROR
+        self.assertEqual(F(strict=strict).strict, strict)
+
+    def test_legacy_value(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = []
+
+        self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
 
 
 class FilterSetTogetherTests(TestCase):
@@ -642,6 +742,20 @@ class FilterMethodTests(TestCase):
         self.assertEqual(f.filters['f'].filter.method, filter_f)
         self.assertIsInstance(f.filters['f'].filter, FilterMethod)
 
+    def test_request_available_during_method_called(self):
+        class F(FilterSet):
+            f = Filter(method='filter_f')
+
+            def filter_f(self, qs, name, value):
+                # call mock request object to prove self.request can be accessed
+                self.request()
+
+        m = mock.Mock()
+        f = F({}, queryset=User.objects.all(), request=m)
+        # call the filter
+        f.filters['f'].filter.method(User.objects.all(), 'f', '')
+        m.assert_called_once_with()
+
     def test_method_with_overridden_filter(self):
         # Some filter classes override the base filter() method. We need
         # to ensure that passing a method argument still works correctly
@@ -663,6 +777,24 @@ class FilterMethodTests(TestCase):
         self.assertIn("'None'", str(w.exception))
         self.assertIn('parent', str(w.exception))
         self.assertIn('filter_f', str(w.exception))
+
+    def test_method_self_is_parent(self):
+        # Ensure the method isn't 're-parented' on the `FilterMethod` helper class.
+        # Filter methods should have access to the filterset's properties.
+        request = mock.Mock()
+
+        class F(FilterSet):
+            f = CharFilter(method='filter_f')
+
+            class Meta:
+                model = User
+                fields = []
+
+            def filter_f(inner_self, qs, name, value):
+                self.assertIsInstance(inner_self, F)
+                self.assertIs(inner_self.request, request)
+
+        F({'f': 'foo'}, request=request, queryset=User.objects.all()).qs
 
     def test_method_unresolvable(self):
         class F(FilterSet):
@@ -704,7 +836,6 @@ class FilterMethodTests(TestCase):
         self.assertIs(f.filter, TestFilter.filter)
 
 
-@unittest.skip('TODO: remove when relevant deprecations have been completed')
 class MiscFilterSetTests(TestCase):
 
     def test_no__getitem__(self):

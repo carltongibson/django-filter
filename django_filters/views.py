@@ -36,7 +36,10 @@ class FilterMixin(object):
         """
         Returns the keyword arguments for instanciating the filterset.
         """
-        kwargs = {'data': self.request.GET or None}
+        kwargs = {
+            'data': self.request.GET or None,
+            'request': self.request,
+        }
         try:
             kwargs.update({
                 'queryset': self.get_queryset(),

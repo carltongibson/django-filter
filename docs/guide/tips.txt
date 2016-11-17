@@ -1,0 +1,215 @@
+==================
+Tips and Solutions
+==================
+
+Common problems for declared filters
+------------------------------------
+
+Below are some of the common problem that occur when declaring filters. It is
+recommended that you read this as it provides a more complete understanding of
+how filters work.
+
+
+Filter ``name`` and ``lookup_expr`` not configured
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While ``name`` and ``lookup_expr`` are optional, it is recommended that you specify
+them. By default, if ``name`` is not specified, the filter's name on the
+filterset class will be used. Additionally, ``lookup_expr`` defaults to
+``exact``. The following is an example of a misconfigured price filter:
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        price__gt = django_filters.NumberFilter()
+
+The filter instance will have a field name of ``price__gt`` and an ``exact``
+lookup type. Under the hood, this will incorrectly be resolved as:
+
+.. code-block:: python
+
+    Produce.objects.filter(price__gt__exact=value)
+
+The above will most likely generate a ``FieldError``. The correct configuration
+would be:
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        price__gt = django_filters.NumberFilter(name='price', lookup_expr='gt')
+
+
+Missing ``lookup_expr`` for text search filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's quite common to forget to set the lookup expression for :code:`CharField`
+and :code:`TextField` and wonder why a search for "foo" does not return results
+for "foobar". This is because the default lookup type is ``exact``, but you
+probably want to perform  an ``icontains`` lookup.
+
+
+Filter and lookup expression mismatch (in, range, isnull)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's not always appropriate to directly match a filter to its model field's
+type, as some lookups expect different types of values. This is a commonly
+found issue with ``in``, ``range``, and ``isnull`` lookups. Let's look
+at the following product model:
+
+.. code-block:: python
+
+    class Product(models.Model):
+        category = models.ForeignKey(Category, null=True)
+
+Given that ``category`` is optional, it's reasonable to want to enable a search
+for uncategorized products. The following is an incorrectly configured
+``isnull`` filter:
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        uncategorized = django_filters.NumberFilter(name='category', lookup_expr='isnull')
+
+So what's the issue? While the underlying column type for ``category`` is an
+integer, ``isnull`` lookups expect a boolean value. A ``NumberFilter`` however
+only validates numbers. Filters are not `'expression aware'` and won't change
+behavior based on their ``lookup_expr``. You should use filters that match the
+data type of the lookup expression `instead` of the data type underlying the
+model field. The following would correctly allow you to search for both
+uncategorized products and products for a set of categories:
+
+.. code-block:: python
+
+    class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
+        pass
+
+    class ProductFilter(django_filters.FilterSet):
+        categories = NumberInFilter(name='category', lookup_expr='in')
+        uncategorized = django_filters.BooleanFilter(name='category', lookup_expr='isnull')
+
+More info on constructing ``in`` and ``range`` csv :ref:`filters <base-in-filter>`.
+
+
+Filtering by empty values
+-------------------------
+
+There are a number of cases where you may need to filter by empty or null
+values. The following are some common solutions to these problems:
+
+
+Filtering by null values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+As explained in the above "Filter and lookup expression mismatch" section, a
+common problem is how to correctly filter by null values on a field.
+
+Solution 1: Using a ``BooleanFilter`` with ``isnull``
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Using ``BooleanFilter`` with an ``isnull`` lookup is a builtin solution used by
+the FilterSet's automatic filter generation. To do this manually, simply add:
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        uncategorized = django_filters.BooleanFilter(name='category', lookup_expr='isnull')
+
+.. note::
+
+    Remember that the filter class is validating the input value. The underlying
+    type of the mode field is not relevant here.
+
+You may also reverse the logic with the ``exclude`` parameter.
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        has_category = django_filters.BooleanFilter(name='category', lookup_expr='isnull', exclude=True)
+
+Solution 2: Using ``ChoiceFilter``'s null choice
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+If you're using a ChoiceFilter, you may also filter by null values by enabling
+the ``null_label`` parameter. More details in the ``ChoiceFilter`` reference
+:ref:`docs <choice-filter>`.
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        category = django_filters.ModelChoiceFilter(
+            name='category', lookup_expr='isnull',
+            null_label='Uncategorized',
+            queryset=Category.objects.all(),
+        )
+
+Solution 3: Combining fields w/ ``MultiValueField``
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+An alternative approach is to use Django's ``MultiValueField`` to manually add
+in a ``BooleanField`` to handle null values. Proof of concept:
+https://github.com/carltongibson/django-filter/issues/446
+
+
+Filtering by an empty string
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It's not currently possible to filter by an empty string, since empty values are
+interpreted as a skipped filter.
+
+.. code-block:: http
+
+    GET http://localhost/api/my-model?myfield=
+
+Solution 1: Magic values
+""""""""""""""""""""""""
+
+You can override the ``filter()`` method of a filter class to specifically check
+for magic values. This is similar to the ``ChoiceFilter``'s null value handling.
+
+.. code-block:: http
+
+    GET http://localhost/api/my-model?myfield=EMPTY
+
+.. code-block:: python
+
+    class MyCharFilter(filters.CharFilter):
+        empty_value = 'EMPTY'
+
+        def filter(self, qs, value):
+            if value != self.empty_value:
+                return super(MyCharFilter, self).filter(qs, value)
+
+            qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): ""})
+            return qs.distinct() if self.distinct else qs
+
+
+Solution 2: Empty string filter
+"""""""""""""""""""""""""""""""
+
+It would also be possible to create an empty value filter that exhibits the same
+behavior as an ``isnull`` filter.
+
+.. code-block:: http
+
+    GET http://localhost/api/my-model?myfield__isempty=false
+
+.. code-block:: python
+
+    from django.core.validators import EMPTY_VALUES
+
+    class EmptyStringFilter(filters.BooleanFilter):
+        def filter(self, qs, value):
+            if value in EMPTY_VALUES:
+                return qs
+
+            exclude = self.exclude ^ (value is False)
+            method = qs.exclude if exclude else qs.filter
+
+            return method(**{self.name: ""})
+
+
+    class MyFilterSet(filters.FilterSet):
+        myfield__isempty = EmptyStringFilter(name='myfield')
+
+        class Meta:
+            model = MyModel

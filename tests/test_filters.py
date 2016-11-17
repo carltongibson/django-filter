@@ -1,13 +1,16 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from collections import OrderedDict
 from datetime import date, time, timedelta, datetime
+import inspect
 import mock
-import warnings
 
 from django import forms
 from django.test import TestCase, override_settings
+from django.utils import translation
+from django.utils.translation import ugettext as _
 
 from django_filters import filters, widgets
 from django_filters.fields import (
@@ -24,6 +27,7 @@ from django_filters.filters import (
     BooleanFilter,
     ChoiceFilter,
     MultipleChoiceFilter,
+    TypedMultipleChoiceFilter,
     DateFilter,
     DateTimeFilter,
     TimeFilter,
@@ -48,6 +52,28 @@ from django_filters.filters import (
 from tests.models import Book, User
 
 
+class ModuleImportTests(TestCase):
+    def is_filter(self, name, value):
+        return (
+            isinstance(value, type) and issubclass(value, Filter)
+        )
+
+    def test_imports(self):
+        # msg = "Expected `filters.%s` to be imported in `filters.__all__`"
+        filter_classes = [
+            key for key, value
+            in inspect.getmembers(filters)
+            if isinstance(value, type) and issubclass(value, Filter)
+        ]
+
+        # sanity check
+        self.assertIn('Filter', filter_classes)
+        self.assertIn('BooleanFilter', filter_classes)
+
+        for f in filter_classes:
+            self.assertIn(f, filters.__all__)
+
+
 class FilterTests(TestCase):
 
     def test_creation(self):
@@ -64,27 +90,6 @@ class FilterTests(TestCase):
         f = Filter()
         field = f.field
         self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, 'Filter')
-
-    def test_field_with_exclusion(self):
-        f = Filter(exclude=True)
-        field = f.field
-        self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, 'This is an exclusion filter')
-
-    @override_settings(FILTERS_HELP_TEXT_FILTER=False)
-    def test_default_field_settings(self):
-        f = Filter()
-        field = f.field
-        self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, '')
-
-    @override_settings(FILTERS_HELP_TEXT_EXCLUDE=False)
-    def test_field_with_exclusion_settings(self):
-        f = Filter(exclude=True)
-        field = f.field
-        self.assertIsInstance(field, forms.Field)
-        self.assertEqual(field.help_text, '')
 
     def test_field_with_single_lookup_expr(self):
         f = Filter(lookup_expr='iexact')
@@ -102,7 +107,6 @@ class FilterTests(TestCase):
         f = Filter(lookup_expr=None, exclude=True)
         field = f.field
         self.assertIsInstance(field, LookupTypeField)
-        self.assertEqual(field.help_text, 'This is an exclusion filter')
 
     def test_field_with_list_lookup_expr(self):
         f = Filter(lookup_expr=('istartswith', 'iendswith'))
@@ -119,8 +123,7 @@ class FilterTests(TestCase):
             f.field
             mocked.assert_called_once_with(required=False,
                                            label='somelabel',
-                                           widget='somewidget',
-                                           help_text=mock.ANY)
+                                           widget='somewidget')
 
     def test_field_extra_params(self):
         with mock.patch.object(Filter, 'field_class',
@@ -128,8 +131,8 @@ class FilterTests(TestCase):
             f = Filter(someattr='someattr')
             f.field
             mocked.assert_called_once_with(required=mock.ANY,
-                                           label=mock.ANY, widget=mock.ANY,
-                                           help_text=mock.ANY,
+                                           label=mock.ANY,
+                                           widget=mock.ANY,
                                            someattr='someattr')
 
     def test_field_with_required_filter(self):
@@ -137,8 +140,9 @@ class FilterTests(TestCase):
                                spec=['__call__']) as mocked:
             f = Filter(required=True)
             f.field
-            mocked.assert_called_once_with(required=True, label=mock.ANY,
-                                           widget=mock.ANY, help_text=mock.ANY)
+            mocked.assert_called_once_with(required=True,
+                                           label=mock.ANY,
+                                           widget=mock.ANY)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
@@ -211,16 +215,6 @@ class FilterTests(TestCase):
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
-
-    def test_lookup_type_deprecation(self):
-        """
-        Make sure user is alerted when using deprecated ``lookup_type``.
-        """
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Filter(lookup_type='exact')
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
 
 class CustomFilterWithBooleanCheckTests(TestCase):
@@ -315,6 +309,82 @@ class ChoiceFilterTests(TestCase):
         f = ChoiceFilter()
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
+
+    def test_empty_choice(self):
+        # default value
+        f = ChoiceFilter(choices=[('a', 'a')])
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+        ])
+
+        # set value, allow blank label
+        f = ChoiceFilter(choices=[('a', 'a')], empty_label='')
+        self.assertEqual(f.field.choices, [
+            ('', ''),
+            ('a', 'a'),
+        ])
+
+        # disable empty choice w/ None
+        f = ChoiceFilter(choices=[('a', 'a')], empty_label=None)
+        self.assertEqual(f.field.choices, [
+            ('a', 'a'),
+        ])
+
+    def test_null_choice(self):
+        # default is to be disabled
+        f = ChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+        ])
+
+        # set label, allow blank label
+        f = ChoiceFilter(choices=[('a', 'a')], null_label='')
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('null', ''),
+            ('a', 'a'),
+        ])
+
+        # set null value
+        f = ChoiceFilter(choices=[('a', 'a')], null_value='NULL', null_label='')
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('NULL', ''),
+            ('a', 'a'),
+        ])
+
+        # explicitly disable
+        f = ChoiceFilter(choices=[('a', 'a')], null_label=None)
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+        ])
+
+    @override_settings(
+        FILTERS_EMPTY_CHOICE_LABEL='EMPTY LABEL',
+        FILTERS_NULL_CHOICE_LABEL='NULL LABEL',
+        FILTERS_NULL_CHOICE_VALUE='NULL VALUE', )
+    def test_settings_overrides(self):
+        f = ChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(f.field.choices, [
+            ('', 'EMPTY LABEL'),
+            ('NULL VALUE', 'NULL LABEL'),
+            ('a', 'a'),
+        ])
+
+    def test_callable_choices(self):
+        def choices():
+            yield ('a', 'a')
+            yield ('b', 'b')
+
+        f = ChoiceFilter(choices=choices)
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('a', 'a'),
+            ('b', 'b'),
+        ])
 
 
 class MultipleChoiceFilterTests(TestCase):
@@ -454,6 +524,143 @@ class MultipleChoiceFilterTests(TestCase):
                     expected_pks, item[1], item[0]))
 
 
+class TypedMultipleChoiceFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = TypedMultipleChoiceFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.TypedMultipleChoiceField)
+
+    def test_filtering_requires_name(self):
+        qs = mock.Mock(spec=['filter'])
+        f = TypedMultipleChoiceFilter()
+        with self.assertRaises(TypeError):
+            f.filter(qs, ['value'])
+
+    def test_conjoined_default_value(self):
+        f = TypedMultipleChoiceFilter()
+        self.assertFalse(f.conjoined)
+
+    def test_conjoined_true(self):
+        f = TypedMultipleChoiceFilter(conjoined=True)
+        self.assertTrue(f.conjoined)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = TypedMultipleChoiceFilter(name='somefield')
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.filter.return_value.distinct.assert_called_once_with()
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = TypedMultipleChoiceFilter(name='somefield', exclude=True)
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.exclude.return_value.distinct.assert_called_once_with()
+
+    def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
+        qs = mock.Mock(spec=[])
+        f = TypedMultipleChoiceFilter(name='somefield', required=True)
+        f.always_filter = False
+        result = f.filter(qs, [])
+        self.assertEqual(len(f.field.choices), 0)
+        self.assertEqual(qs, result)
+
+        f.field.choices = ['some', 'values', 'here']
+        result = f.filter(qs, ['some', 'values', 'here'])
+        self.assertEqual(qs, result)
+
+        result = f.filter(qs, ['other', 'values', 'there'])
+        self.assertEqual(qs, result)
+
+    def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
+        qs = mock.Mock(spec=[])
+        f = TypedMultipleChoiceFilter(name='somefield')
+        f.field.choices = ['some', 'values', 'here']
+        result = f.filter(qs, [])
+        self.assertEqual(qs, result)
+
+    def test_filter_conjoined_true(self):
+        """Tests that a filter with `conjoined=True` returns objects that
+        have all the values included in `value`. For example filter
+        users that have all of this books.
+
+        """
+        book_kwargs = {'price': 1, 'average_rating': 1}
+        books = []
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+        books.append(Book.objects.create(**book_kwargs))
+
+        user1 = User.objects.create()
+        user2 = User.objects.create()
+        user3 = User.objects.create()
+        user4 = User.objects.create()
+        user5 = User.objects.create()
+
+        user1.favorite_books.add(books[0], books[1])
+        user2.favorite_books.add(books[0], books[1], books[2])
+        user3.favorite_books.add(books[1], books[2])
+        user4.favorite_books.add(books[2], books[3])
+        user5.favorite_books.add(books[4], books[5])
+
+        filter_list = (
+            ((books[0].pk, books[0].pk),  # values
+             [1, 2]),  # list of user.pk that have `value` books
+            ((books[1].pk, books[1].pk),
+             [1, 2, 3]),
+            ((books[2].pk, books[2].pk),
+             [2, 3, 4]),
+            ((books[3].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[4].pk),
+             [5, ]),
+            ((books[0].pk, books[1].pk),
+             [1, 2]),
+            ((books[0].pk, books[2].pk),
+             [2, ]),
+            ((books[1].pk, books[2].pk),
+             [2, 3]),
+            ((books[2].pk, books[3].pk),
+             [4, ]),
+            ((books[4].pk, books[5].pk),
+             [5, ]),
+            ((books[3].pk, books[4].pk),
+             []),
+        )
+        users = User.objects.all()
+
+        for item in filter_list:
+            f = TypedMultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
+            queryset = f.filter(users, item[0])
+            expected_pks = [c[0] for c in queryset.values_list('pk')]
+            self.assertListEqual(
+                expected_pks,
+                item[1],
+                'Lists Differ: {0} != {1} for case {2}'.format(
+                    expected_pks, item[1], item[0]))
+
+
 class DateFilterTests(TestCase):
 
     def test_default_field(self):
@@ -500,6 +707,33 @@ class ModelChoiceFilterTests(TestCase):
         self.assertIsInstance(field, forms.ModelChoiceField)
         self.assertEqual(field.queryset, qs)
 
+    def test_callable_queryset(self):
+        request = mock.NonCallableMock(spec=[])
+        qs = mock.NonCallableMock(spec=[])
+
+        qs_callable = mock.Mock(return_value=qs)
+
+        f = ModelChoiceFilter(queryset=qs_callable)
+        f.parent = mock.Mock(request=request)
+        field = f.field
+
+        qs_callable.assert_called_with(request)
+        self.assertEqual(field.queryset, qs)
+
+    def test_get_queryset_override(self):
+        request = mock.NonCallableMock(spec=[])
+        qs = mock.NonCallableMock(spec=[])
+
+        class F(ModelChoiceFilter):
+            get_queryset = mock.create_autospec(ModelChoiceFilter.get_queryset, return_value=qs)
+
+        f = F()
+        f.parent = mock.Mock(request=request)
+        field = f.field
+
+        f.get_queryset.assert_called_with(f, request)
+        self.assertEqual(field.queryset, qs)
+
 
 class ModelMultipleChoiceFilterTests(TestCase):
 
@@ -529,6 +763,19 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
         self.assertEqual(list(f.filter(qs, ['Firstname'])), [user])
         self.assertEqual(list(f.filter(qs, [user])), [user])
+
+    def test_callable_queryset(self):
+        request = mock.NonCallableMock(spec=[])
+        qs = mock.NonCallableMock(spec=[])
+
+        qs_callable = mock.Mock(return_value=qs)
+
+        f = ModelMultipleChoiceFilter(queryset=qs_callable)
+        f.parent = mock.Mock(request=request)
+        field = f.field
+
+        qs_callable.assert_called_with(request)
+        self.assertEqual(field.queryset, qs)
 
 
 class NumberFilterTests(TestCase):
@@ -1036,6 +1283,7 @@ class OrderingFilterTests(TestCase):
         )
 
         self.assertSequenceEqual(f.field.choices, (
+            ('', '---------'),
             ('a', 'A'),
             ('b', 'B'),
         ))
@@ -1046,6 +1294,7 @@ class OrderingFilterTests(TestCase):
         )
 
         self.assertSequenceEqual(f.field.choices, (
+            ('', '---------'),
             ('c', 'C'),
             ('-c', 'C (descending)'),
             ('d', 'D'),
@@ -1059,11 +1308,27 @@ class OrderingFilterTests(TestCase):
         )
 
         self.assertSequenceEqual(f.field.choices, (
+            ('', '---------'),
             ('c', 'foo'),
             ('-c', 'foo (descending)'),
             ('d', 'D'),
             ('-d', 'D (descending)'),
         ))
+
+    def test_field_labels_descending(self):
+        f = OrderingFilter(
+            fields=['username'],
+            field_labels={
+                'username': 'BLABLA',
+                '-username': 'XYZXYZ',
+            }
+        )
+
+        self.assertEqual(f.field.choices, [
+            ('', '---------'),
+            ('username', 'BLABLA'),
+            ('-username', 'XYZXYZ'),
+        ])
 
     def test_normalize_fields(self):
         f = OrderingFilter.normalize_fields
@@ -1104,3 +1369,31 @@ class OrderingFilterTests(TestCase):
 
         self.assertIsInstance(widget, widgets.BaseCSVWidget)
         self.assertIsInstance(widget, forms.Select)
+
+    def test_translation_sanity(self):
+        with translation.override('pl'):
+            self.assertEqual(_('Username'), 'Nazwa użytkownika')
+            self.assertEqual(_('%s (descending)') % _('Username'), 'Nazwa użytkownika (malejąco)')
+
+    def test_translation_default_label(self):
+        with translation.override('pl'):
+            f = OrderingFilter(fields=['username'])
+
+            self.assertEqual(f.field.choices, [
+                ('', '---------'),
+                ('username', 'Nazwa użytkownika'),
+                ('-username', 'Nazwa użytkownika (malejąco)'),
+            ])
+
+    def test_translation_override_label(self):
+        with translation.override('pl'):
+            f = OrderingFilter(
+                fields=['username'],
+                field_labels={'username': 'BLABLA'},
+            )
+
+            self.assertEqual(f.field.choices, [
+                ('', '---------'),
+                ('username', 'BLABLA'),
+                ('-username', 'BLABLA (malejąco)'),
+            ])

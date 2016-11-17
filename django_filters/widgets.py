@@ -11,6 +11,7 @@ except:
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.widgets import flatatt
+from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.six import string_types
@@ -171,3 +172,38 @@ class BaseCSVWidget(forms.Widget):
 
 class CSVWidget(BaseCSVWidget, forms.TextInput):
     pass
+
+
+class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
+    """
+    Enables request query array notation that might be consumed by MultipleChoiceFilter
+
+    1. Values can be provided as csv string:  ?foo=bar,baz
+    2. Values can be provided as query array: ?foo[]=bar&foo[]=baz
+    3. Values can be provided as query array: ?foo=bar&foo=baz
+
+    Note: Duplicate and empty values are skipped from results
+    """
+
+    def value_from_datadict(self, data, files, name):
+        if not isinstance(data, MultiValueDict):
+            data = MultiValueDict(data)
+
+        values_list = data.getlist(name, data.getlist('%s[]' % name)) or []
+
+        if isinstance(values_list, string_types):
+            values_list = [values_list]
+
+        # apparently its an array, so no need to process it's values as csv
+        # ?foo=1&foo=2 -> data.getlist(foo) -> foo = [1, 2]
+        # ?foo[]=1&foo[]=2 -> data.getlist(foo[]) -> foo = [1, 2]
+        if len(values_list) > 1:
+            ret = [x for x in values_list if x]
+        elif len(values_list) == 1:
+            # treat first element as csv string
+            # ?foo=1,2 -> data.getlist(foo) -> foo = ['1,2']
+            ret = [x.strip() for x in values_list[0].rstrip(',').split(',') if x]
+        else:
+            ret = []
+
+        return list(set(ret))

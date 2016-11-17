@@ -10,6 +10,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.auth',
     'rest_framework',
+    'django_filters',
     'tests.rest_framework',
     'tests',
 )

@@ -1,3 +1,4 @@
+================
 Filter Reference
 ================
 
@@ -22,7 +23,9 @@ fields on a related model. eg, ``manufacturer__name``.
 ~~~~~~~~~
 
 The label as it will apear in the HTML, analogous to a form field's label
-argument.
+argument. If a label is not provided, a verbose label will be generated based
+on the field ``name`` and the parts of the ``lookup_expr``.
+(See: :ref:`verbose-lookups-setting`).
 
 ``widget``
 ~~~~~~~~~~
@@ -189,14 +192,15 @@ This filter matches UUID values, used with ``models.UUIDField`` by default.
 This filter matches a boolean, either ``True`` or ``False``, used with
 ``BooleanField`` and ``NullBooleanField`` by default.
 
+.. _choice-filter:
+
 ``ChoiceFilter``
 ~~~~~~~~~~~~~~~~
 
-This filter matches an item of any type by choices, used with any field that
-has ``choices``.
+This filter matches values in its ``choices`` argument. The ``choices`` must be
+explicitly passed when the filter is declared on the ``FilterSet``. For example,
 
-
-Requires ``choices`` ``kwarg`` to be passed if explicitly declared on the ``FilterSet``. For example::
+.. code-block:: python
 
     class User(models.Model):
         username = models.CharField(max_length=255)
@@ -217,6 +221,20 @@ Requires ``choices`` ``kwarg`` to be passed if explicitly declared on the ``Filt
             model = User
             fields = ['status']
 
+
+``ChoiceFilter`` also has arguments that enable a choice for not filtering, as
+well as a choice for filtering by ``None`` values. Each of the arguments have a
+corresponding global setting (:doc:`/ref/settings`).
+
+* ``empty_label``: The display label to use for the select choice to not filter.
+  The choice may be disabled by setting this argument to ``None``. Defaults to
+  ``FILTERS_EMPTY_CHOICE_LABEL``.
+* ``null_label``: The display label to use for the choice to filter by ``None``
+  values. The choice may be disabled by setting this argument to ``None``.
+  Defaults to ``FILTERS_NULL_CHOICE_LABEL``.
+* ``null_value``: The special value to match to enable filtering by ``None``
+  values. This value defaults ``FILTERS_NULL_CHOICE_VALUE`` and needs to be
+  a non-empty value (``''``, ``None``, ``[]``, ``()``, ``{}``).
 
 
 ``TypedChoiceFilter``
@@ -249,6 +267,8 @@ argument is passed to this class.
 Multiple choices are represented in the query string by reusing the same key with
 different values (e.g. ''?status=Regular&status=Admin'').
 
+``distinct`` defaults to ``True`` as to-many relationships will generally require this.
+
 Advanced Use: Depending on your application logic, when all or no choices are
 selected, filtering may be a noop. In this case you may wish to avoid the
 filtering overhead, particularly of the `distinct` call.
@@ -257,6 +277,13 @@ Set `always_filter` to False after instantiation to enable the default `is_noop`
 test.
 
 Override `is_noop` if you require a different test for your application.
+
+
+``TypedMultipleChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Like ``MultipleChoiceFilter``, but in addition accepts the ``coerce`` parameter, as
+in ``TypedChoiceFilter``.
 
 
 ``DateFilter``
@@ -280,7 +307,8 @@ Matches on a date and time.  Used with ``DateTimeField`` by default.
 ``IsoDateTimeFilter``
 ~~~~~~~~~~~~~~~~~~~~~
 
-Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often used in APIs, and are employed by default by Django REST Framework.
+Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often
+used in APIs, and are employed by default by Django REST Framework.
 
 Example::
 
@@ -323,6 +351,22 @@ Example::
             model = Book
             fields = ['author']
 
+The ``queryset`` argument also supports callable behavior. If a callable is
+passed, it will be invoked with ``Filterset.request`` as its only argument.
+This allows you to easily filter by properties on the request object without
+having to override the ``FilterSet.__init__``.
+
+.. code-block:: python
+
+    def departments(request):
+        company = request.user.company
+        return company.department_set.all()
+
+    class EmployeeFilter(filters.FilterSet):
+        department = filters.ModelChoiceFilter(queryset=departments)
+        ...
+
+
 ``ModelMultipleChoiceFilter``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -332,6 +376,7 @@ for ``ManyToManyField`` by default.
 As with ``ModelChoiceFilter``, if automatically instantiated,
 ``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
 field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+Like ``ModelChoiceFilter``, the ``queryset`` argument has callable behavior.
 
 To use a custom field name for the lookup, you can use ``to_field_name``::
 
@@ -389,15 +434,18 @@ and ``DecimalField`` by default.
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Filters where a value is between two numerical values, or greater than a minimum or less
-than a maximum where only one limit value is provided. This filter is designed to work with
-the Postgres Numerical Range Fields, including `IntegerRangeField`, `BigIntegerRangeField` and `FloatRangeField`,
-available since Django 1.8. The default widget used is the `RangeField`.
+than a maximum where only one limit value is provided. This filter is designed to work
+with the Postgres Numerical Range Fields, including ``IntegerRangeField``,
+``BigIntegerRangeField`` and ``FloatRangeField`` (available since Django 1.8). The default
+widget used is the ``RangeField``.
 
-RangeField lookup_exprs can be used, including `overlap`, `contains`, and `contained_by`. More lookups can be
-found in the Django docs (https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields).
+Regular field lookups are available in addition to several containment lookups, including
+``overlap``, ``contains``, and ``contained_by``. More details in the Django `docs`__.
 
-If the lower limit value is provided, the filter automatically defaults to `__startswith` as the lookup
-type and if only the upper limit value is provided, the filter uses `__endswith`.
+__ https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields
+
+If the lower limit value is provided, the filter automatically defaults to ``startswith``
+as the lookup and ``endswith`` if only the upper limit value is provided.
 
 ``RangeFilter``
 ~~~~~~~~~~~~~~~
@@ -619,29 +667,6 @@ Example::
     assert len(f.qs) == 3
 
 
-``MethodFilter``
-~~~~~~~~~~~~~~~~
-
-This is a ``Filter`` that will allow you to run a method that exists on the filter set that
-this filter is a property of. Set the `action` to a string that will map to a method on the
-filter set class. `action` will default to ``filter_{value-of-name-attribute}``
-
-Example::
-
-    class F(FilterSet):
-        """Filter for Books by if books are published or not"""
-        published = MethodFilter()
-
-        def filter_published(self, queryset, value):
-            if value:
-                return queryset.filter(published__isnull=False)
-            return queryset
-
-        class Meta:
-            model = Book
-            fields = ['published']
-
-
 .. _ordering-filter:
 
 ``OrderingFilter``
@@ -718,3 +743,28 @@ want to disable descending sort options.
 This filter is also CSV-based, and accepts multiple ordering params. The
 default select widget does not enable the use of this, but it is useful
 for APIs.
+
+Adding Custom filter choices
+""""""""""""""""""""""""""""
+
+If you wish to sort by non-model fields, you'll need to add custom handling to an
+``OrderingFilter`` subclass. For example, if you want to sort by a computed
+'relevance' factor, you would need to do something like the following:
+
+.. code-block:: python
+
+    class CustomOrderingFilter(django_filters.OrderingFilter):
+
+        def __init__(self, *args, **kwargs):
+            super(CustomOrderingFilter, self).__init__(*args, **kwargs)
+            self.choices += [
+                ('relevance', 'Relevance'),
+                ('-relevance', 'Relevance (descending)'),
+            ]
+
+
+        def filter(self, qs, value):
+            if value in ['relevance', '-relevance']:
+                # sort queryset by relevance
+                return ...
+            return super(CustomOrderingFilter, self).filter(qs, value)

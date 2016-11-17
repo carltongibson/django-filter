@@ -1,5 +1,6 @@
-Django Rest Framework
-=====================
+====================
+Integration with DRF
+====================
 
 Integration with `Django Rest Framework`__ is provided through a DRF-specific ``FilterSet`` and a `filter backend`__. These may be found in the ``rest_framework`` sub-package.
 
@@ -72,8 +73,8 @@ To enable filtering with a ``FilterSet``, add it to the ``filter_class`` paramet
         filter_class = ProductFilter
 
 
-Specifying ``filter_fields``
-----------------------------
+Using the ``filter_fields`` shortcut
+------------------------------------
 
 You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
 
@@ -98,14 +99,74 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
             fields = ('category', 'in_stock')
 
 
+Schema Generation with Core API
+-------------------------------
+
+The backend class integrates with DRF's schema generation by implementing ``get_schema_fields()``. This is automatically enabled when Core API is installed. Schema generation usually functions seamlessly, however the implementation does expect to invoke the view's ``get_queryset()`` method. There is a caveat in that views are artificially constructed during schema generation, so the ``args`` and ``kwargs`` attributes will be empty. If you depend on arguments parsed from the URL, you will need to handle their absence in ``get_queryset()``.
+
+For example, your get queryset method may look like this:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_project(self):
+            return models.Project.objects.get(pk=self.kwargs['project_id'])
+
+        def get_queryset(self):
+            project = self.get_project()
+
+            return self.queryset \
+                .filter(project=project) \
+                .filter(author=self.request.user)
+
+This could be rewritten like so:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_project(self):
+            try:
+                return models.Project.objects.get(pk=self.kwargs['project_id'])
+            except models.Project.DoesNotExist:
+                return None
+
+        def get_queryset(self):
+            project = self.get_project()
+
+            if project is None:
+                return self.queryset.none()
+
+            return self.queryset \
+                .filter(project=project) \
+                .filter(author=self.request.user)
+
+Or more simply as:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_queryset(self):
+            # project_id may be None
+            return self.queryset \
+                .filter(project_id=self.kwargs.get('project_id')) \
+                .filter(author=self.request.user)
+
+
 Crispy Forms
 ------------
-If you are using DRF's browsable API or admin API you may also want to install `django-crispy-forms`, which will enhance the presentation of the filter forms in HTML views, by allowing them to render Bootstrap 3 HTML. Note that this isn't actively supported, although pull requests for bug fixes are welcome.
+
+If you are using DRF's browsable API or admin API you may also want to install ``django-crispy-forms``, which will enhance the presentation of the filter forms in HTML views, by allowing them to render Bootstrap 3 HTML. Note that this isn't actively supported, although pull requests for bug fixes are welcome.
 
 .. code-block:: bash
 
     pip install django-crispy-forms
 
-With crispy forms installed and added to Django's `INSTALLED_APPS`, the browsable API will present a filtering control for `DjangoFilterBackend`, like so:
+With crispy forms installed and added to Django's ``INSTALLED_APPS``, the browsable API will present a filtering control for ``DjangoFilterBackend``, like so:
 
-.. image:: img/form.png
+.. image:: ../assets/form.png

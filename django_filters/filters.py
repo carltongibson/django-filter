@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import warnings
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -19,11 +18,15 @@ from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
-from .utils import deprecate, pretty_name
+from .utils import label_for_filter, pretty_name
 
 
 __all__ = [
     'AllValuesFilter',
+    'AllValuesMultipleFilter',
+    'BaseCSVFilter',
+    'BaseInFilter',
+    'BaseRangeFilter',
     'BooleanFilter',
     'CharFilter',
     'ChoiceFilter',
@@ -35,7 +38,6 @@ __all__ = [
     'DurationFilter',
     'Filter',
     'IsoDateTimeFilter',
-    'MethodFilter',
     'ModelChoiceFilter',
     'ModelMultipleChoiceFilter',
     'MultipleChoiceFilter',
@@ -46,6 +48,7 @@ __all__ = [
     'TimeFilter',
     'TimeRangeFilter',
     'TypedChoiceFilter',
+    'TypedMultipleChoiceFilter',
     'UUIDFilter',
 ]
 
@@ -56,27 +59,16 @@ LOOKUP_TYPES = sorted(QUERY_TERMS)
 EMPTY_VALUES = ([], (), {}, '', None)
 
 
-def _lookup_type_warning():
-    warnings.warn('lookup_type is deprecated. Use lookup_expr instead.', DeprecationWarning, stacklevel=3)
-
-
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, name=None, label=None, widget=None, action=None, method=None,
-                 lookup_expr='exact', required=False, distinct=False, exclude=False, **kwargs):
+    def __init__(self, name=None, label=None, widget=None, method=None, lookup_expr='exact',
+                 required=False, distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
-        if action:
-            deprecate('Filter.action has been deprecated in favor of Filter.method')
-            self.filter = action
         self.method = method
-
         self.lookup_expr = lookup_expr
-        if 'lookup_type' in kwargs:
-            _lookup_type_warning()
-            self.lookup_expr = kwargs.pop('lookup_type')
 
         self.widget = widget
         self.required = required
@@ -115,29 +107,28 @@ class Filter(object):
         return locals()
     method = property(**method())
 
-    def lookup_type():
+    def label():
         def fget(self):
-            _lookup_type_warning()
-            return self.lookup_expr
+            if self._label is None and hasattr(self, 'parent'):
+                model = self.parent._meta.model
+                self._label = label_for_filter(
+                    model, self.name, self.lookup_expr, self.exclude
+                )
+            return self._label
 
         def fset(self, value):
-            _lookup_type_warning()
-            self.lookup_expr = value
+            self._label = value
 
         return locals()
-    lookup_type = property(**lookup_type())
+    label = property(**label())
 
     @property
     def field(self):
         if not hasattr(self, '_field'):
-            help_text = self.extra.pop('help_text', None)
-            if help_text is None:
-                if self.exclude and settings.HELP_TEXT_EXCLUDE:
-                    help_text = _('This is an exclusion filter')
-                elif not self.exclude and settings.HELP_TEXT_FILTER:
-                    help_text = _('Filter')
-                else:
-                    help_text = ''
+            field_kwargs = self.extra.copy()
+
+            if settings.DISABLE_HELP_TEXT:
+                field_kwargs.pop('help_text', None)
 
             if (self.lookup_expr is None or
                     isinstance(self.lookup_expr, (list, tuple))):
@@ -161,12 +152,12 @@ class Filter(object):
                                 lookup.append(choice)
 
                 self._field = LookupTypeField(self.field_class(
-                    required=self.required, widget=self.widget, **self.extra),
-                    lookup, required=self.required, label=self.label, help_text=help_text)
+                    required=self.required, widget=self.widget, **field_kwargs),
+                    lookup, required=self.required, label=self.label)
             else:
                 self._field = self.field_class(required=self.required,
                                                label=self.label, widget=self.widget,
-                                               help_text=help_text, **self.extra)
+                                               **field_kwargs)
         return self._field
 
     def filter(self, qs, value):
@@ -193,6 +184,39 @@ class BooleanFilter(Filter):
 
 class ChoiceFilter(Filter):
     field_class = forms.ChoiceField
+
+    def __init__(self, *args, **kwargs):
+        empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+        null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
+        null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
+
+        self.null_value = null_value
+
+        if 'choices' in kwargs:
+            choices = kwargs.get('choices')
+
+            # coerce choices to list
+            if callable(choices):
+                choices = choices()
+            choices = list(choices)
+
+            # create the empty/null choices that prepend the original choices
+            prepend = []
+            if empty_label is not None:
+                prepend.append(('', empty_label))
+            if null_label is not None:
+                prepend.append((null_value, null_label))
+
+            kwargs['choices'] = prepend + choices
+
+        super(ChoiceFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        if value != self.null_value:
+            return super(ChoiceFilter, self).filter(qs, value)
+
+        qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): None})
+        return qs.distinct() if self.distinct else qs
 
 
 class TypedChoiceFilter(Filter):
@@ -223,8 +247,8 @@ class MultipleChoiceFilter(Filter):
     `is_noop` test. You can override `is_noop` if you need a different test
     for your application.
 
-    `distinct` defaults to `True` on this class to preserve backward
-    compatibility.
+    `distinct` defaults to `True` as to-many relationships will generally
+    require this.
     """
     field_class = forms.MultipleChoiceField
 
@@ -278,6 +302,10 @@ class MultipleChoiceFilter(Filter):
             return {self.name: v}
 
 
+class TypedMultipleChoiceFilter(MultipleChoiceFilter):
+    field_class = forms.TypedMultipleChoiceField
+
+
 class DateFilter(Filter):
     field_class = forms.DateField
 
@@ -307,11 +335,62 @@ class DurationFilter(Filter):
     field_class = forms.DurationField
 
 
-class ModelChoiceFilter(Filter):
+class QuerySetRequestMixin(object):
+    """
+    Add callable functionality to filters that support the ``queryset``
+    argument. If the ``queryset`` is callable, then it **must** accept the
+    ``request`` object as a single argument.
+
+    This is useful for filtering querysets by properties on the ``request``
+    object, such as the user.
+
+    Example::
+
+        def departments(request):
+            company = request.user.company
+            return company.department_set.all()
+
+        class EmployeeFilter(filters.FilterSet):
+            department = filters.ModelChoiceFilter(queryset=departments)
+            ...
+
+    The above example restricts the set of departments to those in the logged-in
+    user's associated company.
+
+    """
+    def __init__(self, *args, **kwargs):
+        self.queryset = kwargs.get('queryset')
+        super(QuerySetRequestMixin, self).__init__(*args, **kwargs)
+
+    def get_request(self):
+        try:
+            return self.parent.request
+        except AttributeError:
+            return None
+
+    def get_queryset(self, request):
+        queryset = self.queryset
+
+        if callable(queryset):
+            return queryset(request)
+        return queryset
+
+    @property
+    def field(self):
+        request = self.get_request()
+        queryset = self.get_queryset(request)
+
+        if queryset is not None:
+            self.extra['queryset'] = queryset
+
+        return super(QuerySetRequestMixin, self).field
+
+
+class ModelChoiceFilter(QuerySetRequestMixin, Filter):
     field_class = forms.ModelChoiceField
 
 
-class ModelMultipleChoiceFilter(MultipleChoiceFilter):
+class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
     field_class = forms.ModelMultipleChoiceField
 
 
@@ -388,6 +467,10 @@ class DateRangeFilter(ChoiceFilter):
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = [
             (key, value[0]) for key, value in six.iteritems(self.options)]
+
+        # empty/null choices not relevant
+        kwargs.setdefault('empty_label', None)
+        kwargs.setdefault('null_label', None)
         super(DateRangeFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
@@ -440,6 +523,7 @@ class BaseCSVFilter(Filter):
     base_field_class = BaseCSVField
 
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault('help_text', _('Multiple values may be separated by commas.'))
         super(BaseCSVFilter, self).__init__(*args, **kwargs)
 
         class ConcreteCSVField(self.base_field_class, self.field_class):
@@ -535,6 +619,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             kwargs['choices'] = self.build_choices(fields, field_labels)
 
         kwargs.setdefault('label', _('Ordering'))
+        kwargs.setdefault('null_label', None)
         super(OrderingFilter, self).__init__(*args, **kwargs)
 
     def get_ordering_value(self, param):
@@ -576,59 +661,16 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
 
     def build_choices(self, fields, labels):
         ascending = [
-            (param, labels.get(field, pretty_name(param)))
+            (param, labels.get(field, _(pretty_name(param))))
             for field, param in fields.items()
         ]
         descending = [
-            ('-%s' % pair[0], self.descending_fmt % pair[1])
-            for pair in ascending
+            ('-%s' % param, labels.get('-%s' % param, self.descending_fmt % label))
+            for param, label in ascending
         ]
 
         # interleave the ascending and descending choices
         return [val for pair in zip(ascending, descending) for val in pair]
-
-
-class MethodFilter(Filter):
-    """
-    This filter will allow you to run a method that exists on the filterset class
-    """
-    def __init__(self, *args, **kwargs):
-        deprecate('MethodFilter has been deprecated in favor of Filter.method')
-
-        # Get the action out of the kwargs
-        action = kwargs.get('action', None)
-
-        # If the action is a string store the action and set the action to our own filter method
-        # so it can be backwards compatible and work as expected, the parent will still treat it as
-        # a filter that has an action
-        self.parent_action = ''
-        text_types = (str, six.text_type)
-        if type(action) in text_types:
-            self.parent_action = str(action)
-            kwargs.update({
-                'action': self.filter
-            })
-
-        # Call the parent
-        super(MethodFilter, self).__init__(*args, **kwargs)
-
-    def filter(self, qs, value):
-        """
-        This filter method will act as a proxy for the actual method we want to
-        call.
-
-        It will try to find the method on the parent filterset,
-        if not it attempts to search for the method `field_{{attribute_name}}`.
-        Otherwise it defaults to just returning the queryset.
-        """
-        parent = getattr(self, 'parent', None)
-        parent_filter_method = getattr(parent, self.parent_action, None)
-        if not parent_filter_method:
-            func_str = 'filter_{0}'.format(self.name)
-            parent_filter_method = getattr(parent, func_str, None)
-        if parent_filter_method is not None:
-            return parent_filter_method(qs, value)
-        return qs
 
 
 class FilterMethod(object):
