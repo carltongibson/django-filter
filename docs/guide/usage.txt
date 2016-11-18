@@ -135,29 +135,29 @@ Overriding default filters
 
 Like ``django.contrib.admin.ModelAdmin``, it is possible to override
 default filters for all the models fields of the same kind using
-``filter_overrides``::
+``filter_overrides`` on the ``Meta`` class::
 
     class ProductFilter(django_filters.FilterSet):
-        filter_overrides = {
-            models.CharField: {
-                'filter_class': django_filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'icontains',
-                },
-            },
-            models.BooleanField: {
-                'filter_class': django_filters.BooleanFilter,
-                'extra': lambda f: {
-                    'widget': forms.CheckboxInput,
-                },
-            },
-        }
 
         class Meta:
             model = Product
             fields = {
                 'name': ['exact'],
                 'release_date': ['isnull'],
+            }
+            filter_overrides = {
+                models.CharField: {
+                    'filter_class': django_filters.CharFilter,
+                    'extra': lambda f: {
+                        'lookup_expr': 'icontains',
+                    },
+                },
+                models.BooleanField: {
+                    'filter_class': django_filters.BooleanFilter,
+                    'extra': lambda f: {
+                        'widget': forms.CheckboxInput,
+                    },
+                },
             }
 
 

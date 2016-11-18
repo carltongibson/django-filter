@@ -22,7 +22,7 @@ from .exceptions import FieldLookupError
 
 def deprecate(msg, level_modifier=0):
     warnings.warn(
-        "%s See: https://django-filter.readthedocs.io/en/latest/migration.html" % msg,
+        "%s See: https://django-filter.readthedocs.io/en/develop/migration.html" % msg,
         DeprecationWarning, stacklevel=3 + level_modifier)
 
 
