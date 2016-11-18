@@ -325,18 +325,18 @@ class BaseFilterSet(object):
         filter_class, params = cls.filter_for_lookup(f, lookup_type)
         default.update(params)
 
-        assert filter_class is not None or not hasattr(cls, 'filter_overrides'), (
-            "%s resolved field '%s' with '%s' lookup to an unrecognized field "
-            "type %s. Note that 'filter_overrides' option has been moved "
-            "to the 'Meta' class since 1.0.0. See: "
-            "https://django-filter.readthedocs.io/en/latest/migration.html"
-            "#move-filterset-options-to-meta-class"
-        ) % (cls.__name__, name, lookup_expr, f.__class__.__name__)
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
-            "type %s. Try adding an override to 'filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/latest/usage.html#overriding-default-filters"
-        ) % (cls.__name__, name, lookup_expr, f.__class__.__name__)
+            "type %s. %s"
+        ) % (cls.__name__, name, lookup_expr, f.__class__.__name__,
+            "Note that 'filter_overrides' option has been moved "
+            "to the 'Meta' class since 1.0.0. See: "
+            "https://django-filter.readthedocs.io/en/latest/migration.html"
+            "#move-filterset-options-to-meta-class" \
+            if hasattr(cls, 'filter_overrides') else \
+            "Try adding an override to 'Meta.filter_overrides'. See: "
+            "https://django-filter.readthedocs.io/en/latest/usage.html"
+            "#overriding-default-filters")
 
         return filter_class(**default)
 
