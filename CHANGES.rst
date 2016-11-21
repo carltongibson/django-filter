@@ -70,7 +70,7 @@ Summary: Highly Recommended, but take a moment to ensure everything still works.
 
 * Hardened all deprecations for 1.0. Please do see the `Migration Notes`__
 
-__ https://github.com/carltongibson/django-filter/blob/develop/docs/guide/migration.txt
+__ https://github.com/carltongibson/django-filter/blob/1.0.0/docs/guide/migration.txt
 
 
 
