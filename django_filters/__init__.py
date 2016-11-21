@@ -4,6 +4,13 @@ from .constants import STRICTNESS
 from .filterset import FilterSet
 from .filters import *
 
+# We make the `rest_framework` module available without an additional import.
+#   If DRF is not installed we simply set None.
+try:
+    from . import rest_framework
+except ImportError:
+    rest_frameork = None
+
 __version__ = '1.0.0'
 
 
