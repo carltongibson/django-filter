@@ -9,7 +9,7 @@ from .filters import *
 try:
     from . import rest_framework
 except ImportError:
-    rest_frameork = None
+    rest_framework = None
 
 __version__ = '1.0.0'
 
