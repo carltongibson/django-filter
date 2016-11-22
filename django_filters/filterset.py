@@ -241,7 +241,7 @@ class BaseFilterSet(object):
 
         assert not (fields is None and exclude is None), \
             "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude' " \
-            "has been deprecated since 0.15.0 and is now disallowed. Add an explicit" \
+            "has been deprecated since 0.15.0 and is now disallowed. Add an explicit " \
             "'Meta.fields' or 'Meta.exclude' to the %s class." % cls.__name__
 
         # Setting exclude with no fields implies all other fields.
