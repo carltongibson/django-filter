@@ -33,7 +33,9 @@ Usage
 Django-filter can be used for generating interfaces similar to the Django
 admin's ``list_filter`` interface.  It has an API very similar to Django's
 ``ModelForms``.  For example, if you had a Product model you could have a
-filterset for it with the code::
+filterset for it with the code:
+
+.. code:: python
 
     import django_filters
 
@@ -43,14 +45,18 @@ filterset for it with the code::
             fields = ['name', 'price', 'manufacturer']
 
 
-And then in your view you could do::
+And then in your view you could do:
+
+.. code:: python
 
     def product_list(request):
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
         return render(request, 'my_app/template.html', {'filter': filter})
 
 Django-filters additionally supports specifying FilterSet fields using a
-dictionary to specify filters with lookup types::
+dictionary to specify filters with lookup types:
+
+.. code:: python
 
     import django_filters
 
