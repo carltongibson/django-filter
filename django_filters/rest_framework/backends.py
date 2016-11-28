@@ -1,9 +1,8 @@
 
 from __future__ import absolute_import
 
-from django.template import Template, TemplateDoesNotExist, loader
+from django.template import RequestContext, Template, TemplateDoesNotExist, loader
 from django.utils import six
-from rest_framework.compat import template_render
 from rest_framework.filters import BaseFilterBackend
 
 from .. import compat
@@ -89,9 +88,11 @@ class DjangoFilterBackend(BaseFilterBackend):
         except TemplateDoesNotExist:
             template = Template(self.template_default)
 
-        return template_render(template, context={
+        context = RequestContext(request, {
             'filter': filter_instance
         })
+
+        return template.render(context)
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
