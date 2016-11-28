@@ -193,7 +193,7 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
         def filter_for_lookup(cls, f, lookup_type):
             # override date range lookups
             if isinstance(f, models.DateField) and lookup_type == 'range':
-                return django_filters.DateRangeFiler, {}
+                return django_filters.DateRangeFilter, {}
 
             # use default behavior otherwise
             return super(ProductFilter, cls).filter_for_lookup(f, lookup_type)
