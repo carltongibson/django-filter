@@ -1,3 +1,13 @@
+Version 1.0.1 (2016-11-28)
+--------------------------
+
+Small release to ease compatibility with DRF:
+
+* #568 Adds ``rest_framework`` to the ``django_filters`` namespace to allow single
+  ``import django_filters` usage.
+* A number of small updates to the docs
+
+
 Version 1.0 (2016-11-17)
 ------------------------
 

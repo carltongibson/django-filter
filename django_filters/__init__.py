@@ -11,7 +11,7 @@ try:
 except ImportError:
     rest_framework = None
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 def parse_version(version):
