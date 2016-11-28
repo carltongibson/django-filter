@@ -9,10 +9,6 @@ from django_filters import filterset
 from .filters import BooleanFilter, IsoDateTimeFilter
 from .. import compat
 
-if compat.is_crispy:
-    from crispy_forms.helper import FormHelper
-    from crispy_forms.layout import Layout, Submit
-
 
 FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
 FILTER_FOR_DBFIELD_DEFAULTS.update({
@@ -27,7 +23,10 @@ class FilterSet(filterset.FilterSet):
     def __init__(self, *args, **kwargs):
         super(FilterSet, self).__init__(*args, **kwargs)
 
-        if compat.is_crispy:
+        if compat.is_crispy():
+            from crispy_forms.helper import FormHelper
+            from crispy_forms.layout import Layout, Submit
+
             layout_components = list(self.form.fields.keys()) + [
                 Submit('', _('Submit'), css_class='btn-default'),
             ]
