@@ -76,26 +76,19 @@ def is_callable(value):
 
 class Settings(object):
 
-    def __init__(self):
-        for setting in DEFAULTS:
-            value = self.get_setting(setting)
-            setattr(self, setting, value)
+    def __getattr__(self, name):
+        if name not in DEFAULTS:
+            msg = "'%s' object has no attribute '%s'"
+            raise AttributeError(msg % (self.__class__.__name__, name))
 
-    def VERBOSE_LOOKUPS():
-        """
-        VERBOSE_LOOKUPS accepts a dictionary of {terms: verbose expressions}
-        or a zero-argument callable that returns a dictionary.
-        """
-        def fget(self):
-            if callable(self._VERBOSE_LOOKUPS):
-                self._VERBOSE_LOOKUPS = self._VERBOSE_LOOKUPS()
-            return self._VERBOSE_LOOKUPS
+        value = self.get_setting(name)
 
-        def fset(self, value):
-            self._VERBOSE_LOOKUPS = value
+        if is_callable(value):
+            value = value()
 
-        return locals()
-    VERBOSE_LOOKUPS = property(**VERBOSE_LOOKUPS())
+        # Cache the result
+        setattr(self, name, value)
+        return value
 
     def get_setting(self, setting):
         django_setting = 'FILTERS_%s' % setting
@@ -114,9 +107,11 @@ class Settings(object):
         if setting not in DEFAULTS:
             return
 
-        # if exiting, refetch the value from settings.
-        value = value if enter else self.get_setting(setting)
-        setattr(self, setting, value)
+        # if exiting, delete value to repopulate
+        if enter:
+            setattr(self, setting, value)
+        else:
+            delattr(self, setting)
 
 
 settings = Settings()
