@@ -80,5 +80,5 @@ Support
 If you have questions about usage or development you can join the
 `mailing list`_.
 
-.. _`read the docs`: https://django-filter.readthedocs.io/en/latest/
+.. _`read the docs`: https://django-filter.readthedocs.io/en/develop/
 .. _`mailing list`: http://groups.google.com/group/django-filter
