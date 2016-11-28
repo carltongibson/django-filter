@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 from django.template import RequestContext, Template, TemplateDoesNotExist, loader
 from django.utils import six
-from rest_framework.filters import BaseFilterBackend
 
 from .. import compat
 from . import filterset
@@ -28,7 +27,7 @@ FILTER_TEMPLATE = """
 """
 
 
-class DjangoFilterBackend(BaseFilterBackend):
+class DjangoFilterBackend(object):
     default_filter_set = filterset.FilterSet
 
     @property
