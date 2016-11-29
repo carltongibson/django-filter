@@ -127,7 +127,7 @@ class IsCallableTests(TestCase):
         def func():
             pass
 
-        class Class():
+        class Class(object):
             def __call__(self):
                 pass
 
