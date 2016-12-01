@@ -1,10 +1,8 @@
 
 from __future__ import absolute_import
 
-from django.template import Template, TemplateDoesNotExist, loader
+from django.template import RequestContext, Template, TemplateDoesNotExist, loader
 from django.utils import six
-from rest_framework.compat import template_render
-from rest_framework.filters import BaseFilterBackend
 
 from .. import compat
 from . import filterset
@@ -29,18 +27,20 @@ FILTER_TEMPLATE = """
 """
 
 
-if compat.is_crispy:
-    template_path = 'django_filters/rest_framework/crispy_form.html'
-    template_default = CRISPY_TEMPLATE
-
-else:
-    template_path = 'django_filters/rest_framework/form.html'
-    template_default = FILTER_TEMPLATE
-
-
-class DjangoFilterBackend(BaseFilterBackend):
+class DjangoFilterBackend(object):
     default_filter_set = filterset.FilterSet
-    template = template_path
+
+    @property
+    def template(self):
+        if compat.is_crispy():
+            return 'django_filters/rest_framework/crispy_form.html'
+        return 'django_filters/rest_framework/form.html'
+
+    @property
+    def template_default(self):
+        if compat.is_crispy():
+            return CRISPY_TEMPLATE
+        return FILTER_TEMPLATE
 
     def get_filter_class(self, view, queryset=None):
         """
@@ -85,11 +85,13 @@ class DjangoFilterBackend(BaseFilterBackend):
         try:
             template = loader.get_template(self.template)
         except TemplateDoesNotExist:
-            template = Template(template_default)
+            template = Template(self.template_default)
 
-        return template_render(template, context={
+        context = RequestContext(request, {
             'filter': filter_instance
         })
+
+        return template.render(context)
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
