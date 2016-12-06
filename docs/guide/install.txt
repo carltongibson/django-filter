@@ -10,12 +10,6 @@ Django-filter can be installed from PyPI with tools like ``pip``:
 
 Then add ``'django_filters'`` to your ``INSTALLED_APPS``.
 
-.. note::
-
-    django-filter provides *some* localization for *some* languages. If you do
-    not need these translations (or would rather provide your own), then it is
-    unnecessary to add django-filter to the ``INSTALLED_APPS`` setting.
-
 
 Requirements
 ------------
