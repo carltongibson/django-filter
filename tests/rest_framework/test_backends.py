@@ -367,6 +367,15 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
 
         reload(backends)
 
+    def test_multiple_engines(self):
+        # See: https://github.com/carltongibson/django-filter/issues/578
+        DTL = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True}
+        ALT = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True, 'NAME': 'alt'}
+
+        # multiple DTL backends
+        with override_settings(TEMPLATES=[DTL, ALT]):
+            self.test_backend_output()
+
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_backends')
 class IntegrationTestDetailFiltering(CommonFilteringTestCase):
