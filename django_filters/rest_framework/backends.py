@@ -1,30 +1,11 @@
 
 from __future__ import absolute_import
 
-from django.template import RequestContext, Template, TemplateDoesNotExist, loader
+from django.template import loader
 from django.utils import six
 
 from .. import compat
 from . import filterset
-
-
-CRISPY_TEMPLATE = """
-{% load crispy_forms_tags %}
-{% load i18n %}
-
-<h2>{% trans "Field filters" %}</h2>
-{% crispy filter.form %}
-"""
-
-
-FILTER_TEMPLATE = """
-{% load i18n %}
-<h2>{% trans "Field filters" %}</h2>
-<form class="form" action="" method="get">
-    {{ filter.form.as_p }}
-    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
-</form>
-"""
 
 
 class DjangoFilterBackend(object):
@@ -35,12 +16,6 @@ class DjangoFilterBackend(object):
         if compat.is_crispy():
             return 'django_filters/rest_framework/crispy_form.html'
         return 'django_filters/rest_framework/form.html'
-
-    @property
-    def template_default(self):
-        if compat.is_crispy():
-            return CRISPY_TEMPLATE
-        return FILTER_TEMPLATE
 
     def get_filter_class(self, view, queryset=None):
         """
@@ -82,16 +57,12 @@ class DjangoFilterBackend(object):
             return None
         filter_instance = filter_class(request.query_params, queryset=queryset, request=request)
 
-        try:
-            template = loader.get_template(self.template)
-        except TemplateDoesNotExist:
-            template = Template(self.template_default)
-
-        context = RequestContext(request, {
+        template = loader.get_template(self.template)
+        context = {
             'filter': filter_instance
-        })
+        }
 
-        return template.render(context)
+        return template.render(context, request)
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
