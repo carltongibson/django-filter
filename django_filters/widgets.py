@@ -187,6 +187,10 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
 
     def value_from_datadict(self, data, files, name):
         if not isinstance(data, MultiValueDict):
+            for key, value in data.items():
+                # treat value as csv string: ?foo=1,2
+                if isinstance(value, string_types):
+                    data[key] = [x.strip() for x in value.rstrip(',').split(',') if x]
             data = MultiValueDict(data)
 
         values_list = data.getlist(name, data.getlist('%s[]' % name)) or []
@@ -197,12 +201,8 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
         # apparently its an array, so no need to process it's values as csv
         # ?foo=1&foo=2 -> data.getlist(foo) -> foo = [1, 2]
         # ?foo[]=1&foo[]=2 -> data.getlist(foo[]) -> foo = [1, 2]
-        if len(values_list) > 1:
+        if len(values_list) > 0:
             ret = [x for x in values_list if x]
-        elif len(values_list) == 1:
-            # treat first element as csv string
-            # ?foo=1,2 -> data.getlist(foo) -> foo = ['1,2']
-            ret = [x.strip() for x in values_list[0].rstrip(',').split(',') if x]
         else:
             ret = []
 
