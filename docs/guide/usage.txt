@@ -24,7 +24,7 @@ The filter
 ----------
 
 We have a number of fields and we want to let our users filter based on the
-price or the release_date.  We create a ``FilterSet`` for this::
+name, the price or the release_date.  We create a ``FilterSet`` for this::
 
     import django_filters
 
