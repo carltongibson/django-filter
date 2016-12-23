@@ -571,6 +571,21 @@ class FilterSetClassCreationTests(TestCase):
             list(F.base_filters) + ['amount_saved'],
             list(FtiF.base_filters))
 
+    def test_declared_filter_disabling(self):
+        class Parent(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        class Child(Parent):
+            f1 = None
+
+        class Grandchild(Child):
+            pass
+
+        self.assertEqual(len(Parent.base_filters), 2)
+        self.assertEqual(len(Child.base_filters), 1)
+        self.assertEqual(len(Grandchild.base_filters), 1)
+
 
 class FilterSetInstantiationTests(TestCase):
 
