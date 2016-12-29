@@ -10,7 +10,13 @@ except:
 
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
-from django.forms.widgets import flatatt
+
+try:
+    from django.forms.utils import flatatt
+except ImportError:
+    # Before Django 1.7
+    from django.forms.util import flatatt
+
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
