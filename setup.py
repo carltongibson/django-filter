@@ -34,11 +34,7 @@ setup(
     maintainer_email='carlton.gibson@noumenal.es',
     url='http://github.com/carltongibson/django-filter/tree/master',
     packages=find_packages(exclude=['tests']),
-    package_data={
-        'django_filters': [
-            'locale/*/LC_MESSAGES/*',
-        ],
-    },
+    include_package_data=True,
     license='BSD',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -54,6 +50,5 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Framework :: Django',
     ],
-    include_package_data=True,
     zip_safe=False,
 )
