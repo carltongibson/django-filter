@@ -202,9 +202,10 @@ class BaseCSVFieldTests(TestCase):
         self.assertIn("'BaseCSVField.widget' must be a widget class", msg)
         self.assertIn("RangeWidget", msg)
 
-        widget = CSVWidget()
+        widget = CSVWidget(attrs={'class': 'class'})
         field = BaseCSVField(widget=widget)
-        self.assertIs(field.widget, widget)
+        self.assertIsInstance(field.widget, CSVWidget)
+        self.assertEqual(field.widget.attrs, {'class': 'class'})
 
         field = BaseCSVField(widget=CSVWidget)
         self.assertIsInstance(field.widget, CSVWidget)
