@@ -528,8 +528,8 @@ class ModelMultipleChoiceFilterTests(TestCase):
                                  average_rating=3.0)
         Book.objects.create(title="Stranger in a Strage Land", price='1.00',
                             average_rating=3.0)
-        alex.favorite_books = [b1, b2]
-        aaron.favorite_books = [b1, b3]
+        alex.favorite_books.add(b1, b2)
+        aaron.favorite_books.add(b1, b3)
 
         self.alex = alex
 
@@ -1290,8 +1290,8 @@ class M2MRelationshipTests(TestCase):
                                  average_rating=4.0)
         Book.objects.create(title="Stranger in a Strage Land", price='2.00',
                             average_rating=3.0)
-        alex.favorite_books = [b1, b2]
-        aaron.favorite_books = [b1, b3]
+        alex.favorite_books.add(b1, b2)
+        aaron.favorite_books.add(b1, b3)
 
     def test_m2m_relation(self):
         class F(FilterSet):
