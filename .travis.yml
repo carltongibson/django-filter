@@ -5,11 +5,11 @@ python: '3.5'
 cache: pip
 
 install:
-  - pip install coverage tox
+  - pip install coverage detox
 
 script:
   - coverage erase
-  - tox
+  - detox
 
 after_success:
   - coverage combine
