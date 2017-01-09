@@ -757,7 +757,7 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
 
         def __init__(self, *args, **kwargs):
             super(CustomOrderingFilter, self).__init__(*args, **kwargs)
-            self.choices += [
+            self.extra['choices'] += [
                 ('relevance', 'Relevance'),
                 ('-relevance', 'Relevance (descending)'),
             ]
