@@ -8,6 +8,7 @@ try:
 except:
     from urllib import urlencode  # noqa
 
+import django
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 
@@ -38,7 +39,10 @@ class LinkWidget(forms.Widget):
             self.data = {}
         if value is None:
             value = ''
-        final_attrs = self.build_attrs(attrs)
+        if django.VERSION < (1, 11):
+            final_attrs = self.build_attrs(attrs)
+        else:
+            final_attrs = self.build_attrs(self.attrs, extra_attrs=attrs)
         output = ['<ul%s>' % flatatt(final_attrs)]
         options = self.render_options(choices, [value], name)
         if options:
