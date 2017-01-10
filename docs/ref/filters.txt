@@ -765,7 +765,6 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
 
         def filter(self, qs, value):
             # OrderingFilter is CSV-based, so `value` is a list
-
             if any(v in ['relevance', '-relevance'] for v in value):
                 # sort queryset by relevance
                 return ...
