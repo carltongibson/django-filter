@@ -763,8 +763,9 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
             ]
 
 
-        def filter(self, qs, value):
-            if value in ['relevance', '-relevance']:
-                # sort queryset by relevance
-                return ...
-            return super(CustomOrderingFilter, self).filter(qs, value)
+        def filter(self, qs, values):
+            for value in values:
+                if value in ['relevance', '-relevance']:
+                    # sort queryset by relevance
+                    return ...
+            return super(CustomOrderingFilter, self).filter(qs, values)
