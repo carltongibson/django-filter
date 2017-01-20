@@ -87,17 +87,20 @@ class LinkWidget(forms.Widget):
 
 
 class RangeWidget(forms.MultiWidget):
+    template_name = 'django_filters/widgets/multiwidget.html'
+
     def __init__(self, attrs=None):
         widgets = (forms.TextInput, forms.TextInput)
         super(RangeWidget, self).__init__(widgets, attrs)
+
+    def format_output(self, rendered_widgets):
+        # Method was removed in Django 1.11.
+        return '-'.join(rendered_widgets)
 
     def decompress(self, value):
         if value:
             return [value.start, value.stop]
         return [None, None]
-
-    def format_output(self, rendered_widgets):
-        return '-'.join(rendered_widgets)
 
 
 class LookupTypeWidget(forms.MultiWidget):
