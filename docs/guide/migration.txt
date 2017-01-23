@@ -12,7 +12,7 @@ Enabling warnings
 -----------------
 
 To view the deprecations, you may need to enable warnings within python. This
-can be avhieved with either the ``-W`` `flag`__, or with  ``PYTHONWARNINGS``
+can be achieved with either the ``-W`` `flag`__, or with  ``PYTHONWARNINGS``
 `environment variable`__. For example, you could run your test suite like so:
 
 .. code-block:: bash
