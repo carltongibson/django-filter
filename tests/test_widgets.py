@@ -183,6 +183,9 @@ class CSVWidgetTests(TestCase):
         self.assertHTMLEqual(w.render('price', ''), """
             <input type="text" name="price" />""")
 
+        self.assertHTMLEqual(w.render('price', []), """
+            <input type="text" name="price" />""")
+
         self.assertHTMLEqual(w.render('price', '1'), """
             <input type="text" name="price" value="1" />""")
 
