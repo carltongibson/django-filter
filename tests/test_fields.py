@@ -214,6 +214,14 @@ class BaseCSVFieldTests(TestCase):
         self.assertIsInstance(field.widget, forms.Select)
         self.assertIsInstance(field.widget, BaseCSVWidget)
 
+        field = BaseCSVField(widget=forms.HiddenInput)
+        self.assertIsInstance(field.widget, forms.HiddenInput)
+        self.assertIsInstance(field.widget, BaseCSVWidget)
+        form = forms.Form({'o': ''})
+        bound = forms.BoundField(form, field, 'o')
+        self.assertHTMLEqual(str(bound), """
+                    <input id="id_o" name="o" type="hidden">""")
+
 
 class BaseRangeFieldTests(TestCase):
     def setUp(self):
