@@ -167,7 +167,7 @@ class BaseCSVWidget(forms.Widget):
 
         if len(value) <= 1:
             # delegate to main widget (Select, etc...) if not multiple values
-            value = value[0] if value else value
+            value = value[0] if value else ''
             return super(BaseCSVWidget, self).render(name, value, attrs)
 
         # if we have multiple values, we need to force render as a text input
