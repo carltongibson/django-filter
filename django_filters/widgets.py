@@ -204,9 +204,6 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
 
         values_list = data.getlist(name, data.getlist('%s[]' % name)) or []
 
-        if isinstance(values_list, string_types):
-            values_list = [values_list]
-
         # apparently its an array, so no need to process it's values as csv
         # ?foo=1&foo=2 -> data.getlist(foo) -> foo = [1, 2]
         # ?foo[]=1&foo[]=2 -> data.getlist(foo[]) -> foo = [1, 2]
