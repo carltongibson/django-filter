@@ -41,11 +41,12 @@ class RangeFieldTests(TestCase):
 
     def test_clean(self):
         w = RangeWidget()
-        f = RangeField(widget=w)
+        f = RangeField(widget=w, required=False)
 
         self.assertEqual(
             f.clean(['12.34', '55']),
             slice(to_d(12.34), to_d(55)))
+        self.assertIsNone(f.clean([]))
 
 
 class DateRangeFieldTests(TestCase):
@@ -57,11 +58,12 @@ class DateRangeFieldTests(TestCase):
     @override_settings(USE_TZ=False)
     def test_clean(self):
         w = RangeWidget()
-        f = DateRangeField(widget=w)
+        f = DateRangeField(widget=w, required=False)
         self.assertEqual(
             f.clean(['2015-01-01', '2015-01-10']),
             slice(datetime(2015, 1, 1, 0, 0, 0),
                   datetime(2015, 1, 10, 23, 59, 59, 999999)))
+        self.assertIsNone(f.clean([]))
 
 
 class DateTimeRangeFieldTests(TestCase):
@@ -104,10 +106,13 @@ class LookupTypeFieldTests(TestCase):
 
     def test_clean(self):
         inner = forms.DecimalField()
-        f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')])
+        f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')], required=False)
         self.assertEqual(
             f.clean(['12.34', 'lt']),
             Lookup(to_d(12.34), 'lt'))
+        self.assertEqual(
+            f.clean([]),
+            Lookup(value=None, lookup_type='exact'))
 
     def test_render_used_html5(self):
         inner = forms.DecimalField()
@@ -171,6 +176,17 @@ class IsoDateTimeFieldTests(TestCase):
         d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
         self.assertTrue(d.tzinfo is None)
         self.assertEqual(d, r)
+
+    def test_datetime_non_iso_format(self):
+        f = IsoDateTimeField()
+        d = f.strptime('19-07-2015T51:34:13.759', '%d-%m-%YT%S:%M:%H.%f')
+        self.assertTrue(isinstance(d, datetime))
+        self.assertEqual(d, self.reference_dt)
+
+    def test_datetime_wrong_format(self):
+        f = IsoDateTimeField()
+        with self.assertRaises(ValueError):
+            f.strptime('19-07-2015T51:34:13.759', IsoDateTimeField.ISO_8601)
 
 
 class BaseCSVFieldTests(TestCase):
