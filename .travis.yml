@@ -12,5 +12,5 @@ script:
   - detox
 
 after_success:
-  - coverage combine
-  - coverage report
+  - coverage combine --append
+  - coverage report -m
