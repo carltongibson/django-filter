@@ -1,7 +1,7 @@
 sudo: false
 
 language: python
-python: "3.6"
+python: "3.5"
 
 cache: pip
 
