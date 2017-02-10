@@ -72,6 +72,9 @@ class GenericFunctionalViewTests(GenericViewTestCase):
         response = self.client.get(self.base_url)
         for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
             self.assertContains(response, b)
+        # extra context
+        self.assertEqual(response.context_data['foo'], 'bar')
+        self.assertEqual(response.context_data['bar'], 'foo')
 
     def test_view_filtering_on_price(self):
         response = self.client.get(self.base_url + '?title=Snowcrash')
