@@ -1,7 +1,8 @@
 sudo: false
 
 language: python
-python: '3.5'
+python: "3.5"
+
 cache: pip
 
 install:
