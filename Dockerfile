@@ -7,6 +7,6 @@ ADD . /src/
 # Whilst .gitignored we may be using pyenv locally...
 RUN if [ -f .python-version ] ; then rm .python-version; fi
 
-CMD ["tox"]
+CMD ["detox"]
 
 
