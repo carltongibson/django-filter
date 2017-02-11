@@ -1,9 +1,10 @@
-FROM python:3.6
-
+FROM carlton/django-docker-testing:dev
 
 RUN mkdir /src
 WORKDIR /src
 ADD . /src/
+RUN rm .python-version
 
-RUN pip install tox
-RUN tox -e py36-djangolatest-restframeworklatest
+CMD ["tox"]
+
+
