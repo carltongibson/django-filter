@@ -297,6 +297,9 @@ You must provide either a ``model`` or ``filterset_class`` argument, similar to
         url(r'^list/$', FilterView.as_view(model=Product)),
     ]
 
+If you provide a ``model`` optionally you can set ``filter_fields`` to specify a list or a tuple of
+the fields that you want to include for the automatic construction of the filterset class.
+
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
 context parameter ``filter``.  Additionally, the context will contain
 ``object_list`` which holds the filtered queryset.
