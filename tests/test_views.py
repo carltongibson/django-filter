@@ -47,6 +47,50 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
             self.assertContains(response, b)
 
+    def test_view_with_model_no_filterset(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url)
+        view = FilterView.as_view(model=Book)
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
+    def test_view_with_model_and_fields_no_filterset(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url + '?price=1.0')
+        view = FilterView.as_view(model=Book, filterset_fields=['price'])
+
+        # filtering only by price
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
+        # not filtering by title
+        request = factory.get(self.base_url + '?title=Snowcrash')
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
+    def test_view_with_model_and_exclude_no_filterset(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url + '?average_rating=1.0')
+        view = FilterView.as_view(model=Book, filterset_exclude=['average_rating'])
+
+        # not filtering only by average_rating
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, b)
+
+        # filtering by title
+        request = factory.get(self.base_url + '?title=Snowcrash')
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Snowcrash')
+
     def test_view_without_filterset_or_model(self):
         factory = RequestFactory()
         request = factory.get(self.base_url)

@@ -425,8 +425,8 @@ class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
     pass
 
 
-def filterset_factory(model):
-    meta = type(str('Meta'), (object,), {'model': model, 'fields': ALL_FIELDS})
+def filterset_factory(model, fields=ALL_FIELDS, exclude=None):
+    meta = type(str('Meta'), (object,), {'model': model, 'fields': fields, 'exclude': exclude})
     filterset = type(str('%sFilterSet' % model._meta.object_name),
                      (FilterSet,), {'Meta': meta})
     return filterset
