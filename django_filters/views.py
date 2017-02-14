@@ -13,8 +13,7 @@ class FilterMixin(object):
     A mixin that provides a way to show and handle a FilterSet in a request.
     """
     filterset_class = None
-    filterset_fields = ALL_FIELDS
-    filterset_exclude = None
+    filter_fields = ALL_FIELDS
 
     def get_filterset_class(self):
         """
@@ -23,8 +22,7 @@ class FilterMixin(object):
         if self.filterset_class:
             return self.filterset_class
         elif self.model:
-            return filterset_factory(model=self.model, fields=self.filterset_fields,
-                                     exclude=self.filterset_exclude)
+            return filterset_factory(model=self.model, fields=self.filter_fields)
         else:
             msg = "'%s' must define 'filterset_class' or 'model'"
             raise ImproperlyConfigured(msg % self.__class__.__name__)
