@@ -142,9 +142,9 @@ def resolve_field(model_field, lookup_expr):
         six.raise_from(FieldLookupError(model_field, lookup_expr), e)
 
 
-def handle_timezone(value):
+def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        return timezone.make_aware(value, timezone.get_default_timezone())
+        return timezone.make_aware(value, timezone.get_default_timezone(), is_dst)
     elif not settings.USE_TZ and timezone.is_aware(value):
         return timezone.make_naive(value, timezone.utc)
     return value

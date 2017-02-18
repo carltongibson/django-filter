@@ -43,10 +43,14 @@ class DateRangeField(RangeField):
             start_date, stop_date = data_list
             if start_date:
                 start_date = handle_timezone(
-                    datetime.combine(start_date, time.min))
+                    datetime.combine(start_date, time.min),
+                    True
+                )
             if stop_date:
                 stop_date = handle_timezone(
-                    datetime.combine(stop_date, time.max))
+                    datetime.combine(stop_date, time.max),
+                    False
+                )
             return slice(start_date, stop_date)
         return None
 

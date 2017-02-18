@@ -874,6 +874,46 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2016-01-03'})
         self.assertEqual(len(results.qs), 3)
 
+    @override_settings(TIME_ZONE='America/Sao_Paulo')
+    def test_filtering_dst_start(self):
+        tz = timezone.get_default_timezone()
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 14, 23, 59)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 15, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 15, 1, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 16, 0, 0)))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2017-10-15',
+            'published_1': '2017-10-15'})
+        self.assertEqual(len(results.qs), 2)
+
+    @override_settings(TIME_ZONE='America/Sao_Paulo')
+    def test_filtering_dst_ends(self):
+        tz = timezone.get_default_timezone()
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 19, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 18, 23, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 18, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 17, 15, 0)))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2017-02-18',
+            'published_1': '2017-02-18'})
+        self.assertEqual(len(results.qs), 2)
+
 
 class DateTimeFromToRangeFilterTests(TestCase):
 
