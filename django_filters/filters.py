@@ -14,7 +14,6 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .conf import settings
-from .constants import EMPTY_VALUES
 from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
@@ -55,6 +54,12 @@ __all__ = [
 
 
 LOOKUP_TYPES = sorted(QUERY_TERMS)
+
+
+EMPTY_VALUES = ([], (), {}, '', None)
+
+class Null:
+    'used when looking for null values'
 
 
 class Filter(object):
@@ -166,9 +171,12 @@ class Filter(object):
             lookup = self.lookup_expr
         if value in EMPTY_VALUES:
             return qs
+        if value is Null:
+            value = None
         if self.distinct:
             qs = qs.distinct()
         qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
+
         return qs
 
 
@@ -210,11 +218,11 @@ class ChoiceFilter(Filter):
         super(ChoiceFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
-        if value != self.null_value:
-            return super(ChoiceFilter, self).filter(qs, value)
+        if value == self.null_value:
+            value = Null
 
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): None})
-        return qs.distinct() if self.distinct else qs
+        return super(ChoiceFilter, self).filter(qs, value)
+
 
 
 class TypedChoiceFilter(Filter):
