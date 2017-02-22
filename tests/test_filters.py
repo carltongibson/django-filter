@@ -362,6 +362,33 @@ class ChoiceFilterTests(TestCase):
             ('a', 'a'),
         ])
 
+    def test_null_multiplechoice(self):
+        # default is to be disabled
+        f = MultipleChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(list(f.field.choices), [
+            ('a', 'a'),
+        ])
+
+        # set label, allow blank label
+        f = MultipleChoiceFilter(choices=[('a', 'a')], null_label='')
+        self.assertEqual(list(f.field.choices), [
+            ('null', ''),
+            ('a', 'a'),
+        ])
+
+        # set null value
+        f = MultipleChoiceFilter(choices=[('a', 'a')], null_value='NULL', null_label='')
+        self.assertEqual(list(f.field.choices), [
+            ('NULL', ''),
+            ('a', 'a'),
+        ])
+
+        # explicitly disable
+        f = MultipleChoiceFilter(choices=[('a', 'a')], null_label=None)
+        self.assertEqual(list(f.field.choices), [
+            ('a', 'a'),
+        ])
+
     @override_settings(
         FILTERS_EMPTY_CHOICE_LABEL='EMPTY LABEL',
         FILTERS_NULL_CHOICE_LABEL='NULL LABEL',
@@ -370,6 +397,12 @@ class ChoiceFilterTests(TestCase):
         f = ChoiceFilter(choices=[('a', 'a')], )
         self.assertEqual(f.field.choices, [
             ('', 'EMPTY LABEL'),
+            ('NULL VALUE', 'NULL LABEL'),
+            ('a', 'a'),
+        ])
+
+        f = MultipleChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(list(f.field.choices), [
             ('NULL VALUE', 'NULL LABEL'),
             ('a', 'a'),
         ])
