@@ -16,7 +16,7 @@ try:
 except ImportError:  # Django 1.8
     from django.forms.forms import pretty_name
 
-from .compat import remote_field, remote_model
+from .compat import make_aware, remote_field, remote_model
 from .exceptions import FieldLookupError
 
 
@@ -144,7 +144,7 @@ def resolve_field(model_field, lookup_expr):
 
 def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        return timezone.make_aware(value, timezone.get_default_timezone(), is_dst)
+        return make_aware(value, timezone.get_default_timezone(), is_dst)
     elif not settings.USE_TZ and timezone.is_aware(value):
         return timezone.make_naive(value, timezone.utc)
     return value
