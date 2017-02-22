@@ -1,17 +1,15 @@
-sudo: false
+sudo: required
+
+services:
+  - docker
 
 language: python
-python: "3.5"
 
-cache: pip
+# TODO: Re-add coverage.
 
-install:
-  - pip install coverage detox
+before_install:
+  - docker build -t carltongibson/django-filter .
 
 script:
-  - coverage erase
-  - detox
+  - docker run --rm carltongibson/django-filter
 
-after_success:
-  - coverage combine --append
-  - coverage report -m
