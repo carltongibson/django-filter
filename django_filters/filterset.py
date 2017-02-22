@@ -220,10 +220,13 @@ class BaseFilterSet(object):
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = OrderedDict([
-                (name, filter_.field)
-                for name, filter_ in six.iteritems(self.filters)])
-
+            fields = OrderedDict()
+            for name, filter_ in six.iteritems(self.filters):
+                if filter_.null_value is not None and self.data.get(name) == filter_.null_value:
+                    fields[name] = forms.CharField()
+                else:
+                    fields[name] = filter_.field
+            
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
             if self._meta.together:

@@ -58,9 +58,6 @@ LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 EMPTY_VALUES = ([], (), {}, '', None)
 
-class Null:
-    'used when looking for null values'
-
 
 class Filter(object):
     creation_counter = 0
@@ -81,6 +78,9 @@ class Filter(object):
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
+        
+        self.null_value = kwargs.pop('null_value', settings.NULL_VALUE)
+
 
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
@@ -171,7 +171,7 @@ class Filter(object):
             lookup = self.lookup_expr
         if value in EMPTY_VALUES:
             return qs
-        if value is Null:
+        if value == self.null_value:
             value = None
         if self.distinct:
             qs = qs.distinct()
@@ -182,6 +182,10 @@ class Filter(object):
 
 class CharFilter(Filter):
     field_class = forms.CharField
+
+    def __init__(self, *args, null_value=None, **kwargs):
+        # No default value for null unless explicitly set as this could conflict with valid string values.
+        super(CharFilter, self). __init__(*args, null_value=None, **kwargs)
 
 
 class BooleanFilter(Filter):
@@ -195,8 +199,6 @@ class ChoiceFilter(Filter):
         empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
         null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
         null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
-
-        self.null_value = null_value
 
         if 'choices' in kwargs:
             choices = kwargs.get('choices')
@@ -217,12 +219,6 @@ class ChoiceFilter(Filter):
 
         super(ChoiceFilter, self).__init__(*args, **kwargs)
 
-    def filter(self, qs, value):
-        if value == self.null_value:
-            value = Null
-
-        return super(ChoiceFilter, self).filter(qs, value)
-
 
 
 class TypedChoiceFilter(Filter):
@@ -233,7 +229,7 @@ class UUIDFilter(Filter):
     field_class = forms.UUIDField
 
 
-class MultipleChoiceFilter(Filter):
+class MultipleChoiceFilter(ChoiceFilter):
     """
     This filter performs OR(by default) or AND(using conjoined=True) query
     on the selected options.
@@ -290,6 +286,8 @@ class MultipleChoiceFilter(Filter):
         if not self.conjoined:
             q = Q()
         for v in set(value):
+            if v == self.null_value:
+                v = None
             predicate = self.get_filter_predicate(v)
             if self.conjoined:
                 qs = self.get_method(qs)(**predicate)

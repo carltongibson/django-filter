@@ -17,7 +17,7 @@ DEFAULTS = {
     # empty/null choices
     'EMPTY_CHOICE_LABEL': '---------',
     'NULL_CHOICE_LABEL': None,
-    'NULL_CHOICE_VALUE': 'null',
+    'NULL_VALUE': 'null',
 
     'STRICTNESS': STRICTNESS.RETURN_NO_RESULTS,
 
@@ -62,6 +62,7 @@ DEFAULTS = {
     },
 }
 
+DEFAULTS['NULL_CHOICE_VALUE'] = DEFAULTS['NULL_VALUE'] 
 
 DEPRECATED_SETTINGS = [
     'HELP_TEXT_FILTER',

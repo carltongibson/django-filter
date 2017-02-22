@@ -137,7 +137,7 @@ class ChoiceFilterTests(TestCase):
         Article.objects.create(author_id=2, published=now())
         Article.objects.create(author_id=3, published=now())
         Article.objects.create(author_id=4, published=now())
-        Article.objects.create(author_id=None, published=now())
+        Article.objects.create(author_id=None, published=now(), name='No Author')
 
     def test_filtering(self):
         class F(FilterSet):
@@ -216,7 +216,7 @@ class ChoiceFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: str(o.author), False)
 
         f = F({'author': 'null'})
-        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
+        self.assertQuerysetEqual(f.qs, ['No Author'], lambda o: o.name, False)
 
 
 class MultipleChoiceFilterTests(TestCase):
@@ -251,6 +251,45 @@ class MultipleChoiceFilterTests(TestCase):
         f = F({'status': ['0', '1', '2']}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+    def test_filtering_on_null_choice(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        Article.objects.create(author_id=1, published=now())
+        Article.objects.create(author_id=2, published=now())
+        Article.objects.create(author_id=3, published=now())
+        Article.objects.create(author_id=4, published=now())
+        Article.objects.create(author_id=None, published=now())
+
+        choices = [(u.pk, str(u)) for u in User.objects.order_by('id')]
+
+        class F(FilterSet):
+            author = MultipleChoiceFilter(
+                choices=choices,
+                null_value='null',
+                null_label='NULL',
+            )
+
+            class Meta:
+                model = Article
+                fields = ['author']
+
+        # sanity check to make sure the filter is setup correctly
+        f = F({'author': ['1']})
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: str(o.author), False)
+
+        f = F({'author': ['null']})
+        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
+
+        f = F({'author': ['1', 'null']})
+        self.assertQuerysetEqual(
+                f.qs, ['alex', None],
+                lambda o: o.author and str(o.author),
+                False)
+
 
 
 class TypedMultipleChoiceFilterTests(TestCase):
@@ -485,6 +524,20 @@ class ModelChoiceFilterTests(TestCase):
         f = F({'author': jacob.pk}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
 
+    def test_filtering_null(self):
+        Article.objects.create(published=now())
+        alex = User.objects.create(username='alex')
+        Article.objects.create(author=alex, published=now())
+       
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['author', 'name']
+
+        qs = Article.objects.all()
+        f = F({'author': 'null'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
+
     def test_callable_queryset(self):
         # Sanity check for callable queryset arguments.
         # Ensure that nothing is improperly cached
@@ -634,6 +687,8 @@ class NumberFilterTests(TestCase):
                             average_rating=4.5999999999999996)
         Book.objects.create(title="Snowcrash", price='20.0',
                             average_rating=4.2999999999999998)
+        Book.objects.create(title="Dune", 
+                            average_rating=4.2999999999999998)
 
     def test_filtering(self):
         class F(FilterSet):
@@ -643,6 +698,9 @@ class NumberFilterTests(TestCase):
 
         f = F({'price': 10}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
+
+        f = F({'price': 'null'}, queryset=Book.objects.all())
+        self.assertQuerysetEqual(f.qs, ['Dune'], lambda o: o.title)
 
     def test_filtering_with_single_lookup_expr(self):
         class F(FilterSet):
@@ -681,7 +739,7 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
         f = F({'price_0': '', 'price_1': 'lt'})
         self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
+                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash', 'Dune'],
                                  lambda o: o.title, ordered=False)
 
         class F(FilterSet):
