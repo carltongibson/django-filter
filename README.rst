@@ -8,6 +8,9 @@ Full documentation on `read the docs`_.
 
 .. image:: https://travis-ci.org/carltongibson/django-filter.svg?branch=master
     :target: https://travis-ci.org/carltongibson/django-filter
+    
+.. image:: https://codecov.io/gh/carltongibson/django-filter/branch/develop/graph/badge.svg
+  :target: https://codecov.io/gh/carltongibson/django-filter    
 
 Requirements
 ------------
