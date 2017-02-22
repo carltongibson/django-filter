@@ -183,9 +183,10 @@ class Filter(object):
 class CharFilter(Filter):
     field_class = forms.CharField
 
-    def __init__(self, *args, null_value=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         # No default value for null unless explicitly set as this could conflict with valid string values.
-        super(CharFilter, self). __init__(*args, null_value=None, **kwargs)
+        kwargs.setdefault('null_value', None)
+        super(CharFilter, self). __init__(*args, **kwargs)
 
 
 class BooleanFilter(Filter):
