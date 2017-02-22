@@ -15,3 +15,6 @@ script:
 after_success:
   - coverage combine --append
   - coverage report -m
+  - pip install codecov
+  - codecov
+
