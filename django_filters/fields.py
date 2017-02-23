@@ -44,7 +44,7 @@ class DateRangeField(RangeField):
             if start_date:
                 start_date = handle_timezone(
                     datetime.combine(start_date, time.min),
-                    True
+                    False
                 )
             if stop_date:
                 stop_date = handle_timezone(
