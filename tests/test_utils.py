@@ -290,12 +290,14 @@ class LabelForFilterTests(TestCase):
 
 class HandleTimezone(TestCase):
 
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_ending(self):
         dst_ending_date = datetime.datetime(2017, 2, 18, 23, 59, 59, 999999)
         handled = handle_timezone(dst_ending_date, False)
         self.assertEqual(handled, get_default_timezone().localize(dst_ending_date, False))
 
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_starting(self):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
