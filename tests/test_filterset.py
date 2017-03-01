@@ -718,6 +718,27 @@ class FilterSetTogetherTests(TestCase):
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
 
+    def test_fields_set_with_dict(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status', 'is_active', 'first_name']
+                together = [
+                    ({'username': ['status']}),
+                    ({'first_name': ['is_active']}),
+                ]
+
+        f = F({}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex'}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
+        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+        f = F({'status': 1}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 1)
+        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+
 
 # test filter.method here, as it depends on its parent FilterSet
 class FilterMethodTests(TestCase):

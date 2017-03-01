@@ -52,12 +52,23 @@ def get_full_clean_override(together):
 
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
-        if isinstance(together[0], (list, tuple)):
+        if isinstance(together[0], six.string_types):
+            if all_valid(together):
+                return add_error(message % ','.join(together))
+        else:
             for each in together:
-                if all_valid(each):
-                    return add_error(message % ','.join(each))
-        elif all_valid(together):
-            return add_error(message % ','.join(together))
+                if isinstance(each, (tuple, list)):
+                    if all_valid(each):
+                        return add_error(message % ','.join(each))
+                elif isinstance(each, dict):
+                    for k, v in each.items():
+                        if k in form.data:
+                            together_item = (k,) + tuple(v)
+                            if all_valid(together_item):
+                                return add_error(message % ','.join(together_item))
+                else:
+                    raise NotImplementedError(
+                        'Type of together value not supported {}'.format(each))
     return full_clean
 
 
