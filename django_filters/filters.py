@@ -14,6 +14,7 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .conf import settings
+from .constants import EMPTY_VALUES
 from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
@@ -54,9 +55,6 @@ __all__ = [
 
 
 LOOKUP_TYPES = sorted(QUERY_TERMS)
-
-
-EMPTY_VALUES = ([], (), {}, '', None)
 
 
 class Filter(object):

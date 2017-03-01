@@ -2,6 +2,9 @@
 ALL_FIELDS = '__all__'
 
 
+EMPTY_VALUES = ([], (), {}, '', None)
+
+
 class STRICTNESS(object):
     class IGNORE(object):
         pass
