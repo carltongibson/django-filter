@@ -5,7 +5,6 @@ import copy
 from collections import OrderedDict
 
 from django import forms
-from django.forms.forms import NON_FIELD_ERRORS
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -38,13 +37,6 @@ def get_filter_name(field_name, lookup_expr):
 
 def get_full_clean_override(together):
     def full_clean(form):
-
-        def add_error(message):
-            try:
-                form.add_error(None, message)
-            except AttributeError:
-                form._errors[NON_FIELD_ERRORS] = message
-
         def all_valid(fieldset):
             cleaned_data = form.cleaned_data
             count = len([i for i in fieldset if cleaned_data.get(i)])
@@ -55,9 +47,9 @@ def get_full_clean_override(together):
         if isinstance(together[0], (list, tuple)):
             for each in together:
                 if all_valid(each):
-                    return add_error(message % ','.join(each))
+                    return form.add_error(None, message % ','.join(each))
         elif all_valid(together):
-            return add_error(message % ','.join(together))
+            return form.add_error(None, message % ','.join(together))
     return full_clean
 
 
