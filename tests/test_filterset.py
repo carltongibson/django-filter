@@ -718,6 +718,18 @@ class FilterSetTogetherTests(TestCase):
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
 
+    def test_empty_values(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                together = ['username', 'status']
+
+        f = F({'username': '', 'status': ''}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex', 'status': ''}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
+
 
 # test filter.method here, as it depends on its parent FilterSet
 class FilterMethodTests(TestCase):

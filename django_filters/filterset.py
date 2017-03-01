@@ -12,7 +12,7 @@ from django.utils import six
 
 from .conf import settings
 from .compat import remote_field, remote_queryset
-from .constants import ALL_FIELDS, STRICTNESS
+from .constants import ALL_FIELDS, STRICTNESS, EMPTY_VALUES
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter)
@@ -38,9 +38,14 @@ def get_filter_name(field_name, lookup_expr):
 def get_full_clean_override(together):
     def full_clean(form):
         def all_valid(fieldset):
-            cleaned_data = form.cleaned_data
-            count = len([i for i in fieldset if cleaned_data.get(i)])
-            return not (0 < count < len(fieldset))
+            field_presence = [
+                form.cleaned_data.get(field) not in EMPTY_VALUES
+                for field in fieldset
+            ]
+
+            if any(field_presence):
+                return all(field_presence)
+            return True
 
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
