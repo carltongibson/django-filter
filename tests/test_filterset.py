@@ -23,6 +23,7 @@ from django_filters.filters import BaseInFilter
 from django_filters.filters import BaseRangeFilter
 from django_filters.filters import DateRangeFilter
 from django_filters.filters import FilterMethod
+from django_filters.filters import OrderingFilter
 
 from django_filters.widgets import BooleanWidget
 
@@ -688,6 +689,8 @@ class FilterSetTogetherTests(TestCase):
 
     def test_fields_set(self):
         class F(FilterSet):
+            o = OrderingFilter(fields=('username', 'status'))
+
             class Meta:
                 model = User
                 fields = ['username', 'status', 'is_active', 'first_name']
@@ -707,6 +710,13 @@ class FilterSetTogetherTests(TestCase):
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+
+        f = F({'o': 'username'}, queryset=self.qs)
+        with self.assertRaises(ValidationError):
+            f.qs.count()
+
+        f = F({'o': 'username,status'}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
 
     def test_single_fields_set(self):
         class F(FilterSet):
