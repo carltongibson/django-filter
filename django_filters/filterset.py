@@ -40,15 +40,15 @@ def get_full_clean_override(together):
         def all_valid(fieldset):
             cleaned_data = form.cleaned_data
             count = len([i for i in fieldset if cleaned_data.get(i)])
-            return 0 < count < len(fieldset)
+            return not (0 < count < len(fieldset))
 
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
         if isinstance(together[0], (list, tuple)):
             for each in together:
-                if all_valid(each):
+                if not all_valid(each):
                     return form.add_error(None, message % ','.join(each))
-        elif all_valid(together):
+        elif not all_valid(together):
             return form.add_error(None, message % ','.join(together))
     return full_clean
 
