@@ -4,6 +4,7 @@ import mock
 import unittest
 
 import django
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
 
@@ -694,11 +695,15 @@ class FilterSetTogetherTests(TestCase):
                     ('username', 'status'),
                     ('first_name', 'is_active'),
                 ]
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
 
         f = F({}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 2)
+
         f = F({'username': 'alex'}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 0)
+        with self.assertRaises(ValidationError):
+            f.qs.count()
+
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
@@ -709,11 +714,15 @@ class FilterSetTogetherTests(TestCase):
                 model = User
                 fields = ['username', 'status']
                 together = ['username', 'status']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
 
         f = F({}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 2)
+
         f = F({'username': 'alex'}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 0)
+        with self.assertRaises(ValidationError):
+            f.qs.count()
+
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
