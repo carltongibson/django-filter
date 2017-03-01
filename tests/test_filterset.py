@@ -4,8 +4,8 @@ import mock
 import unittest
 
 import django
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.test import TestCase, override_settings
 
 from django_filters.constants import STRICTNESS
