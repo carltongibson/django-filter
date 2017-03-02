@@ -35,27 +35,28 @@ def get_filter_name(field_name, lookup_expr):
     return filter_name
 
 
+def _together_valid(form, fieldset):
+    field_presence = [
+        form.cleaned_data.get(field) not in EMPTY_VALUES
+        for field in fieldset
+    ]
+
+    if any(field_presence):
+        return all(field_presence)
+    return True
+
+
 def get_full_clean_override(together):
     # coerce together to list of pairs
     if isinstance(together[0], (six.string_types)):
         together = [together]
 
     def full_clean(form):
-        def all_valid(fieldset):
-            field_presence = [
-                form.cleaned_data.get(field) not in EMPTY_VALUES
-                for field in fieldset
-            ]
-
-            if any(field_presence):
-                return all(field_presence)
-            return True
-
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
 
         for each in together:
-            if not all_valid(each):
+            if not _together_valid(form, each):
                 return form.add_error(None, message % ','.join(each))
 
     return full_clean
