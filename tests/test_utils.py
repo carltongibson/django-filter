@@ -1,16 +1,17 @@
-
+import datetime
 import unittest
-
 import django
-from django.test import TestCase, override_settings
+
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
+from django.test import TestCase, override_settings
 from django.utils.functional import Promise
+from django.utils.timezone import get_default_timezone
 
 from django_filters.utils import (
     get_field_parts, get_model_field, resolve_field,
-    verbose_field_name, verbose_lookup_expr, label_for_filter
+    verbose_field_name, verbose_lookup_expr, label_for_filter, handle_timezone
 )
 from django_filters.exceptions import FieldLookupError
 
@@ -285,3 +286,20 @@ class LabelForFilterTests(TestCase):
     def test_exact_lookup(self):
         label = label_for_filter(Article, 'name', 'exact')
         self.assertEqual(label, 'Title')
+
+
+class HandleTimezone(TestCase):
+
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
+    @override_settings(TIME_ZONE='America/Sao_Paulo')
+    def test_handle_dst_ending(self):
+        dst_ending_date = datetime.datetime(2017, 2, 18, 23, 59, 59, 999999)
+        handled = handle_timezone(dst_ending_date, False)
+        self.assertEqual(handled, get_default_timezone().localize(dst_ending_date, False))
+
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
+    @override_settings(TIME_ZONE='America/Sao_Paulo')
+    def test_handle_dst_starting(self):
+        dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
+        handled = handle_timezone(dst_starting_date, True)
+        self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
