@@ -1,16 +1,21 @@
 sudo: false
 
 language: python
-python: "3.5"
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
 
 cache: pip
 
 install:
-  - pip install coverage detox
+  - pip install coverage tox-travis
 
 script:
   - coverage erase
-  - detox
+  - tox
 
 after_success:
   - coverage combine --append
