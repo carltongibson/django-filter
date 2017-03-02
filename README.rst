@@ -10,7 +10,11 @@ Full documentation on `read the docs`_.
     :target: https://travis-ci.org/carltongibson/django-filter
     
 .. image:: https://codecov.io/gh/carltongibson/django-filter/branch/develop/graph/badge.svg
-  :target: https://codecov.io/gh/carltongibson/django-filter    
+    :target: https://codecov.io/gh/carltongibson/django-filter    
+
+.. image:: https://badge.fury.io/py/django-filter.svg
+    :target: http://badge.fury.io/py/django-filter
+
 
 Requirements
 ------------
