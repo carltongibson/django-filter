@@ -16,7 +16,8 @@ from .compat import remote_field, remote_queryset
 from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter)
+                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter,
+                      OrderingFilter)
 from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field
 
 
@@ -36,7 +37,7 @@ def get_filter_name(field_name, lookup_expr):
     return filter_name
 
 
-def get_full_clean_override(together):
+def get_full_clean_override(together, ordering_field):
     def full_clean(form):
 
         def add_error(message):
@@ -50,13 +51,19 @@ def get_full_clean_override(together):
             count = len([i for i in fieldset if cleaned_data.get(i)])
             return 0 < count < len(fieldset)
 
+        def is_ordering_invalid(fieldset):
+            if ordering_field is None or not form.cleaned_data.get(ordering_field):
+                return
+            count = len([i for i in fieldset if i in form.cleaned_data[ordering_field]])
+            return 0 < count < len(fieldset)
+
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
         if isinstance(together[0], (list, tuple)):
             for each in together:
-                if all_valid(each):
+                if all_valid(each) or is_ordering_invalid(each):
                     return add_error(message % ','.join(each))
-        elif all_valid(together):
+        elif all_valid(together) or is_ordering_invalid(together):
             return add_error(message % ','.join(together))
     return full_clean
 
@@ -226,7 +233,11 @@ class BaseFilterSet(object):
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
             if self._meta.together:
-                Form.full_clean = get_full_clean_override(self._meta.together)
+                try:
+                    ordering_filter = next(k for k, v in self.filters.items() if isinstance(v, OrderingFilter))
+                except StopIteration:
+                    ordering_filter = None
+                Form.full_clean = get_full_clean_override(self._meta.together, ordering_filter)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
