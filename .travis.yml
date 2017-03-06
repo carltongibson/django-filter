@@ -23,3 +23,9 @@ after_success:
   - pip install codecov
   - codecov
 
+matrix:
+  include:
+    - python: "3.6"
+      env: TOXENV="warnings"
+  allow_failures:
+    - env: TOXENV="warnings"
