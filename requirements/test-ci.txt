@@ -1,3 +1,4 @@
+markdown==2.6.4
 coreapi
 
 coverage
