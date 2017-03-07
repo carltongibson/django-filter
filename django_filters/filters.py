@@ -19,6 +19,7 @@ from .fields import (
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
 from .utils import label_for_filter, pretty_name
+import itertools
 
 
 __all__ = [
@@ -79,7 +80,8 @@ class Filter(object):
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
         
-        self.null_value = kwargs.pop('null_value', settings.NULL_VALUE)
+        if not hasattr(self, 'null_value'):
+            self.null_value = None
 
 
     def get_method(self, qs):
@@ -183,12 +185,6 @@ class Filter(object):
 class CharFilter(Filter):
     field_class = forms.CharField
 
-    def __init__(self, *args, **kwargs):
-        # No default value for null unless explicitly set as this could conflict with valid string values.
-        kwargs.setdefault('null_value', None)
-        super(CharFilter, self). __init__(*args, **kwargs)
-
-
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
 
@@ -198,9 +194,9 @@ class ChoiceFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
-        null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
-        null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
-
+        self.null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
+        self.null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
+        
         if 'choices' in kwargs:
             choices = kwargs.get('choices')
 
@@ -213,8 +209,8 @@ class ChoiceFilter(Filter):
             prepend = []
             if empty_label is not None:
                 prepend.append(('', empty_label))
-            if null_label is not None:
-                prepend.append((null_value, null_label))
+            if self.null_label is not None:
+                prepend.append((self.null_value, self.null_label))
 
             kwargs['choices'] = prepend + choices
 
@@ -391,8 +387,37 @@ class QuerySetRequestMixin(object):
         return super(QuerySetRequestMixin, self).field
 
 
-class ModelChoiceFilter(QuerySetRequestMixin, Filter):
-    field_class = forms.ModelChoiceField
+
+class NullModelChoiceField(forms.ModelChoiceField):
+    def __init__(self, *args, **kwargs):
+        self.null_value = kwargs.pop('null_value', None)
+        self.null_label = kwargs.pop('null_label', None)
+        super(NullModelChoiceField, self).__init__(*args, **kwargs)
+    
+    def _get_choices(self):
+        iterator = super(NullModelChoiceField, self)._get_choices()
+        if self.null_label is not None and self.null_value is not None:
+            iterator = itertools.chain([(self.null_value, self.null_label)], iterator)
+        return iterator
+    
+    def _set_choices(self, value):
+        return super(NullModelChoiceField, self)._set_choices(value)
+    
+    choices = property(_get_choices, _set_choices)
+    
+    def to_python(self, value):
+        if value == self.null_value:
+            return value
+        return super(NullModelChoiceField, self).to_python(value)
+
+
+class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
+    field_class = NullModelChoiceField
+    
+    def __init__(self, *args, **kwargs):
+        super(ModelChoiceFilter, self).__init__(*args, **kwargs)
+        # pass params to Null ModelField
+        self.extra.update({'null_value': self.null_value, 'null_label': self.null_label})
 
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):

@@ -771,7 +771,7 @@ class ModelChoiceFilterTests(TestCase):
 
         f.get_queryset.assert_called_with(f, request)
         self.assertEqual(field.queryset, qs)
-
+    
 
 class ModelMultipleChoiceFilterTests(TestCase):
 

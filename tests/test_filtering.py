@@ -687,8 +687,6 @@ class NumberFilterTests(TestCase):
                             average_rating=4.5999999999999996)
         Book.objects.create(title="Snowcrash", price='20.0',
                             average_rating=4.2999999999999998)
-        Book.objects.create(title="Dune", 
-                            average_rating=4.2999999999999998)
 
     def test_filtering(self):
         class F(FilterSet):
@@ -698,9 +696,6 @@ class NumberFilterTests(TestCase):
 
         f = F({'price': 10}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-
-        f = F({'price': 'null'}, queryset=Book.objects.all())
-        self.assertQuerysetEqual(f.qs, ['Dune'], lambda o: o.title)
 
     def test_filtering_with_single_lookup_expr(self):
         class F(FilterSet):
@@ -739,7 +734,7 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
         f = F({'price_0': '', 'price_1': 'lt'})
         self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash', 'Dune'],
+                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
                                  lambda o: o.title, ordered=False)
 
         class F(FilterSet):

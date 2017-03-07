@@ -142,6 +142,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'extra': lambda f: {
             'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
+            'null_label': settings.NULL_MODEL_CHOICE_LABEL if f.null else None,
+
         }
     },
     models.ForeignKey: {
@@ -149,12 +151,14 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'extra': lambda f: {
             'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
+            'null_label': settings.NULL_MODEL_CHOICE_LABEL if f.null else None,
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
+            'null_label': settings.NULL_MODEL_CHOICE_LABEL if f.null else None,
         }
     },
 }
@@ -220,12 +224,9 @@ class BaseFilterSet(object):
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = OrderedDict()
-            for name, filter_ in six.iteritems(self.filters):
-                if filter_.null_value is not None and self.data.get(name) == filter_.null_value:
-                    fields[name] = forms.CharField()
-                else:
-                    fields[name] = filter_.field
+            fields = OrderedDict([
+                (name, filter_.field)
+                for name, filter_ in six.iteritems(self.filters)])
             
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
