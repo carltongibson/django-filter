@@ -400,10 +400,7 @@ class NullModelChoiceField(forms.ModelChoiceField):
             iterator = itertools.chain([(self.null_value, self.null_label)], iterator)
         return iterator
     
-    def _set_choices(self, value):
-        return super(NullModelChoiceField, self)._set_choices(value)
-    
-    choices = property(_get_choices, _set_choices)
+    choices = property(_get_choices, forms.ModelChoiceField._set_choices)
     
     def to_python(self, value):
         if value == self.null_value:
