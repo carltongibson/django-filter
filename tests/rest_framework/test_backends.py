@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import datetime
 from decimal import Decimal
 from unittest import skipIf
+import warnings
 
 from django.conf.urls import url
 from django.test import TestCase
@@ -130,6 +131,19 @@ class GetSchemaFieldsTests(TestCase):
         fields = [f.name for f in fields]
 
         self.assertEqual(fields, ['decimal', 'date'])
+
+    def test_filter_fields_list_with_bad_get_queryset(self):
+        """
+        See:
+          * https://github.com/carltongibson/django-filter/issues/551
+        """
+        class BadGetQuerySetView(FilterFieldsRootView):
+            def get_queryset(self):
+                raise AttributeError("I don't have that")
+
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(BadGetQuerySetView())
+        self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
 
     def test_fields_with_filter_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):

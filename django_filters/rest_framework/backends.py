@@ -1,5 +1,6 @@
 
 from __future__ import absolute_import
+import warnings
 
 from django.template import loader
 from django.utils import six
@@ -69,7 +70,16 @@ class DjangoFilterBackend(object):
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
-        filter_class = self.get_filter_class(view, view.get_queryset())
+
+        filter_class = getattr(view, 'filter_class', None)
+        if filter_class is None:
+            try:
+                filter_class = self.get_filter_class(view, view.get_queryset())
+            except:
+                warnings.warn(
+                    "{} is not compatible with schema generation".format(view.__class__)
+                )
+                filter_class = None
 
         return [] if not filter_class else [
             compat.coreapi.Field(
