@@ -141,11 +141,9 @@ class GetSchemaFieldsTests(TestCase):
             def get_queryset(self):
                 raise AttributeError("I don't have that")
 
-        with warnings.catch_warnings(record=True) as w:
-            backend = DjangoFilterBackend()
-            fields = backend.get_schema_fields(BadGetQuerySetView())
-            self.assertEqual(len(w), 1, "Warning should have been triggered")
-            self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(BadGetQuerySetView())
+        self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
 
     def test_fields_with_filter_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):
