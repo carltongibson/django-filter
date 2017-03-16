@@ -17,7 +17,7 @@ from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter)
-from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field
+from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field, update_filter_options_settings
 
 
 def get_filter_name(field_name, lookup_expr):
@@ -157,6 +157,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         }
     },
 }
+FILTER_FOR_DBFIELD_DEFAULTS = update_filter_options_settings(FILTER_FOR_DBFIELD_DEFAULTS, settings.FILTER_OPTIONS)
 
 
 class BaseFilterSet(object):
