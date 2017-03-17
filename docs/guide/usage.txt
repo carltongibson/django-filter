@@ -190,7 +190,7 @@ those that are published and those that are owned by the logged-in user
         def qs(self):
             parent = super(ArticleFilter, self).qs
             return parent.filter(is_published=True) \
-                | parent.filter(author=request.user)
+                | parent.filter(author=self.request.user)
 
 
 Filtering the related queryset for ``ModelChoiceFilter``
