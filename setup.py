@@ -6,7 +6,7 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
-version = '1.0.1'
+version = '1.0.2'
 
 if sys.argv[-1] == 'publish':
     if os.system("pip freeze | grep wheel"):
