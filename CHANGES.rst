@@ -1,3 +1,15 @@
+Version 1.0.2 (2017-03-20)
+--------------------------
+
+Updates for compatibility with Django 1.11 and Django REST Framework 3.6.
+
+Adds CI testing against Python 3.6
+
+See the `1.0.2 Milestone`__ for full details.
+
+__ https://github.com/carltongibson/django-filter/milestone/12?closed=1
+
+
 Version 1.0.1 (2016-11-28)
 --------------------------
 
