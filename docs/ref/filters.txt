@@ -621,7 +621,7 @@ filter is then used to validate the individual values.
 
 Example::
 
-    class NumberInFilter(BaseInFilter, NumericFilter):
+    class NumberInFilter(BaseInFilter, NumberFilter):
         pass
 
     class F(FilterSet):
@@ -648,7 +648,7 @@ comma-separated values.
 
 Example::
 
-    class NumberRangeFilter(BaseInFilter, NumericFilter):
+    class NumberRangeFilter(BaseInFilter, NumberFilter):
         pass
 
     class F(FilterSet):
