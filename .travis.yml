@@ -29,3 +29,6 @@ matrix:
       env: TOXENV="warnings"
   allow_failures:
     - env: TOXENV="warnings"
+    - env: TOXENV="py35-djangolatest-restframeworklatest"
+    - env: TOXENV="py36-djangolatest-restframeworklatest"
+
