@@ -1,3 +1,4 @@
+import django
 import warnings
 
 from django.conf import settings
@@ -124,6 +125,10 @@ def resolve_field(model_field, lookup_expr):
     try:
         while lookups:
             name = lookups[0]
+            args = (lhs, name)
+            if django.VERSION < (2, 0):
+                # rest_of_lookups was removed in Django 2.0
+                args += (lookups,)
             # If there is just one part left, try first get_lookup() so
             # that if the lhs supports both transform and lookup for the
             # name, then lookup will be picked.
@@ -133,10 +138,10 @@ def resolve_field(model_field, lookup_expr):
                     # We didn't find a lookup. We are going to interpret
                     # the name as transform, and do an Exact lookup against
                     # it.
-                    lhs = query.try_transform(lhs, name, lookups)
+                    lhs = query.try_transform(*args)
                     final_lookup = lhs.get_lookup('exact')
                 return lhs.output_field, final_lookup.lookup_name
-            lhs = query.try_transform(lhs, name, lookups)
+            lhs = query.try_transform(*args)
             lookups = lookups[1:]
     except FieldError as e:
         six.raise_from(FieldLookupError(model_field, lookup_expr), e)
