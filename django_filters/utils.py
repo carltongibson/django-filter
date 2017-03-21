@@ -1,3 +1,4 @@
+from importlib import import_module
 import warnings
 
 from django.conf import settings
@@ -227,3 +228,36 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
     verbose_expression = pretty_name(' '.join(verbose_expression))
 
     return verbose_expression
+
+
+def update_filter_options_settings(defaults, settings, exclude_keys=None):
+    """
+    Update default mapping dict FILTER_FOR_DBFIELD_DEFAULTS with extra settings excluding restricted keys
+
+    ex::
+
+        >>> FILTERS_FILTER_OPTIONS = {
+        >>>     'django.db.models.CharField': {'extra': lambda f: {'lookup_expr': 'icontains'}},
+        >>>     'django.db.models.TextField': {'extra': lambda f: {'lookup_expr': 'icontains'}},
+        >>> }
+        >>> FILTER_DEFAULTS = update_filter_options_settings(FILTER_DEFAULTS, dj_settings.FILTER_OPTIONS)
+
+    """
+    exclude_options = ['filter_class', ] + (exclude_keys or [])
+
+    for key, options in settings.items():
+        try:
+            models_module, field_class = key.rsplit('.', 1)
+            module = import_module(models_module)
+            key = getattr(module, field_class, None)
+        except TypeError:
+            pass
+
+        if key not in defaults:
+            continue
+
+        for option in exclude_options:
+            options.pop(option, None)
+
+        defaults[key].update(options)
+    return defaults

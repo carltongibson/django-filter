@@ -21,6 +21,8 @@ DEFAULTS = {
 
     'STRICTNESS': STRICTNESS.RETURN_NO_RESULTS,
 
+    'FILTER_OPTIONS': {},
+
     'VERBOSE_LOOKUPS': {
         # transforms don't need to be verbose, since their expressions are chained
         'date': _('date'),
