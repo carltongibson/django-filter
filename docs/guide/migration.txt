@@ -8,6 +8,29 @@ instructions on how to migrate to the 1.0 release. A forwards-compatible 0.15
 release has also been created to help with migration. It is compatible with
 both the existing and new APIs and will raise warnings for deprecated behavior.
 
+Enabling warnings
+-----------------
+
+To view the deprecations, you may need to enable warnings within python. This
+can be achieved with either the ``-W`` `flag`__, or with  ``PYTHONWARNINGS``
+`environment variable`__. For example, you could run your test suite like so:
+
+.. code-block:: bash
+
+    $ python -W once manage.py test
+
+The above would print all warnings once when they first occur. This is useful
+to know what violations exist in your code (or occasionally in third party
+code). However, it only prints the last line of the stack trace. You can use
+the following to raise the full exception instead:
+
+.. code-block:: bash
+
+    $ python -W error manage.py test
+
+__ https://docs.python.org/3.6/using/cmdline.html#cmdoption-W
+__ https://docs.python.org/3.6/using/cmdline.html#envvar-PYTHONWARNINGS
+
 
 MethodFilter and Filter.action replaced by Filter.method
 --------------------------------------------------------

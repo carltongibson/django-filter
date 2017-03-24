@@ -8,9 +8,12 @@ try:
 except:
     from urllib import urlencode  # noqa
 
+import django
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
-from django.forms.widgets import flatatt
+
+from django.forms.utils import flatatt
+
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
@@ -36,7 +39,10 @@ class LinkWidget(forms.Widget):
             self.data = {}
         if value is None:
             value = ''
-        final_attrs = self.build_attrs(attrs)
+        if django.VERSION < (1, 11):
+            final_attrs = self.build_attrs(attrs)
+        else:
+            final_attrs = self.build_attrs(self.attrs, extra_attrs=attrs)
         output = ['<ul%s>' % flatatt(final_attrs)]
         options = self.render_options(choices, [value], name)
         if options:
@@ -81,17 +87,20 @@ class LinkWidget(forms.Widget):
 
 
 class RangeWidget(forms.MultiWidget):
+    template_name = 'django_filters/widgets/multiwidget.html'
+
     def __init__(self, attrs=None):
         widgets = (forms.TextInput, forms.TextInput)
         super(RangeWidget, self).__init__(widgets, attrs)
+
+    def format_output(self, rendered_widgets):
+        # Method was removed in Django 1.11.
+        return '-'.join(rendered_widgets)
 
     def decompress(self, value):
         if value:
             return [value.start, value.stop]
         return [None, None]
-
-    def format_output(self, rendered_widgets):
-        return '-'.join(rendered_widgets)
 
 
 class LookupTypeWidget(forms.MultiWidget):
@@ -158,7 +167,7 @@ class BaseCSVWidget(forms.Widget):
 
         if len(value) <= 1:
             # delegate to main widget (Select, etc...) if not multiple values
-            value = value[0] if value else value
+            value = value[0] if value else ''
             return super(BaseCSVWidget, self).render(name, value, attrs)
 
         # if we have multiple values, we need to force render as a text input
@@ -187,22 +196,19 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
 
     def value_from_datadict(self, data, files, name):
         if not isinstance(data, MultiValueDict):
+            for key, value in data.items():
+                # treat value as csv string: ?foo=1,2
+                if isinstance(value, string_types):
+                    data[key] = [x.strip() for x in value.rstrip(',').split(',') if x]
             data = MultiValueDict(data)
 
         values_list = data.getlist(name, data.getlist('%s[]' % name)) or []
 
-        if isinstance(values_list, string_types):
-            values_list = [values_list]
-
         # apparently its an array, so no need to process it's values as csv
         # ?foo=1&foo=2 -> data.getlist(foo) -> foo = [1, 2]
         # ?foo[]=1&foo[]=2 -> data.getlist(foo[]) -> foo = [1, 2]
-        if len(values_list) > 1:
+        if len(values_list) > 0:
             ret = [x for x in values_list if x]
-        elif len(values_list) == 1:
-            # treat first element as csv string
-            # ?foo=1,2 -> data.getlist(foo) -> foo = ['1,2']
-            ret = [x.strip() for x in values_list[0].rstrip(',').split(',') if x]
         else:
             ret = []
 

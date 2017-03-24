@@ -847,6 +847,20 @@ class NumericRangeFilterTests(TestCase):
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__exact=(0, 0))
 
+    def test_filtering_startswith(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=20, stop=None)
+        f = NumericRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__startswith=20)
+
+    def test_filtering_endswith(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=30)
+        f = NumericRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__endswith=30)
+
 
 class RangeFilterTests(TestCase):
 

@@ -1,3 +1,9 @@
+
+# ensure package/conf is importable
+from django_filters import STRICTNESS
+from django_filters.conf import DEFAULTS
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -34,5 +40,7 @@ STATIC_URL = '/static/'
 
 # help verify that DEFAULTS is importable from conf.
 def FILTERS_VERBOSE_LOOKUPS():
-    from django_filters.conf import DEFAULTS
     return DEFAULTS['VERBOSE_LOOKUPS']
+
+
+FILTERS_STRICTNESS = STRICTNESS.RETURN_NO_RESULTS

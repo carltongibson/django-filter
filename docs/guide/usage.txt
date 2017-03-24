@@ -24,7 +24,7 @@ The filter
 ----------
 
 We have a number of fields and we want to let our users filter based on the
-price or the release_date.  We create a ``FilterSet`` for this::
+name, the price or the release_date.  We create a ``FilterSet`` for this::
 
     import django_filters
 
@@ -190,7 +190,7 @@ those that are published and those that are owned by the logged-in user
         def qs(self):
             parent = super(ArticleFilter, self).qs
             return parent.filter(is_published=True) \
-                | parent.filter(author=request.user)
+                | parent.filter(author=self.request.user)
 
 
 Filtering the related queryset for ``ModelChoiceFilter``
@@ -296,6 +296,9 @@ You must provide either a ``model`` or ``filterset_class`` argument, similar to
     urlpatterns = [
         url(r'^list/$', FilterView.as_view(model=Product)),
     ]
+
+If you provide a ``model`` optionally you can set ``filter_fields`` to specify a list or a tuple of
+the fields that you want to include for the automatic construction of the filterset class.
 
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
 context parameter ``filter``.  Additionally, the context will contain

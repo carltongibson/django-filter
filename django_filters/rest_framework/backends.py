@@ -1,46 +1,22 @@
 
 from __future__ import absolute_import
+import warnings
 
-from django.template import Template, TemplateDoesNotExist, loader
+from django.template import loader
 from django.utils import six
-from rest_framework.compat import template_render
-from rest_framework.filters import BaseFilterBackend
 
 from .. import compat
 from . import filterset
 
 
-CRISPY_TEMPLATE = """
-{% load crispy_forms_tags %}
-{% load i18n %}
-
-<h2>{% trans "Field filters" %}</h2>
-{% crispy filter.form %}
-"""
-
-
-FILTER_TEMPLATE = """
-{% load i18n %}
-<h2>{% trans "Field filters" %}</h2>
-<form class="form" action="" method="get">
-    {{ filter.form.as_p }}
-    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
-</form>
-"""
-
-
-if compat.is_crispy:
-    template_path = 'django_filters/rest_framework/crispy_form.html'
-    template_default = CRISPY_TEMPLATE
-
-else:
-    template_path = 'django_filters/rest_framework/form.html'
-    template_default = FILTER_TEMPLATE
-
-
-class DjangoFilterBackend(BaseFilterBackend):
+class DjangoFilterBackend(object):
     default_filter_set = filterset.FilterSet
-    template = template_path
+
+    @property
+    def template(self):
+        if compat.is_crispy():
+            return 'django_filters/rest_framework/crispy_form.html'
+        return 'django_filters/rest_framework/form.html'
 
     def get_filter_class(self, view, queryset=None):
         """
@@ -82,21 +58,28 @@ class DjangoFilterBackend(BaseFilterBackend):
             return None
         filter_instance = filter_class(request.query_params, queryset=queryset, request=request)
 
-        try:
-            template = loader.get_template(self.template)
-        except TemplateDoesNotExist:
-            template = Template(template_default)
-
-        return template_render(template, context={
+        template = loader.get_template(self.template)
+        context = {
             'filter': filter_instance
-        })
+        }
+
+        return template.render(context, request)
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
-        filter_class = self.get_filter_class(view, view.get_queryset())
+
+        filter_class = getattr(view, 'filter_class', None)
+        if filter_class is None:
+            try:
+                filter_class = self.get_filter_class(view, view.get_queryset())
+            except:
+                warnings.warn(
+                    "{} is not compatible with schema generation".format(view.__class__)
+                )
+                filter_class = None
 
         return [] if not filter_class else [
             compat.coreapi.Field(

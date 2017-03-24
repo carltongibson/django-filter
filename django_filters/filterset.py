@@ -5,7 +5,6 @@ import copy
 from collections import OrderedDict
 
 from django import forms
-from django.forms.forms import NON_FIELD_ERRORS
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -13,7 +12,7 @@ from django.utils import six
 
 from .conf import settings
 from .compat import remote_field, remote_queryset
-from .constants import ALL_FIELDS, STRICTNESS
+from .constants import ALL_FIELDS, STRICTNESS, EMPTY_VALUES
 from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
                       ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
                       ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter)
@@ -36,28 +35,30 @@ def get_filter_name(field_name, lookup_expr):
     return filter_name
 
 
+def _together_valid(form, fieldset):
+    field_presence = [
+        form.cleaned_data.get(field) not in EMPTY_VALUES
+        for field in fieldset
+    ]
+
+    if any(field_presence):
+        return all(field_presence)
+    return True
+
+
 def get_full_clean_override(together):
+    # coerce together to list of pairs
+    if isinstance(together[0], (six.string_types)):
+        together = [together]
+
     def full_clean(form):
-
-        def add_error(message):
-            try:
-                form.add_error(None, message)
-            except AttributeError:
-                form._errors[NON_FIELD_ERRORS] = message
-
-        def all_valid(fieldset):
-            cleaned_data = form.cleaned_data
-            count = len([i for i in fieldset if cleaned_data.get(i)])
-            return 0 < count < len(fieldset)
-
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
-        if isinstance(together[0], (list, tuple)):
-            for each in together:
-                if all_valid(each):
-                    return add_error(message % ','.join(each))
-        elif all_valid(together):
-            return add_error(message % ','.join(together))
+
+        for each in together:
+            if not _together_valid(form, each):
+                return form.add_error(None, message % ','.join(each))
+
     return full_clean
 
 
@@ -104,7 +105,11 @@ class FilterSetMetaclass(type):
         # merge declared filters from base classes
         for base in reversed(bases):
             if hasattr(base, 'declared_filters'):
-                filters = list(base.declared_filters.items()) + filters
+                filters = [
+                    (name, f) for name, f
+                    in base.declared_filters.items()
+                    if name not in attrs
+                ] + filters
 
         return OrderedDict(filters)
 
@@ -421,8 +426,8 @@ class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
     pass
 
 
-def filterset_factory(model):
-    meta = type(str('Meta'), (object,), {'model': model, 'fields': ALL_FIELDS})
+def filterset_factory(model, fields=ALL_FIELDS):
+    meta = type(str('Meta'), (object,), {'model': model, 'fields': fields})
     filterset = type(str('%sFilterSet' % model._meta.object_name),
                      (FilterSet,), {'Meta': meta})
     return filterset

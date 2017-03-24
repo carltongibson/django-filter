@@ -1,7 +1,7 @@
 
 from django.test import TestCase, override_settings
 
-from django_filters.conf import settings
+from django_filters.conf import settings, is_callable
 from django_filters import FilterSet, STRICTNESS
 
 from tests.models import User
@@ -119,3 +119,24 @@ class OverrideSettingsTests(TestCase):
 
         self.assertFalse(hasattr(settings, 'FILTERS_FOOBAR'))
         self.assertFalse(hasattr(settings, 'FOOBAR'))
+
+
+class IsCallableTests(TestCase):
+
+    def test_behavior(self):
+        def func():
+            pass
+
+        class Class(object):
+            def __call__(self):
+                pass
+
+            def method(self):
+                pass
+
+        c = Class()
+
+        self.assertTrue(is_callable(func))
+        self.assertFalse(is_callable(Class))
+        self.assertTrue(is_callable(c))
+        self.assertTrue(is_callable(c.method))

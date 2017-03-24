@@ -4,6 +4,7 @@ import mock
 import unittest
 
 import django
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
 
@@ -571,6 +572,21 @@ class FilterSetClassCreationTests(TestCase):
             list(F.base_filters) + ['amount_saved'],
             list(FtiF.base_filters))
 
+    def test_declared_filter_disabling(self):
+        class Parent(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        class Child(Parent):
+            f1 = None
+
+        class Grandchild(Child):
+            pass
+
+        self.assertEqual(len(Parent.base_filters), 2)
+        self.assertEqual(len(Child.base_filters), 1)
+        self.assertEqual(len(Grandchild.base_filters), 1)
+
 
 class FilterSetInstantiationTests(TestCase):
 
@@ -679,11 +695,15 @@ class FilterSetTogetherTests(TestCase):
                     ('username', 'status'),
                     ('first_name', 'is_active'),
                 ]
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
 
         f = F({}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 2)
+
         f = F({'username': 'alex'}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 0)
+        with self.assertRaises(ValidationError):
+            f.qs.count()
+
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
@@ -694,14 +714,30 @@ class FilterSetTogetherTests(TestCase):
                 model = User
                 fields = ['username', 'status']
                 together = ['username', 'status']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
 
         f = F({}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 2)
+
         f = F({'username': 'alex'}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 0)
+        with self.assertRaises(ValidationError):
+            f.qs.count()
+
         f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
+
+    def test_empty_values(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['username', 'status']
+                together = ['username', 'status']
+
+        f = F({'username': '', 'status': ''}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 2)
+        f = F({'username': 'alex', 'status': ''}, queryset=self.qs)
+        self.assertEqual(f.qs.count(), 0)
 
 
 # test filter.method here, as it depends on its parent FilterSet

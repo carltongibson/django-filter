@@ -6,7 +6,7 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
-version = '1.0.1'
+version = '1.0.2'
 
 if sys.argv[-1] == 'publish':
     if os.system("pip freeze | grep wheel"):
@@ -32,13 +32,9 @@ setup(
     author_email='alex.gaynor@gmail.com',
     maintainer='Carlton Gibson',
     maintainer_email='carlton.gibson@noumenal.es',
-    url='http://github.com/carltongibson/django-filter/tree/master',
-    packages=find_packages(exclude=['tests']),
-    package_data={
-        'django_filters': [
-            'locale/*/LC_MESSAGES/*',
-        ],
-    },
+    url='https://github.com/carltongibson/django-filter/tree/master',
+    packages=find_packages(exclude=['tests*']),
+    include_package_data=True,
     license='BSD',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -46,7 +42,12 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
+        'Framework :: Django',
+        'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.9',
+        'Framework :: Django :: 1.10',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
@@ -54,6 +55,5 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Framework :: Django',
     ],
-    include_package_data=True,
     zip_safe=False,
 )

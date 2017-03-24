@@ -505,6 +505,14 @@ Example of using the ``DateField`` field::
     # Max-Only: Comments added before 2016-02-01
     f = F({'date_1': '2016-02-01'})
 
+    .. note::
+        When filtering ranges that occurs on DST transition dates ``DateFromToRangeFilter`` will use the first valid hour of the day for start datetime and the last valid hour of the day for end datetime.
+        This is OK for most applications, but if you want to customize this behavior you must extend ``DateFromToRangeFilter`` and make a custom field for it.
+
+    .. warning::
+        If you're using Django prior to 1.9 you may hit ``AmbiguousTimeError`` or ``NonExistentTimeError`` when start/end date matches DST start/end respectively.
+        This occurs because versions before 1.9 don't allow to change the DST behavior for making a datetime aware.
+
 Example of using the ``DateTimeField`` field::
 
     class Article(models.Model):
@@ -621,7 +629,7 @@ filter is then used to validate the individual values.
 
 Example::
 
-    class NumberInFilter(BaseInFilter, NumericFilter):
+    class NumberInFilter(BaseInFilter, NumberFilter):
         pass
 
     class F(FilterSet):
@@ -648,7 +656,7 @@ comma-separated values.
 
 Example::
 
-    class NumberRangeFilter(BaseInFilter, NumericFilter):
+    class NumberRangeFilter(BaseInFilter, NumberFilter):
         pass
 
     class F(FilterSet):
@@ -757,14 +765,16 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
 
         def __init__(self, *args, **kwargs):
             super(CustomOrderingFilter, self).__init__(*args, **kwargs)
-            self.choices += [
+            self.extra['choices'] += [
                 ('relevance', 'Relevance'),
                 ('-relevance', 'Relevance (descending)'),
             ]
 
 
         def filter(self, qs, value):
-            if value in ['relevance', '-relevance']:
+            # OrderingFilter is CSV-based, so `value` is a list
+            if any(v in ['relevance', '-relevance'] for v in value):
                 # sort queryset by relevance
                 return ...
+
             return super(CustomOrderingFilter, self).filter(qs, value)

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import django
 from django.conf import settings
-
+from django.utils.timezone import make_aware as make_aware_orig
 
 # django-crispy-forms is optional
 try:
@@ -11,7 +11,9 @@ try:
 except ImportError:
     crispy_forms = None
 
-is_crispy = 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms
+
+def is_crispy():
+    return 'crispy_forms' in settings.INSTALLED_APPS and crispy_forms
 
 
 # coreapi is optional (Note that uritemplate is a dependency of coreapi)
@@ -49,3 +51,12 @@ def format_value(widget, value):
     if django.VERSION >= (1, 10):
         return widget.format_value(value)
     return widget._format_value(value)
+
+
+
+def make_aware(value, timezone, is_dst):
+    """is_dst was added for 1.9"""
+    if django.VERSION >= (1, 9):
+        return make_aware_orig(value, timezone, is_dst)
+    else:
+        return make_aware_orig(value, timezone)

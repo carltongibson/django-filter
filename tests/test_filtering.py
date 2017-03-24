@@ -528,8 +528,8 @@ class ModelMultipleChoiceFilterTests(TestCase):
                                  average_rating=3.0)
         Book.objects.create(title="Stranger in a Strage Land", price='1.00',
                             average_rating=3.0)
-        alex.favorite_books = [b1, b2]
-        aaron.favorite_books = [b1, b3]
+        alex.favorite_books.add(b1, b2)
+        aaron.favorite_books.add(b1, b3)
 
         self.alex = alex
 
@@ -872,6 +872,92 @@ class DateFromToRangeFilterTests(TestCase):
         results = F(data={
             'published_0': '2016-01-02',
             'published_1': '2016-01-03'})
+        self.assertEqual(len(results.qs), 3)
+
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
+    @override_settings(TIME_ZONE='America/Sao_Paulo')
+    def test_filtering_dst_start_midnight(self):
+        tz = timezone.get_default_timezone()
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 14, 23, 59)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 15, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 15, 1, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 16, 0, 0)))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2017-10-15',
+            'published_1': '2017-10-15'})
+        self.assertEqual(len(results.qs), 2)
+
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
+    @override_settings(TIME_ZONE='America/Sao_Paulo')
+    def test_filtering_dst_ends_midnight(self):
+        tz = timezone.get_default_timezone()
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 19, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 18, 23, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 18, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 17, 15, 0)))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2017-02-18',
+            'published_1': '2017-02-18'})
+        self.assertEqual(len(results.qs), 2)
+
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
+    @override_settings(TIME_ZONE='Europe/Paris')
+    def test_filtering_dst_start(self):
+        tz = timezone.get_default_timezone()
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 25, 23, 59)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 26, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 26, 2, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 26, 3, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 27, 0, 0)))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2017-3-26',
+            'published_1': '2017-3-26'})
+        self.assertEqual(len(results.qs), 3)
+
+    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
+    @override_settings(TIME_ZONE='Europe/Paris')
+    def test_filtering_dst_end(self):
+        tz = timezone.get_default_timezone()
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 28, 23, 59)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 29, 0, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 29, 2, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 29, 3, 0)))
+        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 30, 0, 0)))
+
+        class F(FilterSet):
+            published = DateFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_0': '2017-10-29',
+            'published_1': '2017-10-29'})
         self.assertEqual(len(results.qs), 3)
 
 
@@ -1290,8 +1376,8 @@ class M2MRelationshipTests(TestCase):
                                  average_rating=4.0)
         Book.objects.create(title="Stranger in a Strage Land", price='2.00',
                             average_rating=3.0)
-        alex.favorite_books = [b1, b2]
-        aaron.favorite_books = [b1, b3]
+        alex.favorite_books.add(b1, b2)
+        aaron.favorite_books.add(b1, b3)
 
     def test_m2m_relation(self):
         class F(FilterSet):
