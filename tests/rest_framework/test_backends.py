@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 import datetime
 from decimal import Decimal
 from unittest import skipIf
-import warnings
 
 from django.conf.urls import url
+from django.db.models import BooleanField
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.dateparse import parse_date
@@ -486,3 +486,25 @@ class DjangoFilterOrderingTests(TestCase):
                 {'id': 1, 'date': '2012-10-08', 'text': 'abc'}
             ]
         )
+
+
+class DefaultFilterSetTests(TestCase):
+    def test_default_meta_inheritance(self):
+        # https://github.com/carltongibson/django-filter/issues/663
+
+        class F(FilterSet):
+            class Meta:
+                filter_overrides = {BooleanField: {}}
+
+        class Backend(DjangoFilterBackend):
+            default_filter_set = F
+
+        view = FilterFieldsRootView()
+        backend = Backend()
+
+        filter_class = backend.get_filter_class(view, view.get_queryset())
+        filter_overrides = filter_class._meta.filter_overrides
+
+        # derived filter_class.Meta should inherit from default_filter_set.Meta
+        self.assertIn(BooleanField, filter_overrides)
+        self.assertDictEqual(filter_overrides[BooleanField], {})

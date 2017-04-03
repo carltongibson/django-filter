@@ -35,8 +35,10 @@ class DjangoFilterBackend(object):
             return filter_class
 
         if filter_fields:
+            MetaBase = getattr(self.default_filter_set, 'Meta', object)
+
             class AutoFilterSet(self.default_filter_set):
-                class Meta:
+                class Meta(MetaBase):
                     model = queryset.model
                     fields = filter_fields
 
