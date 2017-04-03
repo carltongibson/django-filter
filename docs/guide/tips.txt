@@ -213,3 +213,40 @@ behavior as an ``isnull`` filter.
 
         class Meta:
             model = MyModel
+
+
+Using ``initial`` values as defaults
+------------------------------------
+
+In pre-1.0 versions of django-filter, a filter field's ``initial`` value was used as a
+default when no value was submitted. This behavior was not officially supported and has
+since been removed.
+
+
+.. warning:: It is recommended that you do **NOT** implement the below as it adversely
+    affects usability. Django forms don't provide this behavior for a reason.
+
+    - Using initial values as defaults is inconsistent with the behavior of Django forms.
+    - Default values prevent users from filtering by empty values.
+    - Default values prevent users from skipping that filter.
+
+If defaults are necessary though, the following should mimic the pre-1.0 behavior:
+
+.. code-block:: python
+
+    class BaseFilterSet(FilterSet):
+
+        def __init__(self, data=None, *args, **kwargs):
+            # if filterset is bound, use initial values as defaults
+            if data is not None:
+                # get a mutable copy of the QueryDict
+                data = data.copy()
+
+                for name, f in self.base_filters.items():
+                    initial = f.extra.get('initial')
+
+                    # filter param is either missing or empty, use initial as default
+                    if not data.get(name) and initial:
+                        data[name] = initial
+
+            super(BaseFilterSet, self).__init__(data, *args, **kwargs)
