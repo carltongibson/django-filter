@@ -152,17 +152,33 @@ This is a map of model fields to filter classes with options::
 
 .. _strict:
 
-``strict``
-~~~~~~~~~~
+Handling validation errors with ``strict``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``strict`` option controls whether results are returned when an invalid
-value is specified by the user for any filter field. By default, ``strict`` is
-set to ``STRICTNESS.RETURN_NO_RESULTS`` meaning that an empty queryset is
-returned if any field contains an invalid value. You can loosen this behavior
-by setting ``strict`` to ``STRICTNESS.IGNORE`` which will effectively ignore a
-filter field if its value is invalid. A third option of
-``STRICTNESS.RAISE_VALIDATION_ERROR`` will cause a ``ValidationError`` to be
-raised if any field contains an invalid value.
+The ``strict`` option determines the filterset's behavior when filters fail to validate. Example use:
+
+.. code-block:: python
+
+    from django_filters import FilterSet, STRICTNESS
+
+    class ProductFilter(FilterSet):
+        class Meta:
+            model = Product
+            fields = ['name', 'release_date']
+            strict = STRICTNESS.RETURN_NO_RESULTS
+
+Currently, there are three different behaviors:
+
+- ``STRICTNESS.RETURN_NO_RESULTS`` (default) This returns an empty queryset. The
+  filterset form can then be rendered to display the input errors.
+- ``STRICTNESS.IGNORE`` Instead of returning an empty queryset, invalid filters
+  effectively become a noop. Valid filters are applied to the queryset however.
+- ``STRICTNESS.RAISE_VALIDATION_ERROR`` This raises a ``ValidationError`` for
+  all invalid filters. This behavior is generally useful with APIs.
+
+If the ``strict`` option is not provided, then the filterset will default to the
+value of the ``FILTERS_STRICTNESS`` setting.
+
 
 Overriding ``FilterSet`` methods
 --------------------------------
