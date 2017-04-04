@@ -70,6 +70,7 @@ class DjangoFilterBackend(object):
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
+        assert compat.coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
 
         filter_class = getattr(view, 'filter_class', None)
         if filter_class is None:
@@ -83,6 +84,12 @@ class DjangoFilterBackend(object):
 
         return [] if not filter_class else [
             compat.coreapi.Field(
-                name=field_name, required=False, location='query', description=six.text_type(field.field.help_text))
+                name=field_name,
+                required=False,
+                location='query',
+                schema=compat.coreschema.String(
+                    description=six.text_type(field.field.help_text)
+                )
+            )
             for field_name, field in filter_class().filters.items()
         ]
