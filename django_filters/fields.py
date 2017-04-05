@@ -92,6 +92,7 @@ class LookupTypeField(forms.MultiValueField):
         }
         widget = LookupTypeWidget(**defaults)
         kwargs['widget'] = widget
+        kwargs['help_text'] = field.help_text
         super(LookupTypeField, self).__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):

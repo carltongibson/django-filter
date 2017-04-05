@@ -24,6 +24,10 @@ try:
 except ImportError:
     coreapi = None
 
+try:
+    import coreschema
+except ImportError:
+    coreschema = None
 
 def remote_field(field):
     """
