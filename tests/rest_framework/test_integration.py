@@ -17,7 +17,7 @@ except ImportError:
 from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
 
-from django_filters import filters
+from django_filters import filters, STRICTNESS
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
 from .models import BaseFilterableItem, BasicModel, FilterableItem, DjangoFilterOrderingModel
@@ -289,6 +289,18 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         request.META['HTTP_ACCEPT'] = 'text/html'
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @override_settings(FILTERS_STRICTNESS=STRICTNESS.RAISE_VALIDATION_ERROR)
+    def test_strictness_validation_error(self):
+        """
+        Ensure validation errors return a proper error response instead of
+        an internal server error.
+        """
+        view = FilterFieldsRootView.as_view()
+        request = factory.get('/?decimal=foobar')
+        response = view(request).render()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data, {'decimal': ['Enter a number.']})
 
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_integration')
