@@ -3,11 +3,12 @@ from __future__ import absolute_import
 from copy import deepcopy
 
 from django.db import models
+from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from django_filters import filterset
 from .filters import BooleanFilter, IsoDateTimeFilter
-from .. import compat
+from .. import compat, utils
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
@@ -36,3 +37,12 @@ class FilterSet(filterset.FilterSet):
             helper.layout = Layout(*layout_components)
 
             self.form.helper = helper
+
+    @property
+    def qs(self):
+        from rest_framework.exceptions import ValidationError
+
+        try:
+            return super(FilterSet, self).qs
+        except forms.ValidationError as e:
+            raise ValidationError(utils.raw_validation(e))
