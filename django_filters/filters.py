@@ -18,11 +18,15 @@ from .constants import EMPTY_VALUES
 from .fields import (
     BaseCSVField,
     BaseRangeField,
+    ChoiceField,
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
     Lookup,
     LookupTypeField,
+    ModelChoiceField,
+    ModelMultipleChoiceField,
+    MultipleChoiceField,
     RangeField,
     TimeRangeField
 )
@@ -187,32 +191,10 @@ class BooleanFilter(Filter):
 
 
 class ChoiceFilter(Filter):
-    field_class = forms.ChoiceField
+    field_class = ChoiceField
 
     def __init__(self, *args, **kwargs):
-        empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
-        null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
-        null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
-
-        self.null_value = null_value
-
-        if 'choices' in kwargs:
-            choices = kwargs.get('choices')
-
-            # coerce choices to list
-            if callable(choices):
-                choices = choices()
-            choices = list(choices)
-
-            # create the empty/null choices that prepend the original choices
-            prepend = []
-            if empty_label is not None:
-                prepend.append(('', empty_label))
-            if null_label is not None:
-                prepend.append((null_value, null_label))
-
-            kwargs['choices'] = prepend + choices
-
+        self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
         super(ChoiceFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
@@ -254,13 +236,14 @@ class MultipleChoiceFilter(Filter):
     `distinct` defaults to `True` as to-many relationships will generally
     require this.
     """
-    field_class = forms.MultipleChoiceField
+    field_class = MultipleChoiceField
 
     always_filter = True
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('distinct', True)
         self.conjoined = kwargs.pop('conjoined', False)
+        self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
         super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
@@ -288,6 +271,8 @@ class MultipleChoiceFilter(Filter):
         if not self.conjoined:
             q = Q()
         for v in set(value):
+            if v == self.null_value:
+                v = None
             predicate = self.get_filter_predicate(v)
             if self.conjoined:
                 qs = self.get_method(qs)(**predicate)
@@ -390,12 +375,16 @@ class QuerySetRequestMixin(object):
         return super(QuerySetRequestMixin, self).field
 
 
-class ModelChoiceFilter(QuerySetRequestMixin, Filter):
-    field_class = forms.ModelChoiceField
+class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
+    field_class = ModelChoiceField
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('empty_label', settings.EMPTY_CHOICE_LABEL)
+        super(ModelChoiceFilter, self).__init__(*args, **kwargs)
 
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
-    field_class = forms.ModelMultipleChoiceField
+    field_class = ModelMultipleChoiceField
 
 
 class NumberFilter(Filter):
