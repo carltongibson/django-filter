@@ -63,7 +63,7 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(len(f.fields), 1)
         self.assertIn('status', f.fields)
         self.assertSequenceEqual(
-            f.fields['status'].choices,
+            list(f.fields['status'].choices),
             (('', '---------'), ) + STATUS_CHOICES
         )
 
@@ -116,7 +116,7 @@ class FilterSetFormTests(TestCase):
         self.assertIn('status', f.fields)
         self.assertIn('username', f.fields)
         self.assertSequenceEqual(
-            f.fields['status'].choices,
+            list(f.fields['status'].choices),
             STATUS_CHOICES
         )
         self.assertIsInstance(f.fields['status'].widget, forms.RadioSelect)
