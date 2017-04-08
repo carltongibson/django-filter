@@ -607,6 +607,18 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = F({'favorite_books': ['4']}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [], lambda o: o.username)
 
+    @override_settings(FILTERS_NULL_CHOICE_LABEL='No Favorites')
+    def test_filtering_null(self):
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = ['favorite_books']
+
+        qs = User.objects.all()
+        f = F({'favorite_books': ['null']}, queryset=qs)
+
+        self.assertQuerysetEqual(f.qs, ['jacob'], lambda o: o.username)
+
     def test_filtering_dictionary(self):
         class F(FilterSet):
             class Meta:

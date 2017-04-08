@@ -733,6 +733,16 @@ class ModelChoiceFilterTests(TestCase):
         with self.assertRaises(TypeError):
             f.field
 
+    @override_settings(
+        FILTERS_EMPTY_CHOICE_LABEL='EMPTY',
+        FILTERS_NULL_CHOICE_VALUE='NULL', )
+    def test_empty_choices(self):
+        f = ModelChoiceFilter(queryset=User.objects.all(), null_value='null', null_label='NULL')
+        self.assertEqual(list(f.field.choices), [
+            ('', 'EMPTY'),
+            ('null', 'NULL'),
+        ])
+
     def test_default_field_with_queryset(self):
         qs = mock.NonCallableMock(spec=[])
         f = ModelChoiceFilter(queryset=qs)
@@ -774,6 +784,15 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = ModelMultipleChoiceFilter()
         with self.assertRaises(TypeError):
             f.field
+
+    @override_settings(
+        FILTERS_EMPTY_CHOICE_LABEL='EMPTY',
+        FILTERS_NULL_CHOICE_VALUE='NULL', )
+    def test_empty_choices(self):
+        f = ModelMultipleChoiceFilter(queryset=User.objects.all(), null_value='null', null_label='NULL')
+        self.assertEqual(list(f.field.choices), [
+            ('null', 'NULL'),
+        ])
 
     def test_default_field_with_queryset(self):
         qs = mock.NonCallableMock(spec=[])
@@ -1178,6 +1197,14 @@ class AllValuesFilterTests(TestCase):
         f.model = mocked
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
+
+    def test_empty_value_in_choices(self):
+        f = AllValuesFilter(name='username')
+        f.model = User
+
+        self.assertEqual(list(f.field.choices), [
+            ('', '---------'),
+        ])
 
 
 class LookupTypesTests(TestCase):
