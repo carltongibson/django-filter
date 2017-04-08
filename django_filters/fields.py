@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from collections import namedtuple
 from datetime import datetime, time
 
+import django
 from django import forms
 from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_str
@@ -236,7 +237,14 @@ class ChoiceIteratorMixin(object):
         super(ChoiceIteratorMixin, self).__init__(*args, **kwargs)
 
     def _get_choices(self):
-        return super(ChoiceIteratorMixin, self)._get_choices()
+        if django.VERSION >= (1, 11):
+            return super(ChoiceIteratorMixin, self)._get_choices()
+
+        # HACK: Django < 1.11 does not allow a custom iterator to be provided.
+        # This code only executes for Model*ChoiceFields.
+        if hasattr(self, '_choices'):
+            return self._choices
+        return self.iterator(self)
 
     def _set_choices(self, value):
         super(ChoiceIteratorMixin, self)._set_choices(value)
