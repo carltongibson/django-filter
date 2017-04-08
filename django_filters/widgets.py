@@ -80,6 +80,44 @@ class LinkWidget(forms.Widget):
         return '<li><a%(attrs)s href="?%(query_string)s">%(label)s</a></li>'
 
 
+class SuffixedMultiWidget(forms.MultiWidget):
+    """
+    A MultiWidget that allows users to provide custom suffixes instead of indexes.
+
+    - Suffixes must be unique.
+    - There must be the same number of suffixes as fields.
+    """
+    suffixes = []
+
+    def __init__(self, *args, **kwargs):
+        super(SuffixedMultiWidget, self).__init__(*args, **kwargs)
+
+        assert len(self.widgets) == len(self.suffixes)
+        assert len(self.suffixes) == len(set(self.suffixes))
+
+    def suffixed(self, name, suffix):
+        return '_'.join([name, suffix]) if suffix else name
+
+    def get_context(self, name, value, attrs):
+        context = super(SuffixedMultiWidget, self).get_context(name, value, attrs)
+        for subcontext, suffix in zip(context['widget']['subwidgets'], self.suffixes):
+            subcontext['name'] = self.suffixed(name, suffix)
+
+        return context
+
+    def value_from_datadict(self, data, files, name):
+        return [
+            widget.value_from_datadict(data, files, self.suffixed(name, suffix))
+            for widget, suffix in zip(self.widgets, self.suffixes)
+        ]
+
+    def value_omitted_from_data(self, data, files, name):
+        return all(
+            widget.value_omitted_from_data(data, files, self.suffixed(name, suffix))
+            for widget, suffix in zip(self.widgets, self.suffixes)
+        )
+
+
 class RangeWidget(forms.MultiWidget):
     template_name = 'django_filters/widgets/multiwidget.html'
 
