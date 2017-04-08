@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from collections import Iterable
 from itertools import chain
+from re import search, sub
 
 import django
 from django import forms
@@ -116,6 +117,22 @@ class SuffixedMultiWidget(forms.MultiWidget):
             widget.value_omitted_from_data(data, files, self.suffixed(name, suffix))
             for widget, suffix in zip(self.widgets, self.suffixes)
         )
+
+    # Django < 1.11 compat
+    def format_output(self, rendered_widgets):
+        rendered_widgets = [
+            self.replace_name(output, i)
+            for i, output in enumerate(rendered_widgets)
+        ]
+        return '\n'.join(rendered_widgets)
+
+    def replace_name(self, output, index):
+        result = search(r'name="(?P<name>.*)_%d"' % index, output)
+        name = result.group('name')
+        name = self.suffixed(name, self.suffixes[index])
+        name = 'name="%s"' % name
+
+        return sub(r'name=".*_%d"' % index, name, output)
 
 
 class RangeWidget(forms.MultiWidget):
