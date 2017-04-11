@@ -134,6 +134,11 @@ class SuffixedMultiWidget(forms.MultiWidget):
 
         return sub(r'name=".*_%d"' % index, name, output)
 
+    def decompress(self, value):
+        if value is None:
+            return [None, None]
+        return value
+
 
 class RangeWidget(forms.MultiWidget):
     template_name = 'django_filters/widgets/multiwidget.html'
