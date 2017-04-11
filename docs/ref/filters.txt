@@ -470,13 +470,13 @@ Filters where a value is between two numerical values, or greater than a minimum
     qs = Book.objects.all().order_by('title')
 
     # Range: Books between 5€ and 15€
-    f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
+    f = F({'price_min': '5', 'price_max': '15'}, queryset=qs)
 
     # Min-Only: Books costing more the 11€
-    f = F({'price_0': '11'}, queryset=qs)
+    f = F({'price_min': '11'}, queryset=qs)
 
     # Max-Only: Books costing less than 19€
-    f = F({'price_1': '19'}, queryset=qs)
+    f = F({'price_max': '19'}, queryset=qs)
 
 
 ``DateRangeFilter``
@@ -504,13 +504,13 @@ Example of using the ``DateField`` field::
             fields = ['date']
 
     # Range: Comments added between 2016-01-01 and 2016-02-01
-    f = F({'date_0': '2016-01-01', 'date_1': '2016-02-01'})
+    f = F({'date_after': '2016-01-01', 'date_before': '2016-02-01'})
 
     # Min-Only: Comments added after 2016-01-01
-    f = F({'date_0': '2016-01-01'})
+    f = F({'date_after': '2016-01-01'})
 
     # Max-Only: Comments added before 2016-02-01
-    f = F({'date_1': '2016-02-01'})
+    f = F({'date_before': '2016-02-01'})
 
     .. note::
         When filtering ranges that occurs on DST transition dates ``DateFromToRangeFilter`` will use the first valid hour of the day for start datetime and the last valid hour of the day for end datetime.
@@ -537,15 +537,15 @@ Example of using the ``DateTimeField`` field::
     Article.objects.create(published='2016-02-10 12:00')
 
     # Range: Articles published between 2016-01-01 and 2016-02-01
-    f = F({'published_0': '2016-01-01', 'published_1': '2016-02-01'})
+    f = F({'published_after': '2016-01-01', 'published_before': '2016-02-01'})
     assert len(f.qs) == 2
 
     # Min-Only: Articles published after 2016-01-01
-    f = F({'published_0': '2016-01-01'})
+    f = F({'published_after': '2016-01-01'})
     assert len(f.qs) == 3
 
     # Max-Only: Articles published before 2016-02-01
-    f = F({'published_1': '2016-02-01'})
+    f = F({'published_before': '2016-02-01'})
     assert len(f.qs) == 2
 
 ``DateTimeFromToRangeFilter``
@@ -570,15 +570,15 @@ Example::
     Article.objects.create(published='2016-01-02 8:00')
 
     # Range: Articles published 2016-01-01 between 8:00 and 10:00
-    f = F({'published_0': '2016-01-01 8:00', 'published_1': '2016-01-01 10:00'})
+    f = F({'published_after': '2016-01-01 8:00', 'published_before': '2016-01-01 10:00'})
     assert len(f.qs) == 2
 
     # Min-Only: Articles published after 2016-01-01 8:00
-    f = F({'published_0': '2016-01-01 8:00'})
+    f = F({'published_after': '2016-01-01 8:00'})
     assert len(f.qs) == 3
 
     # Max-Only: Articles published before 2016-01-01 10:00
-    f = F({'published_1': '2016-01-01 10:00'})
+    f = F({'published_before': '2016-01-01 10:00'})
     assert len(f.qs) == 2
 
 ``TimeRangeFilter``
@@ -600,13 +600,13 @@ Example::
             fields = ['time']
 
     # Range: Comments added between 8:00 and 10:00
-    f = F({'time_0': '8:00', 'time_1': '10:00'})
+    f = F({'time_after': '8:00', 'time_before': '10:00'})
 
     # Min-Only: Comments added after 8:00
-    f = F({'time_0': '8:00'})
+    f = F({'time_after': '8:00'})
 
     # Max-Only: Comments added before 10:00
-    f = F({'time_1': '10:00'})
+    f = F({'time_before': '10:00'})
 
 ``AllValuesFilter``
 ~~~~~~~~~~~~~~~~~~~
