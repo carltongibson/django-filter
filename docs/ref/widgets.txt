@@ -61,3 +61,28 @@ a ``RangeField``:
 .. code-block:: python
 
   date_range = DateFromToRangeFilter(widget=RangeWidget(attrs={'placeholder': 'YYYY/MM/DD'}))
+
+
+``SuffixedMultiWidget``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Extends Django's builtin ``MultiWidget`` to append custom suffixes instead of
+indices. For example, take a range widget that accepts minimum and maximum
+bounds. By default, the resulting query params would look like the following:
+
+.. code-block:: http
+
+    GET /products?price_0=10&price_1=25 HTTP/1.1
+
+By using ``SuffixedMultiWidget`` instead, you can provide human-friendly suffixes.
+
+.. code-block:: python
+
+    class RangeWidget(SuffixedMultiWidget):
+        suffixes = ['min', 'max']
+
+The query names are now a little more ergonomic.
+
+.. code-block:: http
+
+    GET /products?price_min=10&price_max=25 HTTP/1.1
