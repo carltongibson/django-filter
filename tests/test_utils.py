@@ -20,6 +20,7 @@ from .models import Article
 from .models import Book
 from .models import HiredWorker
 from .models import Business
+from .models import NetworkSetting
 
 
 class GetFieldPartsTests(TestCase):
@@ -226,6 +227,10 @@ class VerboseFieldNameTests(TestCase):
         verbose_name = verbose_field_name(Article, 'name')
         self.assertEqual(verbose_name, 'title')
 
+    def test_field_all_caps(self):
+        verbose_name = verbose_field_name(NetworkSetting, 'cidr')
+        self.assertEqual(verbose_name, 'CIDR')
+
     def test_forwards_related_field(self):
         verbose_name = verbose_field_name(Article, 'author__username')
         self.assertEqual(verbose_name, 'author username')
@@ -233,6 +238,10 @@ class VerboseFieldNameTests(TestCase):
     def test_backwards_related_field(self):
         verbose_name = verbose_field_name(Book, 'lovers__first_name')
         self.assertEqual(verbose_name, 'lovers first name')
+
+    def test_backwards_related_field_multi_word(self):
+        verbose_name = verbose_field_name(User, 'manager_of')
+        self.assertEqual(verbose_name, 'manager of')
 
     def test_lazy_text(self):
         # sanity check
@@ -286,6 +295,10 @@ class LabelForFilterTests(TestCase):
     def test_exact_lookup(self):
         label = label_for_filter(Article, 'name', 'exact')
         self.assertEqual(label, 'Title')
+
+    def test_field_all_caps(self):
+        label = label_for_filter(NetworkSetting, 'cidr', 'contains', exclude=True)
+        self.assertEqual(label, 'Exclude CIDR contains')
 
 
 class HandleTimezone(TestCase):
