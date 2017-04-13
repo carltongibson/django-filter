@@ -13,13 +13,14 @@ from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from .compat import pretty_name
 from .conf import settings
 from .constants import EMPTY_VALUES
 from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
-from .utils import label_for_filter, pretty_name
+from .utils import label_for_filter
 
 
 __all__ = [
