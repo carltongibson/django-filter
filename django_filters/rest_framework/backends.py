@@ -93,5 +93,5 @@ class DjangoFilterBackend(object):
                     description=six.text_type(field.field.help_text)
                 )
             )
-            for field_name, field in filter_class().filters.items()
+            for field_name, field in filter_class(request=view.request).filters.items()
         ]
