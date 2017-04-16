@@ -2,13 +2,17 @@ from __future__ import unicode_literals
 
 import datetime
 from decimal import Decimal
-from unittest import skipIf
 
 from django.conf.urls import url
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import BooleanField
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.test.utils import override_settings
 from django.utils.dateparse import parse_date
+from rest_framework.request import Request
+from unittest import skipIf
+
+from tests.models import User, Article
 
 try:
     from django.urls import reverse
@@ -20,7 +24,7 @@ from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
 
 from django_filters import compat, filters
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, ModelChoiceFilter
 from django_filters.rest_framework import backends
 
 from .models import BaseFilterableItem, BasicModel, FilterableItem, DjangoFilterOrderingModel
@@ -31,6 +35,12 @@ factory = APIRequestFactory()
 class FilterableItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterableItem
+        fields = '__all__'
+
+
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
         fields = '__all__'
 
 
@@ -51,6 +61,28 @@ class SeveralFieldsFilter(FilterSet):
     class Meta:
         model = FilterableItem
         fields = ['text', 'decimal', 'date']
+
+
+def users_list(request):
+    queryset = User.objects.all()
+    if not request.user.is_staff:
+        queryset = queryset.filter(is_active=True)
+    return queryset
+
+
+class ArticleFilterSet(FilterSet):
+    user = ModelChoiceFilter(name='author', queryset=users_list)
+
+    class Meta:
+        model = Article
+        fields = ['user']
+
+
+class ArticlesView(generics.ListCreateAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+    filter_class = ArticleFilterSet
+    filter_backends = (DjangoFilterBackend,)
 
 
 class FilterClassRootView(generics.ListCreateAPIView):
@@ -137,6 +169,7 @@ class GetSchemaFieldsTests(TestCase):
         See:
           * https://github.com/carltongibson/django-filter/issues/551
         """
+
         class BadGetQuerySetView(FilterFieldsRootView):
             def get_queryset(self):
                 raise AttributeError("I don't have that")
@@ -164,10 +197,22 @@ class GetSchemaFieldsTests(TestCase):
 
         self.assertEqual(fields, ['text', 'decimal', 'date'])
 
+    def test_filterset_with_queryset_request_mixin_filter(self):
+        factory = RequestFactory()
+        request = factory.get('/');
+        request.user = AnonymousUser()
+        view = ArticlesView()
+        view.request = Request(request)
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(view)
+        fields = [f.name for f in fields]
+        self.assertEqual(fields, ['user'])
+
 
 class CommonFilteringTestCase(TestCase):
     def _serialize_object(self, obj):
-        return {'id': obj.id, 'text': obj.text, 'decimal': str(obj.decimal), 'date': obj.date.isoformat()}
+        return {'id': obj.id, 'text': obj.text, 'decimal': str(obj.decimal),
+                'date': obj.date.isoformat()}
 
     def setUp(self):
         """
@@ -384,7 +429,8 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
     def test_multiple_engines(self):
         # See: https://github.com/carltongibson/django-filter/issues/578
         DTL = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True}
-        ALT = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True, 'NAME': 'alt'}
+        ALT = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True,
+               'NAME': 'alt'}
 
         # multiple DTL backends
         with override_settings(TEMPLATES=[DTL, ALT]):
@@ -396,6 +442,7 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
     """
     Integration tests for filtered detail views.
     """
+
     def _get_url(self, item):
         return reverse('detail-view', kwargs=dict(pk=item.pk))
 

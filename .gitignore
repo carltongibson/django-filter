@@ -6,3 +6,6 @@ docs/_build
 .python-version
 .tox
 .coverage
+# IntelliJ project files
+.idea
+*.iml
