@@ -169,6 +169,11 @@ a request object is passed, then you may access the request during filtering.
 This allows you to filter by properties on the request, such as the currently
 logged-in user or the ``Accepts-Languages`` header.
 
+.. note::
+
+    It is not guaranteed that a `request` will be provied to the `FilterSet`
+    instance. Any code depending on a request should handle the `None` case.
+
 
 Filtering the primary ``.qs``
 """""""""""""""""""""""""""""
@@ -189,8 +194,10 @@ those that are published and those that are owned by the logged-in user
         @property
         def qs(self):
             parent = super(ArticleFilter, self).qs
+            author = getattr(self.request, 'user', None)
+
             return parent.filter(is_published=True) \
-                | parent.filter(author=self.request.user)
+                | parent.filter(author=author)
 
 
 Filtering the related queryset for ``ModelChoiceFilter``
@@ -204,6 +211,9 @@ request-based filtering without resorting to overriding ``FilterSet.__init__``.
 .. code-block:: python
 
     def departments(request):
+        if request is None:
+            return Department.objects.none()
+
         company = request.user.company
         return company.department_set.all()
 
