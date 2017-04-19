@@ -37,6 +37,12 @@ If you want to use the django-filter backend by default, add it to the ``DEFAULT
 .. code-block:: python
 
     # settings.py
+    INSTALLED_APPS = [
+        ...
+        'rest_framework',
+        'django_filters',
+    ]
+
     REST_FRAMEWORK = {
         'DEFAULT_FILTER_BACKENDS': (
             'django_filters.rest_framework.DjangoFilterBackend',
