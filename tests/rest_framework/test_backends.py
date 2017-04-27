@@ -160,9 +160,13 @@ class GetSchemaFieldsTests(TestCase):
     def test_fields_with_filter_class(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(FilterClassRootView())
+        schemas = [f.schema for f in fields]
         fields = [f.name for f in fields]
 
         self.assertEqual(fields, ['text', 'decimal', 'date'])
+        self.assertIsInstance(schemas[0], compat.coreschema.String)
+        self.assertIsInstance(schemas[1], compat.coreschema.Number)
+        self.assertIsInstance(schemas[2], compat.coreschema.String)
 
 
 class CommonFilteringTestCase(TestCase):
