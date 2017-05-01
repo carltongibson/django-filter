@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 
+import datetime
+from decimal import Decimal
 from unittest import skipIf
+import warnings
 
 from django.db.models import BooleanField
 from django.test import TestCase
@@ -69,8 +72,16 @@ class GetSchemaFieldsTests(TestCase):
                 raise AttributeError("I don't have that")
 
         backend = DjangoFilterBackend()
-        fields = backend.get_schema_fields(BadGetQuerySetView())
-        self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            fields = backend.get_schema_fields(BadGetQuerySetView())
+            self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
+
+            warning = "{} is not compatible with schema generation".format(BadGetQuerySetView)
+            self.assertEqual(len(w), 1)
+            self.assertEqual(str(w[0].message), warning)
 
     def test_fields_with_filter_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):
