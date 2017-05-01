@@ -78,7 +78,7 @@ class DjangoFilterBackend(object):
         if filter_class is None:
             try:
                 filter_class = self.get_filter_class(view, view.get_queryset())
-            except:
+            except Exception:
                 warnings.warn(
                     "{} is not compatible with schema generation".format(view.__class__)
                 )
@@ -90,8 +90,8 @@ class DjangoFilterBackend(object):
                 required=False,
                 location='query',
                 schema=compat.coreschema.String(
-                    description=six.text_type(field.field.help_text)
+                    description=six.text_type(field.extra.get('help_text', ''))
                 )
             )
-            for field_name, field in filter_class().filters.items()
+            for field_name, field in filter_class.base_filters.items()
         ]

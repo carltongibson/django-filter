@@ -102,6 +102,26 @@ class GetSchemaFieldsTests(TestCase):
 
         self.assertEqual(fields, ['text', 'decimal', 'date'])
 
+    def tests_field_with_request_callable(self):
+        def qs(request):
+            # users expect a valid request object to be provided which cannot
+            # be guaranteed during schema generation.
+            self.fail("callable queryset should not be invoked during schema generation")
+
+        class F(SeveralFieldsFilter):
+            f = filters.ModelChoiceFilter(queryset=qs)
+
+        class View(FilterClassRootView):
+            filter_class = F
+
+        view = View()
+        view.request = factory.get('/')
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(view)
+        fields = [f.name for f in fields]
+
+        self.assertEqual(fields, ['text', 'decimal', 'date', 'f'])
+
 
 class TemplateTests(TestCase):
     def test_backend_output(self):
