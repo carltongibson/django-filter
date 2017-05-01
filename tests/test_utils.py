@@ -5,15 +5,17 @@ import django
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
+from django.forms import ValidationError
 from django.test import TestCase, override_settings
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
 
-from django_filters.utils import (
-    get_field_parts, get_model_field, resolve_field,
-    verbose_field_name, verbose_lookup_expr, label_for_filter, handle_timezone
-)
+from django_filters import FilterSet, STRICTNESS
 from django_filters.exceptions import FieldLookupError
+from django_filters.utils import (
+    get_field_parts, get_model_field, resolve_field, handle_timezone,
+    verbose_field_name, verbose_lookup_expr, label_for_filter, raw_validation,
+)
 
 from .models import User
 from .models import Article
@@ -303,3 +305,21 @@ class HandleTimezone(TestCase):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
         handled = handle_timezone(dst_starting_date, True)
         self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
+
+
+class RawValidationDataTests(TestCase):
+    def test_simple(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['id', 'author', 'name']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
+        f = F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        with self.assertRaises(ValidationError) as exc:
+            f.qs
+
+        self.assertDictEqual(raw_validation(exc.exception), {
+            'id': ['Enter a number.'],
+            'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        })

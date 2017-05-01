@@ -10,6 +10,13 @@ Django-filter can be installed from PyPI with tools like ``pip``:
 
 Then add ``'django_filters'`` to your ``INSTALLED_APPS``.
 
+.. code-block:: python
+
+    INSTALLED_APPS = [
+        ...
+        'django_filters',
+    ]
+
 
 Requirements
 ------------
