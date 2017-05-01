@@ -137,7 +137,7 @@ class ChoiceFilterTests(TestCase):
         Article.objects.create(author_id=2, published=now())
         Article.objects.create(author_id=3, published=now())
         Article.objects.create(author_id=4, published=now())
-        Article.objects.create(author_id=None, published=now())
+        Article.objects.create(author_id=None, published=now(), name='No Author')
 
     def test_filtering(self):
         class F(FilterSet):
@@ -216,7 +216,7 @@ class ChoiceFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, ['alex'], lambda o: str(o.author), False)
 
         f = F({'author': 'null'})
-        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
+        self.assertQuerysetEqual(f.qs, ['No Author'], lambda o: o.name, False)
 
 
 class MultipleChoiceFilterTests(TestCase):
@@ -251,6 +251,45 @@ class MultipleChoiceFilterTests(TestCase):
         f = F({'status': ['0', '1', '2']}, queryset=qs)
         self.assertQuerysetEqual(
             f.qs, ['aaron', 'alex', 'carl', 'jacob'], lambda o: o.username)
+
+    def test_filtering_on_null_choice(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        Article.objects.create(author_id=1, published=now())
+        Article.objects.create(author_id=2, published=now())
+        Article.objects.create(author_id=3, published=now())
+        Article.objects.create(author_id=4, published=now())
+        Article.objects.create(author_id=None, published=now())
+
+        choices = [(u.pk, str(u)) for u in User.objects.order_by('id')]
+
+        class F(FilterSet):
+            author = MultipleChoiceFilter(
+                choices=choices,
+                null_value='null',
+                null_label='NULL',
+            )
+
+            class Meta:
+                model = Article
+                fields = ['author']
+
+        # sanity check to make sure the filter is setup correctly
+        f = F({'author': ['1']})
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: str(o.author), False)
+
+        f = F({'author': ['null']})
+        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
+
+        f = F({'author': ['1', 'null']})
+        self.assertQuerysetEqual(
+                f.qs, ['alex', None],
+                lambda o: o.author and str(o.author),
+                False)
+
 
 
 class TypedMultipleChoiceFilterTests(TestCase):
@@ -484,6 +523,20 @@ class ModelChoiceFilterTests(TestCase):
         qs = Comment.objects.all()
         f = F({'author': jacob.pk}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [1, 3], lambda o: o.pk, False)
+
+    def test_filtering_null(self):
+        Article.objects.create(published=now())
+        alex = User.objects.create(username='alex')
+        Article.objects.create(author=alex, published=now())
+       
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['author', 'name']
+
+        qs = Article.objects.all()
+        f = F({'author': 'null'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [None], lambda o: o.author, False)
 
     def test_callable_queryset(self):
         # Sanity check for callable queryset arguments.

@@ -23,6 +23,15 @@ Default: ``None``
 Set the default value for ``ChoiceFilter.null_label``. You may enable the null choice by setting a non-``None`` value.
 
 
+FILTERS_NULL_MODEL_CHOICE_LABEL
+-------------------------
+
+Default: ``NULL``
+
+Set the default value for ``ModelChoiceFilter.null_label`` when a relation can be ``null``.
+Setting it to ``None`` will disable default NULL filtering on ModelChoiceFilter and MultipleModelChoiceFilter when relation can be ``null``
+
+
 FILTERS_NULL_CHOICE_VALUE
 -------------------------
 

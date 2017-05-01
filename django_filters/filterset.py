@@ -142,6 +142,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'extra': lambda f: {
             'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
+            'null_label': settings.NULL_MODEL_CHOICE_LABEL if f.null else None,
+
         }
     },
     models.ForeignKey: {
@@ -149,12 +151,14 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'extra': lambda f: {
             'queryset': remote_queryset(f),
             'to_field_name': remote_field(f).field_name,
+            'null_label': settings.NULL_MODEL_CHOICE_LABEL if f.null else None,
         }
     },
     models.ManyToManyField: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
+            'null_label': settings.NULL_MODEL_CHOICE_LABEL if f.null else None,
         }
     },
 }

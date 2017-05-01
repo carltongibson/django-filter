@@ -14,12 +14,12 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from .conf import settings
-from .constants import EMPTY_VALUES
 from .fields import (
     Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
     DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
 )
 from .utils import label_for_filter, pretty_name
+import itertools
 
 
 __all__ = [
@@ -57,6 +57,9 @@ __all__ = [
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
+EMPTY_VALUES = ([], (), {}, '', None)
+
+
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
@@ -76,6 +79,10 @@ class Filter(object):
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
+
+        if not hasattr(self, 'null_value'):
+            self.null_value = None
+
 
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
@@ -166,15 +173,17 @@ class Filter(object):
             lookup = self.lookup_expr
         if value in EMPTY_VALUES:
             return qs
+        if value == self.null_value:
+            value = None
         if self.distinct:
             qs = qs.distinct()
         qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
+
         return qs
 
 
 class CharFilter(Filter):
     field_class = forms.CharField
-
 
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
@@ -185,10 +194,8 @@ class ChoiceFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
-        null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
-        null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
-
-        self.null_value = null_value
+        self.null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
+        self.null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
 
         if 'choices' in kwargs:
             choices = kwargs.get('choices')
@@ -202,19 +209,13 @@ class ChoiceFilter(Filter):
             prepend = []
             if empty_label is not None:
                 prepend.append(('', empty_label))
-            if null_label is not None:
-                prepend.append((null_value, null_label))
+            if self.null_label is not None:
+                prepend.append((self.null_value, self.null_label))
 
             kwargs['choices'] = prepend + choices
 
         super(ChoiceFilter, self).__init__(*args, **kwargs)
 
-    def filter(self, qs, value):
-        if value != self.null_value:
-            return super(ChoiceFilter, self).filter(qs, value)
-
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): None})
-        return qs.distinct() if self.distinct else qs
 
 
 class TypedChoiceFilter(Filter):
@@ -225,7 +226,7 @@ class UUIDFilter(Filter):
     field_class = forms.UUIDField
 
 
-class MultipleChoiceFilter(Filter):
+class MultipleChoiceFilter(ChoiceFilter):
     """
     This filter performs OR(by default) or AND(using conjoined=True) query
     on the selected options.
@@ -282,6 +283,8 @@ class MultipleChoiceFilter(Filter):
         if not self.conjoined:
             q = Q()
         for v in set(value):
+            if v == self.null_value:
+                v = None
             predicate = self.get_filter_predicate(v)
             if self.conjoined:
                 qs = self.get_method(qs)(**predicate)
@@ -384,8 +387,34 @@ class QuerySetRequestMixin(object):
         return super(QuerySetRequestMixin, self).field
 
 
-class ModelChoiceFilter(QuerySetRequestMixin, Filter):
-    field_class = forms.ModelChoiceField
+
+class NullModelChoiceField(forms.ModelChoiceField):
+    def __init__(self, *args, **kwargs):
+        self.null_value = kwargs.pop('null_value', None)
+        self.null_label = kwargs.pop('null_label', None)
+        super(NullModelChoiceField, self).__init__(*args, **kwargs)
+
+    def _get_choices(self):
+        iterator = super(NullModelChoiceField, self)._get_choices()
+        if self.null_label is not None and self.null_value is not None:
+            iterator = itertools.chain([(self.null_value, self.null_label)], iterator)
+        return iterator
+
+    choices = property(_get_choices, forms.ModelChoiceField._set_choices)
+
+    def to_python(self, value):
+        if value == self.null_value:
+            return value
+        return super(NullModelChoiceField, self).to_python(value)
+
+
+class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
+    field_class = NullModelChoiceField
+
+    def __init__(self, *args, **kwargs):
+        super(ModelChoiceFilter, self).__init__(*args, **kwargs)
+        # pass params to Null ModelField
+        self.extra.update({'null_value': self.null_value, 'null_label': self.null_label})
 
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
@@ -698,7 +727,7 @@ class FilterMethod(object):
 
         # otherwise, method is the name of a method on the parent FilterSet.
         assert hasattr(instance, 'parent'), \
-            "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
+            "Filter '%s' must have a parent FilterSet to find '.%s()'" % \
             (instance.name, instance.method)
 
         parent = instance.parent

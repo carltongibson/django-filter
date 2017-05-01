@@ -17,6 +17,7 @@ DEFAULTS = {
     # empty/null choices
     'EMPTY_CHOICE_LABEL': '---------',
     'NULL_CHOICE_LABEL': None,
+    'NULL_MODEL_CHOICE_LABEL': 'NULL',
     'NULL_CHOICE_VALUE': 'null',
 
     'STRICTNESS': STRICTNESS.RETURN_NO_RESULTS,
