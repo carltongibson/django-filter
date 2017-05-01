@@ -131,6 +131,8 @@ class NetworkSetting(models.Model):
     ip = models.GenericIPAddressField()
     mask = SubnetMaskField()
 
+    cidr = models.CharField(max_length=18, blank=True, verbose_name="CIDR")
+
 
 @python_2_unicode_compatible
 class Company(models.Model):
