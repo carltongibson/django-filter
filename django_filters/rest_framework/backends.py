@@ -69,13 +69,12 @@ class DjangoFilterBackend(object):
 
     def get_coreschema_field(self, field):
         if isinstance(field, filters.NumberFilter):
-            return compat.coreschema.Number(
-                description=six.text_type(field.field.help_text)
-                )
+            field_cls = compat.coreschema.Number
         else:
-            return compat.coreschema.String(
-                description=six.text_type(field.field.help_text)
-                )
+            field_cls = compat.coreschema.String
+        return field_cls(
+            description=six.text_type(field.extra.get('help_text', ''))
+        )
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
