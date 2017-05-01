@@ -21,14 +21,15 @@ FILTER_FOR_DBFIELD_DEFAULTS.update({
 class FilterSet(filterset.FilterSet):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, *args, **kwargs):
-        super(FilterSet, self).__init__(*args, **kwargs)
+    @property
+    def form(self):
+        form = super(FilterSet, self).form
 
         if compat.is_crispy():
             from crispy_forms.helper import FormHelper
             from crispy_forms.layout import Layout, Submit
 
-            layout_components = list(self.form.fields.keys()) + [
+            layout_components = list(form.fields.keys()) + [
                 Submit('', _('Submit'), css_class='btn-default'),
             ]
             helper = FormHelper()
@@ -36,7 +37,9 @@ class FilterSet(filterset.FilterSet):
             helper.template_pack = 'bootstrap3'
             helper.layout = Layout(*layout_components)
 
-            self.form.helper = helper
+            form.helper = helper
+
+        return form
 
     @property
     def qs(self):
