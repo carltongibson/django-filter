@@ -1,10 +1,20 @@
+from unittest import skipIf
 
+from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from django_filters.rest_framework import FilterSet, filters
+from django_filters.compat import is_crispy
 from django_filters.widgets import BooleanWidget
 
 from ..models import User, Article
+
+
+class ArticleFilter(FilterSet):
+    class Meta:
+        model = Article
+        fields = ['author']
 
 
 class FilterSetFilterForFieldTests(TestCase):
@@ -20,3 +30,16 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(field, 'is_active')
         self.assertIsInstance(result, filters.BooleanFilter)
         self.assertEqual(result.widget, BooleanWidget)
+
+
+@skipIf(is_crispy(), 'django_crispy_forms must be installed')
+@override_settings(INSTALLED_APPS=settings.INSTALLED_APPS + ('crispy_forms', ))
+class CrispyFormsCompatTests(TestCase):
+
+    def test_crispy_helper(self):
+        # ensure the helper is present on the form
+        self.assertTrue(hasattr(ArticleFilter().form, 'helper'))
+
+    def test_form_initialization(self):
+        # ensure that crispy compat does not prematurely initialize the form
+        self.assertFalse(hasattr(ArticleFilter(), '_form'))

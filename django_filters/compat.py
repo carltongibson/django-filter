@@ -5,6 +5,11 @@ import django
 from django.conf import settings
 from django.utils.timezone import make_aware as make_aware_orig
 
+try:
+    from django.forms.utils import pretty_name
+except ImportError:  # Django 1.8
+    from django.forms.forms import pretty_name
+
 # django-crispy-forms is optional
 try:
     import crispy_forms

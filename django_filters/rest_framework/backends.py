@@ -69,13 +69,10 @@ class DjangoFilterBackend(object):
 
     def get_coreschema_field(self, field):
         if isinstance(field, filters.NumberFilter):
-            return compat.coreschema.Number(
-                description=six.text_type(field.field.help_text)
-                )
+            field_cls = compat.coreschema.Number
         else:
-            return compat.coreschema.String(
-                description=six.text_type(field.field.help_text)
-                )
+            field_cls = compat.coreschema.String
+        return field_cls(description=six.text_type(field.extra.get('help_text', ''))
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
@@ -88,7 +85,7 @@ class DjangoFilterBackend(object):
         if filter_class is None:
             try:
                 filter_class = self.get_filter_class(view, view.get_queryset())
-            except:
+            except Exception:
                 warnings.warn(
                     "{} is not compatible with schema generation".format(view.__class__)
                 )
@@ -100,6 +97,6 @@ class DjangoFilterBackend(object):
                 required=False,
                 location='query',
                 schema=self.get_coreschema_field(field)
-                )
-            for field_name, field in filter_class().filters.items()
-            ]
+            )
+            for field_name, field in filter_class.base_filters.items()
+        ]
