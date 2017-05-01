@@ -6,7 +6,7 @@ from django.template import loader
 from django.utils import six
 
 from .. import compat
-from . import filterset
+from . import filterset, filters
 
 
 class DjangoFilterBackend(object):
@@ -67,6 +67,13 @@ class DjangoFilterBackend(object):
 
         return template.render(context, request)
 
+    def get_coreschema_field(self, field):
+        if isinstance(field, filters.NumberFilter):
+            field_cls = compat.coreschema.Number
+        else:
+            field_cls = compat.coreschema.String
+        return field_cls(description=six.text_type(field.extra.get('help_text', ''))
+
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
@@ -89,9 +96,7 @@ class DjangoFilterBackend(object):
                 name=field_name,
                 required=False,
                 location='query',
-                schema=compat.coreschema.String(
-                    description=six.text_type(field.extra.get('help_text', ''))
-                )
+                schema=self.get_coreschema_field(field)
             )
             for field_name, field in filter_class.base_filters.items()
         ]
