@@ -173,7 +173,7 @@ class BaseFilterSet(object):
 
             if not self.form.is_valid():
                 if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                    raise forms.ValidationError(self.form.errors)
+                    raise forms.ValidationError(self.form.errors.as_data())
                 elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
                     self._qs = self.queryset.none()
                     return self._qs
