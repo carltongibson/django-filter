@@ -176,3 +176,14 @@ If you are using DRF's browsable API or admin API you may also want to install `
 With crispy forms installed and added to Django's ``INSTALLED_APPS``, the browsable API will present a filtering control for ``DjangoFilterBackend``, like so:
 
 .. image:: ../assets/form.png
+
+
+Additional ``FilterSet`` Features
+---------------------------------
+
+The following features are specific to the rest framework FilterSet:
+
+- ``BooleanFilter``'s use the API-friendly ``BooleanWidget``, which accepts lowercase ``true``/``false``.
+- Filter generation uses ``IsoDateTimeFilter`` for datetime model fields.
+- Raised ``ValidationError``'s are reraised as their DRF equivalent. This behavior is useful when setting FilterSet
+  strictness to ``STRICTNESS.RAISE_VALIDATION_ERROR``.
