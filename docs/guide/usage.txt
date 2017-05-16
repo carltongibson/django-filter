@@ -6,6 +6,11 @@ Django-filter provides a simple way to filter down a queryset based on
 parameters a user provides.  Say we have a ``Product`` model and we want to let
 our users filter which products they see on a list page.
 
+.. note::
+
+    If you're using django-filter with Django Rest Framework, it's
+    recommended that you read the integration docs after this guide.
+
 The model
 ---------
 
