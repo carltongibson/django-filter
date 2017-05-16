@@ -1,8 +1,8 @@
 Django Filter
 =============
 
-Django-filter is a reusable Django application for allowing users to filter
-querysets dynamically.
+Django-filter is a reusable Django application allowing users to declaratively
+add dynamic ``QuerySet`` filtering from URL parameters.
 
 Full documentation on `read the docs`_.
 
@@ -68,22 +68,28 @@ And then in your view you could do:
         filter = ProductFilter(request.GET, queryset=Product.objects.all())
         return render(request, 'my_app/template.html', {'filter': filter})
 
-Django-filters additionally supports specifying ``FilterSet`` fields using
-a dictionary to specify filters with lookup types:
+
+Usage with Django REST Framework
+--------------------------------
+
+Django-filter provides a custom ``FilterSet`` and filter backend for use with
+Django REST Framework.
+
+To use this adjust your import to use
+``django_filters.rest_framework.FilterSet``.
 
 .. code-block:: python
 
-    import django_filters
+    from django_filters import rest_framework as filters
 
-    class ProductFilter(django_filters.FilterSet):
+    class ProductFilter(filters.FilterSet):
         class Meta:
             model = Product
-            fields = {'name': ['exact', 'icontains'],
-                      'price': ['exact', 'gte', 'lte'],
-                     }
+            fields = ('category', 'in_stock')
 
-The filters will be available as ``'name'``, ``'name__icontains'``,
-``'price'``, ``'price__gte'``, and ``'price__lte'`` in the above example.
+
+For more details see the `DRF integration docs`_.
+
 
 Support
 -------
@@ -93,3 +99,4 @@ If you have questions about usage or development you can join the
 
 .. _`read the docs`: https://django-filter.readthedocs.io/en/develop/
 .. _`mailing list`: http://groups.google.com/group/django-filter
+.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/develop/guide/rest_framework.html
