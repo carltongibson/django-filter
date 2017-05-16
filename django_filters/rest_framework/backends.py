@@ -6,7 +6,7 @@ from django.template import loader
 from django.utils import six
 
 from .. import compat
-from . import filterset
+from . import filterset, filters
 
 
 class DjangoFilterBackend(object):
@@ -35,8 +35,10 @@ class DjangoFilterBackend(object):
             return filter_class
 
         if filter_fields:
+            MetaBase = getattr(self.default_filter_set, 'Meta', object)
+
             class AutoFilterSet(self.default_filter_set):
-                class Meta:
+                class Meta(MetaBase):
                     model = queryset.model
                     fields = filter_fields
 
@@ -65,17 +67,27 @@ class DjangoFilterBackend(object):
 
         return template.render(context, request)
 
+    def get_coreschema_field(self, field):
+        if isinstance(field, filters.NumberFilter):
+            field_cls = compat.coreschema.Number
+        else:
+            field_cls = compat.coreschema.String
+        return field_cls(
+            description=six.text_type(field.extra.get('help_text', ''))
+        )
+
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
+        assert compat.coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
 
         filter_class = getattr(view, 'filter_class', None)
         if filter_class is None:
             try:
                 filter_class = self.get_filter_class(view, view.get_queryset())
-            except:
+            except Exception:
                 warnings.warn(
                     "{} is not compatible with schema generation".format(view.__class__)
                 )
@@ -83,6 +95,10 @@ class DjangoFilterBackend(object):
 
         return [] if not filter_class else [
             compat.coreapi.Field(
-                name=field_name, required=False, location='query', description=six.text_type(field.field.help_text))
-            for field_name, field in filter_class().filters.items()
+                name=field_name,
+                required=False,
+                location='query',
+                schema=self.get_coreschema_field(field)
+                )
+            for field_name, field in filter_class.base_filters.items()
         ]

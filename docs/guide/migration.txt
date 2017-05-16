@@ -187,3 +187,11 @@ Generated filter labels in 1.0 will be more descriptive, including humanized
 text about the lookup being performed and if the filter is an exclusion filter.
 
 These settings will no longer have an effect and will be removed in the 1.0 release.
+
+
+DRF filter backend raises ``TemplateDoesNotExist`` exception
+------------------------------------------------------------
+
+Templates are now provided by django-filter. If you are receiving this error,
+you may need to add ``'django_filters'`` to your ``INSTALLED_APPS`` setting.
+Alternatively, you could provide your own templates.

@@ -8,9 +8,9 @@ Full documentation on `read the docs`_.
 
 .. image:: https://travis-ci.org/carltongibson/django-filter.svg?branch=master
     :target: https://travis-ci.org/carltongibson/django-filter
-    
+
 .. image:: https://codecov.io/gh/carltongibson/django-filter/branch/develop/graph/badge.svg
-    :target: https://codecov.io/gh/carltongibson/django-filter    
+    :target: https://codecov.io/gh/carltongibson/django-filter
 
 .. image:: https://badge.fury.io/py/django-filter.svg
     :target: http://badge.fury.io/py/django-filter
@@ -20,7 +20,7 @@ Requirements
 ------------
 
 * **Python**: 2.7, 3.3, 3.4, 3.5
-* **Django**: 1.8, 1.9, 1.10
+* **Django**: 1.8, 1.9, 1.10, 1.11
 * **DRF**: 3.5
 
 Installation
@@ -32,11 +32,15 @@ Install using pip:
 
     pip install django-filter
 
-Or clone the repo and add to your ``PYTHONPATH``:
+Then add ``'django_filters'`` to your ``INSTALLED_APPS``.
 
-.. code-block:: sh
+.. code-block:: python
 
-    git clone git@github.com:carltongibson/django-filter.git
+    INSTALLED_APPS = [
+        ...
+        'django_filters',
+    ]
+
 
 Usage
 -----

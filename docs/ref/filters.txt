@@ -356,9 +356,16 @@ passed, it will be invoked with ``Filterset.request`` as its only argument.
 This allows you to easily filter by properties on the request object without
 having to override the ``FilterSet.__init__``.
 
+.. note::
+
+    You should expect that the `request` object may be `None`.
+
 .. code-block:: python
 
     def departments(request):
+        if request is None:
+            return Department.objects.none()
+
         company = request.user.company
         return company.department_set.all()
 

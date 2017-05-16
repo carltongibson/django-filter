@@ -531,7 +531,7 @@ class FilterSetClassCreationTests(TestCase):
                     SubnetMaskField: {'filter_class': CharFilter}
                 }
 
-        self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask'])
+        self.assertEqual(list(F.base_filters.keys()), ['ip', 'mask', 'cidr'])
 
     def test_custom_declared_field_no_warning(self):
         class F(FilterSet):

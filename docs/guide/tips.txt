@@ -143,7 +143,7 @@ the ``null_label`` parameter. More details in the ``ChoiceFilter`` reference
         )
 
 Solution 3: Combining fields w/ ``MultiValueField``
-""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 An alternative approach is to use Django's ``MultiValueField`` to manually add
 in a ``BooleanField`` to handle null values. Proof of concept:
@@ -156,8 +156,6 @@ Filtering by an empty string
 It's not currently possible to filter by an empty string, since empty values are
 interpreted as a skipped filter.
 
-.. code-block:: http
-
     GET http://localhost/api/my-model?myfield=
 
 Solution 1: Magic values
@@ -165,8 +163,6 @@ Solution 1: Magic values
 
 You can override the ``filter()`` method of a filter class to specifically check
 for magic values. This is similar to the ``ChoiceFilter``'s null value handling.
-
-.. code-block:: http
 
     GET http://localhost/api/my-model?myfield=EMPTY
 
@@ -188,8 +184,6 @@ Solution 2: Empty string filter
 
 It would also be possible to create an empty value filter that exhibits the same
 behavior as an ``isnull`` filter.
-
-.. code-block:: http
 
     GET http://localhost/api/my-model?myfield__isempty=false
 
@@ -213,3 +207,40 @@ behavior as an ``isnull`` filter.
 
         class Meta:
             model = MyModel
+
+
+Using ``initial`` values as defaults
+------------------------------------
+
+In pre-1.0 versions of django-filter, a filter field's ``initial`` value was used as a
+default when no value was submitted. This behavior was not officially supported and has
+since been removed.
+
+
+.. warning:: It is recommended that you do **NOT** implement the below as it adversely
+    affects usability. Django forms don't provide this behavior for a reason.
+
+    - Using initial values as defaults is inconsistent with the behavior of Django forms.
+    - Default values prevent users from filtering by empty values.
+    - Default values prevent users from skipping that filter.
+
+If defaults are necessary though, the following should mimic the pre-1.0 behavior:
+
+.. code-block:: python
+
+    class BaseFilterSet(FilterSet):
+
+        def __init__(self, data=None, *args, **kwargs):
+            # if filterset is bound, use initial values as defaults
+            if data is not None:
+                # get a mutable copy of the QueryDict
+                data = data.copy()
+
+                for name, f in self.base_filters.items():
+                    initial = f.extra.get('initial')
+
+                    # filter param is either missing or empty, use initial as default
+                    if not data.get(name) and initial:
+                        data[name] = initial
+
+            super(BaseFilterSet, self).__init__(data, *args, **kwargs)

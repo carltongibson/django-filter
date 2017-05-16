@@ -5,21 +5,24 @@ import django
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
+from django.forms import ValidationError
 from django.test import TestCase, override_settings
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
 
-from django_filters.utils import (
-    get_field_parts, get_model_field, resolve_field,
-    verbose_field_name, verbose_lookup_expr, label_for_filter, handle_timezone
-)
+from django_filters import FilterSet, STRICTNESS
 from django_filters.exceptions import FieldLookupError
+from django_filters.utils import (
+    get_field_parts, get_model_field, resolve_field, handle_timezone,
+    verbose_field_name, verbose_lookup_expr, label_for_filter, raw_validation,
+)
 
 from .models import User
 from .models import Article
 from .models import Book
 from .models import HiredWorker
 from .models import Business
+from .models import NetworkSetting
 
 
 class GetFieldPartsTests(TestCase):
@@ -226,6 +229,10 @@ class VerboseFieldNameTests(TestCase):
         verbose_name = verbose_field_name(Article, 'name')
         self.assertEqual(verbose_name, 'title')
 
+    def test_field_all_caps(self):
+        verbose_name = verbose_field_name(NetworkSetting, 'cidr')
+        self.assertEqual(verbose_name, 'CIDR')
+
     def test_forwards_related_field(self):
         verbose_name = verbose_field_name(Article, 'author__username')
         self.assertEqual(verbose_name, 'author username')
@@ -233,6 +240,10 @@ class VerboseFieldNameTests(TestCase):
     def test_backwards_related_field(self):
         verbose_name = verbose_field_name(Book, 'lovers__first_name')
         self.assertEqual(verbose_name, 'lovers first name')
+
+    def test_backwards_related_field_multi_word(self):
+        verbose_name = verbose_field_name(User, 'manager_of')
+        self.assertEqual(verbose_name, 'manager of')
 
     def test_lazy_text(self):
         # sanity check
@@ -287,6 +298,10 @@ class LabelForFilterTests(TestCase):
         label = label_for_filter(Article, 'name', 'exact')
         self.assertEqual(label, 'Title')
 
+    def test_field_all_caps(self):
+        label = label_for_filter(NetworkSetting, 'cidr', 'contains', exclude=True)
+        self.assertEqual(label, 'Exclude CIDR contains')
+
 
 class HandleTimezone(TestCase):
 
@@ -303,3 +318,21 @@ class HandleTimezone(TestCase):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
         handled = handle_timezone(dst_starting_date, True)
         self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
+
+
+class RawValidationDataTests(TestCase):
+    def test_simple(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['id', 'author', 'name']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
+        f = F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        with self.assertRaises(ValidationError) as exc:
+            f.qs
+
+        self.assertDictEqual(raw_validation(exc.exception), {
+            'id': ['Enter a number.'],
+            'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        })

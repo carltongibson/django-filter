@@ -8,14 +8,11 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import RelatedField, ForeignObjectRel
+from django.forms import ValidationError
 from django.utils import six, timezone
 from django.utils.encoding import force_text
+from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
-
-try:
-    from django.forms.utils import pretty_name
-except ImportError:  # Django 1.8
-    from django.forms.forms import pretty_name
 
 from .compat import make_aware, remote_field, remote_model
 from .exceptions import FieldLookupError
@@ -177,7 +174,7 @@ def verbose_field_name(model, field_name):
     names = []
     for part in parts:
         if isinstance(part, ForeignObjectRel):
-            names.append(force_text(part.related_name))
+            names.append(part.related_name.replace('_', ' '))
         else:
             names.append(force_text(part.verbose_name))
 
@@ -229,6 +226,27 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
         verbose_expression += [verbose_lookup_expr(lookup_expr)]
 
     verbose_expression = [force_text(part) for part in verbose_expression if part]
-    verbose_expression = pretty_name(' '.join(verbose_expression))
+    verbose_expression = capfirst(' '.join(verbose_expression))
 
     return verbose_expression
+
+
+def raw_validation(error):
+    """
+    Deconstruct a django.forms.ValidationError into a primitive structure
+    eg, plain dicts and lists.
+    """
+    if isinstance(error, ValidationError):
+        if hasattr(error, 'error_dict'):
+            error = error.error_dict
+        elif not hasattr(error, 'message'):
+            error = error.error_list
+        else:
+            error = error.message
+
+    if isinstance(error, dict):
+        return {key: raw_validation(value) for key, value in error.items()}
+    elif isinstance(error, list):
+        return [raw_validation(value) for value in error]
+    else:
+        return error
