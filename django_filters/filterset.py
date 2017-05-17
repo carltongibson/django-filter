@@ -211,7 +211,10 @@ class BaseFilterSet(object):
                 value = self.form.cleaned_data.get(name)
 
                 if value is not None:  # valid & clean data
-                    qs = filter_.filter(qs, value)
+                    if hasattr(self, "filter_%s" % name):
+                        qs = getattr(self, "filter_%s" % name)(qs)
+                    else:
+                        qs = filter_.filter(qs, value)
 
             self._qs = qs
 
