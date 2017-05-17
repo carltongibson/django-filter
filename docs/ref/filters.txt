@@ -46,52 +46,6 @@ additional ones that django-filter provides which may be useful:
     * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
       to generate two form input elements using a single field.
 
-.. _filter-method:
-
-``method``
-~~~~~~~~~~
-
-An optional argument that tells the filter how to handle the queryset. It can
-accept either a callable or the name of a method on the ``FilterSet``. The
-method receives a ``QuerySet``, the name of the model field to filter on, and
-the value to filter with. It should return a ``Queryset`` that is filtered
-appropriately.
-
-The passed in value is validated and cleaned by the filter's ``field_class``,
-so raw value transformation and empty value checking should be unnecessary.
-
-.. code-block:: python
-
-    class F(FilterSet):
-        """Filter for Books by if books are published or not"""
-        published = BooleanFilter(name='published_on', method='filter_published')
-
-        def filter_published(self, queryset, name, value):
-            # construct the full lookup expression.
-            lookup = '__'.join([name, 'isnull'])
-            return queryset.filter(**{lookup: False})
-
-            # alternatively, it may not be necessary to construct the lookup.
-            return queryset.filter(published_on__isnull=False)
-
-        class Meta:
-            model = Book
-            fields = ['published']
-
-
-    # Callables may also be defined out of the class scope.
-    def filter_not_empty(queryset, name, value):
-        lookup = '__'.join([name, 'isnull'])
-        return queryset.filter(**{lookup: False})
-
-    class F(FilterSet):
-        """Filter for Books by if books are published or not"""
-        published = BooleanFilter(name='published_on', method=filter_not_empty)
-
-        class Meta:
-            model = Book
-            fields = ['published']
-
 ``lookup_expr``
 ~~~~~~~~~~~~~~~
 
