@@ -1,4 +1,4 @@
-Version 1.0.3 (2107-05-16)
+Version 1.0.3 (2017-05-16)
 --------------------------
 
 Improves compatibility with Django REST Framework schema generation.
