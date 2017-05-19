@@ -1,9 +1,15 @@
-Version 1.0.3 (2107-05-16)
+Version 1.0.4 (2017-05-19)
 --------------------------
 
-Improves compatibility with Django REST Framework schema generation. 
+Quick fix for verbose_field_name issue from 1.0.3 (#722)
 
-See the `1.0.2 Milestone`__ for full details.
+
+Version 1.0.3 (2017-05-16)
+--------------------------
+
+Improves compatibility with Django REST Framework schema generation.
+
+See the `1.0.3 Milestone`__ for full details.
 
 __ https://github.com/carltongibson/django-filter/milestone/13?closed=1
 

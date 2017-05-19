@@ -17,12 +17,16 @@ from django_filters.utils import (
     verbose_field_name, verbose_lookup_expr, label_for_filter, raw_validation,
 )
 
-from .models import User
-from .models import Article
-from .models import Book
-from .models import HiredWorker
-from .models import Business
-from .models import NetworkSetting
+from .models import (
+    User,
+    Article,
+    Book,
+    HiredWorker,
+    Business,
+    NetworkSetting,
+    Company,
+    Account,
+)
 
 
 class GetFieldPartsTests(TestCase):
@@ -252,6 +256,26 @@ class VerboseFieldNameTests(TestCase):
 
         verbose_name = verbose_field_name(User, 'username')
         self.assertEqual(verbose_name, 'username')
+
+    def test_forwards_fk(self):
+        verbose_name = verbose_field_name(Article, 'author')
+        self.assertEqual(verbose_name, 'author')
+
+    def test_backwards_fk(self):
+        # https://github.com/carltongibson/django-filter/issues/716
+
+        # related_name is set
+        verbose_name = verbose_field_name(Company, 'locations')
+        self.assertEqual(verbose_name, 'locations')
+
+        # related_name not set. Auto-generated relation is `article_set`
+        # _meta.get_field raises FieldDoesNotExist
+        verbose_name = verbose_field_name(User, 'article_set')
+        self.assertEqual(verbose_name, '[invalid name]')
+
+        # WRONG NAME! Returns ManyToOneRel with related_name == None.
+        verbose_name = verbose_field_name(User, 'article')
+        self.assertEqual(verbose_name, '[invalid name]')
 
 
 class VerboseLookupExprTests(TestCase):
