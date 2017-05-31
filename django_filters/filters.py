@@ -26,7 +26,7 @@ from .fields import (
     RangeField,
     TimeRangeField
 )
-from .utils import label_for_filter
+from .utils import deprecate, label_for_filter
 
 __all__ = [
     'AllValuesFilter',
@@ -63,22 +63,36 @@ __all__ = [
 LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
+def _extra_attr(attr):
+    fmt = ("The `.%s` attribute has been deprecated in favor of making it accessible "
+           "alongside the other field kwargs. You should now access it as `.extra['%s']`.")
+
+    def fget(self):
+        deprecate(fmt % (attr, attr))
+        return self.extra.get(attr)
+
+    def fset(self, value):
+        deprecate(fmt % (attr, attr))
+        self.extra[attr] = value
+
+    return {'fget': fget, 'fset': fset}
+
+
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, name=None, label=None, widget=None, method=None, lookup_expr='exact',
-                 required=False, distinct=False, exclude=False, **kwargs):
+    def __init__(self, name=None, label=None, method=None, lookup_expr='exact',
+                 distinct=False, exclude=False, **kwargs):
         self.name = name
         self.label = label
         self.method = method
         self.lookup_expr = lookup_expr
-
-        self.widget = widget
-        self.required = required
-        self.extra = kwargs
         self.distinct = distinct
         self.exclude = exclude
+
+        self.extra = kwargs
+        self.extra.setdefault('required', False)
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
@@ -126,6 +140,10 @@ class Filter(object):
         return locals()
     label = property(**label())
 
+    # deprecated field props
+    widget = property(**_extra_attr('widget'))
+    required = property(**_extra_attr('required'))
+
     @property
     def field(self):
         if not hasattr(self, '_field'):
@@ -155,13 +173,11 @@ class Filter(object):
                             if x in self.lookup_expr:
                                 lookup.append(choice)
 
-                self._field = LookupTypeField(self.field_class(
-                    required=self.required, widget=self.widget, **field_kwargs),
-                    lookup, required=self.required, label=self.label)
+                self._field = LookupTypeField(
+                    self.field_class(**field_kwargs), lookup,
+                    required=field_kwargs['required'], label=self.label)
             else:
-                self._field = self.field_class(required=self.required,
-                                               label=self.label, widget=self.widget,
-                                               **field_kwargs)
+                self._field = self.field_class(label=self.label, **field_kwargs)
         return self._field
 
     def filter(self, qs, value):
@@ -272,7 +288,7 @@ class MultipleChoiceFilter(Filter):
             return False
 
         # A reasonable default for being a noop...
-        if self.required and len(value) == len(self.field.choices):
+        if self.extra.get('required') and len(value) == len(self.field.choices):
             return True
 
         return False

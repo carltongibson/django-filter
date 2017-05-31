@@ -132,17 +132,16 @@ class FilterTests(TestCase):
             f.field
             mocked.assert_called_once_with(required=mock.ANY,
                                            label=mock.ANY,
-                                           widget=mock.ANY,
                                            someattr='someattr')
 
-    def test_field_with_required_filter(self):
+    def test_field_required_default(self):
+        # filter form fields should not be required by default
         with mock.patch.object(Filter, 'field_class',
                                spec=['__call__']) as mocked:
-            f = Filter(required=True)
+            f = Filter()
             f.field
-            mocked.assert_called_once_with(required=True,
-                                           label=mock.ANY,
-                                           widget=mock.ANY)
+            mocked.assert_called_once_with(required=False,
+                                           label=mock.ANY)
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
