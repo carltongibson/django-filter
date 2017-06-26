@@ -98,6 +98,7 @@ class DjangoFilterBackend(object):
                 name=field_name,
                 required=False,
                 location='query',
+                description=field.label,
                 schema=self.get_coreschema_field(field)
                 )
             for field_name, field in filter_class.base_filters.items()
