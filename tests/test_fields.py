@@ -3,9 +3,16 @@ from __future__ import absolute_import, unicode_literals
 import decimal
 from datetime import datetime, time, timedelta, tzinfo
 
+import pytz
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils.timezone import get_default_timezone, make_aware
+from django.utils.timezone import (
+    activate,
+    deactivate,
+    get_current_timezone,
+    get_default_timezone,
+    make_aware
+)
 
 from django_filters.fields import (
     BaseCSVField,
@@ -168,6 +175,25 @@ class IsoDateTimeFieldTests(TestCase):
         d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
         self.assertTrue(isinstance(d.tzinfo, tzinfo))
         self.assertEqual(d, r)
+
+    def test_datetime_timezone_with_current_timezone(self):
+        z = pytz.timezone('Asia/Tokyo')  # Central European Time +01:00
+
+        f = IsoDateTimeField()
+        r = make_aware(self.reference_dt, get_default_timezone())
+
+        activate(z)
+        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
+        deactivate()
+        self.assertTrue(isinstance(d.tzinfo, tzinfo))
+        self.assertEqual(d, r + r.utcoffset() - d.utcoffset())
+
+        activate(z)
+        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
+        deactivate()
+        self.assertTrue(isinstance(d.tzinfo, tzinfo))
+        self.assertEqual(z.zone, d.tzinfo.zone)
+        self.assertEqual(d, r + r.utcoffset() - d.utcoffset())
 
     @override_settings(USE_TZ=False)
     def test_datetime_timezone_naivety(self):
