@@ -419,6 +419,11 @@ class ChoiceFilterTests(TestCase):
             ('b', 'b'),
         ])
 
+    def test_callable_choices_is_lazy(self):
+        def choices():
+            self.fail('choices should not be called during initialization')
+        ChoiceFilter(choices=choices)
+
 
 class MultipleChoiceFilterTests(TestCase):
 
