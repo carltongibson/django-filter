@@ -217,6 +217,7 @@ class BaseFilterSet(object):
                 value = self.form.cleaned_data.get(name)
 
                 if value is not None:  # valid & clean data
+                    qs = qs._next_is_sticky()
                     qs = filter_.filter(qs, value)
 
             self._qs = qs
