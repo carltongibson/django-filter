@@ -757,7 +757,8 @@ want to disable descending sort options.
 
 This filter is also CSV-based, and accepts multiple ordering params. The
 default select widget does not enable the use of this, but it is useful
-for APIs.
+for APIs. ``SelectMultiple`` widgets are not compatible, given that they
+are not able to retain selection order.
 
 Adding Custom filter choices
 """"""""""""""""""""""""""""
