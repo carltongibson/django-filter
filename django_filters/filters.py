@@ -618,6 +618,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             kwargs['choices'] = self.build_choices(fields, field_labels)
 
         kwargs.setdefault('label', _('Ordering'))
+        kwargs.setdefault('help_text', '')
         kwargs.setdefault('null_label', None)
         super(OrderingFilter, self).__init__(*args, **kwargs)
 
