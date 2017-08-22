@@ -1,15 +1,16 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
+from django.forms import Select, TextInput
 from django.test import TestCase
-from django.forms import TextInput, Select
-
-from django_filters.widgets import BooleanWidget, QueryArrayWidget
-from django_filters.widgets import BaseCSVWidget
-from django_filters.widgets import CSVWidget
-from django_filters.widgets import RangeWidget
-from django_filters.widgets import LinkWidget
-from django_filters.widgets import LookupTypeWidget
+from django_filters.widgets import (
+    BaseCSVWidget,
+    BooleanWidget,
+    CSVWidget,
+    LinkWidget,
+    LookupTypeWidget,
+    QueryArrayWidget,
+    RangeWidget
+)
 
 
 class LookupTypeWidgetTests(TestCase):

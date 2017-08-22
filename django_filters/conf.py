@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from .constants import STRICTNESS
 from .utils import deprecate
 
-
 DEFAULTS = {
     'DISABLE_HELP_TEXT': False,
     'HELP_TEXT_FILTER': True,

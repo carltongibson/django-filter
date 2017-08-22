@@ -1,47 +1,48 @@
 from __future__ import absolute_import, unicode_literals
 
-import mock
 import unittest
 
 import django
+import mock
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
-
 from django_filters.constants import STRICTNESS
-from django_filters.filterset import FilterSet
-from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
-from django_filters.filters import Filter
-from django_filters.filters import BooleanFilter
-from django_filters.filters import CharFilter
-from django_filters.filters import NumberFilter
-from django_filters.filters import ChoiceFilter
-from django_filters.filters import ModelChoiceFilter
-from django_filters.filters import ModelMultipleChoiceFilter
-from django_filters.filters import UUIDFilter
-from django_filters.filters import BaseInFilter
-from django_filters.filters import BaseRangeFilter
-from django_filters.filters import DateRangeFilter
-from django_filters.filters import FilterMethod
-
+from django_filters.filters import (
+    BaseInFilter,
+    BaseRangeFilter,
+    BooleanFilter,
+    CharFilter,
+    ChoiceFilter,
+    DateRangeFilter,
+    Filter,
+    FilterMethod,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    NumberFilter,
+    UUIDFilter
+)
+from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet
 from django_filters.widgets import BooleanWidget
 
-from .models import User
-from .models import AdminUser
-from .models import Article
-from .models import Book
-from .models import Profile
-from .models import Comment
-from .models import Restaurant
-from .models import NetworkSetting
-from .models import SubnetMaskField
-from .models import Account
-from .models import BankAccount
-from .models import Node
-from .models import DirectedNode
-from .models import Worker
-from .models import Business
-from .models import UUIDTestModel
+from .models import (
+    Account,
+    AdminUser,
+    Article,
+    BankAccount,
+    Book,
+    Business,
+    Comment,
+    DirectedNode,
+    NetworkSetting,
+    Node,
+    Profile,
+    Restaurant,
+    SubnetMaskField,
+    User,
+    UUIDTestModel,
+    Worker
+)
 
 
 def checkItemsEqual(L1, L2):

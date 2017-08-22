@@ -1,12 +1,10 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
-
-from django_filters.views import FilterView
 from django_filters.filterset import FilterSet, filterset_factory
+from django_filters.views import FilterView
 
 from .models import Book
 

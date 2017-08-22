@@ -1,15 +1,15 @@
 
 from __future__ import absolute_import
+
 from copy import deepcopy
 
-from django.db import models
 from django import forms
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
 from django_filters import filterset
-from .filters import BooleanFilter, IsoDateTimeFilter
-from .. import compat, utils
 
+from .. import compat, utils
+from .filters import BooleanFilter, IsoDateTimeFilter
 
 FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
 FILTER_FOR_DBFIELD_DEFAULTS.update({

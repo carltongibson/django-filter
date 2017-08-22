@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import copy
 from collections import OrderedDict
@@ -10,13 +9,31 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 
-from .conf import settings
 from .compat import remote_field, remote_queryset
-from .constants import ALL_FIELDS, STRICTNESS, EMPTY_VALUES
-from .filters import (Filter, CharFilter, BooleanFilter, BaseInFilter, BaseRangeFilter,
-                      ChoiceFilter, DateFilter, DateTimeFilter, TimeFilter, ModelChoiceFilter,
-                      ModelMultipleChoiceFilter, NumberFilter, UUIDFilter, DurationFilter)
-from .utils import try_dbfield, get_all_model_fields, get_model_field, resolve_field
+from .conf import settings
+from .constants import ALL_FIELDS, EMPTY_VALUES, STRICTNESS
+from .filters import (
+    BaseInFilter,
+    BaseRangeFilter,
+    BooleanFilter,
+    CharFilter,
+    ChoiceFilter,
+    DateFilter,
+    DateTimeFilter,
+    DurationFilter,
+    Filter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    NumberFilter,
+    TimeFilter,
+    UUIDFilter
+)
+from .utils import (
+    get_all_model_fields,
+    get_model_field,
+    resolve_field,
+    try_dbfield
+)
 
 
 def get_filter_name(field_name, lookup_expr):

@@ -1,54 +1,53 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-from collections import OrderedDict
-from datetime import date, time, timedelta, datetime
 import inspect
-import mock
+from collections import OrderedDict
+from datetime import date, datetime, time, timedelta
 
+import mock
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import ugettext as _
-
 from django_filters import filters, widgets
 from django_filters.fields import (
-    Lookup,
-    RangeField,
+    BaseCSVField,
     DateRangeField,
     DateTimeRangeField,
-    TimeRangeField,
+    Lookup,
     LookupTypeField,
-    BaseCSVField)
+    RangeField,
+    TimeRangeField
+)
 from django_filters.filters import (
-    Filter,
-    CharFilter,
-    BooleanFilter,
-    ChoiceFilter,
-    MultipleChoiceFilter,
-    TypedMultipleChoiceFilter,
-    DateFilter,
-    DateTimeFilter,
-    TimeFilter,
-    DurationFilter,
-    ModelChoiceFilter,
-    ModelMultipleChoiceFilter,
-    NumberFilter,
-    NumericRangeFilter,
-    RangeFilter,
-    DateRangeFilter,
-    DateFromToRangeFilter,
-    DateTimeFromToRangeFilter,
-    TimeRangeFilter,
+    LOOKUP_TYPES,
     AllValuesFilter,
     BaseCSVFilter,
     BaseInFilter,
     BaseRangeFilter,
-    UUIDFilter,
+    BooleanFilter,
+    CharFilter,
+    ChoiceFilter,
+    DateFilter,
+    DateFromToRangeFilter,
+    DateRangeFilter,
+    DateTimeFilter,
+    DateTimeFromToRangeFilter,
+    DurationFilter,
+    Filter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    MultipleChoiceFilter,
+    NumberFilter,
+    NumericRangeFilter,
     OrderingFilter,
-    LOOKUP_TYPES)
-
+    RangeFilter,
+    TimeFilter,
+    TimeRangeFilter,
+    TypedMultipleChoiceFilter,
+    UUIDFilter
+)
 from tests.models import Book, User
 
 
