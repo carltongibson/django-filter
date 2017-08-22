@@ -1,12 +1,13 @@
 from __future__ import absolute_import, unicode_literals
 
+import mock
 import unittest
 
 import django
-import mock
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
+
 from django_filters.constants import STRICTNESS
 from django_filters.filters import (
     BaseInFilter,

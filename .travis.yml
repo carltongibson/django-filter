@@ -17,6 +17,13 @@ script:
   - coverage erase
   - detox
 
+matrix:
+  include:
+    - python: 3.6
+      env: TOXENV=isort
+    - python: 3.6
+      env: TOXENV=warnings
+
 after_success:
   - coverage combine --append
   - coverage report -m

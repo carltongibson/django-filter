@@ -1,14 +1,15 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
+import mock
 import unittest
 
 import django
-import mock
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import six, timezone
 from django.utils.timezone import now
+
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
     AllValuesFilter,

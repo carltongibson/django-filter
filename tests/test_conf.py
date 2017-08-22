@@ -1,5 +1,6 @@
 
 from django.test import TestCase, override_settings
+
 from django_filters import STRICTNESS, FilterSet
 from django_filters.conf import is_callable, settings
 from tests.models import User

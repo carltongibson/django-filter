@@ -1,5 +1,6 @@
 
 from django.test import TestCase
+
 from django_filters.rest_framework import filters
 from django_filters.widgets import BooleanWidget
 

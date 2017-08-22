@@ -6,6 +6,7 @@ from copy import deepcopy
 from django import forms
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
 from django_filters import filterset
 
 from .. import compat, utils
