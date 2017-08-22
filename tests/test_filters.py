@@ -2,14 +2,15 @@
 from __future__ import absolute_import, unicode_literals
 
 import inspect
+import mock
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 
-import mock
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import ugettext as _
+
 from django_filters import filters, widgets
 from django_filters.fields import (
     BaseCSVField,

@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
+
 from django_filters.filterset import FilterSet, filterset_factory
 from django_filters.views import FilterView
 

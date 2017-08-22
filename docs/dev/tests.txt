@@ -65,3 +65,26 @@ supported versions of Python and Django. Install tox, and then simply run:
 
     $ pip install tox
     $ tox
+
+
+Housekeeping
+------------
+
+The ``isort`` utility is used to maintain module imports. You can either test
+the module imports with the appropriate `tox` env, or with `isort` directly.
+
+.. code-block:: bash
+
+    $ pip install tox
+    $ tox -e isort
+
+    # or
+
+    $ pip install isort
+    $ isort --check-only --recursive django_filters tests
+
+To sort the imports, simply remove the ``--check-only`` option.
+
+.. code-block:: bash
+
+    $ isort --recursive django_filters tests
