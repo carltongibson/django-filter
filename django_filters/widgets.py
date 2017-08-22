@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 
 from collections import Iterable
 from itertools import chain
-try:
-    from urllib.parse import urlencode
-except:
-    from urllib import urlencode  # noqa
+from django.utils.http import urlencode
 
 import django
 from django import forms
