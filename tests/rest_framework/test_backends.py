@@ -1,20 +1,21 @@
 from __future__ import unicode_literals
 
 import datetime
+import warnings
 from decimal import Decimal
 from unittest import skipIf
-import warnings
 
 from django.db.models import BooleanField
 from django.test import TestCase
 from django.test.utils import override_settings
-
+from django_filters import compat, filters
+from django_filters.rest_framework import (
+    DjangoFilterBackend,
+    FilterSet,
+    backends
+)
 from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
-
-from django_filters import compat, filters
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet
-from django_filters.rest_framework import backends
 
 from .models import FilterableItem
 

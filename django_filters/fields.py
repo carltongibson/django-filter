@@ -1,17 +1,15 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-from datetime import datetime, time
 from collections import namedtuple
+from datetime import datetime, time
 
 from django import forms
 from django.utils.dateparse import parse_datetime
-
 from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 
 from .utils import handle_timezone
-from .widgets import RangeWidget, LookupTypeWidget, CSVWidget, BaseCSVWidget
+from .widgets import BaseCSVWidget, CSVWidget, LookupTypeWidget, RangeWidget
 
 
 class RangeField(forms.MultiValueField):

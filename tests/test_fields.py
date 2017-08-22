@@ -1,18 +1,23 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-from datetime import datetime, time, timedelta, tzinfo
 import decimal
+from datetime import datetime, time, timedelta, tzinfo
 
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils.timezone import make_aware, get_default_timezone
-
-from django_filters.widgets import BaseCSVWidget, CSVWidget, RangeWidget
+from django.utils.timezone import get_default_timezone, make_aware
 from django_filters.fields import (
-    Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
-    DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
+    BaseCSVField,
+    BaseRangeField,
+    DateRangeField,
+    DateTimeRangeField,
+    IsoDateTimeField,
+    Lookup,
+    LookupTypeField,
+    RangeField,
+    TimeRangeField
 )
+from django_filters.widgets import BaseCSVWidget, CSVWidget, RangeWidget
 
 
 def to_d(float_value):

@@ -1,7 +1,7 @@
 import datetime
 import unittest
-import django
 
+import django
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -9,23 +9,28 @@ from django.forms import ValidationError
 from django.test import TestCase, override_settings
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
-
-from django_filters import FilterSet, STRICTNESS
+from django_filters import STRICTNESS, FilterSet
 from django_filters.exceptions import FieldLookupError
 from django_filters.utils import (
-    get_field_parts, get_model_field, resolve_field, handle_timezone,
-    verbose_field_name, verbose_lookup_expr, label_for_filter, raw_validation,
+    get_field_parts,
+    get_model_field,
+    handle_timezone,
+    label_for_filter,
+    raw_validation,
+    resolve_field,
+    verbose_field_name,
+    verbose_lookup_expr
 )
 
 from .models import (
-    User,
+    Account,
     Article,
     Book,
-    HiredWorker,
     Business,
-    NetworkSetting,
     Company,
-    Account,
+    HiredWorker,
+    NetworkSetting,
+    User
 )
 
 

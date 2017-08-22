@@ -3,7 +3,6 @@
 from django_filters import STRICTNESS
 from django_filters.conf import DEFAULTS
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

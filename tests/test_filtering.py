@@ -1,49 +1,50 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import datetime
-import mock
 import unittest
 
 import django
+import mock
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils import six
+from django.utils import six, timezone
 from django.utils.timezone import now
-from django.utils import timezone
-
-from django_filters.filterset import FilterSet
-from django_filters.filters import AllValuesFilter
-from django_filters.filters import AllValuesMultipleFilter
-from django_filters.filters import CharFilter
-from django_filters.filters import ChoiceFilter
-from django_filters.filters import DateRangeFilter
-from django_filters.filters import DateFromToRangeFilter
-from django_filters.filters import DateTimeFromToRangeFilter
-from django_filters.filters import DurationFilter
-from django_filters.filters import MultipleChoiceFilter
-from django_filters.filters import ModelChoiceFilter
-from django_filters.filters import TypedMultipleChoiceFilter
-from django_filters.filters import ModelMultipleChoiceFilter
-from django_filters.filters import NumberFilter
-from django_filters.filters import OrderingFilter
-from django_filters.filters import RangeFilter
-from django_filters.filters import TimeRangeFilter
 from django_filters.exceptions import FieldLookupError
+from django_filters.filters import (
+    AllValuesFilter,
+    AllValuesMultipleFilter,
+    CharFilter,
+    ChoiceFilter,
+    DateFromToRangeFilter,
+    DateRangeFilter,
+    DateTimeFromToRangeFilter,
+    DurationFilter,
+    ModelChoiceFilter,
+    ModelMultipleChoiceFilter,
+    MultipleChoiceFilter,
+    NumberFilter,
+    OrderingFilter,
+    RangeFilter,
+    TimeRangeFilter,
+    TypedMultipleChoiceFilter
+)
+from django_filters.filterset import FilterSet
 
-from .models import User
-from .models import Comment
-from .models import Book
-from .models import Article
-from .models import Company
-from .models import Location
-from .models import Account
-from .models import BankAccount
-from .models import Profile
-from .models import Node
-from .models import DirectedNode
-from .models import STATUS_CHOICES
-from .models import SpacewalkRecord
+from .models import (
+    STATUS_CHOICES,
+    Account,
+    Article,
+    BankAccount,
+    Book,
+    Comment,
+    Company,
+    DirectedNode,
+    Location,
+    Node,
+    Profile,
+    SpacewalkRecord,
+    User
+)
 
 
 class CharFilterTests(TestCase):

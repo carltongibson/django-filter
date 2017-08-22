@@ -1,13 +1,12 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 from collections import OrderedDict
 from datetime import timedelta
 
 from django import forms
 from django.db.models import Q
-from django.db.models.sql.constants import QUERY_TERMS
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.sql.constants import QUERY_TERMS
 from django.utils import six
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
@@ -17,11 +16,17 @@ from .compat import pretty_name
 from .conf import settings
 from .constants import EMPTY_VALUES
 from .fields import (
-    Lookup, LookupTypeField, BaseCSVField, BaseRangeField, RangeField,
-    DateRangeField, DateTimeRangeField, TimeRangeField, IsoDateTimeField
+    BaseCSVField,
+    BaseRangeField,
+    DateRangeField,
+    DateTimeRangeField,
+    IsoDateTimeField,
+    Lookup,
+    LookupTypeField,
+    RangeField,
+    TimeRangeField
 )
 from .utils import label_for_filter
-
 
 __all__ = [
     'AllValuesFilter',
