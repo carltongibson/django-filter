@@ -1,13 +1,13 @@
-import django
 import warnings
 
+import django
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
-from django.db.models.fields.related import RelatedField, ForeignObjectRel
+from django.db.models.fields.related import ForeignObjectRel, RelatedField
 from django.forms import ValidationError
 from django.utils import six, timezone
 from django.utils.encoding import force_text

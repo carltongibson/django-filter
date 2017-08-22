@@ -7,6 +7,17 @@ from django.conf.urls import url
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.dateparse import parse_date
+from django_filters import STRICTNESS, filters
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from rest_framework import generics, serializers, status
+from rest_framework.test import APIRequestFactory
+
+from .models import (
+    BaseFilterableItem,
+    BasicModel,
+    DjangoFilterOrderingModel,
+    FilterableItem
+)
 
 try:
     from django.urls import reverse
@@ -14,13 +25,8 @@ except ImportError:
     # Django < 1.10 compatibility
     from django.core.urlresolvers import reverse
 
-from rest_framework import generics, serializers, status
-from rest_framework.test import APIRequestFactory
 
-from django_filters import filters, STRICTNESS
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
-from .models import BaseFilterableItem, BasicModel, FilterableItem, DjangoFilterOrderingModel
 
 factory = APIRequestFactory()
 

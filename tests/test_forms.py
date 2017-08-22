@@ -1,16 +1,11 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 from django import forms
 from django.test import TestCase, override_settings
-
+from django_filters.filters import CharFilter, ChoiceFilter
 from django_filters.filterset import FilterSet
-from django_filters.filters import CharFilter
-from django_filters.filters import ChoiceFilter
 
-from .models import User, ManagerGroup
-from .models import Book
-from .models import STATUS_CHOICES, REGULAR, MANAGER
+from .models import MANAGER, REGULAR, STATUS_CHOICES, Book, ManagerGroup, User
 
 
 class FilterSetFormTests(TestCase):
