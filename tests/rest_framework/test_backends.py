@@ -108,6 +108,27 @@ class GetSchemaFieldsTests(TestCase):
         self.assertIsInstance(schemas[1], compat.coreschema.Number)
         self.assertIsInstance(schemas[2], compat.coreschema.String)
 
+    def test_field_required(self):
+        class RequiredFieldsFilter(SeveralFieldsFilter):
+            required_text = filters.CharFilter(required=True)
+
+            class Meta(SeveralFieldsFilter.Meta):
+                fields = SeveralFieldsFilter.Meta.fields + ['required_text']
+
+        class FilterClassWithRequiredFieldsView(FilterClassRootView):
+            filter_class = RequiredFieldsFilter
+
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(FilterClassWithRequiredFieldsView())
+        required = [f.required for f in fields]
+        fields = [f.name for f in fields]
+
+        self.assertEqual(fields, ['text', 'decimal', 'date', 'required_text'])
+        self.assertFalse(required[0])
+        self.assertFalse(required[1])
+        self.assertFalse(required[2])
+        self.assertTrue(required[3])
+
     def tests_field_with_request_callable(self):
         def qs(request):
             # users expect a valid request object to be provided which cannot
