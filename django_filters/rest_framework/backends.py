@@ -97,7 +97,7 @@ class DjangoFilterBackend(object):
         return [] if not filter_class else [
             compat.coreapi.Field(
                 name=field_name,
-                required=False,
+                required=field.required,
                 location='query',
                 schema=self.get_coreschema_field(field)
                 )
