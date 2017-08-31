@@ -313,35 +313,35 @@ class ChoiceFilterTests(TestCase):
     def test_empty_choice(self):
         # default value
         f = ChoiceFilter(choices=[('a', 'a')])
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
             ('a', 'a'),
         ])
 
         # set value, allow blank label
         f = ChoiceFilter(choices=[('a', 'a')], empty_label='')
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', ''),
             ('a', 'a'),
         ])
 
         # disable empty choice w/ None
         f = ChoiceFilter(choices=[('a', 'a')], empty_label=None)
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('a', 'a'),
         ])
 
     def test_null_choice(self):
         # default is to be disabled
         f = ChoiceFilter(choices=[('a', 'a')], )
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
             ('a', 'a'),
         ])
 
         # set label, allow blank label
         f = ChoiceFilter(choices=[('a', 'a')], null_label='')
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
             ('null', ''),
             ('a', 'a'),
@@ -349,7 +349,7 @@ class ChoiceFilterTests(TestCase):
 
         # set null value
         f = ChoiceFilter(choices=[('a', 'a')], null_value='NULL', null_label='')
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
             ('NULL', ''),
             ('a', 'a'),
@@ -357,8 +357,35 @@ class ChoiceFilterTests(TestCase):
 
         # explicitly disable
         f = ChoiceFilter(choices=[('a', 'a')], null_label=None)
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
+            ('a', 'a'),
+        ])
+
+    def test_null_multiplechoice(self):
+        # default is to be disabled
+        f = MultipleChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(list(f.field.choices), [
+            ('a', 'a'),
+        ])
+
+        # set label, allow blank label
+        f = MultipleChoiceFilter(choices=[('a', 'a')], null_label='')
+        self.assertEqual(list(f.field.choices), [
+            ('null', ''),
+            ('a', 'a'),
+        ])
+
+        # set null value
+        f = MultipleChoiceFilter(choices=[('a', 'a')], null_value='NULL', null_label='')
+        self.assertEqual(list(f.field.choices), [
+            ('NULL', ''),
+            ('a', 'a'),
+        ])
+
+        # explicitly disable
+        f = MultipleChoiceFilter(choices=[('a', 'a')], null_label=None)
+        self.assertEqual(list(f.field.choices), [
             ('a', 'a'),
         ])
 
@@ -368,8 +395,14 @@ class ChoiceFilterTests(TestCase):
         FILTERS_NULL_CHOICE_VALUE='NULL VALUE', )
     def test_settings_overrides(self):
         f = ChoiceFilter(choices=[('a', 'a')], )
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', 'EMPTY LABEL'),
+            ('NULL VALUE', 'NULL LABEL'),
+            ('a', 'a'),
+        ])
+
+        f = MultipleChoiceFilter(choices=[('a', 'a')], )
+        self.assertEqual(list(f.field.choices), [
             ('NULL VALUE', 'NULL LABEL'),
             ('a', 'a'),
         ])
@@ -380,11 +413,16 @@ class ChoiceFilterTests(TestCase):
             yield ('b', 'b')
 
         f = ChoiceFilter(choices=choices)
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
             ('a', 'a'),
             ('b', 'b'),
         ])
+
+    def test_callable_choices_is_lazy(self):
+        def choices():
+            self.fail('choices should not be called during initialization')
+        ChoiceFilter(choices=choices)
 
 
 class MultipleChoiceFilterTests(TestCase):
@@ -700,6 +738,16 @@ class ModelChoiceFilterTests(TestCase):
         with self.assertRaises(TypeError):
             f.field
 
+    @override_settings(
+        FILTERS_EMPTY_CHOICE_LABEL='EMPTY',
+        FILTERS_NULL_CHOICE_VALUE='NULL', )
+    def test_empty_choices(self):
+        f = ModelChoiceFilter(queryset=User.objects.all(), null_value='null', null_label='NULL')
+        self.assertEqual(list(f.field.choices), [
+            ('', 'EMPTY'),
+            ('null', 'NULL'),
+        ])
+
     def test_default_field_with_queryset(self):
         qs = mock.NonCallableMock(spec=[])
         f = ModelChoiceFilter(queryset=qs)
@@ -741,6 +789,15 @@ class ModelMultipleChoiceFilterTests(TestCase):
         f = ModelMultipleChoiceFilter()
         with self.assertRaises(TypeError):
             f.field
+
+    @override_settings(
+        FILTERS_EMPTY_CHOICE_LABEL='EMPTY',
+        FILTERS_NULL_CHOICE_VALUE='NULL', )
+    def test_empty_choices(self):
+        f = ModelMultipleChoiceFilter(queryset=User.objects.all(), null_value='null', null_label='NULL')
+        self.assertEqual(list(f.field.choices), [
+            ('null', 'NULL'),
+        ])
 
     def test_default_field_with_queryset(self):
         qs = mock.NonCallableMock(spec=[])
@@ -1146,6 +1203,14 @@ class AllValuesFilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.ChoiceField)
 
+    def test_empty_value_in_choices(self):
+        f = AllValuesFilter(name='username')
+        f.model = User
+
+        self.assertEqual(list(f.field.choices), [
+            ('', '---------'),
+        ])
+
 
 class LookupTypesTests(TestCase):
     def test_custom_lookup_exprs(self):
@@ -1296,7 +1361,7 @@ class OrderingFilterTests(TestCase):
             fields=(('a', 'c'), ('b', 'd')),
         )
 
-        self.assertSequenceEqual(f.field.choices, (
+        self.assertSequenceEqual(list(f.field.choices), (
             ('', '---------'),
             ('a', 'A'),
             ('b', 'B'),
@@ -1307,7 +1372,7 @@ class OrderingFilterTests(TestCase):
             fields=(('a', 'c'), ('b', 'd')),
         )
 
-        self.assertSequenceEqual(f.field.choices, (
+        self.assertSequenceEqual(list(f.field.choices), (
             ('', '---------'),
             ('c', 'C'),
             ('-c', 'C (descending)'),
@@ -1321,7 +1386,7 @@ class OrderingFilterTests(TestCase):
             field_labels={'a': 'foo'},
         )
 
-        self.assertSequenceEqual(f.field.choices, (
+        self.assertSequenceEqual(list(f.field.choices), (
             ('', '---------'),
             ('c', 'foo'),
             ('-c', 'foo (descending)'),
@@ -1338,7 +1403,7 @@ class OrderingFilterTests(TestCase):
             }
         )
 
-        self.assertEqual(f.field.choices, [
+        self.assertEqual(list(f.field.choices), [
             ('', '---------'),
             ('username', 'BLABLA'),
             ('-username', 'XYZXYZ'),
@@ -1393,7 +1458,7 @@ class OrderingFilterTests(TestCase):
         with translation.override('pl'):
             f = OrderingFilter(fields=['username'])
 
-            self.assertEqual(f.field.choices, [
+            self.assertEqual(list(f.field.choices), [
                 ('', '---------'),
                 ('username', 'Nazwa użytkownika'),
                 ('-username', 'Nazwa użytkownika (malejąco)'),
@@ -1406,7 +1471,7 @@ class OrderingFilterTests(TestCase):
                 field_labels={'username': 'BLABLA'},
             )
 
-            self.assertEqual(f.field.choices, [
+            self.assertEqual(list(f.field.choices), [
                 ('', '---------'),
                 ('username', 'BLABLA'),
                 ('-username', 'BLABLA (malejąco)'),
