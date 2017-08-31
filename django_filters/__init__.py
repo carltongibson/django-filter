@@ -9,7 +9,7 @@ from .filters import *
 
 # We make the `rest_framework` module available without an additional import.
 #   If DRF is not installed, no-op.
-if pkgutil.find_loader('rest_framework'):
+if pkgutil.find_loader('rest_framework') is not None:
     from . import rest_framework
 del pkgutil
 
