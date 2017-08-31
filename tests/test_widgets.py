@@ -10,7 +10,8 @@ from django_filters.widgets import (
     LinkWidget,
     LookupTypeWidget,
     QueryArrayWidget,
-    RangeWidget
+    RangeWidget,
+    SuffixedMultiWidget
 )
 
 
@@ -121,6 +122,70 @@ class LinkWidgetTests(TestCase):
         data = {'price': 'test-val1'}
         result = w.value_from_datadict(data, {}, 'price')
         self.assertEqual(result, 'test-val1')
+
+
+class SuffixedMultiWidgetTests(TestCase):
+    def test_assertions(self):
+        # number of widgets must match suffixes
+        with self.assertRaises(AssertionError):
+            SuffixedMultiWidget(widgets=[BooleanWidget])
+
+        # suffixes must be unique
+        class W(SuffixedMultiWidget):
+            suffixes = ['a', 'a']
+
+        with self.assertRaises(AssertionError):
+            W(widgets=[BooleanWidget, BooleanWidget])
+
+        # should succeed
+        class W(SuffixedMultiWidget):
+            suffixes = ['a', 'b']
+        W(widgets=[BooleanWidget, BooleanWidget])
+
+    def test_render(self):
+        class W(SuffixedMultiWidget):
+            suffixes = ['min', 'max']
+
+        w = W(widgets=[TextInput, TextInput])
+        self.assertHTMLEqual(w.render('price', ''), """
+            <input name="price_min" type="text" />
+            <input name="price_max" type="text" />
+        """)
+
+        # blank suffix
+        class W(SuffixedMultiWidget):
+            suffixes = [None, 'lookup']
+
+        w = W(widgets=[TextInput, TextInput])
+        self.assertHTMLEqual(w.render('price', ''), """
+            <input name="price" type="text" />
+            <input name="price_lookup" type="text" />
+        """)
+
+    def test_value_from_datadict(self):
+        class W(SuffixedMultiWidget):
+            suffixes = ['min', 'max']
+
+        w = W(widgets=[TextInput, TextInput])
+        result = w.value_from_datadict({
+            'price_min': '1',
+            'price_max': '2',
+        }, {}, 'price')
+        self.assertEqual(result, ['1', '2'])
+
+        result = w.value_from_datadict({}, {}, 'price')
+        self.assertEqual(result, [None, None])
+
+        # blank suffix
+        class W(SuffixedMultiWidget):
+            suffixes = ['', 'lookup']
+
+        w = W(widgets=[TextInput, TextInput])
+        result = w.value_from_datadict({
+            'price': '1',
+            'price_lookup': 'lt',
+        }, {}, 'price')
+        self.assertEqual(result, ['1', 'lt'])
 
 
 class RangeWidgetTests(TestCase):

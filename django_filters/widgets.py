@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from collections import Iterable
 from itertools import chain
+from re import search, sub
 
 import django
 from django import forms
@@ -78,6 +79,65 @@ class LinkWidget(forms.Widget):
 
     def option_string(self):
         return '<li><a%(attrs)s href="?%(query_string)s">%(label)s</a></li>'
+
+
+class SuffixedMultiWidget(forms.MultiWidget):
+    """
+    A MultiWidget that allows users to provide custom suffixes instead of indexes.
+
+    - Suffixes must be unique.
+    - There must be the same number of suffixes as fields.
+    """
+    suffixes = []
+
+    def __init__(self, *args, **kwargs):
+        super(SuffixedMultiWidget, self).__init__(*args, **kwargs)
+
+        assert len(self.widgets) == len(self.suffixes)
+        assert len(self.suffixes) == len(set(self.suffixes))
+
+    def suffixed(self, name, suffix):
+        return '_'.join([name, suffix]) if suffix else name
+
+    def get_context(self, name, value, attrs):
+        context = super(SuffixedMultiWidget, self).get_context(name, value, attrs)
+        for subcontext, suffix in zip(context['widget']['subwidgets'], self.suffixes):
+            subcontext['name'] = self.suffixed(name, suffix)
+
+        return context
+
+    def value_from_datadict(self, data, files, name):
+        return [
+            widget.value_from_datadict(data, files, self.suffixed(name, suffix))
+            for widget, suffix in zip(self.widgets, self.suffixes)
+        ]
+
+    def value_omitted_from_data(self, data, files, name):
+        return all(
+            widget.value_omitted_from_data(data, files, self.suffixed(name, suffix))
+            for widget, suffix in zip(self.widgets, self.suffixes)
+        )
+
+    # Django < 1.11 compat
+    def format_output(self, rendered_widgets):
+        rendered_widgets = [
+            self.replace_name(output, i)
+            for i, output in enumerate(rendered_widgets)
+        ]
+        return '\n'.join(rendered_widgets)
+
+    def replace_name(self, output, index):
+        result = search(r'name="(?P<name>.*)_%d"' % index, output)
+        name = result.group('name')
+        name = self.suffixed(name, self.suffixes[index])
+        name = 'name="%s"' % name
+
+        return sub(r'name=".*_%d"' % index, name, output)
+
+    def decompress(self, value):
+        if value is None:
+            return [None, None]
+        return value
 
 
 class RangeWidget(forms.MultiWidget):
