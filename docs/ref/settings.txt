@@ -58,7 +58,7 @@ Default:
 .. code-block:: python
 
     # refer to 'django_filters.conf.DEFAULTS'
-    'VERBOSE_LOOKUPS': {
+    FILTERS_VERBOSE_LOOKUPS = {
         'exact': _(''),
         'iexact': _(''),
         'contains': _('contains'),
