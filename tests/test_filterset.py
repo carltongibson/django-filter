@@ -246,6 +246,35 @@ class FilterSetFilterForLookupTests(TestCase):
         self.assertEqual(result, BooleanFilter)
         self.assertEqual(params['widget'], BooleanWidget)
 
+    def test_classmethod_override(self):
+        class Base(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['author']
+
+        # The python 2/3 compatible super() call raises a NameError
+        msg = "free variable 'Failing' referenced before assignment in enclosing scope"
+        with self.assertRaisesMessage(NameError, msg):
+            class Failing(Base):
+                @classmethod
+                def filter_for_lookup(cls, f, lookup_type):
+                    return super(Failing, cls).filter_for_lookup(f, lookup_type)
+
+        # Demonstrate python 2/3 compatible alternative
+        class Passing(Base):
+            @classmethod
+            def filter_for_lookup(cls, f, lookup_type):
+                try:
+                    # python 3.6+
+                    parent = super()
+                except (TypeError, RuntimeError):
+                    #   python 2,  python < 3.6
+                    parent = Base
+                return parent.filter_for_lookup(f, lookup_type)
+
+        self.assertEqual(len(Passing.base_filters), 1)
+        self.assertIn('author', Passing.base_filters)
+
 
 class FilterSetFilterForReverseFieldTests(TestCase):
 
