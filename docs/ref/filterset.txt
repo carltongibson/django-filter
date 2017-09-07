@@ -211,5 +211,14 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
             if isinstance(f, models.DateField) and lookup_type == 'range':
                 return django_filters.DateRangeFilter, {}
 
+            # Note that the version agnostic super(ProductFilter, cls) call
+            # does not work, due to conflicts with the FilterSet metaclass.
+            # The below super() call is compatible with python3.6+, otherwise
+            # it's necessary to use a hardcoded reference to the super class.
+            try:
+                parent = super()
+            except (TypeError, RuntimeError):
+                parent  = django_fitlers.FilterSet
+
             # use default behavior otherwise
-            return super(ProductFilter, cls).filter_for_lookup(f, lookup_type)
+            return parent.filter_for_lookup(f, lookup_type)
