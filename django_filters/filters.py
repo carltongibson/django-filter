@@ -85,16 +85,17 @@ def _extra_attr(attr):
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
+    disabled_when = []
 
     def __init__(self, name=None, label=None, method=None, lookup_expr='exact',
-                 distinct=False, exclude=False, **kwargs):
+                 distinct=False, exclude=False, disabled_when=None, **kwargs):
         self.name = name
         self.label = label
         self.method = method
         self.lookup_expr = lookup_expr
         self.distinct = distinct
         self.exclude = exclude
-
+        self.disabled_when = disabled_when or []
         self.extra = kwargs
         self.extra.setdefault('required', False)
 
@@ -196,6 +197,9 @@ class Filter(object):
             qs = qs.distinct()
         qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
         return qs
+
+    def check_enabled(self, name, form_data):
+        return form_data.get(name, None) is not None and not any(form_data[field] for field in self.disabled_when)
 
 
 class CharFilter(Filter):

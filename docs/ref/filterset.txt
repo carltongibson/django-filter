@@ -179,6 +179,35 @@ Currently, there are three different behaviors:
 If the ``strict`` option is not provided, then the filterset will default to the
 value of the ``FILTERS_STRICTNESS`` setting.
 
+Handling mutually exclusive filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FilterSet provides the ability to disable conditional filters. This allows you to limit the number of
+conditions in the overlapping fields. Usage example:
+
+.. code-block:: python
+
+    from django_filters import FilterSet, ModelChoiceFilter
+    from world.models import Country, State
+    from dal import autocomplete
+
+    class InstitutionFilter(FilterSet):
+        country = ModelChoiceFilter(
+            queryset=Country.objects.all(),
+            widget=autocomplete.ModelSelect2(url='world:country-autocomplete'),
+            disabled_when=['state']
+        )
+        state = ModelChoiceFilter(
+            queryset=State.objects.all(),
+            widget=autocomplete.ModelSelect2(url='world:state-autocomplete',
+                                             forward=['country']),
+            lookup_expr='country__state'
+        )
+        class Meta:
+            model = Institution
+
+In the above example, the django-autocomplete-light 3.x library was also used. It is not required, but
+it effectively demonstrates the universal case.
 
 Overriding ``FilterSet`` methods
 --------------------------------

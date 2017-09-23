@@ -145,6 +145,10 @@ queryset. This option can be used to eliminate duplicate results when using filt
 A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
 Defaults to ``False``.
 
+``**disabled_when``
+~~~~~~~~~~~~~~~~~~~
+
+A list of filters which disable (when filled) a filter. Provides support for mutually exclusive or overlapping filters.
 
 ``**kwargs``
 ~~~~~~~~~~~~
