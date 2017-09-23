@@ -229,7 +229,7 @@ class BaseFilterSet(object):
             for name, filter_ in six.iteritems(self.filters):
                 value = self.form.cleaned_data.get(name)
 
-                if value is not None:  # valid & clean data
+                if filter_.check_enabled(name, self.form.cleaned_data):  # valid & clean data
                     qs = filter_.filter(qs, value)
 
             self._qs = qs
