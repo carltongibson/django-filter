@@ -334,7 +334,7 @@ class IsoDateTimeFilter(DateTimeFilter):
     field_class = IsoDateTimeField
 
 
-class IsoDateFilter(DateTimeFilter):
+class IsoDateFilter(DateFilter):
     """
     Uses IsoDateField to support filtering on ISO 8601 formated dates.
     """
