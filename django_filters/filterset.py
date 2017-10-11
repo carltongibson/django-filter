@@ -214,27 +214,28 @@ class BaseFilterSet(object):
         if not hasattr(self, '_qs'):
             if not self.is_bound:
                 self._qs = self.queryset.all()
-                return self._qs
-
-            if not self.form.is_valid():
-                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                    raise forms.ValidationError(self.form.errors)
-                elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
-                    self._qs = self.queryset.none()
-                    return self._qs
-                # else STRICTNESS.IGNORE...  ignoring
-
-            # start with all the results and filter from there
-            qs = self.queryset.all()
-            for name, filter_ in six.iteritems(self.filters):
-                value = self.form.cleaned_data.get(name)
-
-                if value is not None:  # valid & clean data
-                    qs = filter_.filter(qs, value)
-
-            self._qs = qs
-
+            else:
+                self._qs = self.filter_queryset(self.queryset.all())
         return self._qs
+
+    def filter_queryset(self, queryset):
+        """
+        Validate the query data and then filter the queryset.
+
+        This method should be overridden if you need to perform additional
+        filtering to the queryset before it is cached.
+        """
+        if not self.form.is_valid():
+            if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                raise forms.ValidationError(self.form.errors)
+            elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
+                return self.queryset.none()
+            elif self.strict == STRICTNESS.IGNORE:
+                pass  # ignoring...
+
+        for name, value in self.form.cleaned_data.items():
+            queryset = self.filters[name].filter(queryset, value)
+        return queryset
 
     @property
     def form(self):
