@@ -7,7 +7,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 
 from .conf import settings
-from .constants import ALL_FIELDS, STRICTNESS
+from .constants import ALL_FIELDS
 from .filters import (
     BaseInFilter,
     BaseRangeFilter,
@@ -156,33 +156,41 @@ class BaseFilterSet(object):
             filter_.model = model
             filter_.parent = self
 
+    def is_valid(self):
+        """
+        Return True if the underlying form has no errors, or False otherwise.
+        """
+        return self.is_bound and self.form.is_valid()
+
     @property
-    def qs(self):
-        if not hasattr(self, '_qs'):
-            if not self.is_bound:
-                self._qs = self.queryset.all()
-            else:
-                self._qs = self.filter_queryset(self.queryset.all())
-        return self._qs
+    def errors(self):
+        """
+        Return an ErrorDict for the data provided for the underlying form.
+        """
+        return self.form.errors
 
     def filter_queryset(self, queryset):
         """
-        Validate the query data and then filter the queryset.
+        Filter the queryset with the underlying form's `cleaned_data`. You must
+        call `is_valid()` or `errors` before calling this method.
 
         This method should be overridden if additional filtering needs to be
         applied to the queryset before it is cached.
         """
-        if not self.form.is_valid():
-            if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                raise forms.ValidationError(self.form.errors)
-            elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
-                return self.queryset.none()
-            elif self.strict == STRICTNESS.IGNORE:
-                pass  # ignoring...
-
         for name, value in self.form.cleaned_data.items():
             queryset = self.filters[name].filter(queryset, value)
         return queryset
+
+    @property
+    def qs(self):
+        if not hasattr(self, '_qs'):
+            qs = self.queryset.all()
+            if self.is_bound:
+                # ensure form validation before filtering
+                self.errors
+                qs = self.filter_queryset(qs)
+            self._qs = qs
+        return self._qs
 
     @property
     def form(self):
