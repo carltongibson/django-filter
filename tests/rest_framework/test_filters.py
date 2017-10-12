@@ -12,4 +12,4 @@ class BooleanFilterTests(TestCase):
         # from `rest_framework.filters`.
         f = filters.BooleanFilter()
 
-        self.assertEqual(f.widget, BooleanWidget)
+        self.assertEqual(f.extra['widget'], BooleanWidget)
