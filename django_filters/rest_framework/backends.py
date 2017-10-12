@@ -3,11 +3,12 @@ import warnings
 from django.template import loader
 
 from . import filters, filterset
-from .. import compat
+from .. import compat, utils
 
 
 class DjangoFilterBackend(object):
     default_filter_set = filterset.FilterSet
+    raise_exception = True
 
     @property
     def template(self):
@@ -49,8 +50,12 @@ class DjangoFilterBackend(object):
         filter_class = self.get_filter_class(view, queryset)
 
         if filter_class:
-            return filter_class(request.query_params, queryset=queryset, request=request).qs
+            filterset = filter_class(request.query_params, queryset=queryset, request=request)
+            if not filterset.is_valid() and self.raise_exception:
+                from rest_framework.exceptions import ValidationError
 
+                raise ValidationError(utils.raw_validation(filterset.errors))
+            return filterset.qs
         return queryset
 
     def to_html(self, request, queryset, view):

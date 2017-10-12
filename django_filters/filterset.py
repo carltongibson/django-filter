@@ -47,8 +47,6 @@ class FilterSetOptions(object):
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
-        self.strict = getattr(options, 'strict', None)
-
         self.form = getattr(options, 'form', forms.Form)
 
 
@@ -140,7 +138,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None, strict=None):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         model = queryset.model
@@ -150,16 +148,6 @@ class BaseFilterSet(object):
         self.queryset = queryset
         self.request = request
         self.form_prefix = prefix
-
-        # What to do on on validation errors
-        # Fallback to meta, then settings strictness
-        if strict is None:
-            strict = self._meta.strict
-        if strict is None:
-            strict = settings.STRICTNESS
-
-        # transform legacy values
-        self.strict = STRICTNESS._LEGACY.get(strict, strict)
 
         self.filters = copy.deepcopy(self.base_filters)
 

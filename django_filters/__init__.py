@@ -1,7 +1,6 @@
 # flake8: noqa
 import pkgutil
 
-from .constants import STRICTNESS
 from .filterset import FilterSet
 from .filters import *
 
