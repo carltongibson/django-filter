@@ -36,22 +36,6 @@ from .utils import (
 )
 
 
-def get_filter_name(field_name, lookup_expr):
-    """
-    Combine a field name and lookup expression into a usable filter name.
-    Exact lookups are the implicit default, so "exact" is stripped from the
-    end of the filter name.
-    """
-    filter_name = LOOKUP_SEP.join([field_name, lookup_expr])
-
-    # This also works with transformed exact lookups, such as 'date__exact'
-    _exact = LOOKUP_SEP + 'exact'
-    if filter_name.endswith(_exact):
-        filter_name = filter_name[:-len(_exact)]
-
-    return filter_name
-
-
 def _together_valid(form, fieldset):
     field_presence = [
         form.cleaned_data.get(field) not in EMPTY_VALUES
@@ -286,6 +270,22 @@ class BaseFilterSet(object):
         return OrderedDict(fields)
 
     @classmethod
+    def get_filter_name(cls, field_name, lookup_expr):
+        """
+        Combine a field name and lookup expression into a usable filter name.
+        Exact lookups are the implicit default, so "exact" is stripped from the
+        end of the filter name.
+        """
+        filter_name = LOOKUP_SEP.join([field_name, lookup_expr])
+
+        # This also works with transformed exact lookups, such as 'date__exact'
+        _exact = LOOKUP_SEP + 'exact'
+        if filter_name.endswith(_exact):
+            filter_name = filter_name[:-len(_exact)]
+
+        return filter_name
+
+    @classmethod
     def get_filters(cls):
         """
         Get all filters for the filterset. This is the combination of declared and
@@ -314,7 +314,7 @@ class BaseFilterSet(object):
                 continue
 
             for lookup_expr in lookups:
-                filter_name = get_filter_name(field_name, lookup_expr)
+                filter_name = cls.get_filter_name(field_name, lookup_expr)
 
                 # If the filter is explicitly declared on the class, skip generation
                 if filter_name in cls.declared_filters:
