@@ -5,7 +5,7 @@ from datetime import datetime, time
 
 import django
 from django import forms
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 
@@ -122,6 +122,27 @@ class IsoDateTimeField(forms.DateTimeField):
                 raise ValueError
             return handle_timezone(parsed)
         return super(IsoDateTimeField, self).strptime(value, format)
+
+
+class IsoDateField(forms.DateField):
+    """
+    Supports 'iso-8601' date format too which is out the scope of
+    the ``datetime.strptime`` standard library
+
+    # ISO 8601: ``http://www.w3.org/TR/NOTE-datetime``
+    """
+    ISO_8601 = 'iso-8601'
+    input_formats = [ISO_8601]
+
+    def strptime(self, value, format):
+        value = force_str(value)
+
+        if format == self.ISO_8601:
+            parsed = parse_date(value)
+            if parsed is None:  # Continue with other formats if doesn't match
+                raise ValueError
+            return parsed
+        return super(IsoDateField, self).strptime(value, format)
 
 
 class BaseCSVField(forms.Field):

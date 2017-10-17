@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import decimal
-from datetime import datetime, time, timedelta, tzinfo
+from datetime import date, datetime, time, timedelta, tzinfo
 
 import pytz
 from django import forms
@@ -19,6 +19,7 @@ from django_filters.fields import (
     BaseRangeField,
     DateRangeField,
     DateTimeRangeField,
+    IsoDateField,
     IsoDateTimeField,
     Lookup,
     LookupTypeField,
@@ -219,6 +220,28 @@ class IsoDateTimeFieldTests(TestCase):
         f = IsoDateTimeField()
         with self.assertRaises(ValueError):
             f.strptime('19-07-2015T51:34:13.759', IsoDateTimeField.ISO_8601)
+
+
+class IsoDateFieldTests(TestCase):
+    reference_str = "2015-07-19"
+    reference_d = date(2015, 7, 19)
+
+    def test_date_string_is_parsed(self):
+        f = IsoDateField()
+        d = f.strptime(self.reference_str + "", IsoDateField.ISO_8601)
+        self.assertTrue(isinstance(d, date))
+        self.assertEqual(d, self.reference_d)
+
+    def test_datetime_non_iso_format(self):
+        f = IsoDateField()
+        d = f.strptime('19-07-2015', '%d-%m-%Y')
+        self.assertTrue(isinstance(d, date))
+        self.assertEqual(d, self.reference_d)
+
+    def test_datetime_wrong_format(self):
+        f = IsoDateField()
+        with self.assertRaises(ValueError):
+            f.strptime('19-07-2015', IsoDateTimeField.ISO_8601)
 
 
 class BaseCSVFieldTests(TestCase):

@@ -21,6 +21,7 @@ from .fields import (
     ChoiceField,
     DateRangeField,
     DateTimeRangeField,
+    IsoDateField,
     IsoDateTimeField,
     Lookup,
     LookupTypeField,
@@ -48,6 +49,7 @@ __all__ = [
     'DateTimeFromToRangeFilter',
     'DurationFilter',
     'Filter',
+    'IsoDateFilter',
     'IsoDateTimeFilter',
     'ModelChoiceFilter',
     'ModelMultipleChoiceFilter',
@@ -330,6 +332,13 @@ class IsoDateTimeFilter(DateTimeFilter):
     * https://github.com/alex/django-filter/pull/264
     """
     field_class = IsoDateTimeField
+
+
+class IsoDateFilter(DateFilter):
+    """
+    Uses IsoDateField to support filtering on ISO 8601 formated dates.
+    """
+    field_class = IsoDateField
 
 
 class TimeFilter(Filter):
