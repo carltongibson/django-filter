@@ -651,7 +651,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
                     'queryset': Book.objects.filter(id__in=[1, 2])
                 })
 
-                self.filters['favorite_books'].required = True
+                self.filters['favorite_books'].extra['required'] = True
 
         qs = User.objects.all().order_by('username')
 
