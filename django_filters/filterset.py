@@ -47,17 +47,34 @@ def _together_valid(form, fieldset):
     return True
 
 
-def get_full_clean_override(together):
-    # coerce together to list of pairs
-    if isinstance(together[0], (six.string_types)):
+def _exclusive_valid(form, fieldset):
+    field_presence = [
+        form.cleaned_data.get(field) not in EMPTY_VALUES
+        for field in fieldset
+    ]
+
+    if any(field_presence):
+        return not all(field_presence)
+    return True
+
+
+def get_full_clean_override(together, exclusive):
+    # coerce together/exclusive to list of pairs
+    if together and isinstance(together[0], (six.string_types)):
         together = [together]
+    if exclusive and isinstance(exclusive[0], (six.string_types)):
+        exclusive = [exclusive]
 
     def full_clean(form):
         super(form.__class__, form).full_clean()
         message = 'Following fields must be together: %s'
-
         for each in together:
             if not _together_valid(form, each):
+                return form.add_error(None, message % ','.join(each))
+
+        message = 'Following fields are exclusive to each other: %s'
+        for each in exclusive:
+            if not _exclusive_valid(form, each):
                 return form.add_error(None, message % ','.join(each))
 
     return full_clean
@@ -76,6 +93,7 @@ class FilterSetOptions(object):
         self.form = getattr(options, 'form', forms.Form)
 
         self.together = getattr(options, 'together', None)
+        self.exclusive = getattr(options, 'exclusive', None)
 
 
 class FilterSetMetaclass(type):
@@ -229,8 +247,9 @@ class BaseFilterSet(object):
 
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
-            if self._meta.together:
-                Form.full_clean = get_full_clean_override(self._meta.together)
+            if self._meta.together or self._meta.exclusive:
+                together, exclusive = self._meta.together or [], self._meta.exclusive or []
+                Form.full_clean = get_full_clean_override(together, exclusive)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:

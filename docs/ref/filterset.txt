@@ -12,6 +12,7 @@ Meta options
 - :ref:`exclude <exclude>`
 - :ref:`form <form>`
 - :ref:`together <together>`
+- :ref:`exclusive <exclusive>`
 - :ref:`filter_overrides <filter_overrides>`
 - :ref:`strict <strict>`
 
@@ -119,6 +120,26 @@ field set must either be all or none present in the request for
             model = Product
             fields = ['price', 'release_date', 'rating']
             together = ['rating', 'price']
+
+
+.. _exclusive:
+
+Define ``exclusive`` filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The inner ``Meta`` class also takes an optional ``exclusive`` argument.  This
+is a list of lists, each containing field names. For convenience can be a
+single list/tuple when dealing with a single set of fields. There must not be
+more than one field present in a field set in the request for ``FilterSet.form``
+to be valid::
+
+    import django_filters
+
+    class PlaceFilter(django_filters.FilterSet):
+        class Meta:
+            model = Place
+            fields = ['country', 'state']
+            exclusive = ['country', 'state']
 
 
 .. _filter_overrides:
