@@ -6,13 +6,7 @@ from datetime import datetime, time, timedelta, tzinfo
 import pytz
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils.timezone import (
-    activate,
-    deactivate,
-    get_current_timezone,
-    get_default_timezone,
-    make_aware
-)
+from django.utils import timezone
 
 from django_filters.fields import (
     BaseCSVField,
@@ -147,78 +141,68 @@ class LookupTypeFieldTests(TestCase):
 class IsoDateTimeFieldTests(TestCase):
     reference_str = "2015-07-19T13:34:51.759"
     reference_dt = datetime(2015, 7, 19, 13, 34, 51, 759000)
+    field = IsoDateTimeField()
+
+    def parse_input(self, value):
+        return self.field.strptime(value, IsoDateTimeField.ISO_8601)
 
     def test_datetime_string_is_parsed(self):
-        f = IsoDateTimeField()
-        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
+        d = self.parse_input(self.reference_str)
         self.assertTrue(isinstance(d, datetime))
 
     def test_datetime_string_with_timezone_is_parsed(self):
-        f = IsoDateTimeField()
-        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
+        d = self.parse_input(self.reference_str + "+01:00")
         self.assertTrue(isinstance(d, datetime))
 
     def test_datetime_zulu(self):
-        f = IsoDateTimeField()
-        d = f.strptime(self.reference_str + "Z", IsoDateTimeField.ISO_8601)
+        d = self.parse_input(self.reference_str + "Z")
         self.assertTrue(isinstance(d, datetime))
 
+    @override_settings(TIME_ZONE='UTC')
     def test_datetime_timezone_awareness(self):
-        # parsed datetimes should obey USE_TZ
-        f = IsoDateTimeField()
-        r = make_aware(self.reference_dt, get_default_timezone())
+        utc, tokyo = pytz.timezone('UTC'), pytz.timezone('Asia/Tokyo')
 
-        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
-        self.assertTrue(isinstance(d.tzinfo, tzinfo))
-        self.assertEqual(d, r + r.utcoffset() - d.utcoffset())
+        # by default, use the server timezone
+        reference = utc.localize(self.reference_dt)
+        parsed = self.parse_input(self.reference_str)
+        self.assertIsInstance(parsed.tzinfo, tzinfo)
+        self.assertEqual(parsed, reference)
 
-        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
-        self.assertTrue(isinstance(d.tzinfo, tzinfo))
-        self.assertEqual(d, r)
+        # if set, use the active timezone
+        reference = tokyo.localize(self.reference_dt)
+        with timezone.override(tokyo):
+            parsed = self.parse_input(self.reference_str)
+        self.assertIsInstance(parsed.tzinfo, tzinfo)
+        self.assertEqual(parsed.tzinfo.zone, tokyo.zone)
+        self.assertEqual(parsed, reference)
 
-    def test_datetime_timezone_with_current_timezone(self):
-        z = pytz.timezone('Asia/Tokyo')  # Central European Time +01:00
-
-        f = IsoDateTimeField()
-        r = make_aware(self.reference_dt, get_default_timezone())
-
-        activate(z)
-        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
-        deactivate()
-        self.assertTrue(isinstance(d.tzinfo, tzinfo))
-        self.assertEqual(d, r + r.utcoffset() - d.utcoffset())
-
-        activate(z)
-        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
-        deactivate()
-        self.assertTrue(isinstance(d.tzinfo, tzinfo))
-        self.assertEqual(z.zone, d.tzinfo.zone)
-        self.assertEqual(d, r + r.utcoffset() - d.utcoffset())
+        # if provided, utc offset should have precedence
+        reference = utc.localize(self.reference_dt - timedelta(hours=1))
+        parsed = self.parse_input(self.reference_str + "+01:00")
+        self.assertIsInstance(parsed.tzinfo, tzinfo)
+        self.assertEqual(parsed, reference)
 
     @override_settings(USE_TZ=False)
     def test_datetime_timezone_naivety(self):
-        # parsed datetimes should obey USE_TZ
-        f = IsoDateTimeField()
-        r = self.reference_dt.replace()
+        reference = self.reference_dt.replace()
 
-        d = f.strptime(self.reference_str + "+01:00", IsoDateTimeField.ISO_8601)
-        self.assertTrue(d.tzinfo is None)
-        self.assertEqual(d, r - timedelta(hours=1))
+        parsed = self.parse_input(self.reference_str + "+01:00")
+        self.assertIsNone(parsed.tzinfo)
+        self.assertEqual(parsed, reference - timedelta(hours=1))
 
-        d = f.strptime(self.reference_str + "", IsoDateTimeField.ISO_8601)
-        self.assertTrue(d.tzinfo is None)
-        self.assertEqual(d, r)
+        parsed = self.parse_input(self.reference_str)
+        self.assertIsNone(parsed.tzinfo)
+        self.assertEqual(parsed, reference)
 
     def test_datetime_non_iso_format(self):
         f = IsoDateTimeField()
-        d = f.strptime('19-07-2015T51:34:13.759', '%d-%m-%YT%S:%M:%H.%f')
-        self.assertTrue(isinstance(d, datetime))
-        self.assertEqual(d, self.reference_dt)
+        parsed = f.strptime('19-07-2015T51:34:13.759', '%d-%m-%YT%S:%M:%H.%f')
+        self.assertTrue(isinstance(parsed, datetime))
+        self.assertEqual(parsed, self.reference_dt)
 
     def test_datetime_wrong_format(self):
-        f = IsoDateTimeField()
         with self.assertRaises(ValueError):
-            f.strptime('19-07-2015T51:34:13.759', IsoDateTimeField.ISO_8601)
+            self.parse_input('19-07-2015T51:34:13.759')
 
 
 class BaseCSVFieldTests(TestCase):
