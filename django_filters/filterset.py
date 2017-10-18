@@ -29,6 +29,7 @@ from .filters import (
     UUIDFilter
 )
 from .utils import (
+    deprecate,
     get_all_model_fields,
     get_model_field,
     resolve_field,
@@ -75,6 +76,8 @@ class FilterSetOptions(object):
 
         self.form = getattr(options, 'form', forms.Form)
 
+        if hasattr(options, 'together'):
+            deprecate('The `Meta.together` option has been deprecated in favor of overriding `Form.clean`.', 1)
         self.together = getattr(options, 'together', None)
 
 

@@ -1,6 +1,22 @@
-================
+===============
+Migration Guide
+===============
+
+----------------
+Migrating to 2.0
+----------------
+
+Removal of the ``Meta.together`` option
+---------------------------------------
+
+The ``Meta.together`` has been deprecated in favor of userland implementations
+that override the ``clean`` method of the ``Meta.form`` class. An example will
+be provided in a "recipes" secion in future docs.
+
+
+----------------
 Migrating to 1.0
-================
+----------------
 
 The 1.0 release of django-filter introduces several API changes and refinements
 that break forwards compatibility. Below is a list of deprecations and
