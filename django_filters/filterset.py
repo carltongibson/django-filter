@@ -99,10 +99,10 @@ class FilterSetMetaclass(type):
             if isinstance(obj, Filter)
         ]
 
-        # Default the `filter.name` to the attribute name on the filterset
+        # Default the `filter.field_name` to the attribute name on the filterset
         for filter_name, f in filters:
-            if getattr(f, 'name', None) is None:
-                f.name = filter_name
+            if getattr(f, 'field_name', None) is None:
+                f.field_name = filter_name
 
         filters.sort(key=lambda x: x[1].creation_counter)
 
@@ -341,11 +341,11 @@ class BaseFilterSet(object):
         return filters
 
     @classmethod
-    def filter_for_field(cls, f, name, lookup_expr='exact'):
+    def filter_for_field(cls, f, field_name, lookup_expr='exact'):
         f, lookup_type = resolve_field(f, lookup_expr)
 
         default = {
-            'name': name,
+            'field_name': field_name,
             'lookup_expr': lookup_expr,
         }
 
@@ -356,16 +356,16 @@ class BaseFilterSet(object):
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
             "https://django-filter.readthedocs.io/en/develop/ref/filterset.html#customise-filter-generation-with-filter-overrides"
-        ) % (cls.__name__, name, lookup_expr, f.__class__.__name__)
+        ) % (cls.__name__, field_name, lookup_expr, f.__class__.__name__)
 
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, f, name):
+    def filter_for_reverse_field(cls, f, field_name):
         rel = remote_field(f.field)
         queryset = f.field.model._default_manager.all()
         default = {
-            'name': name,
+            'field_name': field_name,
             'queryset': queryset,
         }
         if rel.multiple:

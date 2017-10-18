@@ -13,6 +13,13 @@ The ``Meta.together`` has been deprecated in favor of userland implementations
 that override the ``clean`` method of the ``Meta.form`` class. An example will
 be provided in a "recipes" secion in future docs.
 
+``Filter.name`` renamed to ``Filter.field_name``
+------------------------------------------------
+
+The filter ``name`` has been renamed to ``field_name`` as a way to disambiguate
+the filter's attribute name on its FilterSet class from the ``field_name`` used
+for filtering purposes.
+
 
 ----------------
 Migrating to 1.0
