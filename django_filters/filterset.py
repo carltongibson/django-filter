@@ -310,29 +310,29 @@ class BaseFilterSet(object):
         return filters
 
     @classmethod
-    def filter_for_field(cls, f, field_name, lookup_expr='exact'):
-        f, lookup_type = resolve_field(f, lookup_expr)
+    def filter_for_field(cls, field, field_name, lookup_expr='exact'):
+        field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {
             'field_name': field_name,
             'lookup_expr': lookup_expr,
         }
 
-        filter_class, params = cls.filter_for_lookup(f, lookup_type)
+        filter_class, params = cls.filter_for_lookup(field, lookup_type)
         default.update(params)
 
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
             "https://django-filter.readthedocs.io/en/develop/ref/filterset.html#customise-filter-generation-with-filter-overrides"
-        ) % (cls.__name__, field_name, lookup_expr, f.__class__.__name__)
+        ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
 
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, f, field_name):
-        rel = f.field.remote_field
-        queryset = f.field.model._default_manager.all()
+    def filter_for_reverse_field(cls, field, field_name):
+        rel = field.field.remote_field
+        queryset = field.field.model._default_manager.all()
         default = {
             'field_name': field_name,
             'queryset': queryset,
@@ -343,28 +343,28 @@ class BaseFilterSet(object):
             return ModelChoiceFilter(**default)
 
     @classmethod
-    def filter_for_lookup(cls, f, lookup_type):
+    def filter_for_lookup(cls, field, lookup_type):
         DEFAULTS = dict(cls.FILTER_DEFAULTS)
         if hasattr(cls, '_meta'):
             DEFAULTS.update(cls._meta.filter_overrides)
 
-        data = try_dbfield(DEFAULTS.get, f.__class__) or {}
+        data = try_dbfield(DEFAULTS.get, field.__class__) or {}
         filter_class = data.get('filter_class')
-        params = data.get('extra', lambda f: {})(f)
+        params = data.get('extra', lambda field: {})(field)
 
         # if there is no filter class, exit early
         if not filter_class:
             return None, {}
 
         # perform lookup specific checks
-        if lookup_type == 'exact' and f.choices:
-            return ChoiceFilter, {'choices': f.choices}
+        if lookup_type == 'exact' and field.choices:
+            return ChoiceFilter, {'choices': field.choices}
 
         if lookup_type == 'isnull':
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
 
             filter_class = data.get('filter_class')
-            params = data.get('extra', lambda f: {})(f)
+            params = data.get('extra', lambda field: {})(field)
             return filter_class, params
 
         if lookup_type == 'in':
