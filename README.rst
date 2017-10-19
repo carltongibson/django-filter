@@ -19,7 +19,7 @@ Full documentation on `read the docs`_.
 Requirements
 ------------
 
-* **Python**: 2.7, 3.4, 3.5, 3.6
+* **Python**: 3.4, 3.5, 3.6
 * **Django**: 1.11, 2.0b
 * **DRF**: 3.7
 
