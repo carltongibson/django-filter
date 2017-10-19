@@ -89,9 +89,6 @@ class Filter(object):
     def __init__(self, field_name=None, label=None, method=None, lookup_expr='exact',
                  distinct=False, exclude=False, **kwargs):
         self.field_name = field_name
-        if field_name is None and 'name' in kwargs:
-            deprecate("`Filter.name` has been renamed to `Filter.field_name`.")
-            self.field_name = kwargs.pop('name')
         self.label = label
         self.method = method
         self.lookup_expr = lookup_expr
@@ -131,18 +128,6 @@ class Filter(object):
 
         return locals()
     method = property(**method())
-
-    def name():
-        def fget(self):
-            deprecate("`Filter.name` has been renamed to `Filter.field_name`.")
-            return self.field_name
-
-        def fset(self, value):
-            deprecate("`Filter.name` has been renamed to `Filter.field_name`.")
-            self.field_name = value
-
-        return locals()
-    name = property(**name())
 
     def label():
         def fget(self):
