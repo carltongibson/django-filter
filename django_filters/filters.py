@@ -86,9 +86,12 @@ class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, name=None, label=None, method=None, lookup_expr='exact',
+    def __init__(self, field_name=None, label=None, method=None, lookup_expr='exact',
                  distinct=False, exclude=False, **kwargs):
-        self.name = name
+        self.field_name = field_name
+        if field_name is None and 'name' in kwargs:
+            deprecate("`Filter.name` has been renamed to `Filter.field_name`.")
+            self.field_name = kwargs.pop('name')
         self.label = label
         self.method = method
         self.lookup_expr = lookup_expr
@@ -129,12 +132,24 @@ class Filter(object):
         return locals()
     method = property(**method())
 
+    def name():
+        def fget(self):
+            deprecate("`Filter.name` has been renamed to `Filter.field_name`.")
+            return self.field_name
+
+        def fset(self, value):
+            deprecate("`Filter.name` has been renamed to `Filter.field_name`.")
+            self.field_name = value
+
+        return locals()
+    name = property(**name())
+
     def label():
         def fget(self):
             if self._label is None and hasattr(self, 'parent'):
                 model = self.parent._meta.model
                 self._label = label_for_filter(
-                    model, self.name, self.lookup_expr, self.exclude
+                    model, self.field_name, self.lookup_expr, self.exclude
                 )
             return self._label
 
@@ -194,7 +209,7 @@ class Filter(object):
             return qs
         if self.distinct:
             qs = qs.distinct()
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, lookup): value})
+        qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, lookup): value})
         return qs
 
 
@@ -217,7 +232,7 @@ class ChoiceFilter(Filter):
         if value != self.null_value:
             return super(ChoiceFilter, self).filter(qs, value)
 
-        qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): None})
+        qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): None})
         return qs.distinct() if self.distinct else qs
 
 
@@ -302,9 +317,9 @@ class MultipleChoiceFilter(Filter):
 
     def get_filter_predicate(self, v):
         try:
-            return {self.name: getattr(v, self.field.to_field_name)}
+            return {self.field_name: getattr(v, self.field.to_field_name)}
         except (AttributeError, TypeError):
-            return {self.name: v}
+            return {self.field_name: v}
 
 
 class TypedMultipleChoiceFilter(MultipleChoiceFilter):
@@ -413,13 +428,13 @@ class NumericRangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             if value.start is not None and value.stop is not None:
-                lookup = '%s__%s' % (self.name, self.lookup_expr)
+                lookup = '%s__%s' % (self.field_name, self.lookup_expr)
                 return self.get_method(qs)(**{lookup: (value.start, value.stop)})
             else:
                 if value.start is not None:
-                    qs = self.get_method(qs)(**{'%s__startswith' % self.name: value.start})
+                    qs = self.get_method(qs)(**{'%s__startswith' % self.field_name: value.start})
                 if value.stop is not None:
-                    qs = self.get_method(qs)(**{'%s__endswith' % self.name: value.stop})
+                    qs = self.get_method(qs)(**{'%s__endswith' % self.field_name: value.stop})
             if self.distinct:
                 qs = qs.distinct()
         return qs
@@ -431,13 +446,13 @@ class RangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             if value.start is not None and value.stop is not None:
-                lookup = '%s__range' % self.name
+                lookup = '%s__range' % self.field_name
                 return self.get_method(qs)(**{lookup: (value.start, value.stop)})
             else:
                 if value.start is not None:
-                    qs = self.get_method(qs)(**{'%s__gte' % self.name: value.start})
+                    qs = self.get_method(qs)(**{'%s__gte' % self.field_name: value.start})
                 if value.stop is not None:
-                    qs = self.get_method(qs)(**{'%s__lte' % self.name: value.stop})
+                    qs = self.get_method(qs)(**{'%s__lte' % self.field_name: value.stop})
             if self.distinct:
                 qs = qs.distinct()
         return qs
@@ -489,7 +504,7 @@ class DateRangeFilter(ChoiceFilter):
             value = ''
 
         assert value in self.options
-        qs = self.options[value][1](qs, self.name)
+        qs = self.options[value][1](qs, self.field_name)
         if self.distinct:
             qs = qs.distinct()
         return qs
@@ -511,7 +526,7 @@ class AllValuesFilter(ChoiceFilter):
     @property
     def field(self):
         qs = self.model._default_manager.distinct()
-        qs = qs.order_by(self.name).values_list(self.name, flat=True)
+        qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesFilter, self).field
 
@@ -520,7 +535,7 @@ class AllValuesMultipleFilter(MultipleChoiceFilter):
     @property
     def field(self):
         qs = self.model._default_manager.distinct()
-        qs = qs.order_by(self.name).values_list(self.name, flat=True)
+        qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
         return super(AllValuesMultipleFilter, self).field
 
@@ -695,7 +710,7 @@ class FilterMethod(object):
         if value in EMPTY_VALUES:
             return qs
 
-        return self.method(qs, self.f.name, value)
+        return self.method(qs, self.f.field_name, value)
 
     @property
     def method(self):
@@ -711,7 +726,7 @@ class FilterMethod(object):
         # otherwise, method is the name of a method on the parent FilterSet.
         assert hasattr(instance, 'parent'), \
             "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
-            (instance.name, instance.method)
+            (instance.field_name, instance.method)
 
         parent = instance.parent
         method = getattr(parent, instance.method, None)
