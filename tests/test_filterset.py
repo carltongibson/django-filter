@@ -3,7 +3,6 @@ from __future__ import absolute_import, unicode_literals
 import mock
 import unittest
 
-import django
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
@@ -195,7 +194,6 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Worker)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_transformed_lookup_expr(self):
         f = Comment._meta.get_field('date')
         result = FilterSet.filter_for_field(f, 'date', 'year__gte')

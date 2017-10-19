@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-import datetime
 import warnings
-from decimal import Decimal
 from unittest import skipIf
 
 from django.db.models import BooleanField

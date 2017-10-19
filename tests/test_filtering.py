@@ -4,7 +4,6 @@ import datetime
 import mock
 import unittest
 
-import django
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import six, timezone
@@ -941,7 +940,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2016-01-03'})
         self.assertEqual(len(results.qs), 3)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_filtering_dst_start_midnight(self):
         tz = timezone.get_default_timezone()
@@ -962,7 +960,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2017-10-15'})
         self.assertEqual(len(results.qs), 2)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_filtering_dst_ends_midnight(self):
         tz = timezone.get_default_timezone()
@@ -983,7 +980,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2017-02-18'})
         self.assertEqual(len(results.qs), 2)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='Europe/Paris')
     def test_filtering_dst_start(self):
         tz = timezone.get_default_timezone()
@@ -1005,7 +1001,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2017-3-26'})
         self.assertEqual(len(results.qs), 3)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='Europe/Paris')
     def test_filtering_dst_end(self):
         tz = timezone.get_default_timezone()
@@ -1667,7 +1662,6 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
 # use naive datetimes, as pytz is required to perform
 # date lookups when timezones are involved.
 @override_settings(USE_TZ=False)
-@unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
 class TransformedQueryExpressionFilterTests(TestCase):
 
     def test_filtering(self):
