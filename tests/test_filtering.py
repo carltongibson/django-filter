@@ -492,8 +492,8 @@ class DurationFilterTests(TestCase):
     def test_filtering_with_multiple_lookup_exprs(self):
 
         class F(FilterSet):
-            min_duration = DurationFilter(name='duration', lookup_expr='gte')
-            max_duration = DurationFilter(name='duration', lookup_expr='lte')
+            min_duration = DurationFilter(field_name='duration', lookup_expr='gte')
+            max_duration = DurationFilter(field_name='duration', lookup_expr='lte')
 
             class Meta:
                 model = SpacewalkRecord
@@ -551,7 +551,7 @@ class ModelChoiceFilterTests(TestCase):
             return User.objects.filter(pk__lt=request.user.pk)
 
         class F(FilterSet):
-            author = ModelChoiceFilter(name='author', queryset=users)
+            author = ModelChoiceFilter(field_name='author', queryset=users)
 
             class Meta:
                 model = Comment
@@ -907,7 +907,7 @@ class DateFromToRangeFilterTests(TestCase):
         Comment.objects.create(date=datetime.date(2016, 1, 3), **kwargs)
 
         class F(FilterSet):
-            published = DateFromToRangeFilter(name='date')
+            published = DateFromToRangeFilter(field_name='date')
 
             class Meta:
                 model = Comment
@@ -1886,7 +1886,7 @@ class MiscFilterSetTests(TestCase):
 
     def test_filtering_with_declared_filters(self):
         class F(FilterSet):
-            account = CharFilter(name='username')
+            account = CharFilter(field_name='username')
 
             class Meta:
                 model = User

@@ -81,7 +81,7 @@ class FilterSetFormTests(TestCase):
     def test_complex_form_fields(self):
         class F(FilterSet):
             username = CharFilter(label='Filter for users with username')
-            exclude_username = CharFilter(name='username', lookup_expr='iexact', exclude=True)
+            exclude_username = CharFilter(field_name='username', lookup_expr='iexact', exclude=True)
 
             class Meta:
                 model = User
@@ -135,7 +135,7 @@ class FilterSetFormTests(TestCase):
 
     def test_form_field_with_manual_name(self):
         class F(FilterSet):
-            book_title = CharFilter(name='title')
+            book_title = CharFilter(field_name='title')
 
             class Meta:
                 model = Book
@@ -147,7 +147,7 @@ class FilterSetFormTests(TestCase):
 
     def test_form_field_with_manual_name_and_label(self):
         class F(FilterSet):
-            f1 = CharFilter(name='title', label="Book title")
+            f1 = CharFilter(field_name='title', label="Book title")
 
             class Meta:
                 model = Book
