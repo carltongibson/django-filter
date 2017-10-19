@@ -20,6 +20,17 @@ The filter ``name`` has been renamed to ``field_name`` as a way to disambiguate
 the filter's attribute name on its FilterSet class from the ``field_name`` used
 for filtering purposes.
 
+FilterSet strictness has been removed
+-------------------------------------
+
+Strictness handling has been removed from the ``FilterSet`` and added to the
+view layer. As a result, the ``FILTERS_STRICTNESS`` setting, ``Meta.strict``
+option, and ``strict`` argument for the ``FilterSet`` initializer have all
+been removed.
+
+To alter strictness behavior, the appropriate view code should be overridden.
+More details will be provided in future docs.
+
 
 ----------------
 Migrating to 1.0
