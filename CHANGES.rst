@@ -1,3 +1,26 @@
+Version 1.1 (2017-10-19)
+------------------------
+
+* Add Deprecations for 2.0 (#792)
+* Improve IsoDateTimeField test clarity (#790)
+* Fix form attr references in tests (#789)
+* Simplify tox config, drop python 3.3 & django 1.8 (#787)
+* Make get_filter_name a classmethod, allowing it to be overriden for each FilterClass (#775)
+* Support active timezone (#750)
+* Docs Typo: django_filters -> filters in docs (#773)
+* Add Polish translations for some messages (#771)
+* Remove support for Django 1.9 (EOL) (#752)
+* Use required attribute from field when getting schema fields (#766)
+* Prevent circular ImportError hiding for rest_framework sub-package (#741)
+* Deprecate 'extra' field attrs on Filter (#734)
+* Add SuffixedMultiWidget (#681)
+* Fix null filtering for *Choice filters (#680)
+* Use isort on imports (#761)
+* Use urlencode from django.utils.http (#760)
+* Remove OrderingFilter.help_text (#757)
+* Update DRF test dependency to 3.6 (#747)
+
+
 Version 1.0.4 (2017-05-19)
 --------------------------
 
