@@ -26,10 +26,3 @@ try:
     import coreschema
 except ImportError:
     coreschema = None
-
-
-def remote_queryset(field):
-    model = field.remote_field.model
-    limit_choices_to = field.get_limit_choices_to()
-
-    return model._default_manager.complex_filter(limit_choices_to)

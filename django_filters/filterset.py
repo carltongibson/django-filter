@@ -9,7 +9,6 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 
-from .compat import remote_queryset
 from .conf import settings
 from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (
@@ -34,6 +33,13 @@ from .utils import (
     resolve_field,
     try_dbfield
 )
+
+
+def remote_queryset(field):
+    model = field.remote_field.model
+    limit_choices_to = field.get_limit_choices_to()
+
+    return model._default_manager.complex_filter(limit_choices_to)
 
 
 class FilterSetOptions(object):
