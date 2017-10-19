@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 from collections import Iterable
 from itertools import chain
 from re import search, sub

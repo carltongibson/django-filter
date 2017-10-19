@@ -1,8 +1,5 @@
-from __future__ import absolute_import, unicode_literals
-
 from django import forms
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 REGULAR = 0
@@ -42,7 +39,6 @@ class SubnetMaskField(models.Field):
         return super(SubnetMaskField, self).formfield(**defaults)
 
 
-@python_2_unicode_compatible
 class User(models.Model):
     username = models.CharField(_('username'), max_length=255)
     first_name = SubCharField(max_length=100)
@@ -58,7 +54,6 @@ class User(models.Model):
         return self.username
 
 
-@python_2_unicode_compatible
 class ManagerGroup(models.Model):
     users = models.ManyToManyField(User,
                                    limit_choices_to={'is_active': True},
@@ -72,7 +67,6 @@ class ManagerGroup(models.Model):
         return self.manager.name + ' group'
 
 
-@python_2_unicode_compatible
 class AdminUser(User):
     class Meta:
         proxy = True
@@ -81,7 +75,6 @@ class AdminUser(User):
         return "%s (ADMIN)" % self.username
 
 
-@python_2_unicode_compatible
 class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
@@ -104,7 +97,6 @@ class Article(models.Model):
         return "Anonymous on %s" % self.published
 
 
-@python_2_unicode_compatible
 class Book(models.Model):
     title = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=6, decimal_places=2)
@@ -132,7 +124,6 @@ class NetworkSetting(models.Model):
     cidr = models.CharField(max_length=18, blank=True, verbose_name="CIDR")
 
 
-@python_2_unicode_compatible
 class Company(models.Model):
     name = models.CharField(max_length=100)
 
@@ -143,7 +134,6 @@ class Company(models.Model):
         ordering = ['name']
 
 
-@python_2_unicode_compatible
 class Location(models.Model):
     company = models.ForeignKey(Company, related_name='locations', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
