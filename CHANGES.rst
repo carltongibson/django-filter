@@ -1,6 +1,7 @@
 Version 1.1 (2017-10-19)
 ------------------------
 
+* Add Deprecations for 2.0 (#792)
 * Improve IsoDateTimeField test clarity (#790)
 * Fix form attr references in tests (#789)
 * Simplify tox config, drop python 3.3 & django 1.8 (#787)
