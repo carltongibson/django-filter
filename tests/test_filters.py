@@ -118,7 +118,7 @@ class FilterTests(TestCase):
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
                                spec=['__call__']) as mocked:
-            f = Filter(name='somefield', label='somelabel',
+            f = Filter(field_name='somefield', label='somelabel',
                        widget='somewidget')
             f.field
             mocked.assert_called_once_with(required=False,
@@ -159,7 +159,7 @@ class FilterTests(TestCase):
 
     def test_filtering_uses_name(self):
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield')
+        f = Filter(field_name='somefield')
         f.filter(qs, 'value')
         result = qs.filter.assert_called_once_with(somefield__exact='value')
         self.assertNotEqual(qs, result)
@@ -180,14 +180,14 @@ class FilterTests(TestCase):
 
     def test_filtering_with_list_value(self):
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield', lookup_expr=['some_lookup_expr'])
+        f = Filter(field_name='somefield', lookup_expr=['some_lookup_expr'])
         result = f.filter(qs, Lookup('value', 'some_lookup_expr'))
         qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_skipped_with_list_value_with_blank(self):
         qs = mock.Mock()
-        f = Filter(name='somefield', lookup_expr=['some_lookup_expr'])
+        f = Filter(field_name='somefield', lookup_expr=['some_lookup_expr'])
         result = f.filter(qs, Lookup('', 'some_lookup_expr'))
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
@@ -195,7 +195,7 @@ class FilterTests(TestCase):
     def test_filtering_skipped_with_list_value_with_blank_lookup(self):
         return  # Now field is required to provide valid lookup_expr if it provides any
         qs = mock.Mock(spec=['filter'])
-        f = Filter(name='somefield', lookup_expr=None)
+        f = Filter(field_name='somefield', lookup_expr=None)
         result = f.filter(qs, Lookup('value', ''))
         qs.filter.assert_called_once_with(somefield__exact='value')
         self.assertNotEqual(qs, result)
@@ -210,7 +210,7 @@ class FilterTests(TestCase):
 
     def test_filtering_uses_distinct(self):
         qs = mock.Mock(spec=['filter', 'distinct'])
-        f = Filter(name='somefield', distinct=True)
+        f = Filter(field_name='somefield', distinct=True)
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
@@ -231,13 +231,13 @@ class CustomFilterWithBooleanCheckTests(TestCase):
 
     def test_lookup_false(self):
         qs = mock.Mock(spec=['filter'])
-        f = self.test_filter_class(name='somefield')
+        f = self.test_filter_class(field_name='somefield')
         result = f.filter(qs, Lookup('', 'exact'))
         self.assertEqual(qs, result)
 
     def test_lookup_true(self):
         qs = mock.Mock(spec=['filter'])
-        f = self.test_filter_class(name='somefield')
+        f = self.test_filter_class(field_name='somefield')
         result = f.filter(qs, Lookup('somesearch', 'exact'))
         qs.filter.assert_called_once_with(somefield__exact='somesearch')
         self.assertNotEqual(qs, result)
@@ -268,35 +268,35 @@ class BooleanFilterTests(TestCase):
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
-        f = BooleanFilter(name='somefield')
+        f = BooleanFilter(field_name='somefield')
         result = f.filter(qs, True)
         qs.filter.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
     def test_filtering_exclude(self):
         qs = mock.Mock(spec=['exclude'])
-        f = BooleanFilter(name='somefield', exclude=True)
+        f = BooleanFilter(field_name='somefield', exclude=True)
         result = f.filter(qs, True)
         qs.exclude.assert_called_once_with(somefield__exact=True)
         self.assertNotEqual(qs, result)
 
     def test_filtering_skipped_with_blank_value(self):
         qs = mock.Mock()
-        f = BooleanFilter(name='somefield')
+        f = BooleanFilter(field_name='somefield')
         result = f.filter(qs, '')
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock()
-        f = BooleanFilter(name='somefield')
+        f = BooleanFilter(field_name='somefield')
         result = f.filter(qs, None)
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
 
     def test_filtering_lookup_expr(self):
         qs = mock.Mock(spec=['filter'])
-        f = BooleanFilter(name='somefield', lookup_expr='isnull')
+        f = BooleanFilter(field_name='somefield', lookup_expr='isnull')
         result = f.filter(qs, True)
         qs.filter.assert_called_once_with(somefield__isnull=True)
         self.assertNotEqual(qs, result)
@@ -447,7 +447,7 @@ class MultipleChoiceFilterTests(TestCase):
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
-        f = MultipleChoiceFilter(name='somefield')
+        f = MultipleChoiceFilter(field_name='somefield')
         with mock.patch('django_filters.filters.Q') as mockQclass:
             mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
             mockQclass.side_effect = [mockQ1, mockQ2]
@@ -462,7 +462,7 @@ class MultipleChoiceFilterTests(TestCase):
 
     def test_filtering_exclude(self):
         qs = mock.Mock(spec=['exclude'])
-        f = MultipleChoiceFilter(name='somefield', exclude=True)
+        f = MultipleChoiceFilter(field_name='somefield', exclude=True)
         with mock.patch('django_filters.filters.Q') as mockQclass:
             mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
             mockQclass.side_effect = [mockQ1, mockQ2]
@@ -477,7 +477,7 @@ class MultipleChoiceFilterTests(TestCase):
 
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
-        f = MultipleChoiceFilter(name='somefield', required=True)
+        f = MultipleChoiceFilter(field_name='somefield', required=True)
         f.always_filter = False
         result = f.filter(qs, [])
         self.assertEqual(len(f.field.choices), 0)
@@ -492,7 +492,7 @@ class MultipleChoiceFilterTests(TestCase):
 
     def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
         qs = mock.Mock(spec=[])
-        f = MultipleChoiceFilter(name='somefield')
+        f = MultipleChoiceFilter(field_name='somefield')
         f.field.choices = ['some', 'values', 'here']
         result = f.filter(qs, [])
         self.assertEqual(qs, result)
@@ -551,7 +551,7 @@ class MultipleChoiceFilterTests(TestCase):
         users = User.objects.all()
 
         for item in filter_list:
-            f = MultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
+            f = MultipleChoiceFilter(field_name='favorite_books__pk', conjoined=True)
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list('pk')]
             self.assertListEqual(
@@ -584,7 +584,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
-        f = TypedMultipleChoiceFilter(name='somefield')
+        f = TypedMultipleChoiceFilter(field_name='somefield')
         with mock.patch('django_filters.filters.Q') as mockQclass:
             mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
             mockQclass.side_effect = [mockQ1, mockQ2]
@@ -599,7 +599,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
 
     def test_filtering_exclude(self):
         qs = mock.Mock(spec=['exclude'])
-        f = TypedMultipleChoiceFilter(name='somefield', exclude=True)
+        f = TypedMultipleChoiceFilter(field_name='somefield', exclude=True)
         with mock.patch('django_filters.filters.Q') as mockQclass:
             mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
             mockQclass.side_effect = [mockQ1, mockQ2]
@@ -614,7 +614,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
 
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
-        f = TypedMultipleChoiceFilter(name='somefield', required=True)
+        f = TypedMultipleChoiceFilter(field_name='somefield', required=True)
         f.always_filter = False
         result = f.filter(qs, [])
         self.assertEqual(len(f.field.choices), 0)
@@ -629,7 +629,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
 
     def test_filtering_skipped_with_empty_list_value_and_some_choices(self):
         qs = mock.Mock(spec=[])
-        f = TypedMultipleChoiceFilter(name='somefield')
+        f = TypedMultipleChoiceFilter(field_name='somefield')
         f.field.choices = ['some', 'values', 'here']
         result = f.filter(qs, [])
         self.assertEqual(qs, result)
@@ -688,7 +688,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
         users = User.objects.all()
 
         for item in filter_list:
-            f = TypedMultipleChoiceFilter(name='favorite_books__pk', conjoined=True)
+            f = TypedMultipleChoiceFilter(field_name='favorite_books__pk', conjoined=True)
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list('pk')]
             self.assertListEqual(
@@ -807,7 +807,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
     def test_filtering_to_field_name(self):
         qs = User.objects.all()
-        f = ModelMultipleChoiceFilter(name='first_name',
+        f = ModelMultipleChoiceFilter(field_name='first_name',
                                       to_field_name='first_name',
                                       queryset=qs)
         user = User.objects.create(first_name='Firstname')
@@ -1203,7 +1203,7 @@ class AllValuesFilterTests(TestCase):
         self.assertIsInstance(field, forms.ChoiceField)
 
     def test_empty_value_in_choices(self):
-        f = AllValuesFilter(name='username')
+        f = AllValuesFilter(field_name='username')
         f.model = User
 
         self.assertEqual(list(f.field.choices), [
