@@ -4,7 +4,6 @@ from collections import Iterable
 from itertools import chain
 from re import search, sub
 
-import django
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.utils import flatatt
@@ -14,8 +13,6 @@ from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 from django.utils.six import string_types
 from django.utils.translation import ugettext as _
-
-from .compat import format_value
 
 
 class LinkWidget(forms.Widget):
@@ -34,10 +31,7 @@ class LinkWidget(forms.Widget):
             self.data = {}
         if value is None:
             value = ''
-        if django.VERSION < (1, 11):
-            final_attrs = self.build_attrs(attrs)
-        else:
-            final_attrs = self.build_attrs(self.attrs, extra_attrs=attrs)
+        final_attrs = self.build_attrs(self.attrs, extra_attrs=attrs)
         output = ['<ul%s>' % flatatt(final_attrs)]
         options = self.render_options(choices, [value], name)
         if options:
@@ -118,14 +112,6 @@ class SuffixedMultiWidget(forms.MultiWidget):
             for widget, suffix in zip(self.widgets, self.suffixes)
         )
 
-    # Django < 1.11 compat
-    def format_output(self, rendered_widgets):
-        rendered_widgets = [
-            self.replace_name(output, i)
-            for i, output in enumerate(rendered_widgets)
-        ]
-        return '\n'.join(rendered_widgets)
-
     def replace_name(self, output, index):
         result = search(r'name="(?P<name>.*)_%d"' % index, output)
         name = result.group('name')
@@ -146,10 +132,6 @@ class RangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
         widgets = (forms.TextInput, forms.TextInput)
         super(RangeWidget, self).__init__(widgets, attrs)
-
-    def format_output(self, rendered_widgets):
-        # Method was removed in Django 1.11.
-        return '-'.join(rendered_widgets)
 
     def decompress(self, value):
         if value:
@@ -227,7 +209,7 @@ class BaseCSVWidget(forms.Widget):
         # if we have multiple values, we need to force render as a text input
         # (otherwise, the additional values are lost)
         surrogate = forms.TextInput()
-        value = [force_text(format_value(surrogate, v)) for v in value]
+        value = [force_text(surrogate.format_value(v)) for v in value]
         value = ','.join(list(value))
 
         return surrogate.render(name, value, attrs)

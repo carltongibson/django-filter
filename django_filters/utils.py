@@ -12,9 +12,9 @@ from django.forms import ValidationError
 from django.utils import six, timezone
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
+from django.utils.timezone import make_aware
 from django.utils.translation import ugettext as _
 
-from .compat import make_aware, remote_field, remote_model
 from .exceptions import FieldLookupError
 
 
@@ -50,7 +50,7 @@ def get_all_model_fields(model):
     return [
         f.name for f in sorted(opts.fields + opts.many_to_many)
         if not isinstance(f, models.AutoField) and
-        not (getattr(remote_field(f), 'parent_link', False))
+        not (getattr(f.remote_field, 'parent_link', False))
     ]
 
 
@@ -93,7 +93,7 @@ def get_field_parts(model, field_name):
 
         fields.append(field)
         if isinstance(field, RelatedField):
-            opts = remote_model(field)._meta
+            opts = field.remote_field.model._meta
         elif isinstance(field, ForeignObjectRel):
             opts = field.related_model._meta
 

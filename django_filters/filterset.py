@@ -9,7 +9,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils import six
 
-from .compat import remote_field, remote_queryset
+from .compat import remote_queryset
 from .conf import settings
 from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (
@@ -113,7 +113,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
-            'to_field_name': remote_field(f).field_name,
+            'to_field_name': f.remote_field.field_name,
             'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
         }
     },
@@ -121,7 +121,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
-            'to_field_name': remote_field(f).field_name,
+            'to_field_name': f.remote_field.field_name,
             'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
         }
     },
@@ -328,7 +328,7 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_reverse_field(cls, f, field_name):
-        rel = remote_field(f.field)
+        rel = f.field.remote_field
         queryset = f.field.model._default_manager.all()
         default = {
             'field_name': field_name,
