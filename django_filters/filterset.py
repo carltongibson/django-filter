@@ -11,7 +11,7 @@ from django.utils import six
 
 from .compat import remote_field, remote_queryset
 from .conf import settings
-from .constants import ALL_FIELDS, EMPTY_VALUES, STRICTNESS
+from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (
     BaseInFilter,
     BaseRangeFilter,
@@ -29,39 +29,11 @@ from .filters import (
     UUIDFilter
 )
 from .utils import (
-    deprecate,
     get_all_model_fields,
     get_model_field,
     resolve_field,
     try_dbfield
 )
-
-
-def _together_valid(form, fieldset):
-    field_presence = [
-        form.cleaned_data.get(field) not in EMPTY_VALUES
-        for field in fieldset
-    ]
-
-    if any(field_presence):
-        return all(field_presence)
-    return True
-
-
-def get_full_clean_override(together):
-    # coerce together to list of pairs
-    if isinstance(together[0], (six.string_types)):
-        together = [together]
-
-    def full_clean(form):
-        super(form.__class__, form).full_clean()
-        message = 'Following fields must be together: %s'
-
-        for each in together:
-            if not _together_valid(form, each):
-                return form.add_error(None, message % ','.join(each))
-
-    return full_clean
 
 
 class FilterSetOptions(object):
@@ -75,10 +47,6 @@ class FilterSetOptions(object):
         self.strict = getattr(options, 'strict', None)
 
         self.form = getattr(options, 'form', forms.Form)
-
-        if hasattr(options, 'together'):
-            deprecate('The `Meta.together` option has been deprecated in favor of overriding `Form.clean`.', 1)
-        self.together = getattr(options, 'together', None)
 
 
 class FilterSetMetaclass(type):
@@ -232,8 +200,6 @@ class BaseFilterSet(object):
 
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
-            if self._meta.together:
-                Form.full_clean = get_full_clean_override(self._meta.together)
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
