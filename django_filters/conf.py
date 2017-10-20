@@ -10,8 +10,6 @@ from .utils import deprecate
 
 DEFAULTS = {
     'DISABLE_HELP_TEXT': False,
-    'HELP_TEXT_FILTER': True,
-    'HELP_TEXT_EXCLUDE': True,
 
     # empty/null choices
     'EMPTY_CHOICE_LABEL': '---------',
@@ -63,8 +61,6 @@ DEFAULTS = {
 
 
 DEPRECATED_SETTINGS = [
-    'HELP_TEXT_FILTER',
-    'HELP_TEXT_EXCLUDE',
 ]
 
 
