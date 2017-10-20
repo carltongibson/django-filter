@@ -30,7 +30,7 @@ from .fields import (
     RangeField,
     TimeRangeField
 )
-from .utils import deprecate, label_for_filter
+from .utils import label_for_filter
 
 __all__ = [
     'AllValuesFilter',
@@ -65,21 +65,6 @@ __all__ = [
 
 
 LOOKUP_TYPES = sorted(QUERY_TERMS)
-
-
-def _extra_attr(attr):
-    fmt = ("The `.%s` attribute has been deprecated in favor of making it accessible "
-           "alongside the other field kwargs. You should now access it as `.extra['%s']`.")
-
-    def fget(self):
-        deprecate(fmt % (attr, attr))
-        return self.extra.get(attr)
-
-    def fset(self, value):
-        deprecate(fmt % (attr, attr))
-        self.extra[attr] = value
-
-    return {'fget': fget, 'fset': fset}
 
 
 class Filter(object):
@@ -143,10 +128,6 @@ class Filter(object):
 
         return locals()
     label = property(**label())
-
-    # deprecated field props
-    widget = property(**_extra_attr('widget'))
-    required = property(**_extra_attr('required'))
 
     @property
     def field(self):
