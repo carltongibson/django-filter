@@ -44,9 +44,7 @@ class FilterSet(filterset.FilterSet):
 
     @property
     def qs(self):
-        from rest_framework.exceptions import ValidationError
-
         try:
             return super(FilterSet, self).qs
         except forms.ValidationError as e:
-            raise ValidationError(utils.raw_validation(e))
+            raise utils.translate_validation(e)

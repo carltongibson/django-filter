@@ -680,6 +680,26 @@ class FilterSetStrictnessTests(TestCase):
 
         self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
 
+    def test_raise_validation_output(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['id', 'author', 'name']
+                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
+        f = F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        with self.assertRaises(ValidationError) as exc:
+            f.qs
+
+        # test rendered output
+        self.assertEqual(str(exc.exception), str({
+            'id': ['Enter a number.'],
+            'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        }))
+
+        # test validation error code
+        self.assertEqual(exc.exception.error_dict['author'][0].code, 'invalid_choice')
+
 
 # test filter.method here, as it depends on its parent FilterSet
 class FilterMethodTests(TestCase):
