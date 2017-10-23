@@ -130,6 +130,26 @@ This is a map of model fields to filter classes with options::
 Overriding ``FilterSet`` methods
 --------------------------------
 
+When overriding classmethods, calling ``super(MyFilterSet, cls)`` may result
+in a ``NameError`` exception. This is due to the ``FilterSetMetaclass`` calling
+these classmethods before the ``FilterSet`` class has been fully created.
+There are two recommmended workarounds:
+
+1. If using python 3.6 or newer, use the argumentless ``super()`` syntax.
+2. For older versions of python, use an intermediate class. Ex::
+
+    class Intermediate(django_filters.FilterSet):
+
+        @classmethod
+        def method(cls, arg):
+            super(Intermediate, cls).method(arg)
+            ...
+
+    class ProductFilter(Intermediate):
+        class Meta:
+            model = Product
+            fields = ['...']
+
 ``filter_for_lookup()``
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -159,4 +179,4 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
                 return django_filters.DateRangeFilter, {}
 
             # use default behavior otherwise
-            return super(ProductFilter, cls).filter_for_lookup(f, lookup_type)
+            return super().filter_for_lookup(f, lookup_type)
