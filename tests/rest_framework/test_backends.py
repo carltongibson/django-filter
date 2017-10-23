@@ -14,6 +14,7 @@ from django_filters.rest_framework import (
     backends
 )
 
+from ..models import Article
 from .models import FilterableItem
 
 factory = APIRequestFactory()
@@ -303,3 +304,28 @@ class DefaultFilterSetTests(TestCase):
         # derived filter_class.Meta should inherit from default_filter_set.Meta
         self.assertIn(BooleanField, filter_overrides)
         self.assertDictEqual(filter_overrides[BooleanField], {})
+
+
+class ValidationErrorTests(TestCase):
+
+    def test_errors(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['id', 'author', 'name']
+
+        view = FilterFieldsRootView()
+        backend = DjangoFilterBackend()
+        request = factory.get('/?id=foo&author=bar&name=baz')
+        request = view.initialize_request(request)
+        queryset = Article.objects.all()
+        view.filter_class = F
+
+        with self.assertRaises(serializers.ValidationError) as exc:
+            backend.filter_queryset(request, queryset, view)
+
+        # test output, does not include error code
+        self.assertDictEqual(exc.exception.detail, {
+            'id': ['Enter a number.'],
+            'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        })

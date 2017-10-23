@@ -52,9 +52,7 @@ class DjangoFilterBackend(object):
         if filter_class:
             filterset = filter_class(request.query_params, queryset=queryset, request=request)
             if not filterset.is_valid() and self.raise_exception:
-                from rest_framework.exceptions import ValidationError
-
-                raise ValidationError(utils.raw_validation(filterset.errors))
+                raise utils.translate_validation(filterset.errors)
             return filterset.qs
         return queryset
 
