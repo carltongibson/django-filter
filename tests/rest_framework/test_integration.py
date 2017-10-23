@@ -287,7 +287,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_strictness_validation_error(self):
+    def test_raise_validation_error(self):
         """
         Ensure validation errors return a proper error response instead of
         an internal server error.
@@ -297,6 +297,26 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {'decimal': ['Enter a number.']})
+
+    def test_permissive(self):
+        """
+        Permissive handling should return a partially filtered result set.
+        """
+        FilterableItem.objects.create(decimal=Decimal('1.23'), date='2017-01-01')
+        FilterableItem.objects.create(decimal=Decimal('1.23'), date='2016-01-01')
+
+        class Backend(DjangoFilterBackend):
+            raise_exception = False
+
+        class View(FilterFieldsRootView):
+            filter_backends = (Backend,)
+
+        view = View.as_view()
+        request = factory.get('/?decimal=foobar&date=2017-01-01')
+        response = view(request).render()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['date'], '2017-01-01')
+        self.assertEqual(len(response.data), 1)
 
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_integration')
