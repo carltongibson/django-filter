@@ -11,9 +11,7 @@ Meta options
 - :ref:`fields <fields>`
 - :ref:`exclude <exclude>`
 - :ref:`form <form>`
-- :ref:`together <together>`
 - :ref:`filter_overrides <filter_overrides>`
-- :ref:`strict <strict>`
 
 
 .. _model:
@@ -101,26 +99,6 @@ form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
 
 
-.. _together:
-
-Group fields with ``together``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The inner ``Meta`` class also takes an optional ``together`` argument.  This
-is a list of lists, each containing field names. For convenience can be a
-single list/tuple when dealing with a single set of fields. Fields within a
-field set must either be all or none present in the request for
-``FilterSet.form`` to be valid::
-
-    import django_filters
-
-    class ProductFilter(django_filters.FilterSet):
-        class Meta:
-            model = Product
-            fields = ['price', 'release_date', 'rating']
-            together = ['rating', 'price']
-
-
 .. _filter_overrides:
 
 Customise filter generation with ``filter_overrides``
@@ -148,37 +126,6 @@ This is a map of model fields to filter classes with options::
                     },
                 },
             }
-
-
-.. _strict:
-
-Handling validation errors with ``strict``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``strict`` option determines the filterset's behavior when filters fail to validate. Example use:
-
-.. code-block:: python
-
-    from django_filters import FilterSet, STRICTNESS
-
-    class ProductFilter(FilterSet):
-        class Meta:
-            model = Product
-            fields = ['name', 'release_date']
-            strict = STRICTNESS.RETURN_NO_RESULTS
-
-Currently, there are three different behaviors:
-
-- ``STRICTNESS.RETURN_NO_RESULTS`` (default) This returns an empty queryset. The
-  filterset form can then be rendered to display the input errors.
-- ``STRICTNESS.IGNORE`` Instead of returning an empty queryset, invalid filters
-  effectively become a noop. Valid filters are applied to the queryset however.
-- ``STRICTNESS.RAISE_VALIDATION_ERROR`` This raises a ``ValidationError`` for
-  all invalid filters. This behavior is generally useful with APIs.
-
-If the ``strict`` option is not provided, then the filterset will default to the
-value of the ``FILTERS_STRICTNESS`` setting.
-
 
 Overriding ``FilterSet`` methods
 --------------------------------
