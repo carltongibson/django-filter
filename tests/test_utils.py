@@ -14,8 +14,8 @@ from django_filters.utils import (
     get_model_field,
     handle_timezone,
     label_for_filter,
-    raw_validation,
     resolve_field,
+    translate_validation,
     verbose_field_name,
     verbose_lookup_expr
 )
@@ -341,16 +341,30 @@ class HandleTimezone(TestCase):
         self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
 
 
-class RawValidationDataTests(TestCase):
-    def test_simple(self):
-        class F(FilterSet):
-            class Meta:
-                model = Article
-                fields = ['id', 'author', 'name']
+class TranslateValidationDataTests(TestCase):
 
-        f = F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+    class F(FilterSet):
+        class Meta:
+            model = Article
+            fields = ['id', 'author', 'name']
 
-        self.assertDictEqual(raw_validation(f.errors), {
+    def test_error_detail(self):
+        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        exc = translate_validation(f.errors)
+
+        self.assertDictEqual(exc.detail, {
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        })
+
+    def test_full_error_details(self):
+        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        exc = translate_validation(f.errors)
+
+        self.assertEqual(exc.get_full_details(), {
+            'id': [{'message': 'Enter a number.', 'code': 'invalid'}],
+            'author': [{
+                'message': 'Select a valid choice. That choice is not one of the available choices.',
+                'code': 'invalid_choice',
+            }],
         })
