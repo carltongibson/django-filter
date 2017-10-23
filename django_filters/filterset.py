@@ -192,15 +192,24 @@ class BaseFilterSet(object):
             self._qs = qs
         return self._qs
 
+    def get_form_class(self):
+        """
+        Returns a django Form suitable of validating the filterset data.
+
+        This method should be overridden if the form class needs to be
+        customized relative to the filterset instance.
+        """
+        fields = OrderedDict([
+            (name, filter_.field)
+            for name, filter_ in self.filters.items()])
+
+        return type(str('%sForm' % self.__class__.__name__),
+                    (self._meta.form,), fields)
+
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = OrderedDict([
-                (name, filter_.field)
-                for name, filter_ in self.filters.items()])
-
-            Form = type(str('%sForm' % self.__class__.__name__),
-                        (self._meta.form,), fields)
+            Form = self.get_form_class()
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
