@@ -600,16 +600,16 @@ class FilterSetClassCreationTests(TestCase):
 
 class FilterSetInstantiationTests(TestCase):
 
-    def test_creating_instance(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['username']
 
-        f = F()
+    def test_creating_instance(self):
+        f = self.F()
         self.assertFalse(f.is_bound)
         self.assertIsNotNone(f.queryset)
-        self.assertEqual(len(f.filters), len(F.base_filters))
+        self.assertEqual(len(f.filters), len(self.F.base_filters))
         for name, filter_ in f.filters.items():
             self.assertEqual(
                 filter_.model,
@@ -617,33 +617,69 @@ class FilterSetInstantiationTests(TestCase):
                 "%s does not have model set correctly" % name)
 
     def test_creating_bound_instance(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
-        f = F({'username': 'username'})
+        f = self.F({'username': 'username'})
         self.assertTrue(f.is_bound)
 
     def test_creating_with_queryset(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
         m = mock.Mock()
-        f = F(queryset=m)
+        f = self.F(queryset=m)
         self.assertEqual(f.queryset, m)
 
     def test_creating_with_request(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
         m = mock.Mock()
-        f = F(request=m)
+        f = self.F(request=m)
         self.assertEqual(f.request, m)
+
+
+class FilterSetQuerysetTests(TestCase):
+
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['username']
+
+    def test_filter_queryset_called_once(self):
+        m = mock.Mock()
+        f = self.F({'username': 'bob'}, queryset=m)
+
+        with mock.patch.object(f, 'filter_queryset',
+                               wraps=f.filter_queryset) as fn:
+            f.qs
+            fn.assert_called_once_with(m.all())
+            f.qs
+            fn.assert_called_once_with(m.all())
+
+    def test_get_form_class_called_once(self):
+        f = self.F()
+
+        with mock.patch.object(f, 'get_form_class',
+                               wraps=f.get_form_class) as fn:
+            f.form
+            fn.assert_called_once()
+            f.form
+            fn.assert_called_once()
+
+    def test_qs_caching(self):
+        m = mock.Mock()
+        f = self.F(queryset=m)
+
+        self.assertIs(f.qs, m.all())
+        self.assertIs(f.qs, f.qs)
+
+    def test_form_caching(self):
+        f = self.F()
+
+        self.assertIs(f.form, f.form)
+
+    def test_qs_triggers_form_validation(self):
+        m = mock.Mock()
+        f = self.F({'username': 'bob'}, queryset=m)
+
+        with mock.patch.object(f.form, 'full_clean',
+                               wraps=f.form.full_clean) as fn:
+            fn.assert_not_called()
+            f.qs
+            fn.assert_called()
 
 
 # test filter.method here, as it depends on its parent FilterSet
