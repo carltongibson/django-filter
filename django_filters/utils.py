@@ -9,10 +9,9 @@ from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, RelatedField
 from django.forms import ValidationError
-from django.utils import six, timezone
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
-from django.utils.timezone import make_aware
 from django.utils.translation import ugettext as _
 
 from .exceptions import FieldLookupError
@@ -141,12 +140,12 @@ def resolve_field(model_field, lookup_expr):
             lhs = query.try_transform(*args)
             lookups = lookups[1:]
     except FieldError as e:
-        six.raise_from(FieldLookupError(model_field, lookup_expr), e)
+        raise FieldLookupError(model_field, lookup_expr) from e
 
 
 def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        return make_aware(value, timezone.get_current_timezone(), is_dst)
+        return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
     elif not settings.USE_TZ and timezone.is_aware(value):
         return timezone.make_naive(value, timezone.utc)
     return value
@@ -225,7 +224,7 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
     verbose_expression = [_('exclude'), name] if exclude else [name]
 
     # iterable lookups indicate a LookupTypeField, which should not be verbose
-    if isinstance(lookup_expr, six.string_types):
+    if isinstance(lookup_expr, str):
         verbose_expression += [verbose_lookup_expr(lookup_expr)]
 
     verbose_expression = [force_text(part) for part in verbose_expression if part]

@@ -1,7 +1,6 @@
 import warnings
 
 from django.template import loader
-from django.utils import six
 
 from . import filters, filterset
 from .. import compat
@@ -71,7 +70,7 @@ class DjangoFilterBackend(object):
         else:
             field_cls = compat.coreschema.String
         return field_cls(
-            description=six.text_type(field.extra.get('help_text', ''))
+            description=str(field.extra.get('help_text', ''))
         )
 
     def get_schema_fields(self, view):

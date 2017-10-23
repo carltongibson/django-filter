@@ -5,7 +5,6 @@ from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
-from django.utils import six
 
 from .conf import settings
 from .constants import ALL_FIELDS, STRICTNESS
@@ -185,7 +184,7 @@ class BaseFilterSet(object):
 
             # start with all the results and filter from there
             qs = self.queryset.all()
-            for name, filter_ in six.iteritems(self.filters):
+            for name, filter_ in self.filters.items():
                 value = self.form.cleaned_data.get(name)
 
                 if value is not None:  # valid & clean data
@@ -200,7 +199,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = OrderedDict([
                 (name, filter_.field)
-                for name, filter_ in six.iteritems(self.filters)])
+                for name, filter_ in self.filters.items()])
 
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
@@ -414,7 +413,7 @@ class BaseFilterSet(object):
         return str('%s%sFilter' % (type_name, lookup_name))
 
 
-class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
+class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
     pass
 
 

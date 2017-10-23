@@ -9,7 +9,6 @@ from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_text
 from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
-from django.utils.six import string_types
 from django.utils.translation import ugettext as _
 
 
@@ -169,7 +168,7 @@ class BooleanWidget(forms.Select):
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
-        if isinstance(value, string_types):
+        if isinstance(value, str):
             value = value.lower()
 
         return {
@@ -184,7 +183,7 @@ class BooleanWidget(forms.Select):
 
 class BaseCSVWidget(forms.Widget):
     def _isiterable(self, value):
-        return isinstance(value, Iterable) and not isinstance(value, string_types)
+        return isinstance(value, Iterable) and not isinstance(value, str)
 
     def value_from_datadict(self, data, files, name):
         value = super(BaseCSVWidget, self).value_from_datadict(data, files, name)
@@ -232,7 +231,7 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
         if not isinstance(data, MultiValueDict):
             for key, value in data.items():
                 # treat value as csv string: ?foo=1,2
-                if isinstance(value, string_types):
+                if isinstance(value, str):
                     data[key] = [x.strip() for x in value.rstrip(',').split(',') if x]
             data = MultiValueDict(data)
 
