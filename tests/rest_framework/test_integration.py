@@ -9,7 +9,7 @@ from django.utils.dateparse import parse_date
 from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
 
-from django_filters import STRICTNESS, filters
+from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
 from .models import (
@@ -287,7 +287,6 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @override_settings(FILTERS_STRICTNESS=STRICTNESS.RAISE_VALIDATION_ERROR)
     def test_strictness_validation_error(self):
         """
         Ensure validation errors return a proper error response instead of

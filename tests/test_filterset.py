@@ -2,9 +2,8 @@ import mock
 import unittest
 
 from django.db import models
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from django_filters.constants import STRICTNESS
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
     BaseInFilter,
@@ -645,49 +644,6 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = F(request=m)
         self.assertEqual(f.request, m)
-
-
-class FilterSetStrictnessTests(TestCase):
-
-    def test_settings_default(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-
-        # Ensure default is not IGNORE
-        self.assertEqual(F().strict, STRICTNESS.RETURN_NO_RESULTS)
-
-        # override and test
-        with override_settings(FILTERS_STRICTNESS=STRICTNESS.IGNORE):
-            self.assertEqual(F().strict, STRICTNESS.IGNORE)
-
-    def test_meta_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-                strict = STRICTNESS.IGNORE
-
-        self.assertEqual(F().strict, STRICTNESS.IGNORE)
-
-    def test_init_default(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-                strict = STRICTNESS.IGNORE
-
-        strict = STRICTNESS.RAISE_VALIDATION_ERROR
-        self.assertEqual(F(strict=strict).strict, strict)
-
-    def test_legacy_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-
-        self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
 
 
 # test filter.method here, as it depends on its parent FilterSet

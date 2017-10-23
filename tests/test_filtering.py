@@ -1086,25 +1086,9 @@ class AllValuesFilterTests(TestCase):
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'}).qs),
                          [User.objects.get(username='alex')])
-        self.assertEqual(list(F({'username': 'jose'}).qs),
-                         list())
 
-    def test_filtering_without_strict(self):
-        User.objects.create(username='alex')
-        User.objects.create(username='jacob')
-        User.objects.create(username='aaron')
-
-        class F(FilterSet):
-            username = AllValuesFilter()
-
-            class Meta:
-                model = User
-                fields = ['username']
-                strict = False
-
-        self.assertEqual(list(F().qs), list(User.objects.all()))
-        self.assertEqual(list(F({'username': 'alex'}).qs),
-                         [User.objects.get(username='alex')])
+        # invalid choice
+        self.assertFalse(F({'username': 'jose'}).is_valid())
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list(User.objects.all()))
 
@@ -1128,8 +1112,11 @@ class AllValuesMultipleFilterTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': ['alex', 'jacob']}).qs),
                          list(User.objects.filter(username__in=['alex', 'jacob'])))
-        self.assertEqual(list(F({'username': ['jose']}).qs),
-                         list())
+
+        # invalid choice
+        self.assertFalse(F({'username': 'jose'}).is_valid())
+        self.assertEqual(list(F({'username': 'jose'}).qs),
+                         list(User.objects.all()))
 
 
 class FilterMethodTests(TestCase):

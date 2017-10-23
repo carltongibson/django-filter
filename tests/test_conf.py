@@ -1,9 +1,7 @@
 
 from django.test import TestCase, override_settings
 
-from django_filters import STRICTNESS, FilterSet
 from django_filters.conf import is_callable, settings
-from tests.models import User
 
 
 class DefaultSettingsTests(TestCase):
@@ -15,9 +13,6 @@ class DefaultSettingsTests(TestCase):
     def test_disable_help_text(self):
         self.assertFalse(settings.DISABLE_HELP_TEXT)
 
-    def test_strictness(self):
-        self.assertEqual(settings.STRICTNESS, STRICTNESS.RETURN_NO_RESULTS)
-
     def test_empty_choice_label(self):
         self.assertEqual(settings.EMPTY_CHOICE_LABEL, '---------')
 
@@ -26,45 +21,6 @@ class DefaultSettingsTests(TestCase):
 
     def test_null_choice_value(self):
         self.assertEqual(settings.NULL_CHOICE_VALUE, 'null')
-
-
-class StrictnessTests(TestCase):
-    class F(FilterSet):
-        class Meta:
-            model = User
-            fields = []
-
-    def test_settings_default(self):
-        self.assertEqual(self.F().strict, STRICTNESS.RETURN_NO_RESULTS)
-
-    def test_ignore(self):
-        with override_settings(FILTERS_STRICTNESS=STRICTNESS.IGNORE):
-            self.assertEqual(self.F().strict, STRICTNESS.IGNORE)
-
-    def test_return_no_results(self):
-        with override_settings(FILTERS_STRICTNESS=STRICTNESS.RETURN_NO_RESULTS):
-            self.assertEqual(self.F().strict, STRICTNESS.RETURN_NO_RESULTS)
-
-    def test_raise_validation_error(self):
-        with override_settings(FILTERS_STRICTNESS=STRICTNESS.RAISE_VALIDATION_ERROR):
-            self.assertEqual(self.F().strict, STRICTNESS.RAISE_VALIDATION_ERROR)
-
-    def test_legacy_ignore(self):
-        with override_settings(FILTERS_STRICTNESS=False):
-            self.assertEqual(self.F().strict, STRICTNESS.IGNORE)
-
-    def test_legacy_return_no_results(self):
-        with override_settings(FILTERS_STRICTNESS=True):
-            self.assertEqual(self.F().strict, STRICTNESS.RETURN_NO_RESULTS)
-
-    def test_legacy_raise_validation_error(self):
-        with override_settings(FILTERS_STRICTNESS='RAISE'):
-            self.assertEqual(self.F().strict, STRICTNESS.RAISE_VALIDATION_ERROR)
-
-    def test_legacy_differentiation(self):
-        self.assertNotEqual(STRICTNESS.IGNORE, False)
-        self.assertNotEqual(STRICTNESS.RETURN_NO_RESULTS, True)
-        self.assertNotEqual(STRICTNESS.RAISE_VALIDATION_ERROR, 'RAISE')
 
 
 class OverrideSettingsTests(TestCase):
