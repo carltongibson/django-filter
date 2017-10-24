@@ -1,11 +1,10 @@
-from __future__ import unicode_literals
-
 import datetime
 from decimal import Decimal
 
 from django.conf.urls import url
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.urls import reverse
 from django.utils.dateparse import parse_date
 from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
@@ -19,15 +18,6 @@ from .models import (
     DjangoFilterOrderingModel,
     FilterableItem
 )
-
-try:
-    from django.urls import reverse
-except ImportError:
-    # Django < 1.10 compatibility
-    from django.core.urlresolvers import reverse
-
-
-
 
 factory = APIRequestFactory()
 

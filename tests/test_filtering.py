@@ -1,13 +1,10 @@
-from __future__ import absolute_import, unicode_literals
-
 import datetime
 import mock
 import unittest
 
-import django
 from django import forms
 from django.test import TestCase, override_settings
-from django.utils import six, timezone
+from django.utils import timezone
 from django.utils.timezone import now
 
 from django_filters.exceptions import FieldLookupError
@@ -301,7 +298,6 @@ class TypedMultipleChoiceFilterTests(TestCase):
         User.objects.create(username='aaron', status=2)
         User.objects.create(username='carl', status=0)
 
-
         class F(FilterSet):
             status = TypedMultipleChoiceFilter(choices=STATUS_CHOICES, coerce=lambda x: x[0:2])
 
@@ -334,7 +330,7 @@ class DateFilterTests(TestCase):
         today = now().date()
         timestamp = now().time().replace(microsecond=0)
         last_week = today - datetime.timedelta(days=7)
-        check_date = six.text_type(last_week)
+        check_date = str(last_week)
         u = User.objects.create(username='alex')
         Comment.objects.create(author=u, time=timestamp, date=today)
         Comment.objects.create(author=u, time=timestamp, date=last_week)
@@ -358,7 +354,7 @@ class TimeFilterTests(TestCase):
         now_time = now().time().replace(microsecond=0)
         ten_min_ago = (now() - datetime.timedelta(minutes=10))
         fixed_time = ten_min_ago.time().replace(microsecond=0)
-        check_time = six.text_type(fixed_time)
+        check_time = str(fixed_time)
         u = User.objects.create(username='alex')
         Comment.objects.create(author=u, time=now_time, date=today)
         Comment.objects.create(author=u, time=fixed_time, date=today)
@@ -389,7 +385,7 @@ class DateTimeFilterTests(TestCase):
         tz = timezone.get_current_timezone()
         # make naive, like a browser would send
         local_ten_min_ago = timezone.make_naive(ten_min_ago, tz)
-        check_dt = six.text_type(local_ten_min_ago)
+        check_dt = str(local_ten_min_ago)
 
         class F(FilterSet):
             class Meta:
@@ -941,7 +937,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2016-01-03'})
         self.assertEqual(len(results.qs), 3)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_filtering_dst_start_midnight(self):
         tz = timezone.get_default_timezone()
@@ -962,7 +957,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2017-10-15'})
         self.assertEqual(len(results.qs), 2)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_filtering_dst_ends_midnight(self):
         tz = timezone.get_default_timezone()
@@ -983,7 +977,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2017-02-18'})
         self.assertEqual(len(results.qs), 2)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='Europe/Paris')
     def test_filtering_dst_start(self):
         tz = timezone.get_default_timezone()
@@ -1005,7 +998,6 @@ class DateFromToRangeFilterTests(TestCase):
             'published_1': '2017-3-26'})
         self.assertEqual(len(results.qs), 3)
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='Europe/Paris')
     def test_filtering_dst_end(self):
         tz = timezone.get_default_timezone()
@@ -1667,7 +1659,6 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
 # use naive datetimes, as pytz is required to perform
 # date lookups when timezones are involved.
 @override_settings(USE_TZ=False)
-@unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
 class TransformedQueryExpressionFilterTests(TestCase):
 
     def test_filtering(self):

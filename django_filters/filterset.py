@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import copy
 from collections import OrderedDict
 
@@ -7,9 +5,7 @@ from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
-from django.utils import six
 
-from .compat import remote_field, remote_queryset
 from .conf import settings
 from .constants import ALL_FIELDS, STRICTNESS
 from .filters import (
@@ -34,6 +30,13 @@ from .utils import (
     resolve_field,
     try_dbfield
 )
+
+
+def remote_queryset(field):
+    model = field.remote_field.model
+    limit_choices_to = field.get_limit_choices_to()
+
+    return model._default_manager.complex_filter(limit_choices_to)
 
 
 class FilterSetOptions(object):
@@ -113,7 +116,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
-            'to_field_name': remote_field(f).field_name,
+            'to_field_name': f.remote_field.field_name,
             'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
         }
     },
@@ -121,7 +124,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
-            'to_field_name': remote_field(f).field_name,
+            'to_field_name': f.remote_field.field_name,
             'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
         }
     },
@@ -181,7 +184,7 @@ class BaseFilterSet(object):
 
             # start with all the results and filter from there
             qs = self.queryset.all()
-            for name, filter_ in six.iteritems(self.filters):
+            for name, filter_ in self.filters.items():
                 value = self.form.cleaned_data.get(name)
 
                 if value is not None:  # valid & clean data
@@ -196,7 +199,7 @@ class BaseFilterSet(object):
         if not hasattr(self, '_form'):
             fields = OrderedDict([
                 (name, filter_.field)
-                for name, filter_ in six.iteritems(self.filters)])
+                for name, filter_ in self.filters.items()])
 
             Form = type(str('%sForm' % self.__class__.__name__),
                         (self._meta.form,), fields)
@@ -328,7 +331,7 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_reverse_field(cls, f, field_name):
-        rel = remote_field(f.field)
+        rel = f.field.remote_field
         queryset = f.field.model._default_manager.all()
         default = {
             'field_name': field_name,
@@ -410,7 +413,7 @@ class BaseFilterSet(object):
         return str('%s%sFilter' % (type_name, lookup_name))
 
 
-class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
+class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
     pass
 
 
