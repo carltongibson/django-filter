@@ -8,7 +8,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from .conf import settings
 from .utils import handle_timezone
-from .widgets import BaseCSVWidget, CSVWidget, LookupTypeWidget, RangeWidget
+from .widgets import (
+    BaseCSVWidget,
+    CSVWidget,
+    DateRangeWidget,
+    LookupTypeWidget,
+    RangeWidget
+)
 
 
 class RangeField(forms.MultiValueField):
@@ -28,6 +34,7 @@ class RangeField(forms.MultiValueField):
 
 
 class DateRangeField(RangeField):
+    widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
         fields = (
@@ -53,6 +60,7 @@ class DateRangeField(RangeField):
 
 
 class DateTimeRangeField(RangeField):
+    widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
         fields = (
@@ -62,6 +70,7 @@ class DateTimeRangeField(RangeField):
 
 
 class TimeRangeField(RangeField):
+    widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
         fields = (
