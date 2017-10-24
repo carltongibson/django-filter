@@ -113,10 +113,9 @@ class Filter(object):
 
     def label():
         def fget(self):
-            if self._label is None and hasattr(self, 'parent'):
-                model = self.parent._meta.model
+            if self._label is None and hasattr(self, 'model'):
                 self._label = label_for_filter(
-                    model, self.field_name, self.lookup_expr, self.exclude
+                    self.model, self.field_name, self.lookup_expr, self.exclude
                 )
             return self._label
 
