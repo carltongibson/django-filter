@@ -150,6 +150,17 @@ class GetSchemaFieldsTests(TestCase):
             self.assertEqual(len(w), 1)
             self.assertEqual(str(w[0].message), warning)
 
+    def test_malformed_filter_fields(self):
+        # Malformed filter fields should raise an exception
+        class View(FilterFieldsRootView):
+            filter_fields = ['non_existent']
+
+        backend = DjangoFilterBackend()
+
+        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
+        with self.assertRaisesMessage(TypeError, msg):
+            backend.get_schema_fields(View())
+
     def test_fields_with_filter_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):
             filter_fields = {
