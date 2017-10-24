@@ -738,11 +738,11 @@ class NumberFilterTests(TestCase):
                 fields = ['price']
 
         qs = Book.objects.all()
-        f = F({'price_0': '15', 'price_1': 'lt'}, queryset=qs)
+        f = F({'price': '15', 'price_lookup': 'lt'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-        f = F({'price_0': '15', 'price_1': 'lt'})
+        f = F({'price': '15', 'price_lookup': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-        f = F({'price_0': '', 'price_1': 'lt'})
+        f = F({'price': '', 'price_lookup': 'lt'})
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
                                  lambda o: o.title, ordered=False)
@@ -754,7 +754,7 @@ class NumberFilterTests(TestCase):
                 model = Book
                 fields = ['price']
 
-        f = F({'price_0': '15'})
+        f = F({'price': '15'})
         self.assertQuerysetEqual(f.qs, ['Rainbow Six'], lambda o: o.title)
 
 
@@ -785,29 +785,29 @@ class RangeFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Free Book', 'Rainbow Six', 'Refund', 'Snowcrash'],
                                  lambda o: o.title)
-        f = F({'price_0': '5', 'price_1': '15'}, queryset=qs)
+        f = F({'price_min': '5', 'price_max': '15'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Rainbow Six'],
                                  lambda o: o.title)
 
-        f = F({'price_0': '11'}, queryset=qs)
+        f = F({'price_min': '11'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['Rainbow Six', 'Snowcrash'],
                                  lambda o: o.title)
-        f = F({'price_1': '19'}, queryset=qs)
+        f = F({'price_max': '19'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Free Book', 'Rainbow Six', 'Refund'],
                                  lambda o: o.title)
 
-        f = F({'price_0': '0', 'price_1': '12'}, queryset=qs)
+        f = F({'price_min': '0', 'price_max': '12'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Free Book'],
                                  lambda o: o.title)
-        f = F({'price_0': '-11', 'price_1': '0'}, queryset=qs)
+        f = F({'price_min': '-11', 'price_max': '0'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['Free Book', 'Refund'],
                                  lambda o: o.title)
-        f = F({'price_0': '0', 'price_1': '0'}, queryset=qs)
+        f = F({'price_min': '0', 'price_max': '0'}, queryset=qs)
         self.assertQuerysetEqual(f.qs,
                                  ['Free Book'],
                                  lambda o: o.title)
@@ -910,8 +910,8 @@ class DateFromToRangeFilterTests(TestCase):
                 fields = ['date']
 
         results = F(data={
-            'published_0': '2016-01-02',
-            'published_1': '2016-01-03'})
+            'published_after': '2016-01-02',
+            'published_before': '2016-01-03'})
         self.assertEqual(len(results.qs), 3)
 
     def test_filtering_ignores_time(self):
@@ -933,8 +933,8 @@ class DateFromToRangeFilterTests(TestCase):
                 fields = ['published']
 
         results = F(data={
-            'published_0': '2016-01-02',
-            'published_1': '2016-01-03'})
+            'published_after': '2016-01-02',
+            'published_before': '2016-01-03'})
         self.assertEqual(len(results.qs), 3)
 
     @override_settings(TIME_ZONE='America/Sao_Paulo')
@@ -953,8 +953,8 @@ class DateFromToRangeFilterTests(TestCase):
                 fields = ['published']
 
         results = F(data={
-            'published_0': '2017-10-15',
-            'published_1': '2017-10-15'})
+            'published_after': '2017-10-15',
+            'published_before': '2017-10-15'})
         self.assertEqual(len(results.qs), 2)
 
     @override_settings(TIME_ZONE='America/Sao_Paulo')
@@ -973,8 +973,8 @@ class DateFromToRangeFilterTests(TestCase):
                 fields = ['published']
 
         results = F(data={
-            'published_0': '2017-02-18',
-            'published_1': '2017-02-18'})
+            'published_after': '2017-02-18',
+            'published_before': '2017-02-18'})
         self.assertEqual(len(results.qs), 2)
 
     @override_settings(TIME_ZONE='Europe/Paris')
@@ -994,8 +994,8 @@ class DateFromToRangeFilterTests(TestCase):
                 fields = ['published']
 
         results = F(data={
-            'published_0': '2017-3-26',
-            'published_1': '2017-3-26'})
+            'published_after': '2017-3-26',
+            'published_before': '2017-3-26'})
         self.assertEqual(len(results.qs), 3)
 
     @override_settings(TIME_ZONE='Europe/Paris')
@@ -1015,8 +1015,8 @@ class DateFromToRangeFilterTests(TestCase):
                 fields = ['published']
 
         results = F(data={
-            'published_0': '2017-10-29',
-            'published_1': '2017-10-29'})
+            'published_after': '2017-10-29',
+            'published_before': '2017-10-29'})
         self.assertEqual(len(results.qs), 3)
 
 
@@ -1041,8 +1041,8 @@ class DateTimeFromToRangeFilterTests(TestCase):
                 fields = ['published']
 
         results = F(data={
-            'published_0': '2016-01-02 10:00',
-            'published_1': '2016-01-03 19:00'})
+            'published_after': '2016-01-02 10:00',
+            'published_before': '2016-01-03 19:00'})
         self.assertEqual(len(results.qs), 2)
 
 
@@ -1065,8 +1065,8 @@ class TimeRangeFilterTests(TestCase):
                 fields = ['time']
 
         results = F(data={
-            'time_0': '8:00',
-            'time_1': '10:00'})
+            'time_after': '8:00',
+            'time_before': '10:00'})
         self.assertEqual(len(results.qs), 2)
 
 

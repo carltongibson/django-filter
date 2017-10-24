@@ -123,14 +123,14 @@ class LookupTypeFieldTests(TestCase):
         inner = forms.DecimalField()
         f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')])
         self.assertHTMLEqual(f.widget.render('price', ''), """
-            <input type="number" step="any" name="price_0" />
-            <select name="price_1">
+            <input type="number" step="any" name="price" />
+            <select name="price_lookup">
                 <option value="gt">gt</option>
                 <option value="lt">lt</option>
             </select>""")
         self.assertHTMLEqual(f.widget.render('price', ['abc', 'lt']), """
-            <input type="number" step="any" name="price_0" value="abc" />
-            <select name="price_1">
+            <input type="number" step="any" name="price" value="abc" />
+            <select name="price_lookup">
                 <option value="gt">gt</option>
                 <option selected="selected" value="lt">lt</option>
             </select>""")
