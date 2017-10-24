@@ -71,6 +71,26 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
             self.assertContains(response, b)
 
+    def test_view_with_strict_errors(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url + '?title=Snowcrash&price=four dollars')
+        view = FilterView.as_view(model=Book)
+        response = view(request)
+        titles = [o.title for o in response.context_data['object_list']]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(titles, [])
+
+    def test_view_with_non_strict_errors(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url + '?title=Snowcrash&price=four dollars')
+        view = FilterView.as_view(model=Book, strict=False)
+        response = view(request)
+        titles = [o.title for o in response.context_data['object_list']]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(titles, ['Snowcrash'],)
+
     def test_view_without_filterset_or_model(self):
         factory = RequestFactory()
         request = factory.get(self.base_url)

@@ -2,7 +2,6 @@ from django.conf import settings as dj_settings
 from django.core.signals import setting_changed
 from django.utils.translation import ugettext_lazy as _
 
-from .constants import STRICTNESS
 from .utils import deprecate
 
 DEFAULTS = {
@@ -12,8 +11,6 @@ DEFAULTS = {
     'EMPTY_CHOICE_LABEL': '---------',
     'NULL_CHOICE_LABEL': None,
     'NULL_CHOICE_VALUE': 'null',
-
-    'STRICTNESS': STRICTNESS.RETURN_NO_RESULTS,
 
     'VERBOSE_LOOKUPS': {
         # transforms don't need to be verbose, since their expressions are chained

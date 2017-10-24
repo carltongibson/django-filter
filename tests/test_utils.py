@@ -3,20 +3,19 @@ import datetime
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
-from django.forms import ValidationError
 from django.test import TestCase, override_settings
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
 
-from django_filters import STRICTNESS, FilterSet
+from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
 from django_filters.utils import (
     get_field_parts,
     get_model_field,
     handle_timezone,
     label_for_filter,
-    raw_validation,
     resolve_field,
+    translate_validation,
     verbose_field_name,
     verbose_lookup_expr
 )
@@ -342,19 +341,30 @@ class HandleTimezone(TestCase):
         self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
 
 
-class RawValidationDataTests(TestCase):
-    def test_simple(self):
-        class F(FilterSet):
-            class Meta:
-                model = Article
-                fields = ['id', 'author', 'name']
-                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+class TranslateValidationDataTests(TestCase):
 
-        f = F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
-        with self.assertRaises(ValidationError) as exc:
-            f.qs
+    class F(FilterSet):
+        class Meta:
+            model = Article
+            fields = ['id', 'author', 'name']
 
-        self.assertDictEqual(raw_validation(exc.exception), {
+    def test_error_detail(self):
+        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        exc = translate_validation(f.errors)
+
+        self.assertDictEqual(exc.detail, {
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        })
+
+    def test_full_error_details(self):
+        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        exc = translate_validation(f.errors)
+
+        self.assertEqual(exc.get_full_details(), {
+            'id': [{'message': 'Enter a number.', 'code': 'invalid'}],
+            'author': [{
+                'message': 'Select a valid choice. That choice is not one of the available choices.',
+                'code': 'invalid_choice',
+            }],
         })

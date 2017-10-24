@@ -2,9 +2,8 @@ import mock
 import unittest
 
 from django.db import models
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from django_filters.constants import STRICTNESS
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
     BaseInFilter,
@@ -601,16 +600,16 @@ class FilterSetClassCreationTests(TestCase):
 
 class FilterSetInstantiationTests(TestCase):
 
-    def test_creating_instance(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['username']
 
-        f = F()
+    def test_creating_instance(self):
+        f = self.F()
         self.assertFalse(f.is_bound)
         self.assertIsNotNone(f.queryset)
-        self.assertEqual(len(f.filters), len(F.base_filters))
+        self.assertEqual(len(f.filters), len(self.F.base_filters))
         for name, filter_ in f.filters.items():
             self.assertEqual(
                 filter_.model,
@@ -618,76 +617,69 @@ class FilterSetInstantiationTests(TestCase):
                 "%s does not have model set correctly" % name)
 
     def test_creating_bound_instance(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
-        f = F({'username': 'username'})
+        f = self.F({'username': 'username'})
         self.assertTrue(f.is_bound)
 
     def test_creating_with_queryset(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
         m = mock.Mock()
-        f = F(queryset=m)
+        f = self.F(queryset=m)
         self.assertEqual(f.queryset, m)
 
     def test_creating_with_request(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
         m = mock.Mock()
-        f = F(request=m)
+        f = self.F(request=m)
         self.assertEqual(f.request, m)
 
 
-class FilterSetStrictnessTests(TestCase):
+class FilterSetQuerysetTests(TestCase):
 
-    def test_settings_default(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['username']
 
-        # Ensure default is not IGNORE
-        self.assertEqual(F().strict, STRICTNESS.RETURN_NO_RESULTS)
+    def test_filter_queryset_called_once(self):
+        m = mock.Mock()
+        f = self.F({'username': 'bob'}, queryset=m)
 
-        # override and test
-        with override_settings(FILTERS_STRICTNESS=STRICTNESS.IGNORE):
-            self.assertEqual(F().strict, STRICTNESS.IGNORE)
+        with mock.patch.object(f, 'filter_queryset',
+                               wraps=f.filter_queryset) as fn:
+            f.qs
+            fn.assert_called_once_with(m.all())
+            f.qs
+            fn.assert_called_once_with(m.all())
 
-    def test_meta_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-                strict = STRICTNESS.IGNORE
+    def test_get_form_class_called_once(self):
+        f = self.F()
 
-        self.assertEqual(F().strict, STRICTNESS.IGNORE)
+        with mock.patch.object(f, 'get_form_class',
+                               wraps=f.get_form_class) as fn:
+            f.form
+            fn.assert_called_once()
+            f.form
+            fn.assert_called_once()
 
-    def test_init_default(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-                strict = STRICTNESS.IGNORE
+    def test_qs_caching(self):
+        m = mock.Mock()
+        f = self.F(queryset=m)
 
-        strict = STRICTNESS.RAISE_VALIDATION_ERROR
-        self.assertEqual(F(strict=strict).strict, strict)
+        self.assertIs(f.qs, m.all())
+        self.assertIs(f.qs, f.qs)
 
-    def test_legacy_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
+    def test_form_caching(self):
+        f = self.F()
 
-        self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
+        self.assertIs(f.form, f.form)
+
+    def test_qs_triggers_form_validation(self):
+        m = mock.Mock()
+        f = self.F({'username': 'bob'}, queryset=m)
+
+        with mock.patch.object(f.form, 'full_clean',
+                               wraps=f.form.full_clean) as fn:
+            fn.assert_not_called()
+            f.qs
+            fn.assert_called()
 
 
 # test filter.method here, as it depends on its parent FilterSet
