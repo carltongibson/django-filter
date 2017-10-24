@@ -68,12 +68,12 @@ class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, field_name=None, label=None, method=None, lookup_expr='exact',
-                 distinct=False, exclude=False, **kwargs):
+    def __init__(self, field_name=None, lookup_expr='exact', *, label=None,
+                 method=None, distinct=False, exclude=False, **kwargs):
         self.field_name = field_name
+        self.lookup_expr = lookup_expr
         self.label = label
         self.method = method
-        self.lookup_expr = lookup_expr
         self.distinct = distinct
         self.exclude = exclude
 
