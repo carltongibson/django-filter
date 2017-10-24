@@ -25,14 +25,6 @@ class FilterableItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Basic filter on a list view.
-class FilterFieldsRootView(generics.ListCreateAPIView):
-    queryset = FilterableItem.objects.all()
-    serializer_class = FilterableItemSerializer
-    filter_fields = ['decimal', 'date']
-    filter_backends = (DjangoFilterBackend,)
-
-
 # These class are used to test a filter class.
 class SeveralFieldsFilter(FilterSet):
     text = filters.CharFilter(lookup_expr='icontains')
@@ -44,11 +36,19 @@ class SeveralFieldsFilter(FilterSet):
         fields = ['text', 'decimal', 'date']
 
 
-class FilterClassRootView(generics.ListCreateAPIView):
+# Basic filter on a list view.
+class FilterableItemView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
+
+
+class FilterFieldsRootView(FilterableItemView):
+    filter_fields = ['decimal', 'date']
+
+
+class FilterClassRootView(FilterableItemView):
+    filter_class = SeveralFieldsFilter
 
 
 @skipIf(compat.coreapi is None, 'coreapi must be installed')
