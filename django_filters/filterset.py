@@ -140,12 +140,13 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, prefix=None, strict=None, request=None):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None, strict=None):
         self.is_bound = data is not None
         self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         self.queryset = queryset
+        self.request = request
         self.form_prefix = prefix
 
         # What to do on on validation errors
@@ -157,8 +158,6 @@ class BaseFilterSet(object):
 
         # transform legacy values
         self.strict = STRICTNESS._LEGACY.get(strict, strict)
-
-        self.request = request
 
         self.filters = copy.deepcopy(self.base_filters)
 
