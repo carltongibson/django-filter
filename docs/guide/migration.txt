@@ -31,6 +31,14 @@ been removed.
 To alter strictness behavior, the appropriate view code should be overridden.
 More details will be provided in future docs.
 
+``MultiWidget`` replaced by ``SuffixedMultiWidget``
+---------------------------------------------------
+
+``RangeWidget``, ``DateRangeWidget``, and ``LookupTypeWidget`` now inherit from
+``SuffixedMultiWidget``, changing the suffixes of their query param names. For
+example, ``RangeWidget`` now has ``_min`` and ``_max`` suffixes instead of
+``_0`` and ``_1``.
+
 
 ----------------
 Migrating to 1.0
