@@ -141,10 +141,12 @@ class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
     def __init__(self, data=None, queryset=None, *, request=None, prefix=None, strict=None):
-        self.is_bound = data is not None
-        self.data = data or {}
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
+        model = queryset.model
+
+        self.is_bound = data is not None
+        self.data = data or {}
         self.queryset = queryset
         self.request = request
         self.form_prefix = prefix
@@ -161,9 +163,9 @@ class BaseFilterSet(object):
 
         self.filters = copy.deepcopy(self.base_filters)
 
+        # propagate the model and filterset to the filters
         for filter_ in self.filters.values():
-            # propagate the model and filterset to the filters
-            filter_.model = self._meta.model
+            filter_.model = model
             filter_.parent = self
 
     @property

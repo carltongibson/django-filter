@@ -25,14 +25,6 @@ class FilterableItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Basic filter on a list view.
-class FilterFieldsRootView(generics.ListCreateAPIView):
-    queryset = FilterableItem.objects.all()
-    serializer_class = FilterableItemSerializer
-    filter_fields = ['decimal', 'date']
-    filter_backends = (DjangoFilterBackend,)
-
-
 # These class are used to test a filter class.
 class SeveralFieldsFilter(FilterSet):
     text = filters.CharFilter(lookup_expr='icontains')
@@ -44,11 +36,88 @@ class SeveralFieldsFilter(FilterSet):
         fields = ['text', 'decimal', 'date']
 
 
-class FilterClassRootView(generics.ListCreateAPIView):
+# Basic filter on a list view.
+class FilterableItemView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
+
+
+class FilterFieldsRootView(FilterableItemView):
+    filter_fields = ['decimal', 'date']
+
+
+class FilterClassRootView(FilterableItemView):
+    filter_class = SeveralFieldsFilter
+
+
+class GetFilterClassTests(TestCase):
+
+    def test_filter_class(self):
+        class Filter(FilterSet):
+            class Meta:
+                model = FilterableItem
+                fields = '__all__'
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_class = Filter
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertIs(filter_class, Filter)
+
+    def test_filter_class_no_meta(self):
+        class Filter(FilterSet):
+            pass
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_class = Filter
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertIs(filter_class, Filter)
+
+    def test_filter_class_no_queryset(self):
+        class Filter(FilterSet):
+            class Meta:
+                model = FilterableItem
+                fields = '__all__'
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_class = Filter
+
+        filter_class = backend.get_filter_class(view, None)
+        self.assertIs(filter_class, Filter)
+
+    def test_filter_fields(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_fields = ['text', 'decimal', 'date']
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertEqual(filter_class._meta.fields, view.filter_fields)
+
+    def test_filter_fields_malformed(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_fields = ['non_existent']
+        queryset = FilterableItem.objects.all()
+
+        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
+        with self.assertRaisesMessage(TypeError, msg):
+            backend.get_filter_class(view, queryset)
+
+    def test_filter_fields_no_queryset(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_fields = ['text', 'decimal', 'date']
+
+        filter_class = backend.get_filter_class(view, None)
+        self.assertIsNone(filter_class)
 
 
 @skipIf(compat.coreapi is None, 'coreapi must be installed')
@@ -80,6 +149,17 @@ class GetSchemaFieldsTests(TestCase):
             warning = "{} is not compatible with schema generation".format(BadGetQuerySetView)
             self.assertEqual(len(w), 1)
             self.assertEqual(str(w[0].message), warning)
+
+    def test_malformed_filter_fields(self):
+        # Malformed filter fields should raise an exception
+        class View(FilterFieldsRootView):
+            filter_fields = ['non_existent']
+
+        backend = DjangoFilterBackend()
+
+        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
+        with self.assertRaisesMessage(TypeError, msg):
+            backend.get_schema_fields(View())
 
     def test_fields_with_filter_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):
