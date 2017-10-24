@@ -51,6 +51,75 @@ class FilterClassRootView(FilterableItemView):
     filter_class = SeveralFieldsFilter
 
 
+class GetFilterClassTests(TestCase):
+
+    def test_filter_class(self):
+        class Filter(FilterSet):
+            class Meta:
+                model = FilterableItem
+                fields = '__all__'
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_class = Filter
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertIs(filter_class, Filter)
+
+    def test_filter_class_no_meta(self):
+        class Filter(FilterSet):
+            pass
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_class = Filter
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertIs(filter_class, Filter)
+
+    def test_filter_class_no_queryset(self):
+        class Filter(FilterSet):
+            class Meta:
+                model = FilterableItem
+                fields = '__all__'
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_class = Filter
+
+        filter_class = backend.get_filter_class(view, None)
+        self.assertIs(filter_class, Filter)
+
+    def test_filter_fields(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_fields = ['text', 'decimal', 'date']
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertEqual(filter_class._meta.fields, view.filter_fields)
+
+    def test_filter_fields_malformed(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_fields = ['non_existent']
+        queryset = FilterableItem.objects.all()
+
+        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
+        with self.assertRaisesMessage(TypeError, msg):
+            backend.get_filter_class(view, queryset)
+
+    def test_filter_fields_no_queryset(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filter_fields = ['text', 'decimal', 'date']
+
+        filter_class = backend.get_filter_class(view, None)
+        self.assertIsNone(filter_class)
+
+
 @skipIf(compat.coreapi is None, 'coreapi must be installed')
 class GetSchemaFieldsTests(TestCase):
     def test_fields_with_filter_fields_list(self):
