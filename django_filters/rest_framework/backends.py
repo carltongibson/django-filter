@@ -23,15 +23,17 @@ class DjangoFilterBackend(object):
         filter_fields = getattr(view, 'filter_fields', None)
 
         if filter_class:
-            filter_model = filter_class.Meta.model
+            filter_model = filter_class._meta.model
 
-            assert issubclass(queryset.model, filter_model), \
-                'FilterSet model %s does not match queryset model %s' % \
-                (filter_model, queryset.model)
+            # FilterSets do not need to specify a Meta class
+            if filter_model and queryset is not None:
+                assert issubclass(queryset.model, filter_model), \
+                    'FilterSet model %s does not match queryset model %s' % \
+                    (filter_model, queryset.model)
 
             return filter_class
 
-        if filter_fields:
+        if filter_fields and queryset is not None:
             MetaBase = getattr(self.default_filter_set, 'Meta', object)
 
             class AutoFilterSet(self.default_filter_set):
@@ -80,15 +82,15 @@ class DjangoFilterBackend(object):
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
         assert compat.coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
 
-        filter_class = getattr(view, 'filter_class', None)
-        if filter_class is None:
-            try:
-                filter_class = self.get_filter_class(view, view.get_queryset())
-            except Exception:
-                warnings.warn(
-                    "{} is not compatible with schema generation".format(view.__class__)
-                )
-                filter_class = None
+        try:
+            queryset = view.get_queryset()
+        except Exception:
+            queryset = None
+            warnings.warn(
+                "{} is not compatible with schema generation".format(view.__class__)
+            )
+
+        filter_class = self.get_filter_class(view, queryset)
 
         return [] if not filter_class else [
             compat.coreapi.Field(
