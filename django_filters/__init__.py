@@ -10,16 +10,15 @@ if pkgutil.find_loader('rest_framework') is not None:
     from . import rest_framework
 del pkgutil
 
-__version__ = '1.1.0'
+__version__ = '2.0.0.dev1'
 
 
 def parse_version(version):
     '''
-    '0.1.2-dev' -> (0, 1, 2, 'dev')
+    '0.1.2.dev1' -> (0, 1, 2, 'dev1')
     '0.1.2' -> (0, 1, 2)
     '''
     v = version.split('.')
-    v = v[:-1] + v[-1].split('-')
     ret = []
     for p in v:
         if p.isdigit():
