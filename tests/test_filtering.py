@@ -7,7 +7,6 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.timezone import now
 
-from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
@@ -1944,16 +1943,3 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.qs.count(), 2)
-
-    def test_invalid_field_lookup(self):
-        # We want to ensure that non existent lookups (or just simple misspellings)
-        # throw a useful exception containg the field and lookup expr.
-        with self.assertRaises(FieldLookupError) as context:
-            class F(FilterSet):
-                class Meta:
-                    model = User
-                    fields = {'username': ['flub']}
-
-        exc = str(context.exception)
-        self.assertIn('tests.User.username', exc)
-        self.assertIn('flub', exc)
