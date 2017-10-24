@@ -223,3 +223,35 @@ class FilterSetFormTests(TestCase):
                 F().form.fields['title__in'].help_text,
                 ''
             )
+
+
+class FilterSetValidityTests(TestCase):
+
+    class F(FilterSet):
+        class Meta:
+            model = Book
+            fields = ['title', 'price']
+
+    def test_not_bound(self):
+        f = self.F()
+
+        self.assertFalse(f.is_bound)
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.data, {})
+        self.assertEqual(f.errors, {})
+
+    def test_is_bound_and_valid(self):
+        f = self.F({'title': 'Some book'})
+
+        self.assertTrue(f.is_bound)
+        self.assertTrue(f.is_valid())
+        self.assertEqual(f.data, {'title': 'Some book'})
+        self.assertEqual(f.errors, {})
+
+    def test_is_bound_and_not_valid(self):
+        f = self.F({'price': 'four dollars'})
+
+        self.assertTrue(f.is_bound)
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.data, {'price': 'four dollars'})
+        self.assertEqual(f.errors, {'price': ['Enter a number.']})

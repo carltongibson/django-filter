@@ -7,7 +7,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 
 from .conf import settings
-from .constants import ALL_FIELDS, STRICTNESS
+from .constants import ALL_FIELDS
 from .filters import (
     BaseInFilter,
     BaseRangeFilter,
@@ -46,8 +46,6 @@ class FilterSetOptions(object):
         self.exclude = getattr(options, 'exclude', None)
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
-
-        self.strict = getattr(options, 'strict', None)
 
         self.form = getattr(options, 'form', forms.Form)
 
@@ -140,7 +138,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None, strict=None):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         model = queryset.model
@@ -151,16 +149,6 @@ class BaseFilterSet(object):
         self.request = request
         self.form_prefix = prefix
 
-        # What to do on on validation errors
-        # Fallback to meta, then settings strictness
-        if strict is None:
-            strict = self._meta.strict
-        if strict is None:
-            strict = settings.STRICTNESS
-
-        # transform legacy values
-        self.strict = STRICTNESS._LEGACY.get(strict, strict)
-
         self.filters = copy.deepcopy(self.base_filters)
 
         # propagate the model and filterset to the filters
@@ -168,42 +156,60 @@ class BaseFilterSet(object):
             filter_.model = model
             filter_.parent = self
 
+    def is_valid(self):
+        """
+        Return True if the underlying form has no errors, or False otherwise.
+        """
+        return self.is_bound and self.form.is_valid()
+
+    @property
+    def errors(self):
+        """
+        Return an ErrorDict for the data provided for the underlying form.
+        """
+        return self.form.errors
+
+    def filter_queryset(self, queryset):
+        """
+        Filter the queryset with the underlying form's `cleaned_data`. You must
+        call `is_valid()` or `errors` before calling this method.
+
+        This method should be overridden if additional filtering needs to be
+        applied to the queryset before it is cached.
+        """
+        for name, value in self.form.cleaned_data.items():
+            queryset = self.filters[name].filter(queryset, value)
+        return queryset
+
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
-            if not self.is_bound:
-                self._qs = self.queryset.all()
-                return self._qs
-
-            if not self.form.is_valid():
-                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                    raise forms.ValidationError(self.form.errors)
-                elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
-                    self._qs = self.queryset.none()
-                    return self._qs
-                # else STRICTNESS.IGNORE...  ignoring
-
-            # start with all the results and filter from there
             qs = self.queryset.all()
-            for name, filter_ in self.filters.items():
-                value = self.form.cleaned_data.get(name)
-
-                if value is not None:  # valid & clean data
-                    qs = filter_.filter(qs, value)
-
+            if self.is_bound:
+                # ensure form validation before filtering
+                self.errors
+                qs = self.filter_queryset(qs)
             self._qs = qs
-
         return self._qs
+
+    def get_form_class(self):
+        """
+        Returns a django Form suitable of validating the filterset data.
+
+        This method should be overridden if the form class needs to be
+        customized relative to the filterset instance.
+        """
+        fields = OrderedDict([
+            (name, filter_.field)
+            for name, filter_ in self.filters.items()])
+
+        return type(str('%sForm' % self.__class__.__name__),
+                    (self._meta.form,), fields)
 
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = OrderedDict([
-                (name, filter_.field)
-                for name, filter_ in self.filters.items()])
-
-            Form = type(str('%sForm' % self.__class__.__name__),
-                        (self._meta.form,), fields)
+            Form = self.get_form_class()
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:

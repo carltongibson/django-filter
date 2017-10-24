@@ -1,4 +1,5 @@
 import warnings
+from collections import OrderedDict
 
 import django
 from django.conf import settings
@@ -8,7 +9,6 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, RelatedField
-from django.forms import ValidationError
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
@@ -233,22 +233,17 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
     return verbose_expression
 
 
-def raw_validation(error):
+def translate_validation(error_dict):
     """
-    Deconstruct a django.forms.ValidationError into a primitive structure
-    eg, plain dicts and lists.
+    Translate a Django ErrorDict into its DRF ValidationError.
     """
-    if isinstance(error, ValidationError):
-        if hasattr(error, 'error_dict'):
-            error = error.error_dict
-        elif not hasattr(error, 'message'):
-            error = error.error_list
-        else:
-            error = error.message
+    # it's necessary to lazily import the exception, as it can otherwise create
+    # an import loop when importing django_filters inside the project settings.
+    from rest_framework.exceptions import ValidationError, ErrorDetail
 
-    if isinstance(error, dict):
-        return {key: raw_validation(value) for key, value in error.items()}
-    elif isinstance(error, list):
-        return [raw_validation(value) for value in error]
-    else:
-        return error
+    exc = OrderedDict(
+        (key, [ErrorDetail(e.message, code=e.code) for e in error_list])
+        for key, error_list in error_dict.as_data().items()
+    )
+
+    return ValidationError(exc)

@@ -1,6 +1,5 @@
 
 # ensure package/conf is importable
-from django_filters import STRICTNESS
 from django_filters.conf import DEFAULTS
 
 DATABASES = {
@@ -40,6 +39,3 @@ STATIC_URL = '/static/'
 # help verify that DEFAULTS is importable from conf.
 def FILTERS_VERBOSE_LOOKUPS():
     return DEFAULTS['VERBOSE_LOOKUPS']
-
-
-FILTERS_STRICTNESS = STRICTNESS.RETURN_NO_RESULTS
