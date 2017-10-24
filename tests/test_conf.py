@@ -18,12 +18,6 @@ class DefaultSettingsTests(TestCase):
     def test_strictness(self):
         self.assertEqual(settings.STRICTNESS, STRICTNESS.RETURN_NO_RESULTS)
 
-    def test_help_text_filter(self):
-        self.assertTrue(settings.HELP_TEXT_FILTER)
-
-    def test_help_text_exclude(self):
-        self.assertTrue(settings.HELP_TEXT_EXCLUDE)
-
     def test_empty_choice_label(self):
         self.assertEqual(settings.EMPTY_CHOICE_LABEL, '---------')
 
@@ -89,16 +83,16 @@ class OverrideSettingsTests(TestCase):
         # ensure that changed setting behaves correctly when
         # not originally present in the user's settings.
         from django.conf import settings as dj_settings
-        self.assertFalse(hasattr(dj_settings, 'FILTERS_HELP_TEXT_FILTER'))
+        self.assertFalse(hasattr(dj_settings, 'FILTERS_DISABLE_HELP_TEXT'))
 
         # Default value
-        self.assertTrue(settings.HELP_TEXT_FILTER)
+        self.assertFalse(settings.DISABLE_HELP_TEXT)
 
-        with override_settings(FILTERS_HELP_TEXT_FILTER=None):
-            self.assertIsNone(settings.HELP_TEXT_FILTER)
+        with override_settings(FILTERS_DISABLE_HELP_TEXT=True):
+            self.assertTrue(settings.DISABLE_HELP_TEXT)
 
         # Revert to default
-        self.assertTrue(settings.HELP_TEXT_FILTER)
+        self.assertFalse(settings.DISABLE_HELP_TEXT)
 
     def test_non_filters_setting(self):
         self.assertFalse(hasattr(settings, 'USE_TZ'))
