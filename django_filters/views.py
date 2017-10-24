@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic import View
 from django.views.generic.list import (

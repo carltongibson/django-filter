@@ -1,7 +1,5 @@
 import datetime
-import unittest
 
-import django
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -24,7 +22,6 @@ from django_filters.utils import (
 )
 
 from .models import (
-    Account,
     Article,
     Book,
     Business,
@@ -112,7 +109,6 @@ class ResolveFieldTests(TestCase):
             self.assertIsInstance(field, models.ManyToManyField)
             self.assertEqual(lookup, term)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not reverse lookups")
     def test_resolve_reverse_related_lookups(self):
         """
         Check that lookups can be resolved for related fields
@@ -134,7 +130,6 @@ class ResolveFieldTests(TestCase):
             self.assertIsInstance(field, models.ManyToManyRel)
             self.assertEqual(lookup, term)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_resolve_transformed_lookups(self):
         """
         Check that chained field transforms are correctly resolved.
@@ -186,7 +181,6 @@ class ResolveFieldTests(TestCase):
                 self.assertIsInstance(field, models.IntegerField)
                 self.assertEqual(resolved_lookup, lookup)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_resolve_implicit_exact_lookup(self):
         # Use a DateTimeField, so we can check multiple transforms.
         # eg, date__year__gte
@@ -335,14 +329,12 @@ class LabelForFilterTests(TestCase):
 
 class HandleTimezone(TestCase):
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_ending(self):
         dst_ending_date = datetime.datetime(2017, 2, 18, 23, 59, 59, 999999)
         handled = handle_timezone(dst_ending_date, False)
         self.assertEqual(handled, get_default_timezone().localize(dst_ending_date, False))
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_starting(self):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)

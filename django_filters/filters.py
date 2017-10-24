@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -7,12 +5,11 @@ from django import forms
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql.constants import QUERY_TERMS
-from django.utils import six
+from django.forms.utils import pretty_name
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .compat import pretty_name
 from .conf import settings
 from .constants import EMPTY_VALUES
 from .fields import (
@@ -186,7 +183,7 @@ class Filter(object):
 
     def filter(self, qs, value):
         if isinstance(value, Lookup):
-            lookup = six.text_type(value.lookup_type)
+            lookup = str(value.lookup_type)
             value = value.value
         else:
             lookup = self.lookup_expr
@@ -475,7 +472,7 @@ class DateRangeFilter(ChoiceFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs['choices'] = [
-            (key, value[0]) for key, value in six.iteritems(self.options)]
+            (key, value[0]) for key, value in self.options.items()]
 
         # empty/null choices not relevant
         kwargs.setdefault('empty_label', None)
@@ -660,13 +657,13 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
         # fields is an iterable of field names
-        assert all(isinstance(field, six.string_types) or
+        assert all(isinstance(field, str) or
                    is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
                    for field in fields), \
             "'fields' must contain strings or (field name, param name) pairs."
 
         return OrderedDict([
-            (f, f) if isinstance(f, six.string_types) else f for f in fields
+            (f, f) if isinstance(f, str) else f for f in fields
         ])
 
     def build_choices(self, fields, labels):

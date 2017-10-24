@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import decimal
 from datetime import datetime, time, timedelta, tzinfo
 
