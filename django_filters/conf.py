@@ -1,6 +1,3 @@
-
-from __future__ import absolute_import
-
 from django.conf import settings as dj_settings
 from django.core.signals import setting_changed
 from django.utils.translation import ugettext_lazy as _
