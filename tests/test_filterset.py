@@ -1,11 +1,11 @@
 import mock
 import unittest
 
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
 
 from django_filters.constants import STRICTNESS
+from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
     BaseInFilter,
     BaseRangeFilter,
@@ -444,6 +444,19 @@ class FilterSetClassCreationTests(TestCase):
                               'title': ['exact'],
                               'other': ['exact'],
                               }
+
+    def test_meta_fields_invalid_lookup(self):
+        # We want to ensure that non existent lookups (or just simple misspellings)
+        # throw a useful exception containg the field and lookup expr.
+        with self.assertRaises(FieldLookupError) as context:
+            class F(FilterSet):
+                class Meta:
+                    model = User
+                    fields = {'username': ['flub']}
+
+        exc = str(context.exception)
+        self.assertIn('tests.User.username', exc)
+        self.assertIn('flub', exc)
 
     def test_meta_exlude_with_declared_and_declared_wins(self):
         class F(FilterSet):
