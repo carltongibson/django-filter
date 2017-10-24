@@ -82,15 +82,15 @@ class DjangoFilterBackend(object):
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
         assert compat.coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
 
-        filter_class = getattr(view, 'filter_class', None)
-        if filter_class is None:
-            try:
-                filter_class = self.get_filter_class(view, view.get_queryset())
-            except Exception:
-                warnings.warn(
-                    "{} is not compatible with schema generation".format(view.__class__)
-                )
-                filter_class = None
+        try:
+            queryset = view.get_queryset()
+        except Exception:
+            queryset = None
+            warnings.warn(
+                "{} is not compatible with schema generation".format(view.__class__)
+            )
+
+        filter_class = self.get_filter_class(view, queryset)
 
         return [] if not filter_class else [
             compat.coreapi.Field(
