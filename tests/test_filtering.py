@@ -1888,6 +1888,13 @@ class MiscFilterSetTests(TestCase):
         self.assertNotEqual(qs, result)
         qs.all.return_value.filter.assert_called_with(username__exact='jdoe')
 
+    def test_filtering_without_meta(self):
+        class F(FilterSet):
+            username = CharFilter()
+
+        f = F({'username': 'alex'}, queryset=User.objects.all())
+        self.assertQuerysetEqual(f.qs, ['alex'], lambda o: o.username)
+
     def test_filtering_with_multiple_filters(self):
         class F(FilterSet):
             class Meta:
