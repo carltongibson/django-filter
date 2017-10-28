@@ -3,11 +3,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: POEditor.com\n"
+"X-Generator: Poedit 2.0.1\n"
 "Project-Id-Version: django-filter\n"
 "Language: da\n"
 "Last-Translator: Danni Randeris <danni@danniranderis.dk>\n"
 "Language-Team: Danni Randeris <danni@danniranderis.dk>\n"
+"POT-Creation-Date: 2017-10-28\n"
+"PO-Revision-Date: 2017-10-28\n"
 
 #: conf.py:17
 msgid "date"
@@ -176,4 +178,3 @@ msgstr "Ja"
 #: widgets.py:161
 msgid "No"
 msgstr "Nej"
-
