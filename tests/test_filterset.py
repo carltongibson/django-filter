@@ -4,6 +4,7 @@ import mock
 import unittest
 
 import django
+from django import forms
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase, override_settings
@@ -167,6 +168,14 @@ class FilterSetFilterForFieldTests(TestCase):
             "FilterSet resolved field 'mask' with 'exact' lookup "
             "to an unrecognized field type SubnetMaskField",
             excinfo.exception.args[0])
+
+    def test_unknown_field_type_supported(self):
+        f = NetworkSetting._meta.get_field('mask')
+
+        result = FilterSet.filter_for_field(f, 'mask')
+
+        self.assertIsInstance(result, Filter)
+        self.assertIsInstance(result.field_class(), forms.GenericIPAddressField)
 
     def test_symmetrical_selfref_m2m_field(self):
         f = Node._meta.get_field('adjacents')

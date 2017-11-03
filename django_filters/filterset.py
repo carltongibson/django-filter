@@ -352,6 +352,11 @@ class BaseFilterSet(object):
         filter_class, params = cls.filter_for_lookup(f, lookup_type)
         default.update(params)
 
+        if filter_class is None:
+            filter = Filter(**default)
+            filter.model_field = f
+            return filter
+
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "

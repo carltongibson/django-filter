@@ -4,6 +4,7 @@ from collections import OrderedDict
 from datetime import timedelta
 
 from django import forms
+from django.db import models
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql.constants import QUERY_TERMS
@@ -84,7 +85,12 @@ def _extra_attr(attr):
 
 class Filter(object):
     creation_counter = 0
-    field_class = forms.Field
+    model_field = None
+
+    def field_class(self, **kwargs):
+        if self.model_field is None:
+            self.model_field = models.Field()
+        return self.model_field.formfield(**kwargs)
 
     def __init__(self, field_name=None, label=None, method=None, lookup_expr='exact',
                  distinct=False, exclude=False, **kwargs):
