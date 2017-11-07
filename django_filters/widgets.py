@@ -86,7 +86,8 @@ class SuffixedMultiWidget(forms.MultiWidget):
         assert len(self.widgets) == len(self.suffixes)
         assert len(self.suffixes) == len(set(self.suffixes))
 
-    def suffixed(self, name, suffix):
+    @classmethod
+    def suffixed(cls, name, suffix):
         return '_'.join([name, suffix]) if suffix else name
 
     def get_context(self, name, value, attrs):

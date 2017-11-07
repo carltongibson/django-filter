@@ -1,9 +1,11 @@
 import warnings
+from functools import reduce
+from operator import add
 
 from django.template import loader
 
-from . import filters, filterset
-from .. import compat, utils
+from . import filterset
+from .. import compat, utils, widgets
 
 
 class DjangoFilterBackend(object):
@@ -69,14 +71,24 @@ class DjangoFilterBackend(object):
 
         return template.render(context, request)
 
-    def get_coreschema_field(self, field):
-        if isinstance(field, filters.NumberFilter):
-            field_cls = compat.coreschema.Number
-        else:
-            field_cls = compat.coreschema.String
-        return field_cls(
-            description=str(field.extra.get('help_text', ''))
-        )
+    def get_fieldnames(self, name, field):
+        # get the widget class
+        widget = field.extra.get('widget', field.field_class.widget)
+        widget = widget if isinstance(widget, type) else type(widget)
+
+        if issubclass(widget, widgets.SuffixedMultiWidget):
+            return [widget.suffixed(name, suffix) for suffix in widget.suffixes]
+
+        return [name]
+
+    def get_coreapi_fields(self, name, field):
+        # A filter may present provide multiple query params. eg, those using SuffixedMultiWidget
+        return [compat.coreapi.Field(
+            name=name,
+            required=field.extra['required'],
+            location='query',
+            schema=field.schema,
+        ) for name in self.get_fieldnames(name, field)]
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
@@ -95,11 +107,10 @@ class DjangoFilterBackend(object):
 
         filter_class = self.get_filter_class(view, queryset)
 
-        return [] if not filter_class else [
-            compat.coreapi.Field(
-                name=field_name,
-                required=field.extra['required'],
-                location='query',
-                schema=field.schema
-            ) for field_name, field in filter_class.base_filters.items()
-        ]
+        if not filter_class:
+            return []
+
+        return reduce(add, [
+            self.get_coreapi_fields(name, field)
+            for name, field in filter_class.base_filters.items()
+        ])
