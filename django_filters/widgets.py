@@ -1,6 +1,5 @@
 from collections import Iterable
 from itertools import chain
-from re import search, sub
 
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
@@ -108,14 +107,6 @@ class SuffixedMultiWidget(forms.MultiWidget):
             widget.value_omitted_from_data(data, files, self.suffixed(name, suffix))
             for widget, suffix in zip(self.widgets, self.suffixes)
         )
-
-    def replace_name(self, output, index):
-        result = search(r'name="(?P<name>.*)_%d"' % index, output)
-        name = result.group('name')
-        name = self.suffixed(name, self.suffixes[index])
-        name = 'name="%s"' % name
-
-        return sub(r'name=".*_%d"' % index, name, output)
 
     def decompress(self, value):
         if value is None:
