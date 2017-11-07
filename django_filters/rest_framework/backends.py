@@ -100,6 +100,6 @@ class DjangoFilterBackend(object):
                 name=field_name,
                 required=field.extra['required'],
                 location='query',
-                schema=self.get_coreschema_field(field)
+                schema=field.schema
             ) for field_name, field in filter_class.base_filters.items()
         ]
