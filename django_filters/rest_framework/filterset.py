@@ -20,7 +20,7 @@ class FilterSet(filterset.FilterSet):
 
     @property
     def form(self):
-        form = super(FilterSet, self).form
+        form = super().form
 
         if compat.is_crispy():
             from crispy_forms.helper import FormHelper

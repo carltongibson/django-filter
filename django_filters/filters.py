@@ -188,11 +188,11 @@ class ChoiceFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
-        super(ChoiceFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         if value != self.null_value:
-            return super(ChoiceFilter, self).filter(qs, value)
+            return super().filter(qs, value)
 
         qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): None})
         return qs.distinct() if self.distinct else qs
@@ -237,7 +237,7 @@ class MultipleChoiceFilter(Filter):
         kwargs.setdefault('distinct', True)
         self.conjoined = kwargs.pop('conjoined', False)
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
-        super(MultipleChoiceFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
         """
@@ -342,7 +342,7 @@ class QuerySetRequestMixin(object):
     """
     def __init__(self, *args, **kwargs):
         self.queryset = kwargs.get('queryset')
-        super(QuerySetRequestMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_request(self):
         try:
@@ -365,7 +365,7 @@ class QuerySetRequestMixin(object):
         if queryset is not None:
             self.extra['queryset'] = queryset
 
-        return super(QuerySetRequestMixin, self).field
+        return super().field
 
 
 class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
@@ -373,7 +373,7 @@ class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('empty_label', settings.EMPTY_CHOICE_LABEL)
-        super(ModelChoiceFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
@@ -457,7 +457,7 @@ class DateRangeFilter(ChoiceFilter):
         # empty/null choices not relevant
         kwargs.setdefault('empty_label', None)
         kwargs.setdefault('null_label', None)
-        super(DateRangeFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         try:
@@ -490,7 +490,7 @@ class AllValuesFilter(ChoiceFilter):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
-        return super(AllValuesFilter, self).field
+        return super().field
 
 
 class AllValuesMultipleFilter(MultipleChoiceFilter):
@@ -499,7 +499,7 @@ class AllValuesMultipleFilter(MultipleChoiceFilter):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
         self.extra['choices'] = [(o, o) for o in qs]
-        return super(AllValuesMultipleFilter, self).field
+        return super().field
 
 
 class BaseCSVFilter(Filter):
@@ -510,7 +510,7 @@ class BaseCSVFilter(Filter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('help_text', _('Multiple values may be separated by commas.'))
-        super(BaseCSVFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         class ConcreteCSVField(self.base_field_class, self.field_class):
             pass
@@ -551,7 +551,7 @@ class BaseInFilter(BaseCSVFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'in')
-        super(BaseInFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class BaseRangeFilter(BaseCSVFilter):
@@ -559,7 +559,7 @@ class BaseRangeFilter(BaseCSVFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'range')
-        super(BaseRangeFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class OrderingFilter(BaseCSVFilter, ChoiceFilter):
@@ -607,7 +607,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         kwargs.setdefault('label', _('Ordering'))
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null_label', None)
-        super(OrderingFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_ordering_value(self, param):
         descending = param.startswith('-')

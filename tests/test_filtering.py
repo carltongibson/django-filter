@@ -640,7 +640,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
                 fields = ['favorite_books']
 
             def __init__(self, *args, **kwargs):
-                super(F, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
                 # This filter has a limited number of choices.
                 self.filters['favorite_books'].extra.update({
                     'queryset': Book.objects.filter(id__in=[1, 2])
