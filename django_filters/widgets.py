@@ -14,12 +14,12 @@ from django.utils.translation import ugettext as _
 
 class LinkWidget(forms.Widget):
     def __init__(self, attrs=None, choices=()):
-        super(LinkWidget, self).__init__(attrs)
+        super().__init__(attrs)
 
         self.choices = choices
 
     def value_from_datadict(self, data, files, name):
-        value = super(LinkWidget, self).value_from_datadict(data, files, name)
+        value = super().value_from_datadict(data, files, name)
         self.data = data
         return value
 
@@ -82,7 +82,7 @@ class SuffixedMultiWidget(forms.MultiWidget):
     suffixes = []
 
     def __init__(self, *args, **kwargs):
-        super(SuffixedMultiWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         assert len(self.widgets) == len(self.suffixes)
         assert len(self.suffixes) == len(set(self.suffixes))
@@ -91,7 +91,7 @@ class SuffixedMultiWidget(forms.MultiWidget):
         return '_'.join([name, suffix]) if suffix else name
 
     def get_context(self, name, value, attrs):
-        context = super(SuffixedMultiWidget, self).get_context(name, value, attrs)
+        context = super().get_context(name, value, attrs)
         for subcontext, suffix in zip(context['widget']['subwidgets'], self.suffixes):
             subcontext['name'] = self.suffixed(name, suffix)
 
@@ -129,7 +129,7 @@ class RangeWidget(SuffixedMultiWidget):
 
     def __init__(self, attrs=None):
         widgets = (forms.TextInput, forms.TextInput)
-        super(RangeWidget, self).__init__(widgets, attrs)
+        super().__init__(widgets, attrs)
 
     def decompress(self, value):
         if value:
@@ -159,7 +159,7 @@ class BooleanWidget(forms.Select):
         choices = (('', _('Unknown')),
                    ('true', _('Yes')),
                    ('false', _('No')))
-        super(BooleanWidget, self).__init__(attrs, choices)
+        super().__init__(attrs, choices)
 
     def render(self, name, value, attrs=None):
         try:
@@ -171,7 +171,7 @@ class BooleanWidget(forms.Select):
             }[value]
         except KeyError:
             value = ''
-        return super(BooleanWidget, self).render(name, value, attrs)
+        return super().render(name, value, attrs)
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
@@ -193,7 +193,7 @@ class BaseCSVWidget(forms.Widget):
         return isinstance(value, Iterable) and not isinstance(value, str)
 
     def value_from_datadict(self, data, files, name):
-        value = super(BaseCSVWidget, self).value_from_datadict(data, files, name)
+        value = super().value_from_datadict(data, files, name)
 
         if value is not None:
             if value == '':  # empty value should parse as an empty list
@@ -208,7 +208,7 @@ class BaseCSVWidget(forms.Widget):
         if len(value) <= 1:
             # delegate to main widget (Select, etc...) if not multiple values
             value = value[0] if value else ''
-            return super(BaseCSVWidget, self).render(name, value, attrs)
+            return super().render(name, value, attrs)
 
         # if we have multiple values, we need to force render as a text input
         # (otherwise, the additional values are lost)

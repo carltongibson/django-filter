@@ -94,7 +94,7 @@ def object_filter(request, model=None, queryset=None, template_name=None,
     class ECFilterView(FilterView):
         """Handle the extra_context from the functional object_filter view"""
         def get_context_data(self, **kwargs):
-            context = super(ECFilterView, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             extra_context = self.kwargs.get('extra_context') or {}
             for k, v in extra_context.items():
                 if callable(v):

@@ -54,7 +54,7 @@ class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
         attrs['declared_filters'] = cls.get_declared_filters(bases, attrs)
 
-        new_class = super(FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
+        new_class = super().__new__(cls, name, bases, attrs)
         new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
         new_class.base_filters = new_class.get_filters()
 

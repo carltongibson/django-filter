@@ -36,7 +36,7 @@ class SubnetMaskField(models.Field):
     def formfield(self, **kwargs):
         defaults = {'form_class': forms.GenericIPAddressField}
         defaults.update(kwargs)
-        return super(SubnetMaskField, self).formfield(**defaults)
+        return super().formfield(**defaults)
 
 
 class User(models.Model):

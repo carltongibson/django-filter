@@ -217,13 +217,13 @@ class FilterTests(TestCase):
 class CustomFilterWithBooleanCheckTests(TestCase):
 
     def setUp(self):
-        super(CustomFilterWithBooleanCheckTests, self).setUp()
+        super().setUp()
 
         class CustomTestFilter(Filter):
             def filter(self_, qs, value):
                 if not value:
                     return qs
-                return super(CustomTestFilter, self_).filter(qs, value)
+                return super().filter(qs, value)
 
         self.test_filter_class = CustomTestFilter
 
