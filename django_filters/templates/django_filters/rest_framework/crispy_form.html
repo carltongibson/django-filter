@@ -2,4 +2,7 @@
 {% load i18n %}
 
 <h2>{% trans "Field filters" %}</h2>
-{% crispy filter.form %}
+<form class="form" action="" method="get">
+    {{ filter.form|crispy }}
+    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+</form>
