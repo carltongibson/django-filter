@@ -9,7 +9,7 @@ python:
 cache: pip
 
 install:
-  - pip install coverage detox tox-travis
+  - pip install coverage detox tox-travis tox-venv
 
 script:
   - coverage erase
@@ -21,6 +21,8 @@ matrix:
       env: TOXENV=isort
     - python: 3.6
       env: TOXENV=warnings
+  allow_failures:
+    - env: TOXENV=warnings
 
 after_success:
   - coverage combine --append
