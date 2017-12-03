@@ -20,7 +20,7 @@ Requirements
 ------------
 
 * **Python**: 3.4, 3.5, 3.6
-* **Django**: 1.11, 2.0b
+* **Django**: 1.11, 2.0
 * **DRF**: 3.7
 
 If you need to support Python 2.7 or Django <1.11 use the version 1.1 release.
