@@ -51,6 +51,7 @@ class User(models.Model):
     status = models.IntegerField(choices=STATUS_CHOICES, default=0)
 
     is_active = models.BooleanField(default=False)
+    is_employed = models.NullBooleanField(default=False)
 
     favorite_books = models.ManyToManyField('Book', related_name='lovers')
 
