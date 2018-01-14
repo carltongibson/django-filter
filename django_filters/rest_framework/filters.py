@@ -1,7 +1,9 @@
 
 from ..filters import BooleanFilter as _BooleanFilter
-from ..filters import *
+from ..filters import *  # noqa
 from ..widgets import BooleanWidget
+
+__all__ = filters.__all__
 
 
 class BooleanFilter(_BooleanFilter):
