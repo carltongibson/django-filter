@@ -37,6 +37,14 @@ a fully forards-compatible migration release. Please review the below list of
 changes and update your code accordingly.
 
 
+``Filter.lookup_expr`` list form removed (`#851`__)
+---------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/851
+
+The ``Filter.lookup_expr`` argument no longer accepts ``None`` or a list of
+expressions. Use the :ref:`LookupChoiceFilter <lookup-choice-filter>` instead.
+
+
 FilterSet ``Meta.together`` option removed (`#791`__)
 -----------------------------------------------------
 __ https://github.com/carltongibson/django-filter/pull/791
