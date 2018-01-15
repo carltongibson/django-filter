@@ -13,7 +13,7 @@ from .widgets import (
     BaseCSVWidget,
     CSVWidget,
     DateRangeWidget,
-    LookupTypeWidget,
+    LookupChoiceWidget,
     RangeWidget
 )
 
@@ -100,7 +100,7 @@ class LookupTypeField(forms.MultiValueField):
         defaults = {
             'widgets': [f.widget for f in fields],
         }
-        widget = LookupTypeWidget(**defaults)
+        widget = LookupChoiceWidget(**defaults)
         kwargs['widget'] = widget
         kwargs['help_text'] = field.help_text
         super().__init__(fields, *args, **kwargs)
