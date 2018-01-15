@@ -844,7 +844,7 @@ class DateRangeFilterTests(TestCase):
                 model = Comment
                 fields = ['date']
 
-        f = F({'date': '4'})  # this year
+        f = F({'date': 'year'})  # this year
 
         # assert what is NOT valid for now.
         # self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
@@ -858,7 +858,7 @@ class DateRangeFilterTests(TestCase):
                 model = Comment
                 fields = ['date']
 
-        f = F({'date': '3'})  # this month
+        f = F({'date': 'month'})  # this month
 
         # assert what is NOT valid for now.
         # self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
@@ -873,7 +873,7 @@ class DateRangeFilterTests(TestCase):
                 model = Comment
                 fields = ['date']
 
-        f = F({'date': '2'})  # this week
+        f = F({'date': 'week'})  # this week
         self.assertQuerysetEqual(f.qs, [3, 4], lambda o: o.pk, False)
 
     def test_filtering_for_today(self):
@@ -884,7 +884,7 @@ class DateRangeFilterTests(TestCase):
                 model = Comment
                 fields = ['date']
 
-        f = F({'date': '1'})  # today
+        f = F({'date': 'today'})  # today
         self.assertQuerysetEqual(f.qs, [4], lambda o: o.pk, False)
 
     # it will be difficult to test for TZ related issues, where "today" means
