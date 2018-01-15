@@ -163,7 +163,7 @@ class Filter(object):
 
     def filter(self, qs, value):
         if isinstance(value, Lookup):
-            lookup = str(value.lookup_type)
+            lookup = str(value.lookup_expr)
             value = value.value
         else:
             lookup = self.lookup_expr

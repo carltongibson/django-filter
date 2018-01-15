@@ -80,15 +80,15 @@ class TimeRangeField(RangeField):
         super().__init__(fields, *args, **kwargs)
 
 
-class Lookup(namedtuple('Lookup', ('value', 'lookup_type'))):
-    def __new__(cls, value, lookup_type):
-        if value in EMPTY_VALUES or lookup_type in EMPTY_VALUES:
+class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
+    def __new__(cls, value, lookup_expr):
+        if value in EMPTY_VALUES or lookup_expr in EMPTY_VALUES:
             raise ValueError(
                 "Empty values ([], (), {}, '', None) are not "
                 "valid Lookup arguments. Return None instead."
             )
 
-        return super().__new__(cls, value, lookup_type)
+        return super().__new__(cls, value, lookup_expr)
 
 
 class LookupTypeField(forms.MultiValueField):
@@ -107,9 +107,9 @@ class LookupTypeField(forms.MultiValueField):
 
     def compress(self, data_list):
         if len(data_list) == 2:
-            value, lookup_type = data_list
-            if value not in EMPTY_VALUES and lookup_type not in EMPTY_VALUES:
-                return Lookup(value=value, lookup_type=lookup_type)
+            value, lookup_expr = data_list
+            if value not in EMPTY_VALUES and lookup_expr not in EMPTY_VALUES:
+                return Lookup(value=value, lookup_expr=lookup_expr)
         return None
 
 
