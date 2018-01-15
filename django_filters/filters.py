@@ -468,6 +468,11 @@ class DateRangeFilter(ChoiceFilter):
             "Keys must be present in both 'choices' and 'filters'. Missing keys: " \
             "'%s'" % ', '.join(sorted(unique))
 
+        # TODO: remove assertion in 2.1
+        assert not hasattr(self, 'options'), \
+            "The 'options' attribute has been replaced by 'choices' and 'filters'. " \
+            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+
         # null choice not relevant
         kwargs.setdefault('null_label', None)
         super().__init__(choices=self.choices, *args, **kwargs)
