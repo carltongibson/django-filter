@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import mock
 import unittest
@@ -5,7 +6,7 @@ import unittest
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from django.utils.timezone import now
+from django.utils.timezone import make_aware, now
 
 from django_filters.filters import (
     AllValuesFilter,
@@ -821,8 +822,9 @@ class DateRangeFilterTests(TestCase):
             model = Comment
             fields = ['date']
 
-    def setUp(self):
-        today = now().date()
+    @contextlib.contextmanager
+    def relative_to(self, today):
+        today = make_aware(today)
         five_days_ago = today - datetime.timedelta(days=5)
         two_weeks_ago = today - datetime.timedelta(days=14)
         two_months_ago = today - datetime.timedelta(days=62)
@@ -836,35 +838,29 @@ class DateRangeFilterTests(TestCase):
         Comment.objects.create(date=today, author=alex, time=time)
         Comment.objects.create(date=two_months_ago, author=alex, time=time)
 
-    def test_filtering_for_year(self):
-        F = self.CommentFilter
-        f = F({'date': 'year'})  # this year
+        with mock.patch('django_filters.filters.now') as mock_now:
+            mock_now.return_value = today
+            yield
 
-        # assert what is NOT valid for now.
-        # self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
-        self.assertNotIn(2, f.qs.values_list('pk', flat=True))
+    def test_filtering_for_year(self):
+        f = self.CommentFilter({'date': 'year'})
+        with self.relative_to(datetime.datetime(now().year, 4, 1)):
+            self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
 
     def test_filtering_for_month(self):
-        F = self.CommentFilter
-        f = F({'date': 'month'})  # this month
-
-        # assert what is NOT valid for now.
-        # self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
-        self.assertNotIn(2, f.qs.values_list('pk', flat=True))
-        self.assertNotIn(5, f.qs.values_list('pk', flat=True))
+        f = self.CommentFilter({'date': 'month'})
+        with self.relative_to(datetime.datetime(now().year, 4, 21)):
+            self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
 
     def test_filtering_for_week(self):
-        F = self.CommentFilter
-        f = F({'date': 'week'})  # this week
-        self.assertQuerysetEqual(f.qs, [3, 4], lambda o: o.pk, False)
+        f = self.CommentFilter({'date': 'week'})
+        with self.relative_to(datetime.datetime(now().year, 1, 1)):
+            self.assertQuerysetEqual(f.qs, [3, 4], lambda o: o.pk, False)
 
     def test_filtering_for_today(self):
-        F = self.CommentFilter
-        f = F({'date': 'today'})  # today
-        self.assertQuerysetEqual(f.qs, [4], lambda o: o.pk, False)
-
-    # it will be difficult to test for TZ related issues, where "today" means
-    # different things to both user and server.
+        f = self.CommentFilter({'date': 'today'})
+        with self.relative_to(datetime.datetime(now().year, 1, 1)):
+            self.assertQuerysetEqual(f.qs, [4], lambda o: o.pk, False)
 
 
 class DateFromToRangeFilterTests(TestCase):
