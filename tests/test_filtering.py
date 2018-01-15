@@ -825,6 +825,7 @@ class DateRangeFilterTests(TestCase):
     @contextlib.contextmanager
     def relative_to(self, today):
         today = make_aware(today)
+        yesterday = today - datetime.timedelta(days=1)
         five_days_ago = today - datetime.timedelta(days=5)
         two_weeks_ago = today - datetime.timedelta(days=14)
         two_months_ago = today - datetime.timedelta(days=62)
@@ -836,6 +837,7 @@ class DateRangeFilterTests(TestCase):
         Comment.objects.create(date=two_years_ago, author=alex, time=time)
         Comment.objects.create(date=five_days_ago, author=alex, time=time)
         Comment.objects.create(date=today, author=alex, time=time)
+        Comment.objects.create(date=yesterday, author=alex, time=time)
         Comment.objects.create(date=two_months_ago, author=alex, time=time)
 
         with mock.patch('django_filters.filters.now') as mock_now:
@@ -845,17 +847,22 @@ class DateRangeFilterTests(TestCase):
     def test_filtering_for_year(self):
         f = self.CommentFilter({'date': 'year'})
         with self.relative_to(datetime.datetime(now().year, 4, 1)):
-            self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
+            self.assertQuerysetEqual(f.qs, [1, 3, 4, 5, 6], lambda o: o.pk, False)
 
     def test_filtering_for_month(self):
         f = self.CommentFilter({'date': 'month'})
         with self.relative_to(datetime.datetime(now().year, 4, 21)):
-            self.assertQuerysetEqual(f.qs, [1, 3, 4], lambda o: o.pk, False)
+            self.assertQuerysetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
 
     def test_filtering_for_week(self):
         f = self.CommentFilter({'date': 'week'})
         with self.relative_to(datetime.datetime(now().year, 1, 1)):
-            self.assertQuerysetEqual(f.qs, [3, 4], lambda o: o.pk, False)
+            self.assertQuerysetEqual(f.qs, [3, 4, 5], lambda o: o.pk, False)
+
+    def test_filtering_for_yesterday(self):
+        f = self.CommentFilter({'date': 'yesterday'})
+        with self.relative_to(datetime.datetime(now().year, 1, 1)):
+            self.assertQuerysetEqual(f.qs, [5], lambda o: o.pk, False)
 
     def test_filtering_for_today(self):
         f = self.CommentFilter({'date': 'today'})
