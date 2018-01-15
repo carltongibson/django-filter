@@ -728,27 +728,6 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(
             f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
 
-    def test_filtering_with_multiple_lookup_exprs(self):
-        class F(FilterSet):
-            price = NumberFilter(lookup_expr=['lt', 'gt'])
-
-            class Meta:
-                model = Book
-                fields = ['price']
-
-        f = F({'price': '15', 'price_lookup': 'lt'})
-        self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-        f = F({'price': '15', 'price_lookup': 'lt'})
-        self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-        f = F({'price': '', 'price_lookup': 'lt'})
-        self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
-                                 lambda o: o.title, ordered=False)
-        f = F({'price': '15'})
-        self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
-                                 lambda o: o.title, ordered=False)
-
 
 class RangeFilterTests(TestCase):
 

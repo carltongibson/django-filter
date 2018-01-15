@@ -4,7 +4,6 @@ from datetime import timedelta
 from django import forms
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.sql.constants import QUERY_TERMS
 from django.forms.utils import pretty_name
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
@@ -59,9 +58,6 @@ __all__ = [
     'TypedMultipleChoiceFilter',
     'UUIDFilter',
 ]
-
-
-LOOKUP_TYPES = sorted(QUERY_TERMS)
 
 
 class Filter(object):
@@ -133,45 +129,16 @@ class Filter(object):
             if settings.DISABLE_HELP_TEXT:
                 field_kwargs.pop('help_text', None)
 
-            if (self.lookup_expr is None or
-                    isinstance(self.lookup_expr, (list, tuple))):
-
-                lookup = []
-
-                for x in LOOKUP_TYPES:
-                    if isinstance(x, (list, tuple)) and len(x) == 2:
-                        choice = (x[0], x[1])
-                    else:
-                        choice = (x, x)
-
-                    if self.lookup_expr is None:
-                        lookup.append(choice)
-                    else:
-                        if isinstance(x, (list, tuple)) and len(x) == 2:
-                            if x[0] in self.lookup_expr:
-                                lookup.append(choice)
-                        else:
-                            if x in self.lookup_expr:
-                                lookup.append(choice)
-
-                self._field = LookupChoiceField(
-                    self.field_class(**field_kwargs), lookup,
-                    required=field_kwargs['required'], label=self.label)
-            else:
-                self._field = self.field_class(label=self.label, **field_kwargs)
+            self._field = self.field_class(label=self.label, **field_kwargs)
         return self._field
 
     def filter(self, qs, value):
-        if isinstance(value, Lookup):
-            lookup = str(value.lookup_expr)
-            value = value.value
-        else:
-            lookup = self.lookup_expr
         if value in EMPTY_VALUES:
             return qs
         if self.distinct:
             qs = qs.distinct()
-        qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, lookup): value})
+        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
+        qs = self.get_method(qs)(**{lookup: value})
         return qs
 
 
