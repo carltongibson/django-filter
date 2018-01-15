@@ -91,7 +91,7 @@ class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
         return super().__new__(cls, value, lookup_expr)
 
 
-class LookupTypeField(forms.MultiValueField):
+class LookupChoiceField(forms.MultiValueField):
     def __init__(self, field, lookup_choices, *args, **kwargs):
         fields = (
             field,

@@ -20,7 +20,7 @@ from .fields import (
     DateTimeRangeField,
     IsoDateTimeField,
     Lookup,
-    LookupTypeField,
+    LookupChoiceField,
     ModelChoiceField,
     ModelMultipleChoiceField,
     MultipleChoiceField,
@@ -154,7 +154,7 @@ class Filter(object):
                             if x in self.lookup_expr:
                                 lookup.append(choice)
 
-                self._field = LookupTypeField(
+                self._field = LookupChoiceField(
                     self.field_class(**field_kwargs), lookup,
                     required=field_kwargs['required'], label=self.label)
             else:

@@ -13,7 +13,7 @@ from django_filters.fields import (
     DateTimeRangeField,
     IsoDateTimeField,
     Lookup,
-    LookupTypeField,
+    LookupChoiceField,
     RangeField,
     TimeRangeField
 )
@@ -105,16 +105,16 @@ class TimeRangeFieldTests(TestCase):
             slice(time(10, 15, 0), time(12, 30, 0)))
 
 
-class LookupTypeFieldTests(TestCase):
+class LookupChoiceFieldTests(TestCase):
 
     def test_field(self):
         inner = forms.DecimalField()
-        f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')])
+        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')])
         self.assertEqual(len(f.fields), 2)
 
     def test_clean(self):
         inner = forms.DecimalField()
-        f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')], required=False)
+        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')], required=False)
         self.assertEqual(
             f.clean(['12.34', 'lt']),
             Lookup(to_d(12.34), 'lt'))
@@ -124,7 +124,7 @@ class LookupTypeFieldTests(TestCase):
 
     def test_render_used_html5(self):
         inner = forms.DecimalField()
-        f = LookupTypeField(inner, [('gt', 'gt'), ('lt', 'lt')])
+        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')])
         self.assertHTMLEqual(f.widget.render('price', ''), """
             <input type="number" step="any" name="price" />
             <select name="price_lookup">
