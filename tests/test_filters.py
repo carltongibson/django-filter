@@ -1063,8 +1063,8 @@ class DateRangeFilterTests(TestCase):
             f = DateRangeFilter()
             f.filter(qs, 'yesterday')
             qs.filter.assert_called_once_with(
-                None__year=now_dt.year,
-                None__month=now_dt.month,
+                None__year=(now_dt - timedelta(days=1)).year,
+                None__month=(now_dt - timedelta(days=1)).month,
                 None__day=(now_dt - timedelta(days=1)).day,
             )
 
