@@ -124,7 +124,7 @@ class LookupChoiceFieldTests(TestCase):
 
     def test_render_used_html5(self):
         inner = forms.DecimalField()
-        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')])
+        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')], empty_label=None)
         self.assertHTMLEqual(f.widget.render('price', ''), """
             <input type="number" step="any" name="price" />
             <select name="price_lookup">

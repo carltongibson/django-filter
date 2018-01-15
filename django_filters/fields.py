@@ -93,14 +93,9 @@ class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
 
 class LookupChoiceField(forms.MultiValueField):
     def __init__(self, field, lookup_choices, *args, **kwargs):
-        fields = (
-            field,
-            forms.ChoiceField(choices=lookup_choices)
-        )
-        defaults = {
-            'widgets': [f.widget for f in fields],
-        }
-        widget = LookupChoiceWidget(**defaults)
+        empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+        fields = (field, ChoiceField(choices=lookup_choices, empty_label=empty_label))
+        widget = LookupChoiceWidget(widgets=[f.widget for f in fields])
         kwargs['widget'] = widget
         kwargs['help_text'] = field.help_text
         super().__init__(fields, *args, **kwargs)

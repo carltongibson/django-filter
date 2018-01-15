@@ -18,7 +18,6 @@ from .fields import (
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
-    Lookup,
     LookupChoiceField,
     ModelChoiceField,
     ModelMultipleChoiceField,
@@ -26,7 +25,7 @@ from .fields import (
     RangeField,
     TimeRangeField
 )
-from .utils import label_for_filter
+from .utils import get_model_field, label_for_filter
 
 __all__ = [
     'AllValuesFilter',
@@ -45,6 +44,7 @@ __all__ = [
     'DurationFilter',
     'Filter',
     'IsoDateTimeFilter',
+    'LookupChoiceFilter',
     'ModelChoiceFilter',
     'ModelMultipleChoiceFilter',
     'MultipleChoiceFilter',
@@ -78,6 +78,12 @@ class Filter(object):
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
+
+        # TODO: remove assertion in 2.1
+        assert not isinstance(self.lookup_expr, (type(None), list)), \
+            "The `lookup_expr` argument no longer accepts `None` or a list of " \
+            "expressions. Use the `LookupChoiceFilter` instead. See: " \
+            "https://django-filter.readthedocs.io/en/master/guide/migration.html"
 
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
@@ -527,6 +533,100 @@ class BaseRangeFilter(BaseCSVFilter):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'range')
         super().__init__(*args, **kwargs)
+
+
+class LookupChoiceFilter(Filter):
+    """
+    A combined filter that allows users to select the lookup expression from a dropdown.
+
+    * ``lookup_choices`` is an optional argument that accepts multiple input
+      formats, and is ultimately normlized as the choices used in the lookup
+      dropdown. See ``.get_lookup_choices()`` for more information.
+
+    * ``field_class`` is an optional argument that allows you to set the inner
+      form field class used to validate the value. Default: ``forms.CharField``
+
+    ex::
+
+        price = django_filters.LookupChoiceFilter(
+            field_class=forms.DecimalField,
+            lookup_choices=[
+                ('exact', 'Equals'),
+                ('gt', 'Greater than'),
+                ('lt', 'Less than'),
+            ]
+        )
+
+    """
+    field_class = forms.CharField
+    outer_class = LookupChoiceField
+
+    def __init__(self, field_name=None, lookup_choices=None, field_class=None, **kwargs):
+        self.empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+
+        super(LookupChoiceFilter, self).__init__(field_name=field_name, **kwargs)
+
+        self.lookup_choices = lookup_choices
+        if field_class is not None:
+            self.field_class = field_class
+
+    @classmethod
+    def normalize_lookup(cls, lookup):
+        """
+        Normalize the lookup into a tuple of ``(lookup expression, display value)``
+
+        If the ``lookup`` is already a tuple, the tuple is not altered.
+        If the ``lookup`` is a string, a tuple is returned with the lookup
+        expression used as the basis for the display value.
+
+        ex::
+
+            >>> LookupChoiceFilter.normalize_lookup(('exact', 'Equals'))
+            ('exact', 'Equals')
+
+            >>> LookupChoiceFilter.normalize_lookup('has_key')
+            ('has_key', 'Has key')
+
+        """
+        if isinstance(lookup, str):
+            return (lookup, pretty_name(lookup))
+        return (lookup[0], lookup[1])
+
+    def get_lookup_choices(self):
+        """
+        Get the lookup choices in a format suitable for ``django.forms.ChoiceField``.
+        If the filter is initialized with ``lookup_choices``, this value is normalized
+        and passed to the underlying ``LookupChoiceField``. If no choices are provided,
+        they are generated from the corresponding model field's registered lookups.
+        """
+        lookups = self.lookup_choices
+        if lookups is None:
+            field = get_model_field(self.model, self.field_name)
+            lookups = field.get_lookups()
+
+        return [self.normalize_lookup(l) for l in lookups]
+
+    @property
+    def field(self):
+        if not hasattr(self, '_field'):
+            inner_field = super().field
+            lookups = self.get_lookup_choices()
+
+            self._field = self.outer_class(
+                inner_field, lookups,
+                label=self.label,
+                empty_label=self.empty_label,
+                required=self.extra['required'],
+            )
+
+        return self._field
+
+    def filter(self, qs, lookup):
+        if not lookup:
+            return super(LookupChoiceFilter, self).filter(qs, None)
+
+        self.lookup_expr = lookup.lookup_expr
+        return super(LookupChoiceFilter, self).filter(qs, lookup.value)
 
 
 class OrderingFilter(BaseCSVFilter, ChoiceFilter):

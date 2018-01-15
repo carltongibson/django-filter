@@ -34,6 +34,7 @@ from django_filters.filters import (
     DateTimeFromToRangeFilter,
     DurationFilter,
     Filter,
+    LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     MultipleChoiceFilter,
@@ -92,6 +93,19 @@ class FilterTests(TestCase):
         f = Filter(lookup_expr='iexact')
         field = f.field
         self.assertIsInstance(field, forms.Field)
+
+    def test_field_with_lookup_types_removal(self):
+        msg = (
+            "The `lookup_expr` argument no longer accepts `None` or a list of "
+            "expressions. Use the `LookupChoiceFilter` instead. See: "
+            "https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        )
+
+        with self.assertRaisesMessage(AssertionError, msg):
+            Filter(lookup_expr=[])
+
+        with self.assertRaisesMessage(AssertionError, msg):
+            Filter(lookup_expr=None)
 
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
@@ -1138,6 +1152,81 @@ class AllValuesFilterTests(TestCase):
         self.assertEqual(list(f.field.choices), [
             ('', '---------'),
         ])
+
+
+class LookupChoiceFilterTests(TestCase):
+
+    def test_normalize_lookup_no_display_label(self):
+        # display label has underscores replaced and is capitalized
+        display_label = LookupChoiceFilter.normalize_lookup('has_key')
+        self.assertEqual(display_label, ('has_key', 'Has key'))
+
+    def test_normalize_lookup_with_display_label(self):
+        # display label is not transformed if provided
+        display_label = LookupChoiceFilter.normalize_lookup(('equal', 'equals'))
+        self.assertEqual(display_label, ('equal', 'equals'))
+
+    def test_lookup_choices_default(self):
+        # Lookup choices should default to the model field's registered lookups
+        f = LookupChoiceFilter(field_name='username', lookup_choices=None)
+        f.model = User
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(
+            len(choice_field.choices),
+            len(User._meta.get_field('username').get_lookups()) + 1
+        )
+
+        field_choices = dict(choice_field.choices)
+        self.assertEqual(field_choices['exact'], 'Exact')
+        self.assertEqual(field_choices['startswith'], 'Startswith')
+
+    def test_lookup_choices_list(self):
+        f = LookupChoiceFilter(field_name='username', lookup_choices=[
+            'exact',
+            'startswith',
+            'has_key'
+        ])
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [
+            ('', '---------'),
+            ('exact', 'Exact'),
+            ('startswith', 'Startswith'),
+            ('has_key', 'Has key'),
+        ])
+
+    def test_lookup_choices_pairs(self):
+        f = LookupChoiceFilter(field_name='username', lookup_choices=[
+            ('exact', 'Is equal to'),
+            ('startswith', 'Starts with'),
+        ])
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [
+            ('', '---------'),
+            ('exact', 'Is equal to'),
+            ('startswith', 'Starts with'),
+        ])
+
+    def test_lookup_choices_empty_label_default(self):
+        f = LookupChoiceFilter(field_name='username', lookup_choices=[])
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [('', '---------')])
+
+    def test_lookup_choices_empty_label_disabled(self):
+        f = LookupChoiceFilter(field_name='username', empty_label=None, lookup_choices=[])
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [])
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = LookupChoiceFilter(field_name='somefield', lookup_choices=['some_lookup_expr'])
+        result = f.filter(qs, Lookup('value', 'some_lookup_expr'))
+        qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
+        self.assertNotEqual(qs, result)
 
 
 class CSVFilterTests(TestCase):
