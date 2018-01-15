@@ -997,6 +997,11 @@ class DateRangeFilterTests(TestCase):
         with self.assertRaises(AssertionError):
             f.filter(qs, 'tomorrow')
 
+    def test_choices_and_filters_mismatch(self):
+        msg = "Keys must be present in both 'choices' and 'filters'. Missing keys: 'a, b'"
+        with self.assertRaisesMessage(AssertionError, msg):
+            DateRangeFilter(choices=[('a', 'a')], filters={'b': None})
+
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=['filter'])
         with mock.patch('django_filters.filters.now') as mock_now:

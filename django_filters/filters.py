@@ -463,6 +463,11 @@ class DateRangeFilter(ChoiceFilter):
         if filters is not None:
             self.filters = filters
 
+        unique = set([x[0] for x in self.choices]) ^ set(self.filters)
+        assert not unique, \
+            "Keys must be present in both 'choices' and 'filters'. Missing keys: " \
+            "'%s'" % ', '.join(sorted(unique))
+
         # null choice not relevant
         kwargs.setdefault('null_label', None)
         super().__init__(choices=self.choices, *args, **kwargs)
