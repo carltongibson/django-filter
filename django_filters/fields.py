@@ -92,6 +92,10 @@ class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
 
 
 class LookupChoiceField(forms.MultiValueField):
+    default_error_messages = {
+        'lookup_required': _('Select a lookup.'),
+    }
+
     def __init__(self, field, lookup_choices, *args, **kwargs):
         empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
         fields = (field, ChoiceField(choices=lookup_choices, empty_label=empty_label))
@@ -103,8 +107,13 @@ class LookupChoiceField(forms.MultiValueField):
     def compress(self, data_list):
         if len(data_list) == 2:
             value, lookup_expr = data_list
-            if value not in EMPTY_VALUES and lookup_expr not in EMPTY_VALUES:
-                return Lookup(value=value, lookup_expr=lookup_expr)
+            if value not in EMPTY_VALUES:
+                if lookup_expr not in EMPTY_VALUES:
+                    return Lookup(value=value, lookup_expr=lookup_expr)
+                else:
+                    raise forms.ValidationError(
+                        self.error_messages['lookup_required'],
+                        code='lookup_required')
         return None
 
 

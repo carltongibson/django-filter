@@ -122,6 +122,9 @@ class LookupChoiceFieldTests(TestCase):
             f.clean([]),
             None)
 
+        with self.assertRaisesMessage(forms.ValidationError, 'Select a lookup.'):
+            f.clean(['12.34', ''])
+
     def test_render_used_html5(self):
         inner = forms.DecimalField()
         f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')], empty_label=None)

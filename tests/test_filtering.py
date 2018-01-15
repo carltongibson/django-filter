@@ -1644,10 +1644,12 @@ class LookupChoiceFilterTests(TestCase):
         f = F({'price': '15', 'price_lookup': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
         f = F({'price': '', 'price_lookup': 'lt'})
+        self.assertTrue(f.is_valid())
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
                                  lambda o: o.title, ordered=False)
         f = F({'price': '15'})
+        self.assertFalse(f.is_valid())
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
                                  lambda o: o.title, ordered=False)
@@ -1664,6 +1666,13 @@ class LookupChoiceFilterTests(TestCase):
         self.assertFalse(f.is_valid())
         self.assertEqual(f.errors, {
             'price': ['Select a valid choice. asdf is not one of the available choices.'],
+        })
+
+    def test_lookup_omitted(self):
+        f = self.BookFilter({'price': '1'})
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.errors, {
+            'price': ['Select a lookup.'],
         })
 
 
