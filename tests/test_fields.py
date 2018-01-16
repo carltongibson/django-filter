@@ -260,12 +260,11 @@ class BaseRangeFieldTests(TestCase):
 
     def test_clean(self):
         self.assertEqual(self.field.clean(None), None)
+        self.assertEqual(self.field.clean(''), [])
+        self.assertEqual(self.field.clean([]), [])
         self.assertEqual(self.field.clean(['1', '2']), [1, 2])
 
     def test_validation_error(self):
-        with self.assertRaises(forms.ValidationError):
-            self.field.clean('')
-
         with self.assertRaises(forms.ValidationError):
             self.field.clean([''])
 

@@ -1817,6 +1817,66 @@ class CSVFilterTests(TestCase):
         self.assertEqual(f.qs.count(), 2)
 
 
+@override_settings(TIME_ZONE='UTC')
+class CSVRangeFilterTests(TestCase):
+
+    class ArticleFilter(FilterSet):
+        class Meta:
+            model = Article
+            fields = {
+                'published': ['range'],
+            }
+
+    @classmethod
+    def setUpTestData(cls):
+        u1 = User.objects.create(username='alex', status=1)
+        u2 = User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        now_dt = now()
+        after_5pm = now_dt.replace(hour=18)
+        around_5pm = now_dt.replace(hour=17)
+        before_5pm = now_dt.replace(hour=16)
+
+        Article.objects.create(author=u1, published=after_5pm)
+        Article.objects.create(author=u2, published=around_5pm)
+        Article.objects.create(author=u1, published=around_5pm)
+        Article.objects.create(author=u2, published=before_5pm)
+
+        cls.after_5pm = after_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+        cls.around_5pm = around_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+        cls.before_5pm = before_5pm.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    def test_filtering(self):
+        F = self.ArticleFilter
+
+        f = F()
+        self.assertEqual(f.qs.count(), 4)
+
+        # empty value is a noop
+        f = F({'published__range': ''})
+        self.assertTrue(f.is_valid())
+        self.assertEqual(f.qs.count(), 4)
+
+        # empty values are interpreted as None types
+        f = F({'published__range': ','})
+        self.assertEqual(f.qs.count(), 0)
+
+        f = F({'published__range': '%s' % (self.before_5pm, )})
+        self.assertFalse(f.is_valid())
+
+        f = F({'published__range': '%s,%s' % (self.before_5pm, self.around_5pm, )})
+        self.assertEqual(f.qs.count(), 3)
+
+        f = F({'published__range': '%s,,%s' % (self.before_5pm, self.after_5pm, )})
+        self.assertFalse(f.is_valid())
+
+        # empty value is interpreted as None type
+        f = F({'published__range': '%s,' % (self.before_5pm, )})
+        self.assertEqual(f.qs.count(), 0)
+
+
 class OrderingFilterTests(TestCase):
 
     def setUp(self):
