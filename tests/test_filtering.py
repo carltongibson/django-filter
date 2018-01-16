@@ -1592,13 +1592,11 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
         self.assertQuerysetEqual(f.qs, [2], lambda o: o.pk)
 
 
-# use naive datetimes, as pytz is required to perform
-# date lookups when timezones are involved.
-@override_settings(USE_TZ=False)
+@override_settings(TIME_ZONE='UTC')
 class TransformedQueryExpressionFilterTests(TestCase):
 
     def test_filtering(self):
-        now_dt = datetime.datetime.now()
+        now_dt = now()
         after_5pm = now_dt.replace(hour=18)
         before_5pm = now_dt.replace(hour=16)
 
@@ -1675,9 +1673,7 @@ class LookupChoiceFilterTests(TestCase):
         })
 
 
-# use naive datetimes, as pytz is required to perform
-# date lookups when timezones are involved.
-@override_settings(USE_TZ=False)
+@override_settings(TIME_ZONE='UTC')
 class CSVFilterTests(TestCase):
 
     def setUp(self):
@@ -1686,7 +1682,7 @@ class CSVFilterTests(TestCase):
         User.objects.create(username='aaron', status=2)
         User.objects.create(username='carl', status=0)
 
-        now_dt = datetime.datetime.now()
+        now_dt = now()
         after_5pm = now_dt.replace(hour=18)
         before_5pm = now_dt.replace(hour=16)
 
