@@ -98,6 +98,11 @@ The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
 
+    class UserFilter(django_filters.FilterSet):
+        class Meta(MyCustomFilter):
+            model = User
+            exclude = ['password']
+
 
 .. _filter_overrides:
 
