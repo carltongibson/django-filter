@@ -1,23 +1,17 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: conf.py:27 conf.py:28 conf.py:41
 msgid ""
 msgstr ""
 "Project-Id-Version: django-filter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-01-24 11:03+0500\n"
 "PO-Revision-Date: 2016-09-29 11:47+0300\n"
-"Last-Translator: Mikhail Mitrofanov <mm@elec.ru>\n"
-"Language-Team: \n"
-"Language: ru\n"
+"Last-Translator: Eugena Mikhaylikova <eugena.mihailikova@gmail.com>\n"
+"Language-Team: TextTempearture\n"
+"Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 1.8.9\n"
 
 #: conf.py:17
@@ -26,11 +20,11 @@ msgstr "дата"
 
 #: conf.py:18
 msgid "year"
-msgstr "год"
+msgstr "рік"
 
 #: conf.py:19
 msgid "month"
-msgstr "месяц"
+msgstr "місяць"
 
 #: conf.py:20
 msgid "day"
@@ -38,15 +32,15 @@ msgstr "день"
 
 #: conf.py:21
 msgid "week day"
-msgstr "день недели"
+msgstr "день тижня"
 
 #: conf.py:22
 msgid "hour"
-msgstr "час"
+msgstr "година"
 
 #: conf.py:23
 msgid "minute"
-msgstr "минута"
+msgstr "хвилина"
 
 #: conf.py:24
 msgid "second"
@@ -54,7 +48,7 @@ msgstr "секунда"
 
 #: conf.py:29 conf.py:30
 msgid "contains"
-msgstr "содержит"
+msgstr "містить"
 
 #: conf.py:31
 msgid "is in"
@@ -62,96 +56,95 @@ msgstr "в"
 
 #: conf.py:32
 msgid "is greater than"
-msgstr "больше чем"
+msgstr "більше ніж"
 
 #: conf.py:33
 msgid "is greater than or equal to"
-msgstr "больше или равно"
+msgstr "більше або дорівнює"
 
 #: conf.py:34
 msgid "is less than"
-msgstr "меньше чем"
+msgstr "менше ніж"
 
 #: conf.py:35
 msgid "is less than or equal to"
-msgstr "меньше или равно"
+msgstr "менше або дорівнює"
 
 #: conf.py:36 conf.py:37
 msgid "starts with"
-msgstr "начинается"
+msgstr "починається"
 
 #: conf.py:38 conf.py:39
 msgid "ends with"
-msgstr "заканчивается"
+msgstr "закінчується"
 
 #: conf.py:40
 msgid "is in range"
-msgstr "в диапазоне"
+msgstr "в діапазоні"
 
 #: conf.py:42 conf.py:43
 msgid "matches regex"
-msgstr "соответствует регулярному выражению"
+msgstr "відповідає регулярному виразу"
 
 #: conf.py:44 conf.py:52
 msgid "search"
-msgstr "поиск"
+msgstr "пошук"
 
 #: conf.py:47
 msgid "is contained by"
-msgstr "содержится в"
+msgstr "міститься в"
 
 #: conf.py:48
 msgid "overlaps"
-msgstr "перекрывается"
+msgstr "перекривається"
 
 #: conf.py:49
 msgid "has key"
-msgstr "имеет ключ"
+msgstr "має ключ"
 
 #: conf.py:50
 msgid "has keys"
-msgstr "имеет ключи"
+msgstr "має ключі"
 
 #: conf.py:51
 msgid "has any keys"
-msgstr "имеет любые ключи"
+msgstr "має будь-які ключі"
 
 #: fields.py:178
 msgid "Range query expects two values."
-msgstr "Запрос диапазона ожидает два значения."
+msgstr "Запит діапазону очікує два значення."
 
 #: filters.py:429
 msgid "Any date"
-msgstr "Любая дата"
+msgstr "Будь-яка дата"
 
 #: filters.py:430
 msgid "Today"
-msgstr "Сегодня"
+msgstr "Сьогодні"
 
 #: filters.py:435
 msgid "Past 7 days"
-msgstr "Прошедшие 7 дней"
+msgstr "Минулі 7 днів"
 
 #: filters.py:439
 msgid "This month"
-msgstr "За этот месяц"
+msgstr "За цей місяць"
 
 #: filters.py:443
 msgid "This year"
-msgstr "В этом году"
+msgstr "В цьому році"
 
 #: filters.py:446
 msgid "Yesterday"
-msgstr "Вчера"
+msgstr "Вчора"
 
 #: filters.py:512
 msgid "Multiple values may be separated by commas."
-msgstr "Несколько значений могут быть разделены запятыми."
+msgstr "Кілька значень можуть бути розділені комами."
 
 #: filters.py:591
-#, python-format
 msgid "%s (descending)"
-msgstr "%s (по убыванию)"
+msgstr "%s (по спадаючій)"
 
 #: filters.py:607
 msgid "Ordering"
@@ -160,20 +153,20 @@ msgstr "Порядок"
 #: rest_framework/filterset.py:30
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
-msgstr "Отправить"
+msgstr "Відправити"
 
 #: templates/django_filters/rest_framework/crispy_form.html:4
 #: templates/django_filters/rest_framework/form.html:2
 msgid "Field filters"
-msgstr "Фильтры по полям"
+msgstr "Фільтри по полях"
 
 #: utils.py:224
 msgid "exclude"
-msgstr "исключая"
+msgstr "виключаючи"
 
 #: widgets.py:57
 msgid "All"
-msgstr "Все"
+msgstr "Усе"
 
 #: widgets.py:159
 msgid "Unknown"
@@ -181,8 +174,8 @@ msgstr "Не задано"
 
 #: widgets.py:160
 msgid "Yes"
-msgstr "Да"
+msgstr "Так"
 
 #: widgets.py:161
 msgid "No"
-msgstr "Нет"
+msgstr "Немає"
