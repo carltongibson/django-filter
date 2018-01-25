@@ -786,3 +786,20 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
                 return ...
 
             return super(CustomOrderingFilter, self).filter(qs, value)
+            
+Keep in mind that if your filter choice can be executed using database,
+you are also able to annotate the queryset, by either overriding the ``Manager``
+of your Model or by overriding the ``qs`` property of ``FilterSet``:
+
+.. code-block:: python
+
+    class CustomFilter(FilterSet):
+        o = OrderingFilter(
+            fields={
+                ('custom_count', 'custom_count'),
+            },
+        )
+
+        @property
+        def qs(self):
+            return super().qs.annotate(custom_count=Count('custom'))
