@@ -105,6 +105,45 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
             fields = ('category', 'in_stock')
 
 
+Overriding FilterSet creation
+-----------------------------
+
+``FilterSet`` creation can be customized by overriding the following methods on the backend class:
+
+* ``.get_filterset(self, request, queryset, view)``
+* ``.get_filterset_class(self, view, queryset=None)``
+* ``.get_filterset_kwargs(self, request, queryset, view)``
+
+You can override these methods on a case-by-case basis for each view, creating unique backends, or these methods can be used to write your own hooks to the view class.
+
+.. code-block:: python
+
+    class MyFilterBackend(filters.DjangoFilterBackend):
+        def get_filterset_kwargs(self, request, queryset, view):
+            kwargs = super().get_filterset_kwargs(request, queryset, view)
+
+            # merge filterset kwargs provided by view class
+            if hasattr(view, 'get_filterset_kwargs'):
+                kwargs.update(view.get_filterset_kwargs())
+
+            return kwargs
+
+
+    class BooksFilter(filters.FitlerSet):
+        def __init__(self, *args, author=None, **kwargs):
+            super().__init__(*args, **kwargs)
+            # do something w/ author
+
+
+    class BookViewSet(viewsets.ModelViewSet):
+        filter_backends = [MyFilterBackend]
+        filter_class = BookFilter
+
+        def get_filteset_kwargs(self):
+            return {
+                'author': self.get_author(),
+            }
+
 Schema Generation with Core API
 -------------------------------
 
