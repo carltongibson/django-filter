@@ -18,9 +18,14 @@ from .exceptions import FieldLookupError
 
 
 def deprecate(msg, level_modifier=0):
-    warnings.warn(
-        "%s See: https://django-filter.readthedocs.io/en/master/guide/migration.html" % msg,
-        DeprecationWarning, stacklevel=3 + level_modifier)
+    warnings.warn(msg, MigrationNotice, stacklevel=3 + level_modifier)
+
+
+class MigrationNotice(DeprecationWarning):
+    url = 'https://django-filter.readthedocs.io/en/master/guide/migration.html'
+
+    def __init__(self, message):
+        super().__init__('%s See: %s' % (message, self.url))
 
 
 def try_dbfield(fn, field_class):

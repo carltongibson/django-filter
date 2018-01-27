@@ -10,6 +10,7 @@ from django.utils.timezone import get_default_timezone
 from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
 from django_filters.utils import (
+    MigrationNotice,
     get_field_parts,
     get_model_field,
     handle_timezone,
@@ -29,6 +30,15 @@ from .models import (
     NetworkSetting,
     User
 )
+
+
+class MigrationNoticeTests(TestCase):
+
+    def test_message(self):
+        self.assertEqual(
+            str(MigrationNotice('Message.')),
+            'Message. See: https://django-filter.readthedocs.io/en/master/guide/migration.html'
+        )
 
 
 class GetFieldPartsTests(TestCase):
