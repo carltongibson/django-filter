@@ -30,6 +30,13 @@ __ https://docs.python.org/3.6/using/cmdline.html#envvar-PYTHONWARNINGS
 Migrating to 2.0
 ----------------
 
+This release contains several changes that break forwards compatibility. This
+includes removed features, renamed attributes and arguments, and some reworked
+features. Due to the nature of these changes, it is not feasible to release
+a fully forards-compatible migration release. Please review the below list of
+changes and update your code accordingly.
+
+
 FilterSet ``Meta.together`` option removed
 ------------------------------------------
 
