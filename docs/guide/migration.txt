@@ -20,6 +20,12 @@ The filter ``name`` has been renamed to ``field_name`` as a way to disambiguate
 the filter's attribute name on its FilterSet class from the ``field_name`` used
 for filtering purposes.
 
+``Filter.widget`` and ``Filter.required`` removed
+-------------------------------------------------
+
+The filter class no longer directly stores arguments passed to its form field.
+All arguments are located in the filter's ``.extra`` dict.
+
 FilterSet strictness has been removed
 -------------------------------------
 
