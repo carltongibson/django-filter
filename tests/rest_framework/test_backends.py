@@ -136,6 +136,9 @@ class GetSchemaFieldsTests(TestCase):
           * https://github.com/carltongibson/django-filter/issues/551
         """
         class BadGetQuerySetView(FilterFieldsRootView):
+            # TODO: temporary, remove me
+            filterset_fields = ['decimal', 'date']
+
             def get_queryset(self):
                 raise AttributeError("I don't have that")
 
@@ -354,6 +357,44 @@ class RenamedBackendAttributesTests(TestCase):
 
             class Backend(DjangoFilterBackend):
                 default_filter_set = None
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+
+class RenamedViewSetAttributesTests(TestCase):
+
+    def test_filter_class(self):
+        expected = "`View.filter_class` attribute should be renamed `filterset_class`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class View(generics.ListCreateAPIView):
+                filter_class = None
+
+            view = View()
+            backend = DjangoFilterBackend()
+            backend.get_filterset_class(view, None)
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+    def test_filter_fields(self):
+        expected = "`View.filter_fields` attribute should be renamed `filterset_fields`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class View(generics.ListCreateAPIView):
+                filter_fields = None
+
+            view = View()
+            backend = DjangoFilterBackend()
+            # import pdb; pdb.set_trace()
+            backend.get_filterset_class(view, None)
 
         message = str(recorded.pop().message)
         self.assertEqual(message, expected)

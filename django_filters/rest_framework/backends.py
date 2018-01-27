@@ -29,29 +29,43 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
     def get_filterset_class(self, view, queryset=None):
         """
-        Return the django-filters `FilterSet` used to filter the queryset.
+        Return the `FilterSet` class used to filter the queryset.
         """
-        filter_class = getattr(view, 'filter_class', None)
-        filter_fields = getattr(view, 'filter_fields', None)
+        filterset_class = getattr(view, 'filterset_class', None)
+        filterset_fields = getattr(view, 'filterset_fields', None)
 
-        if filter_class:
-            filter_model = filter_class._meta.model
+        # TODO: remove assertion in 2.1
+        if filterset_class is None and hasattr(view, 'filter_class'):
+            utils.deprecate(
+                "`%s.filter_class` attribute should be renamed `filterset_class`."
+                % view.__class__.__name__)
+            filterset_class = getattr(view, 'filter_class', None)
+
+        # TODO: remove assertion in 2.1
+        if filterset_fields is None and hasattr(view, 'filter_fields'):
+            utils.deprecate(
+                "`%s.filter_fields` attribute should be renamed `filterset_fields`."
+                % view.__class__.__name__)
+            filterset_fields = getattr(view, 'filter_fields', None)
+
+        if filterset_class:
+            filterset_model = filterset_class._meta.model
 
             # FilterSets do not need to specify a Meta class
-            if filter_model and queryset is not None:
-                assert issubclass(queryset.model, filter_model), \
+            if filterset_model and queryset is not None:
+                assert issubclass(queryset.model, filterset_model), \
                     'FilterSet model %s does not match queryset model %s' % \
-                    (filter_model, queryset.model)
+                    (filterset_model, queryset.model)
 
-            return filter_class
+            return filterset_class
 
-        if filter_fields and queryset is not None:
+        if filterset_fields and queryset is not None:
             MetaBase = getattr(self.default_filter_set, 'Meta', object)
 
             class AutoFilterSet(self.default_filter_set):
                 class Meta(MetaBase):
                     model = queryset.model
-                    fields = filter_fields
+                    fields = filterset_fields
 
             return AutoFilterSet
 
