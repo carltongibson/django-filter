@@ -7,14 +7,22 @@ from django.views.generic.list import (
 
 from .constants import ALL_FIELDS
 from .filterset import filterset_factory
+from .utils import MigrationNotice, RenameAttributesBase
 
 
-class FilterMixin(object):
+# TODO: remove metaclass in 2.1
+class FilterMixinRenames(RenameAttributesBase):
+    renamed_attributes = (
+        ('filter_fields', 'filterset_fields', MigrationNotice),
+    )
+
+
+class FilterMixin(metaclass=FilterMixinRenames):
     """
     A mixin that provides a way to show and handle a FilterSet in a request.
     """
     filterset_class = None
-    filter_fields = ALL_FIELDS
+    filterset_fields = ALL_FIELDS
     strict = True
 
     def get_filterset_class(self):

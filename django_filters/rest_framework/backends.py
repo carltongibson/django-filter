@@ -1,13 +1,24 @@
 import warnings
 
 from django.template import loader
+from django.utils.deprecation import RenameMethodsBase
 
 from . import filters, filterset
 from .. import compat, utils
 
 
-class DjangoFilterBackend(object):
-    default_filter_set = filterset.FilterSet
+# TODO: remove metaclass in 2.1
+class RenameAttributes(utils.RenameAttributesBase, RenameMethodsBase):
+    renamed_attributes = (
+        ('default_filter_set', 'filterset_base', utils.MigrationNotice),
+    )
+    renamed_methods = (
+        ('get_filter_class', 'get_filterset_class', utils.MigrationNotice),
+    )
+
+
+class DjangoFilterBackend(metaclass=RenameAttributes):
+    filterset_base = filterset.FilterSet
     raise_exception = True
 
     @property
@@ -16,7 +27,7 @@ class DjangoFilterBackend(object):
             return 'django_filters/rest_framework/crispy_form.html'
         return 'django_filters/rest_framework/form.html'
 
-    def get_filter_class(self, view, queryset=None):
+    def get_filterset_class(self, view, queryset=None):
         """
         Return the django-filters `FilterSet` used to filter the queryset.
         """
@@ -93,7 +104,7 @@ class DjangoFilterBackend(object):
                 "{} is not compatible with schema generation".format(view.__class__)
             )
 
-        filter_class = self.get_filter_class(view, queryset)
+        filter_class = self.get_filterset_class(view, queryset)
 
         return [] if not filter_class else [
             compat.coreapi.Field(

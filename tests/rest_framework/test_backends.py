@@ -329,3 +329,32 @@ class ValidationErrorTests(TestCase):
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
         })
+
+
+class RenamedBackendAttributesTests(TestCase):
+    def test_get_filter_class(self):
+        expected = "`Backend.get_filter_class` method should be renamed `get_filterset_class`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Backend(DjangoFilterBackend):
+                def get_filter_class(self):
+                    pass
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+    def test_default_filter_set(self):
+        expected = "`Backend.default_filter_set` attribute should be renamed `filterset_base`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Backend(DjangoFilterBackend):
+                default_filter_set = None
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
