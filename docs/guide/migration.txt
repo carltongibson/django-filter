@@ -6,12 +6,23 @@ Migration Guide
 Migrating to 2.0
 ----------------
 
-Removal of the ``Meta.together`` option
----------------------------------------
+FilterSet ``Meta.together`` option removed
+------------------------------------------
 
 The ``Meta.together`` has been deprecated in favor of userland implementations
 that override the ``clean`` method of the ``Meta.form`` class. An example will
 be provided in a "recipes" secion in future docs.
+
+FilterSet "strictness" handling moved to view
+---------------------------------------------
+
+Strictness handling has been removed from the ``FilterSet`` and added to the
+view layer. As a result, the ``FILTERS_STRICTNESS`` setting, ``Meta.strict``
+option, and ``strict`` argument for the ``FilterSet`` initializer have all
+been removed.
+
+To alter strictness behavior, the appropriate view code should be overridden.
+More details will be provided in future docs.
 
 ``Filter.name`` renamed to ``Filter.field_name``
 ------------------------------------------------
@@ -25,17 +36,6 @@ for filtering purposes.
 
 The filter class no longer directly stores arguments passed to its form field.
 All arguments are located in the filter's ``.extra`` dict.
-
-FilterSet strictness has been removed
--------------------------------------
-
-Strictness handling has been removed from the ``FilterSet`` and added to the
-view layer. As a result, the ``FILTERS_STRICTNESS`` setting, ``Meta.strict``
-option, and ``strict`` argument for the ``FilterSet`` initializer have all
-been removed.
-
-To alter strictness behavior, the appropriate view code should be overridden.
-More details will be provided in future docs.
 
 ``MultiWidget`` replaced by ``SuffixedMultiWidget``
 ---------------------------------------------------
