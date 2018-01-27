@@ -1,4 +1,5 @@
 import datetime
+import warnings
 
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
@@ -11,6 +12,7 @@ from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
 from django_filters.utils import (
     MigrationNotice,
+    RenameAttributesBase,
     get_field_parts,
     get_model_field,
     handle_timezone,
@@ -39,6 +41,157 @@ class MigrationNoticeTests(TestCase):
             str(MigrationNotice('Message.')),
             'Message. See: https://django-filter.readthedocs.io/en/master/guide/migration.html'
         )
+
+
+class RenameAttributes(RenameAttributesBase):
+    renamed_attributes = (
+        ('old', 'new', DeprecationWarning),
+    )
+
+
+class SENTINEL:
+    pass
+
+
+class RenameAttributesBaseTests(TestCase):
+
+    def check(self, recorded, count):
+        expected = '`Example.old` attribute should be renamed `new`.'
+
+        self.assertEqual(len(recorded), count)
+        for _ in range(count):
+            message = str(recorded.pop().message)
+            self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+    def test_class_creation_warnings(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Example(metaclass=RenameAttributes):
+                old = SENTINEL
+
+            # single warning for renamed attr on creation
+            self.check(recorded, 1)
+
+    def test_renamed_attribute_in_class_dict(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                old = SENTINEL
+
+            warnings.simplefilter('always')
+
+            # Ensure `old` and `new` are not both in class dict.
+            self.assertNotIn('old', Example.__dict__)
+            self.assertIn('new', Example.__dict__)
+
+            # Ensure `old` value assigned to `new`.
+            self.assertEqual(Example.new, SENTINEL)
+
+            self.check(recorded, 0)
+
+    def test_class_accessor_warnings(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                new = None
+
+            warnings.simplefilter('always')
+
+            self.assertIsNone(Example.new)
+            self.assertIsNone(Example.old)
+            self.check(recorded, 1)
+
+            Example.old = SENTINEL
+            self.assertIs(Example.new, SENTINEL)
+            self.assertIs(Example.old, SENTINEL)
+            self.check(recorded, 2)
+
+    def test_instance_accessor_warnings(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                new = None
+
+            warnings.simplefilter('always')
+
+            example = Example()
+            self.check(recorded, 0)
+
+            self.assertIsNone(example.new)
+            self.assertIsNone(example.old)
+            self.check(recorded, 1)
+
+            example.old = SENTINEL
+            self.assertIs(example.new, SENTINEL)
+            self.assertIs(example.old, SENTINEL)
+            self.check(recorded, 2)
+
+    def test_class_instance_values(self):
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                new = None
+
+            example = Example()
+
+            # setting instance should not affect class
+            example.old = SENTINEL
+            self.assertIsNone(Example.old)
+            self.assertIsNone(Example.new)
+            self.assertIs(example.old, SENTINEL)
+            self.assertIs(example.new, SENTINEL)
+
+    def test_getter_reachable(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Example(metaclass=RenameAttributes):
+                def __getattr__(self, name):
+                    if name == 'test':
+                        return SENTINEL
+                    return self.__getattribute__(name)
+
+            example = Example()
+            self.assertIs(example.test, SENTINEL)
+            self.check(recorded, 0)
+
+    def test_parent_getter_reachable(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Parent:
+                def __getattr__(self, name):
+                    if name == 'test':
+                        return SENTINEL
+                    return self.__getattribute__(name)
+
+            class Example(Parent, metaclass=RenameAttributes):
+                pass
+
+            example = Example()
+            self.assertIs(example.test, SENTINEL)
+            self.check(recorded, 0)
+
+    def test_setter_reachable(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Example(metaclass=RenameAttributes):
+                def __setattr__(self, name, value):
+                    if name == 'test':
+                        value = SENTINEL
+                    super().__setattr__(name, value)
+
+            example = Example()
+            example.test = None
+            self.assertIs(example.test, SENTINEL)
+            self.check(recorded, 0)
 
 
 class GetFieldPartsTests(TestCase):
