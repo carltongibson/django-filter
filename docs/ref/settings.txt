@@ -87,20 +87,3 @@ For example, you could add verbose output for "exact" lookups.
             'exact': 'is equal to',
         })
         return verbose_lookups
-
-
-FILTERS_STRICTNESS
-------------------
-
-Default: ``STRICTNESS.RETURN_NO_RESULTS``
-
-Set the global default for FilterSet :ref:`strictness <strict>`. If ``strict`` is not
-provided to the filterset, it will default to this setting. You can change the setting
-like so:
-
-.. code-block:: python
-
-    # settings.py
-    from django_filters import STRICTNESS
-
-    FILTERS_STRICTNESS = STRICTNESS.RETURN_NO_RESULTS
