@@ -32,7 +32,7 @@ class FilterableItemSerializer(serializers.ModelSerializer):
 class FilterFieldsRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_fields = ['decimal', 'date']
+    filterset_fields = ['decimal', 'date']
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -50,7 +50,7 @@ class SeveralFieldsFilter(FilterSet):
 class FilterClassRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -66,14 +66,14 @@ class MisconfiguredFilter(FilterSet):
 class IncorrectlyConfiguredRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = MisconfiguredFilter
+    filterset_class = MisconfiguredFilter
     filter_backends = (DjangoFilterBackend,)
 
 
 class FilterClassDetailView(generics.RetrieveAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -89,7 +89,7 @@ class BaseFilterableItemFilter(FilterSet):
 class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = BaseFilterableItemFilter
+    filterset_class = BaseFilterableItemFilter
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -97,13 +97,13 @@ class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
 class FilterFieldsQuerysetView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_fields = ['decimal', 'date']
+    filterset_fields = ['decimal', 'date']
     filter_backends = (DjangoFilterBackend,)
 
 
 class GetQuerysetView(generics.ListCreateAPIView):
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
 
     def get_queryset(self):
@@ -198,7 +198,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
 
     def test_get_filtered_class_root_view(self):
         """
-        GET requests to filtered ListCreateAPIView that have a filter_class set
+        GET requests to filtered ListCreateAPIView that have a filterset_class set
         should return filtered results.
         """
         view = FilterClassRootView.as_view()
@@ -257,7 +257,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
 
     def test_base_model_filter(self):
         """
-        The `get_filter_class` model checks should allow base model filters.
+        The `get_filterset_class` model checks should allow base model filters.
         """
         view = BaseFilterableItemFilterRootView.as_view()
 
@@ -330,8 +330,8 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
 
     def test_get_filtered_detail_view(self):
         """
-        GET requests to filtered RetrieveAPIView that have a filter_class set
-        should return filtered results.
+        GET requests to filtered RetrieveAPIView that have a filterset_class
+        set should return filtered results.
         """
         item = self.objects.all()[0]
         data = self._serialize_object(item)
@@ -400,7 +400,7 @@ class DjangoFilterOrderingTests(TestCase):
             serializer_class = DjangoFilterOrderingSerializer
             queryset = DjangoFilterOrderingModel.objects.all()
             filter_backends = (DjangoFilterBackend,)
-            filter_fields = ['text']
+            filterset_fields = ['text']
             ordering = ('-date',)
 
         view = DjangoFilterOrderingView.as_view()

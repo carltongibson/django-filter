@@ -58,7 +58,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
     def test_view_with_model_and_fields_no_filterset(self):
         factory = RequestFactory()
         request = factory.get(self.base_url + '?price=1.0')
-        view = FilterView.as_view(model=Book, filter_fields=['price'])
+        view = FilterView.as_view(model=Book, filterset_fields=['price'])
 
         # filtering only by price
         response = view(request)

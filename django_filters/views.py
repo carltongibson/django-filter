@@ -32,7 +32,7 @@ class FilterMixin(metaclass=FilterMixinRenames):
         if self.filterset_class:
             return self.filterset_class
         elif self.model:
-            return filterset_factory(model=self.model, fields=self.filter_fields)
+            return filterset_factory(model=self.model, fields=self.filterset_fields)
         else:
             msg = "'%s' must define 'filterset_class' or 'model'"
             raise ImproperlyConfigured(msg % self.__class__.__name__)

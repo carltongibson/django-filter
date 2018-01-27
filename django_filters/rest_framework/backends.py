@@ -60,9 +60,9 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
             return filterset_class
 
         if filterset_fields and queryset is not None:
-            MetaBase = getattr(self.default_filter_set, 'Meta', object)
+            MetaBase = getattr(self.filterset_base, 'Meta', object)
 
-            class AutoFilterSet(self.default_filter_set):
+            class AutoFilterSet(self.filterset_base):
                 class Meta(MetaBase):
                     model = queryset.model
                     fields = filterset_fields
@@ -72,24 +72,24 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         return None
 
     def filter_queryset(self, request, queryset, view):
-        filter_class = self.get_filter_class(view, queryset)
+        filterset_class = self.get_filterset_class(view, queryset)
 
-        if filter_class:
-            filterset = filter_class(request.query_params, queryset=queryset, request=request)
+        if filterset_class:
+            filterset = filterset_class(request.query_params, queryset=queryset, request=request)
             if not filterset.is_valid() and self.raise_exception:
                 raise utils.translate_validation(filterset.errors)
             return filterset.qs
         return queryset
 
     def to_html(self, request, queryset, view):
-        filter_class = self.get_filter_class(view, queryset)
-        if not filter_class:
+        filterset_class = self.get_filterset_class(view, queryset)
+        if not filterset_class:
             return None
-        filter_instance = filter_class(request.query_params, queryset=queryset, request=request)
+        filterset = filterset_class(request.query_params, queryset=queryset, request=request)
 
         template = loader.get_template(self.template)
         context = {
-            'filter': filter_instance
+            'filter': filterset
         }
 
         return template.render(context, request)
@@ -118,13 +118,13 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 "{} is not compatible with schema generation".format(view.__class__)
             )
 
-        filter_class = self.get_filterset_class(view, queryset)
+        filterset_class = self.get_filterset_class(view, queryset)
 
-        return [] if not filter_class else [
+        return [] if not filterset_class else [
             compat.coreapi.Field(
                 name=field_name,
                 required=field.extra['required'],
                 location='query',
                 schema=self.get_coreschema_field(field)
-            ) for field_name, field in filter_class.base_filters.items()
+            ) for field_name, field in filterset_class.base_filters.items()
         ]
