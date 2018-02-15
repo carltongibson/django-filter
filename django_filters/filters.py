@@ -421,7 +421,16 @@ class RangeFilter(Filter):
 
 
 def _truncate(dt):
-    return dt.date()
+    """Return datetime object at the most recent midningt.
+
+    Do this by replacing hour/minute/second/microsecond with 0, rather
+    than by calling .date() -- this way we're able to keep the time zone
+    awareness of the incoming datetime object.
+    """
+    return dt.replace(hour=0,
+                      minute=0,
+                      second=0,
+                      microsecond=0)
 
 
 class DateRangeFilter(ChoiceFilter):
