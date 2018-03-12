@@ -49,6 +49,7 @@ from django_filters.filters import (
     TypedMultipleChoiceFilter,
     UUIDFilter
 )
+
 from tests.models import Book, User
 
 
