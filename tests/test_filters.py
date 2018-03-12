@@ -1150,7 +1150,7 @@ class SearchVectorFilterTest(TestCase):
 
     def test_filter(self):
         search_fields = ['one', 'other']
-        qs = mock.Mock(spec=['annotate', 'filter'])
+        qs = mock.Mock(spec=['annotate', 'annotate.filter()'])
         f = SearchVectorFilter(search_fields=search_fields)
         result = f.filter(qs, 'value')
         qs.annotate.assert_called_once_with(search_vector=SearchVector(*search_fields))
