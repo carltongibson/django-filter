@@ -22,6 +22,7 @@ from django_filters.filters import (
     NumberFilter,
     OrderingFilter,
     RangeFilter,
+    SearchVectorFilter,
     TimeRangeFilter,
     TypedMultipleChoiceFilter
 )
@@ -1584,6 +1585,35 @@ class M2MRelationshipTests(TestCase):
     @unittest.skip('todo')
     def test_fk_relation_attribute_on_m2m_relation(self):
         pass
+
+
+class SearchVectorFilterTest(TestCase):
+
+    def test_filtering(self):
+
+        u1 = User.objects.create(username='SpaceKitty99', first_name='Joe', last_name='Cox')
+        u2 = User.objects.create(username='Darth_vader', first_name='John', last_name='Doe')
+        u3 = User.objects.create(username='Kobza', first_name='Taras', last_name='Shevchenko')
+
+        class F(FilterSet):
+
+            person = SearchVectorFilter(field_name='first_name',
+                                        search_fields=['first_name', 'last_name'],
+                                        lookup_expr='icontains')
+
+            class Meta:
+                model = User
+                fields = ['person']
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(f.qs, [u1.pk, u2.pk, u3.pk], lambda o: o.pk, ordered=False)
+        f = F({'person': 'John'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [u2.pk], lambda o: o.pk)
+        f = F({'person': 'oE'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [u1.pk, u2.pk], lambda o: o.pk, ordered=False)
+        f = F({'person': 'bob'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [])
 
 
 class SymmetricalSelfReferentialRelationshipTests(TestCase):
