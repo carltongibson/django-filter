@@ -49,7 +49,7 @@ from django_filters.filters import (
     TypedMultipleChoiceFilter,
     UUIDFilter
 )
-from .models import Book, User
+from models import Book, User
 
 
 class ModuleImportTests(TestCase):
