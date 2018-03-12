@@ -494,8 +494,8 @@ class SearchVectorFilter(CharFilter):
 
     def filter(self, qs, value):
         search_vectors = SearchVector(*self.search_fields)
-        query = Q(**{'%s__%s' % ('search_vector', self.lookup_expr): value})
-        return qs.annotate(search_vector=search_vectors).filter(query)
+        query = {'%s__%s' % ('search_vector', self.lookup_expr): value}
+        return qs.annotate(search_vector=search_vectors).filter(**query)
 
 
 class AllValuesFilter(ChoiceFilter):
