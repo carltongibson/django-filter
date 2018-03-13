@@ -1589,6 +1589,11 @@ class M2MRelationshipTests(TestCase):
 
 class SearchVectorFilterTest(TestCase):
 
+    def setUp(self):
+        from django.db import connection
+        if connection.vendor != 'postgresql':
+            self.skipTest('PostgreSQL backend needed to run this tests.')
+
     def test_filtering(self):
 
         u1 = User.objects.create(username='SpaceKitty99', first_name='Joe', last_name='Cox')
