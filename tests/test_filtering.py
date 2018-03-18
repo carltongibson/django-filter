@@ -1937,3 +1937,45 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.qs.count(), 2)
+
+
+class DefaultFiltingTests(TestCase):
+
+    def test_default_filtering(self):
+        b1 = Book.objects.create(
+            title="Ender's Game", price='1.00', average_rating=3.0)
+        b2 = Book.objects.create(
+            title="Rainbow Six", price='1.00', average_rating=3.0)
+        b3 = Book.objects.create(
+            title="Snowcrash", price='1.00', average_rating=3.0)
+
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = ['title']
+                default_filters = {'title': 'Snowcrash'}
+
+        qs = Book.objects.all()
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk)
+
+    def test_ordering(self):
+        User.objects.create(username='alex', status=1)
+        User.objects.create(username='jacob', status=2)
+        User.objects.create(username='aaron', status=2)
+        User.objects.create(username='carl', status=0)
+
+        class F(FilterSet):
+            o = OrderingFilter(
+                fields=('username', )
+            )
+
+            class Meta:
+                model = User
+                fields = ['username']
+                default_filters = {'o': ['username']}
+
+        qs = User.objects.all()
+        f = F(queryset=qs)
+        names = f.qs.values_list('username', flat=True)
+        self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob'])

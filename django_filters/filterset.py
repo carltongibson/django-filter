@@ -44,6 +44,7 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
+        self.default_filters = getattr(options, 'default_filters', {})
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
@@ -177,7 +178,10 @@ class BaseFilterSet(object):
         This method should be overridden if additional filtering needs to be
         applied to the queryset before it is cached.
         """
-        for name, value in self.form.cleaned_data.items():
+        filter_input = self._meta.default_filters.copy()
+        if self.is_bound:
+            filter_input.update(self.form.cleaned_data)
+        for name, value in filter_input.items():
             queryset = self.filters[name].filter(queryset, value)
         return queryset
 
@@ -185,7 +189,7 @@ class BaseFilterSet(object):
     def qs(self):
         if not hasattr(self, '_qs'):
             qs = self.queryset.all()
-            if self.is_bound:
+            if self.is_bound or self._meta.default_filters:
                 # ensure form validation before filtering
                 self.errors
                 qs = self.filter_queryset(qs)

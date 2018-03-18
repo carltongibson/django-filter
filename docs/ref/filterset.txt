@@ -11,6 +11,7 @@ Meta options
 - :ref:`fields <fields>`
 - :ref:`exclude <exclude>`
 - :ref:`form <form>`
+- :ref:`default_filters <default_filters>`
 - :ref:`filter_overrides <filter_overrides>`
 
 
@@ -97,6 +98,24 @@ Custom Forms using ``form``
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
 the ``form`` option on a ``ModelAdmin.``
+
+.. _default_filters:
+
+Default filter values with ``default_filters``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The inner ``Meta`` class also takes an optional ``default_filters`` argument.
+This is list of optional filter values that will be applied if no value is
+supplied by the user::
+
+   class BookFilter(django_filters.FilterSet):
+
+        class Meta:
+            model = Book
+            fields = ['category']
+            default_filters = {
+                'category': 'scifi'
+            }
 
 
 .. _filter_overrides:
