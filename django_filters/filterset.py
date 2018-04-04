@@ -358,6 +358,8 @@ class BaseFilterSet(object):
         data = try_dbfield(DEFAULTS.get, field.__class__) or {}
         filter_class = data.get('filter_class')
         params = data.get('extra', lambda field: {})(field)
+        if 'help_text' not in params and field.help_text:
+            params['help_text'] = field.help_text
 
         # if there is no filter class, exit early
         if not filter_class:
@@ -365,13 +367,19 @@ class BaseFilterSet(object):
 
         # perform lookup specific checks
         if lookup_type == 'exact' and field.choices:
-            return ChoiceFilter, {'choices': field.choices}
+            params = {'choices': field.choices}
+            if 'help_text' not in params and field.help_text:
+                params['help_text'] = field.help_text
+            return ChoiceFilter, params
 
         if lookup_type == 'isnull':
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
 
             filter_class = data.get('filter_class')
             params = data.get('extra', lambda field: {})(field)
+            if 'help_text' not in params and field.help_text:
+                params['help_text'] = field.help_text
+
             return filter_class, params
 
         if lookup_type == 'in':
