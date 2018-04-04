@@ -208,7 +208,7 @@ class FilterSetFilterForLookupTests(TestCase):
         f = Article._meta.get_field('author')
         result, params = FilterSet.filter_for_lookup(f, 'isnull')
         self.assertEqual(result, BooleanFilter)
-        self.assertDictEqual(params, {})
+        self.assertDictEqual(params, {'help_text': 'Article model author field help text'})
 
     def test_filter_for_IN_lookup(self):
         f = Article._meta.get_field('author')

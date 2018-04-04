@@ -89,7 +89,7 @@ class Comment(models.Model):
 class Article(models.Model):
     name = models.CharField(verbose_name='title', max_length=200, blank=True)
     published = models.DateTimeField()
-    author = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, null=True, on_delete=models.CASCADE, help_text='Article model author field help text')
 
     def __str__(self):
         if self.author_id:
