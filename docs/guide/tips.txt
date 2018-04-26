@@ -5,15 +5,15 @@ Tips and Solutions
 Common problems for declared filters
 ------------------------------------
 
-Below are some of the common problem that occur when declaring filters. It is
-recommended that you read this as it provides a more complete understanding of
+Below are some of the common problems that occur when declaring filters. We
+recommend that you read this as it provides a more complete understanding of
 how filters work.
 
 
 Filter ``name`` and ``lookup_expr`` not configured
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-While ``name`` and ``lookup_expr`` are optional, it is recommended that you specify
+While ``name`` and ``lookup_expr`` are optional, we recommend that you specify
 them. By default, if ``name`` is not specified, the filter's name on the
 filterset class will be used. Additionally, ``lookup_expr`` defaults to
 ``exact``. The following is an example of a misconfigured price filter:
@@ -52,8 +52,8 @@ Filter and lookup expression mismatch (in, range, isnull)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It's not always appropriate to directly match a filter to its model field's
-type, as some lookups expect different types of values. This is a commonly
-found issue with ``in``, ``range``, and ``isnull`` lookups. Let's look
+type, as some lookups expect different types of values. This is a common
+issue with ``in``, ``range``, and ``isnull`` lookups. Let's look
 at the following product model:
 
 .. code-block:: python
@@ -71,7 +71,7 @@ for uncategorized products. The following is an incorrectly configured
         uncategorized = django_filters.NumberFilter(name='category', lookup_expr='isnull')
 
 So what's the issue? While the underlying column type for ``category`` is an
-integer, ``isnull`` lookups expect a boolean value. A ``NumberFilter`` however
+integer, ``isnull`` lookups expect a boolean value. A ``NumberFilter``, however,
 only validates numbers. Filters are not `'expression aware'` and won't change
 behavior based on their ``lookup_expr``. You should use filters that match the
 data type of the lookup expression `instead` of the data type underlying the
@@ -117,7 +117,7 @@ the FilterSet's automatic filter generation. To do this manually, simply add:
 .. note::
 
     Remember that the filter class is validating the input value. The underlying
-    type of the mode field is not relevant here.
+    type of the model field is not relevant here.
 
 You may also reverse the logic with the ``exclude`` parameter.
 
@@ -153,7 +153,7 @@ https://github.com/carltongibson/django-filter/issues/446
 Filtering by an empty string
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It's not currently possible to filter by an empty string, since empty values are
+It's not currently possible to filter by an empty string, because empty values are
 interpreted as a skipped filter.
 
     GET http://localhost/api/my-model?myfield=
@@ -182,7 +182,7 @@ for magic values. This is similar to the ``ChoiceFilter``'s null value handling.
 Solution 2: Empty string filter
 """""""""""""""""""""""""""""""
 
-It would also be possible to create an empty value filter that exhibits the same
+It's also possible to create an empty value filter that exhibits the same
 behavior as an ``isnull`` filter.
 
     GET http://localhost/api/my-model?myfield__isempty=false
@@ -217,14 +217,14 @@ default when no value was submitted. This behavior was not officially supported 
 since been removed.
 
 
-.. warning:: It is recommended that you do **NOT** implement the below as it adversely
+.. warning:: We recommend that you do **NOT** implement the code below as it adversely
     affects usability. Django forms don't provide this behavior for a reason.
 
     - Using initial values as defaults is inconsistent with the behavior of Django forms.
     - Default values prevent users from filtering by empty values.
     - Default values prevent users from skipping that filter.
 
-If defaults are necessary though, the following should mimic the pre-1.0 behavior:
+If defaults are necessary, though, the following should mimic the pre-1.0 behavior:
 
 .. code-block:: python
 
