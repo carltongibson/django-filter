@@ -1138,6 +1138,7 @@ class FilterMethodTests(TestCase):
                 return queryset.filter(**{name: value})
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
+        self.assertEqual(list(F(queryset=User.objects.all())), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'}).qs),
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'}).qs),
