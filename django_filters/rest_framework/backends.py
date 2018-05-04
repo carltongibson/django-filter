@@ -87,10 +87,11 @@ class DjangoFilterBackend(object):
 
         try:
             queryset = view.get_queryset()
-        except Exception:
+        except Exception as exc:
             queryset = None
             warnings.warn(
-                "{} is not compatible with schema generation".format(view.__class__)
+                "{} is not compatible with schema generation. Got exception when calling get_queryset: {!r}".format(  # noqa: E501
+                    view.__class__, exc)
             )
 
         filter_class = self.get_filter_class(view, queryset)
