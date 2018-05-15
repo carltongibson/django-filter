@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.serializers import Serializer
 
 from django_filters import filterset
 
@@ -15,12 +16,39 @@ FILTER_FOR_DBFIELD_DEFAULTS.update({
 })
 
 
-class FilterSet(filterset.FilterSet):
+class FilterSetOptions(object):
+    def __init__(self, options=None):
+        self.model = getattr(options, 'model', None)
+        self.fields = getattr(options, 'fields', None)
+        self.exclude = getattr(options, 'exclude', None)
+
+        self.filter_overrides = getattr(options, 'filter_overrides', {})
+
+        self.form = getattr(options, 'form', Serializer)
+
+
+class FilterSetMetaclass(filterset.FilterSetMetaclass):
+    def __new__(cls, name, bases, attrs):
+        attrs['declared_filters'] = cls.get_declared_filters(bases, attrs)
+
+        new_class = type.__new__(cls, name, bases, attrs)
+        new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
+        new_class.base_filters = new_class.get_filters()
+
+        return new_class
+
+
+class FilterSet(filterset.BaseFilterSet, metaclass=FilterSetMetaclass):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
     @property
     def form(self):
-        form = super().form
+        if not hasattr(self, '_form'):
+            Form = self.get_form_class()
+            if self.is_bound:
+                self._form = Form(data=self.data)
+            else:
+                self._form = Form()
 
         if compat.is_crispy():
             from crispy_forms.helper import FormHelper
@@ -34,6 +62,11 @@ class FilterSet(filterset.FilterSet):
             helper.template_pack = 'bootstrap3'
             helper.layout = Layout(*layout_components)
 
-            form.helper = helper
+            self._form.helper = helper
 
-        return form
+        return self._form
+
+    def filter_queryset(self, queryset):
+        for name, value in self.form.validated_data.items():
+            queryset = self.filters[name].filter(queryset, value)
+        return queryset

@@ -1,10 +1,11 @@
+from rest_framework import fields
 
 from ..filters import *
-from ..widgets import BooleanWidget
 
 
 class BooleanFilter(BooleanFilter):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('widget', BooleanWidget)
+    field_class = fields.BooleanField
 
-        super().__init__(*args, **kwargs)
+
+class NumberFilter(NumberFilter):
+    field_class = fields.FloatField
