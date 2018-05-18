@@ -138,7 +138,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None,
+                 context={}):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
         model = queryset.model
@@ -148,6 +149,7 @@ class BaseFilterSet(object):
         self.queryset = queryset
         self.request = request
         self.form_prefix = prefix
+        self.context = context
 
         self.filters = copy.deepcopy(self.base_filters)
 
