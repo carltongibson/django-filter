@@ -3,7 +3,7 @@ import warnings
 from django.template import loader
 
 from . import filters, filterset
-from .. import compat, utils, fields
+from .. import compat, fields, utils
 
 
 class DjangoFilterBackend(object):
