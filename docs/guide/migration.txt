@@ -45,6 +45,15 @@ The ``Filter.lookup_expr`` argument no longer accepts ``None`` or a list of
 expressions. Use the :ref:`LookupChoiceFilter <lookup-choice-filter>` instead.
 
 
+FilterSet ``filter_for_reverse_field`` removed (`#915`__)
+---------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/915
+
+The ``filter_for_field`` method now generates filters for reverse relationships,
+removing  the need for ``filter_for_reverse_field``. As a result, reverse
+relationships now also obey ``Meta.filter_overrides``.
+
+
 View attributes renamed (`#867`__)
 ----------------------------------
 __ https://github.com/carltongibson/django-filter/pull/867
