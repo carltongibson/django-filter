@@ -290,6 +290,13 @@ class ReverseFilterSetFilterForFieldTests(TestCase):
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Business)
 
+    def test_reverse_relationship_lookup_expr(self):
+        f = Book._meta.get_field('lovers')
+        result = FilterSet.filter_for_field(f, 'lovers', 'isnull')
+        self.assertIsInstance(result, BooleanFilter)
+        self.assertEqual(result.field_name, 'lovers')
+        self.assertEqual(result.lookup_expr, 'isnull')
+
 
 class FilterSetClassCreationTests(TestCase):
 
