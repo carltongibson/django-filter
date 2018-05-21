@@ -33,9 +33,17 @@ from .utils import (
 
 
 def remote_queryset(field):
-    model = field.remote_field.model
-    limit_choices_to = field.get_limit_choices_to()
+    """
+    Get the queryset for the other side of a relationship. This works
+    for both `RelatedField`s and `ForignObjectRel`s.
+    """
+    model = field.related_model
 
+    # Reverse relationships do not have choice limits
+    if not hasattr(field, 'get_limit_choices_to'):
+        return model._default_manager.all()
+
+    limit_choices_to = field.get_limit_choices_to()
     return model._default_manager.complex_filter(limit_choices_to)
 
 
@@ -339,10 +347,9 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_reverse_field(cls, rel, field_name):
-        queryset = rel.field.model._default_manager.all()
         default = {
             'field_name': field_name,
-            'queryset': queryset,
+            'queryset': remote_queryset(rel),
         }
         if rel.multiple:
             return ModelMultipleChoiceFilter(**default)
