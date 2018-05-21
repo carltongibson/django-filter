@@ -183,21 +183,6 @@ class FilterTests(TestCase):
         qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
         self.assertNotEqual(qs, result)
 
-    def test_filtering_skipped_with_list_value_with_blank(self):
-        qs = mock.Mock()
-        f = Filter(field_name='somefield', lookup_expr=['some_lookup_expr'])
-        result = f.filter(qs, Lookup('', 'some_lookup_expr'))
-        self.assertListEqual(qs.method_calls, [])
-        self.assertEqual(qs, result)
-
-    def test_filtering_skipped_with_list_value_with_blank_lookup(self):
-        return  # Now field is required to provide valid lookup_expr if it provides any
-        qs = mock.Mock(spec=['filter'])
-        f = Filter(field_name='somefield', lookup_expr=None)
-        result = f.filter(qs, Lookup('value', ''))
-        qs.filter.assert_called_once_with(somefield__exact='value')
-        self.assertNotEqual(qs, result)
-
     def test_filter_using_method(self):
         qs = mock.NonCallableMock(spec=[])
         method = mock.Mock()
@@ -211,33 +196,6 @@ class FilterTests(TestCase):
         f = Filter(field_name='somefield', distinct=True)
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
-        self.assertNotEqual(qs, result)
-
-
-class CustomFilterWithBooleanCheckTests(TestCase):
-
-    def setUp(self):
-        super().setUp()
-
-        class CustomTestFilter(Filter):
-            def filter(self_, qs, value):
-                if not value:
-                    return qs
-                return super().filter(qs, value)
-
-        self.test_filter_class = CustomTestFilter
-
-    def test_lookup_false(self):
-        qs = mock.Mock(spec=['filter'])
-        f = self.test_filter_class(field_name='somefield')
-        result = f.filter(qs, Lookup('', 'exact'))
-        self.assertEqual(qs, result)
-
-    def test_lookup_true(self):
-        qs = mock.Mock(spec=['filter'])
-        f = self.test_filter_class(field_name='somefield')
-        result = f.filter(qs, Lookup('somesearch', 'exact'))
-        qs.filter.assert_called_once_with(somefield__exact='somesearch')
         self.assertNotEqual(qs, result)
 
 

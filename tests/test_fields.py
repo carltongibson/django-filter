@@ -24,18 +24,21 @@ def to_d(float_value):
     return decimal.Decimal('%.2f' % float_value)
 
 
-class LookupBoolTests(TestCase):
-    def test_lookup_true(self):
-        self.assertTrue(Lookup(True, 'exact'))
-        self.assertTrue(Lookup(1, 'exact'))
-        self.assertTrue(Lookup('1', 'exact'))
-        self.assertTrue(Lookup(datetime.now(), 'exact'))
+class LookupTests(TestCase):
+    def test_empty_attrs(self):
+        with self.assertRaisesMessage(ValueError, ''):
+            Lookup(None, None)
 
-    def test_lookup_false(self):
-        self.assertFalse(Lookup(False, 'exact'))
-        self.assertFalse(Lookup(0, 'exact'))
-        self.assertFalse(Lookup('', 'exact'))
-        self.assertFalse(Lookup(None, 'exact'))
+        with self.assertRaisesMessage(ValueError, ''):
+            Lookup('', '')
+
+    def test_empty_value(self):
+        with self.assertRaisesMessage(ValueError, ''):
+            Lookup('', 'exact')
+
+    def test_empty_lookup_expr(self):
+        with self.assertRaisesMessage(ValueError, ''):
+            Lookup('Value', '')
 
 
 class RangeFieldTests(TestCase):
@@ -117,7 +120,7 @@ class LookupTypeFieldTests(TestCase):
             Lookup(to_d(12.34), 'lt'))
         self.assertEqual(
             f.clean([]),
-            Lookup(value=None, lookup_type='exact'))
+            None)
 
     def test_render_used_html5(self):
         inner = forms.DecimalField()

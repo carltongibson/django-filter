@@ -7,6 +7,7 @@ from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 
 from .conf import settings
+from .constants import EMPTY_VALUES
 from .utils import handle_timezone
 from .widgets import (
     BaseCSVWidget,
@@ -80,11 +81,14 @@ class TimeRangeField(RangeField):
 
 
 class Lookup(namedtuple('Lookup', ('value', 'lookup_type'))):
-    # python nature is test __len__ on tuple types for boolean check
-    def __len__(self):
-        if not self.value:
-            return 0
-        return 2
+    def __new__(cls, value, lookup_type):
+        if value in EMPTY_VALUES or lookup_type in EMPTY_VALUES:
+            raise ValueError(
+                "Empty values ([], (), {}, '', None) are not "
+                "valid Lookup arguments. Return None instead."
+            )
+
+        return super().__new__(cls, value, lookup_type)
 
 
 class LookupTypeField(forms.MultiValueField):
@@ -103,8 +107,10 @@ class LookupTypeField(forms.MultiValueField):
 
     def compress(self, data_list):
         if len(data_list) == 2:
-            return Lookup(value=data_list[0], lookup_type=data_list[1] or 'exact')
-        return Lookup(value=None, lookup_type='exact')
+            value, lookup_type = data_list
+            if value not in EMPTY_VALUES and lookup_type not in EMPTY_VALUES:
+                return Lookup(value=value, lookup_type=lookup_type)
+        return None
 
 
 class IsoDateTimeField(forms.DateTimeField):

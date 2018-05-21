@@ -736,8 +736,7 @@ class NumberFilterTests(TestCase):
                 model = Book
                 fields = ['price']
 
-        qs = Book.objects.all()
-        f = F({'price': '15', 'price_lookup': 'lt'}, queryset=qs)
+        f = F({'price': '15', 'price_lookup': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
         f = F({'price': '15', 'price_lookup': 'lt'})
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
@@ -745,16 +744,10 @@ class NumberFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs,
                                  ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
                                  lambda o: o.title, ordered=False)
-
-        class F(FilterSet):
-            price = NumberFilter(lookup_expr=['lt', 'gt', 'exact'])
-
-            class Meta:
-                model = Book
-                fields = ['price']
-
         f = F({'price': '15'})
-        self.assertQuerysetEqual(f.qs, ['Rainbow Six'], lambda o: o.title)
+        self.assertQuerysetEqual(f.qs,
+                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
+                                 lambda o: o.title, ordered=False)
 
 
 class RangeFilterTests(TestCase):
