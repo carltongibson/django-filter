@@ -4,7 +4,11 @@ from collections import OrderedDict
 from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.fields.related import ForeignObjectRel
+from django.db.models.fields.related import (
+    ManyToManyRel,
+    ManyToOneRel,
+    OneToOneRel
+)
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -118,6 +122,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.GenericIPAddressField:       {'filter_class': CharFilter},
     models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
     models.UUIDField:                   {'filter_class': UUIDFilter},
+
+    # Forward relationships
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
@@ -135,6 +141,27 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         }
     },
     models.ManyToManyField: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+        }
+    },
+
+    # Reverse relationships
+    OneToOneRel: {
+        'filter_class': ModelChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+            'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
+        }
+    },
+    ManyToOneRel: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+        }
+    },
+    ManyToManyRel: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
@@ -295,11 +322,6 @@ class BaseFilterSet(object):
             if field is None:
                 undefined.append(field_name)
 
-            # ForeignObjectRel does not support non-exact lookups
-            if isinstance(field, ForeignObjectRel):
-                filters[field_name] = cls.filter_for_reverse_field(field, field_name)
-                continue
-
             for lookup_expr in lookups:
                 filter_name = cls.get_filter_name(field_name, lookup_expr)
 
@@ -346,17 +368,6 @@ class BaseFilterSet(object):
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, rel, field_name):
-        default = {
-            'field_name': field_name,
-            'queryset': remote_queryset(rel),
-        }
-        if rel.multiple:
-            return ModelMultipleChoiceFilter(**default)
-        else:
-            return ModelChoiceFilter(**default)
-
-    @classmethod
     def filter_for_lookup(cls, field, lookup_type):
         DEFAULTS = dict(cls.FILTER_DEFAULTS)
         if hasattr(cls, '_meta'):
@@ -371,7 +382,7 @@ class BaseFilterSet(object):
             return None, {}
 
         # perform lookup specific checks
-        if lookup_type == 'exact' and field.choices:
+        if lookup_type == 'exact' and getattr(field, 'choices', None):
             return ChoiceFilter, {'choices': field.choices}
 
         if lookup_type == 'isnull':

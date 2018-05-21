@@ -242,11 +242,12 @@ class FilterSetFilterForLookupTests(TestCase):
         self.assertEqual(params['widget'], BooleanWidget)
 
 
-class FilterSetFilterForReverseFieldTests(TestCase):
+class ReverseFilterSetFilterForFieldTests(TestCase):
+    # Test reverse relationships for `filter_for_field`
 
     def test_reverse_o2o_relationship(self):
         f = Account._meta.get_field('profile')
-        result = FilterSet.filter_for_reverse_field(f, 'profile')
+        result = FilterSet.filter_for_field(f, 'profile')
         self.assertIsInstance(result, ModelChoiceFilter)
         self.assertEqual(result.field_name, 'profile')
         self.assertTrue('queryset' in result.extra)
@@ -255,7 +256,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
 
     def test_reverse_fk_relationship(self):
         f = User._meta.get_field('comments')
-        result = FilterSet.filter_for_reverse_field(f, 'comments')
+        result = FilterSet.filter_for_field(f, 'comments')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.field_name, 'comments')
         self.assertTrue('queryset' in result.extra)
@@ -264,7 +265,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
 
     def test_reverse_m2m_relationship(self):
         f = Book._meta.get_field('lovers')
-        result = FilterSet.filter_for_reverse_field(f, 'lovers')
+        result = FilterSet.filter_for_field(f, 'lovers')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.field_name, 'lovers')
         self.assertTrue('queryset' in result.extra)
@@ -273,7 +274,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
 
     def test_reverse_non_symmetrical_selfref_m2m_field(self):
         f = DirectedNode._meta.get_field('inbound_nodes')
-        result = FilterSet.filter_for_reverse_field(f, 'inbound_nodes')
+        result = FilterSet.filter_for_field(f, 'inbound_nodes')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.field_name, 'inbound_nodes')
         self.assertTrue('queryset' in result.extra)
@@ -282,7 +283,7 @@ class FilterSetFilterForReverseFieldTests(TestCase):
 
     def test_reverse_m2m_field_with_through_model(self):
         f = Worker._meta.get_field('employers')
-        result = FilterSet.filter_for_reverse_field(f, 'employers')
+        result = FilterSet.filter_for_field(f, 'employers')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
         self.assertEqual(result.field_name, 'employers')
         self.assertTrue('queryset' in result.extra)
