@@ -338,9 +338,8 @@ class BaseFilterSet(object):
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, field, field_name):
-        rel = field.field.remote_field
-        queryset = field.field.model._default_manager.all()
+    def filter_for_reverse_field(cls, rel, field_name):
+        queryset = rel.field.model._default_manager.all()
         default = {
             'field_name': field_name,
             'queryset': queryset,
