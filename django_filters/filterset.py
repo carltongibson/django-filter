@@ -178,7 +178,8 @@ class BaseFilterSet(object):
         applied to the queryset before it is cached.
         """
         for name, value in self.form.cleaned_data.items():
-            queryset = self.filters[name].filter(queryset, value)
+            if name in self.filters.keys():
+                queryset = self.filters[name].filter(queryset, value)
         return queryset
 
     @property
