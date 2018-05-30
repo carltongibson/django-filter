@@ -68,6 +68,23 @@ class GetFilterClassTests(TestCase):
         filter_class = backend.get_filter_class(view, queryset)
         self.assertIs(filter_class, Filter)
 
+    def test_get_filter_class(self):
+        class Filter(FilterSet):
+            class Meta:
+                model = FilterableItem
+                fields = '__all__'
+
+        def get_filter_class():
+            return Filter
+
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.get_filter_class = get_filter_class
+        queryset = FilterableItem.objects.all()
+
+        filter_class = backend.get_filter_class(view, queryset)
+        self.assertIs(filter_class, Filter)
+
     def test_filter_class_no_meta(self):
         class Filter(FilterSet):
             pass

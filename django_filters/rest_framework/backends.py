@@ -20,7 +20,10 @@ class DjangoFilterBackend(object):
         """
         Return the django-filters `FilterSet` used to filter the queryset.
         """
+        get_filter_method = getattr(view, 'get_filter_class', None)
         filter_class = getattr(view, 'filter_class', None)
+        if callable(get_filter_method):
+            filter_class = get_filter_method()
         filter_fields = getattr(view, 'filter_fields', None)
 
         if filter_class:
