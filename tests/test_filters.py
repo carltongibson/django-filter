@@ -747,6 +747,7 @@ class ModelChoiceFilterTests(TestCase):
 
     def test_default_field_with_queryset(self):
         qs = mock.NonCallableMock(spec=[])
+        qs.all = mock.Mock(return_value=qs)  # For django 2.1+
         f = ModelChoiceFilter(queryset=qs)
         field = f.field
         self.assertIsInstance(field, forms.ModelChoiceField)
@@ -755,6 +756,7 @@ class ModelChoiceFilterTests(TestCase):
     def test_callable_queryset(self):
         request = mock.NonCallableMock(spec=[])
         qs = mock.NonCallableMock(spec=[])
+        qs.all = mock.Mock(return_value=qs)  # For django 2.1+
 
         qs_callable = mock.Mock(return_value=qs)
 
@@ -768,6 +770,7 @@ class ModelChoiceFilterTests(TestCase):
     def test_get_queryset_override(self):
         request = mock.NonCallableMock(spec=[])
         qs = mock.NonCallableMock(spec=[])
+        qs.all = mock.Mock(return_value=qs)  # For django 2.1+
 
         class F(ModelChoiceFilter):
             get_queryset = mock.create_autospec(ModelChoiceFilter.get_queryset, return_value=qs)
@@ -798,6 +801,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
     def test_default_field_with_queryset(self):
         qs = mock.NonCallableMock(spec=[])
+        qs.all = mock.Mock(return_value=qs)  # For django 2.1+
         f = ModelMultipleChoiceFilter(queryset=qs)
         field = f.field
         self.assertIsInstance(field, forms.ModelMultipleChoiceField)
@@ -821,6 +825,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
     def test_callable_queryset(self):
         request = mock.NonCallableMock(spec=[])
         qs = mock.NonCallableMock(spec=[])
+        qs.all = mock.Mock(return_value=qs)  # For django 2.1+
 
         qs_callable = mock.Mock(return_value=qs)
 
