@@ -161,7 +161,7 @@ class BooleanWidget(forms.Select):
                    ('false', _('No')))
         super().__init__(attrs, choices)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         try:
             value = {
                 True: 'true',
@@ -171,7 +171,7 @@ class BooleanWidget(forms.Select):
             }[value]
         except KeyError:
             value = ''
-        return super().render(name, value, attrs)
+        return super().render(name, value, attrs, renderer=renderer)
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
