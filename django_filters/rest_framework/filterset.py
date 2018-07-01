@@ -15,7 +15,7 @@ FILTER_FOR_DBFIELD_DEFAULTS.update({
 })
 
 
-class FilterSet(filterset.FilterSet):
+class FilterSetMixin(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
     @property
@@ -37,3 +37,7 @@ class FilterSet(filterset.FilterSet):
             form.helper = helper
 
         return form
+    
+    
+class FilterSet(FilterSetMixin, filterset.FilterSet):
+    pass
