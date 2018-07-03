@@ -4,6 +4,7 @@ import unittest
 from operator import attrgetter
 
 from django import forms
+from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.timezone import now
@@ -1716,6 +1717,7 @@ class CSVFilterTests(TestCase):
 
         cases = [
             (None, [1, 2, 3, 4]),
+            (QueryDict('status__in=1&status__in=2'), [2, 3]),
             ({'status__in': ''}, [1, 2, 3, 4]),
             ({'status__in': ','}, []),
             ({'status__in': '0'}, [4]),
@@ -1735,6 +1737,7 @@ class CSVFilterTests(TestCase):
 
         cases = [
             (None, [1, 2, 3, 4]),
+            (QueryDict('username__in=alex&username__in=aaron'), [3]),
             ({'username__in': ''}, [1, 2, 3, 4]),
             ({'username__in': ','}, []),
             ({'username__in': 'alex'}, [1]),
@@ -1757,6 +1760,7 @@ class CSVFilterTests(TestCase):
 
         cases = [
             (None, [1, 2, 3, 4]),
+            (QueryDict('published__in=%s&published__in=%s' % (after, before)), [3, 4]),
             ({'published__in': ''}, [1, 2, 3, 4]),
             ({'published__in': ','}, []),
             ({'published__in': '%s' % (after, )}, [1, 2]),
@@ -1776,6 +1780,7 @@ class CSVFilterTests(TestCase):
 
         cases = [
             (None, [1, 2, 3, 4]),
+            (QueryDict('author__in=1&author__in=2'), [2, 4]),
             ({'author__in': ''}, [1, 2, 3, 4]),
             ({'author__in': ','}, []),
             ({'author__in': '1'}, [1, 3]),
