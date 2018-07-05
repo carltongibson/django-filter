@@ -206,6 +206,23 @@ class GetSchemaFieldsTests(TestCase):
         self.assertFalse(required[2])
         self.assertTrue(required[3])
 
+    def test_fields_complex(self):
+        class ComplexFieldsFilter(FilterSet):
+            decimal = filters.NumericRangeFilter()
+            text = filters.CharFilter(lookup_expr=None)
+            class Meta:
+                model = FilterableItem
+                fields = ['decimal']
+
+        class FilterClassWithComplexFieldsView(FilterClassRootView):
+            filter_class = ComplexFieldsFilter
+
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_fields(FilterClassWithComplexFieldsView())
+        fields = [f.name for f in fields]
+        self.assertEqual(fields, ['decimal_0', 'decimal_1', 'text_0', 'text_1'])
+
+
     def tests_field_with_request_callable(self):
         def qs(request):
             # users expect a valid request object to be provided which cannot

@@ -3,7 +3,7 @@ import warnings
 from django.template import loader
 
 from . import filters, filterset
-from .. import compat, utils
+from .. import compat, fields, utils
 
 
 class DjangoFilterBackend(object):
@@ -79,12 +79,8 @@ class DjangoFilterBackend(object):
         )
 
     def get_schema_fields(self, view):
-        # This is not compatible with widgets where the query param differs from the
-        # filter's attribute name. Notably, this includes `MultiWidget`, where query
-        # params will be of the format `<name>_0`, `<name>_1`, etc...
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
         assert compat.coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
-
         try:
             queryset = view.get_queryset()
         except Exception:
@@ -94,12 +90,26 @@ class DjangoFilterBackend(object):
             )
 
         filter_class = self.get_filter_class(view, queryset)
+        schema_fields = []
+        if filter_class:
+            for filter_name, filter in filter_class.base_filters.items():
+                schema_fields += self.filter_to_coreapi_fields(filter_name, filter)
+        return schema_fields
 
-        return [] if not filter_class else [
-            compat.coreapi.Field(
-                name=field_name,
-                required=field.extra['required'],
-                location='query',
-                schema=self.get_coreschema_field(field)
-            ) for field_name, field in filter_class.base_filters.items()
-        ]
+    def filter_to_coreapi_fields(self, filter_name, filter):
+        coreapi_fields = []
+        if issubclass(filter.field_class, fields.RangeField) or \
+           filter.lookup_expr is None or \
+           isinstance(filter.lookup_expr, (list, tuple)):
+            field_names = [filter_name + '_0',
+                           filter_name + '_1']
+        else:
+            field_names = [filter_name]
+
+        for field_name in field_names:
+            coreapi_fields.append(
+                compat.coreapi.Field(name=field_name,
+                                     required=filter.extra['required'],
+                                     location='query',
+                                     schema=self.get_coreschema_field(filter)))
+        return coreapi_fields
