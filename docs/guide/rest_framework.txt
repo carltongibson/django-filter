@@ -228,5 +228,4 @@ The following features are specific to the rest framework FilterSet:
 
 - ``BooleanFilter``'s use the API-friendly ``BooleanWidget``, which accepts lowercase ``true``/``false``.
 - Filter generation uses ``IsoDateTimeFilter`` for datetime model fields.
-- Raised ``ValidationError``'s are reraised as their DRF equivalent. This behavior is useful when setting FilterSet
-  strictness to ``STRICTNESS.RAISE_VALIDATION_ERROR``.
+- Raised ``ValidationError``'s are reraised as their DRF equivalent.
