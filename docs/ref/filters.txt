@@ -9,22 +9,29 @@ This is a reference document with a list of the filters and their arguments.
 Core Arguments
 --------------
 
-The following are the core arguments that apply to all filters.
+The following are the core arguments that apply to all filters. Note that they
+are joined to construct the complete `lookup expression`_ that is the left hand
+side of the ORM ``.filter()`` call.
+
+.. _`lookup expression`: https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
 
 ``field_name``
 ~~~~~~~~~~~~~~
 
-The name of the field this filter is supposed to filter on, if this is not
-provided it automatically becomes the filter's name on the ``FilterSet``.
-You can traverse "relationship paths" using Django's ``__`` syntax to filter
-fields on a related model. eg, ``manufacturer__name``.
+The name of the model field that is filtered against. If this argument is not
+provided, it defaults the filter's attribute name on the ``FilterSet`` class.
+Field names can traverse relationships by joining the related parts with the ORM
+lookup separator (``__``). e.g., a product's ``manufacturer__name``.
 
 ``lookup_expr``
 ~~~~~~~~~~~~~~~
 
-The lookup expression that should be performed using `Django's ORM`_.
+The `field lookup`_ that should be performed in the filter call. Defaults to
+``exact``. The ``lookup_expr`` can contain transforms if the expression parts
+are joined by the ORM lookup separator (``__``). e.g., filter a datetime by its
+year part ``year__gt``.
 
-.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+.. _`Field lookup`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
 
 .. _keyword-only-arguments:
 
