@@ -20,7 +20,6 @@ from django_filters.filters import (
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     MultipleChoiceFilter,
-    NumberFilter,
     OrderingFilter,
     RangeFilter,
     TimeRangeFilter,

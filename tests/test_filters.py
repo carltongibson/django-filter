@@ -15,7 +15,6 @@ from django_filters.fields import (
     DateRangeField,
     DateTimeRangeField,
     Lookup,
-    LookupChoiceField,
     RangeField,
     TimeRangeField
 )
