@@ -10,6 +10,7 @@ from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from .compat import coreschema, schemas
 from .conf import settings
 from .constants import EMPTY_VALUES
 from .fields import (
@@ -67,6 +68,7 @@ LOOKUP_TYPES = sorted(QUERY_TERMS)
 class Filter(object):
     creation_counter = 0
     field_class = forms.Field
+    schema_class = schemas.String
 
     def __init__(self, field_name=None, lookup_expr='exact', *, label=None,
                  method=None, distinct=False, exclude=False, **kwargs):
@@ -174,13 +176,29 @@ class Filter(object):
         qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, lookup): value})
         return qs
 
+    @property
+    def schema(self):
+        assert coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
+
+        return self.schema_class(
+            description=str(self.extra.get('help_text', '')),
+        )
+
 
 class CharFilter(Filter):
     field_class = forms.CharField
 
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.min_length = self.extra.get('min_length')
+        schema.max_length = self.extra.get('max_length')
+        return schema
+
 
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
+    schema_class = schemas.Boolean
 
 
 class ChoiceFilter(Filter):
@@ -291,9 +309,21 @@ class TypedMultipleChoiceFilter(MultipleChoiceFilter):
 class DateFilter(Filter):
     field_class = forms.DateField
 
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'date'
+        return schema
+
 
 class DateTimeFilter(Filter):
     field_class = forms.DateTimeField
+
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'date-time'
+        return schema
 
 
 class IsoDateTimeFilter(DateTimeFilter):
@@ -312,9 +342,21 @@ class IsoDateTimeFilter(DateTimeFilter):
 class TimeFilter(Filter):
     field_class = forms.TimeField
 
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'time'
+        return schema
+
 
 class DurationFilter(Filter):
     field_class = forms.DurationField
+
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'duration'
+        return schema
 
 
 class QuerySetRequestMixin(object):
@@ -382,6 +424,7 @@ class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
 
 class NumberFilter(Filter):
     field_class = forms.DecimalField
+    schema_class = schemas.Number
 
 
 class NumericRangeFilter(Filter):
@@ -475,13 +518,31 @@ class DateRangeFilter(ChoiceFilter):
 class DateFromToRangeFilter(RangeFilter):
     field_class = DateRangeField
 
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'date'
+        return schema
+
 
 class DateTimeFromToRangeFilter(RangeFilter):
     field_class = DateTimeRangeField
 
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'date-time'
+        return schema
+
 
 class TimeRangeFilter(RangeFilter):
     field_class = TimeRangeField
+
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.format = 'time'
+        return schema
 
 
 class AllValuesFilter(ChoiceFilter):
@@ -546,6 +607,12 @@ class BaseCSVFilter(Filter):
         # DateTimeYearInField
         return str('%s%sField' % (type_name, expression_name))
 
+    @property
+    def schema(self):
+        schema = super().schema
+        schema = schemas.Array(schema)
+        return schema
+
 
 class BaseInFilter(BaseCSVFilter):
 
@@ -560,6 +627,12 @@ class BaseRangeFilter(BaseCSVFilter):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'range')
         super().__init__(*args, **kwargs)
+
+    @property
+    def schema(self):
+        schema = super().schema
+        schema.max_items = 2
+        return schema
 
 
 class OrderingFilter(BaseCSVFilter, ChoiceFilter):

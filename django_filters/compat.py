@@ -21,5 +21,11 @@ except ImportError:
 
 try:
     import coreschema
+    from coreschema import schemas
 except ImportError:
+    class _NullSchemas:
+        def __getattr__(self, name):
+            return None
+
     coreschema = None
+    schemas = _NullSchemas()
