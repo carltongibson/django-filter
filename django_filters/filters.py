@@ -398,51 +398,66 @@ def _truncate(dt):
 
 
 class DateRangeFilter(ChoiceFilter):
-    options = {
-        '': (_('Any date'), lambda qs, name: qs),
-        1: (_('Today'), lambda qs, name: qs.filter(**{
+    choices = [
+        ('today', _('Today')),
+        ('yesterday', _('Yesterday')),
+        ('week', _('Past 7 days')),
+        ('month', _('This month')),
+        ('year', _('This year')),
+    ]
+
+    filters = {
+        'today': lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month,
             '%s__day' % name: now().day
-        })),
-        2: (_('Past 7 days'), lambda qs, name: qs.filter(**{
+        }),
+        'yesterday': lambda qs, name: qs.filter(**{
+            '%s__year' % name: (now() - timedelta(days=1)).year,
+            '%s__month' % name: (now() - timedelta(days=1)).month,
+            '%s__day' % name: (now() - timedelta(days=1)).day,
+        }),
+        'week': lambda qs, name: qs.filter(**{
             '%s__gte' % name: _truncate(now() - timedelta(days=7)),
             '%s__lt' % name: _truncate(now() + timedelta(days=1)),
-        })),
-        3: (_('This month'), lambda qs, name: qs.filter(**{
+        }),
+        'month': lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
             '%s__month' % name: now().month
-        })),
-        4: (_('This year'), lambda qs, name: qs.filter(**{
+        }),
+        'year': lambda qs, name: qs.filter(**{
             '%s__year' % name: now().year,
-        })),
-        5: (_('Yesterday'), lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month,
-            '%s__day' % name: (now() - timedelta(days=1)).day,
-        })),
+        }),
     }
 
-    def __init__(self, *args, **kwargs):
-        kwargs['choices'] = [
-            (key, value[0]) for key, value in self.options.items()]
+    def __init__(self, choices=None, filters=None, *args, **kwargs):
+        if choices is not None:
+            self.choices = choices
+        if filters is not None:
+            self.filters = filters
 
-        # empty/null choices not relevant
-        kwargs.setdefault('empty_label', None)
+        unique = set([x[0] for x in self.choices]) ^ set(self.filters)
+        assert not unique, \
+            "Keys must be present in both 'choices' and 'filters'. Missing keys: " \
+            "'%s'" % ', '.join(sorted(unique))
+
+        # TODO: remove assertion in 2.1
+        assert not hasattr(self, 'options'), \
+            "The 'options' attribute has been replaced by 'choices' and 'filters'. " \
+            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+
+        # null choice not relevant
         kwargs.setdefault('null_label', None)
-        super().__init__(*args, **kwargs)
+        super().__init__(choices=self.choices, *args, **kwargs)
 
     def filter(self, qs, value):
-        try:
-            value = int(value)
-        except (ValueError, TypeError):
-            value = ''
+        if not value:
+            return qs
 
-        assert value in self.options
-        qs = self.options[value][1](qs, self.field_name)
-        if self.distinct:
-            qs = qs.distinct()
-        return qs
+        assert value in self.filters
+
+        qs = self.filters[value](qs, self.field_name)
+        return qs.distinct() if self.distinct else qs
 
 
 class DateFromToRangeFilter(RangeFilter):

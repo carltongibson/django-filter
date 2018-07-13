@@ -922,9 +922,15 @@ class RangeFilterTests(TestCase):
 class DateRangeFilterTests(TestCase):
 
     def test_creating(self):
-        f = DateRangeFilter()
-        self.assertIn('choices', f.extra)
-        self.assertEqual(len(DateRangeFilter.options), len(f.extra['choices']))
+        f = DateRangeFilter(empty_label=None)
+        self.assertEqual(len(f.choices), 5)
+        self.assertIs(f.choices, f.extra['choices'])
+
+        f = DateRangeFilter(empty_label=None, choices=[], filters=[])
+        self.assertEqual(f.choices, [])
+        self.assertEqual(f.filters, [])
+        self.assertEqual(len(f.choices), 0)
+        self.assertIs(f.choices, f.extra['choices'])
 
     def test_default_field(self):
         f = DateRangeFilter()
@@ -943,14 +949,29 @@ class DateRangeFilterTests(TestCase):
         qs = mock.Mock(spec=[])
         f = DateRangeFilter()
         with self.assertRaises(AssertionError):
-            f.filter(qs, 999)
+            f.filter(qs, 'tomorrow')
+
+    def test_choices_and_filters_mismatch(self):
+        msg = "Keys must be present in both 'choices' and 'filters'. Missing keys: 'a, b'"
+        with self.assertRaisesMessage(AssertionError, msg):
+            DateRangeFilter(choices=[('a', 'a')], filters={'b': None})
+
+    def test_options_removed(self):
+        msg = "The 'options' attribute has been replaced by 'choices' and 'filters'. " \
+              "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+
+        class F(DateRangeFilter):
+            options = None
+
+        with self.assertRaisesMessage(AssertionError, msg):
+            F()
 
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=['filter'])
         with mock.patch('django_filters.filters.now') as mock_now:
             now_dt = mock_now.return_value
             f = DateRangeFilter()
-            f.filter(qs, '4')
+            f.filter(qs, 'year')
             qs.filter.assert_called_once_with(
                 None__year=now_dt.year)
 
@@ -959,7 +980,7 @@ class DateRangeFilterTests(TestCase):
         with mock.patch('django_filters.filters.now') as mock_now:
             now_dt = mock_now.return_value
             f = DateRangeFilter()
-            f.filter(qs, '3')
+            f.filter(qs, 'month')
             qs.filter.assert_called_once_with(
                 None__year=now_dt.year, None__month=now_dt.month)
 
@@ -971,7 +992,7 @@ class DateRangeFilterTests(TestCase):
             mock_d1, mock_d2 = mock.MagicMock(), mock.MagicMock()
             mock_truncate.side_effect = [mock_d1, mock_d2]
             f = DateRangeFilter()
-            f.filter(qs, '2')
+            f.filter(qs, 'week')
             self.assertEqual(
                 mock_td.call_args_list,
                 [mock.call(days=7), mock.call(days=1)]
@@ -983,7 +1004,7 @@ class DateRangeFilterTests(TestCase):
         with mock.patch('django_filters.filters.now') as mock_now:
             now_dt = mock_now.return_value
             f = DateRangeFilter()
-            f.filter(qs, '1')
+            f.filter(qs, 'today')
             qs.filter.assert_called_once_with(
                 None__year=now_dt.year,
                 None__month=now_dt.month,
@@ -994,10 +1015,10 @@ class DateRangeFilterTests(TestCase):
         with mock.patch('django_filters.filters.now') as mock_now:
             now_dt = mock_now.return_value
             f = DateRangeFilter()
-            f.filter(qs, '5')
+            f.filter(qs, 'yesterday')
             qs.filter.assert_called_once_with(
-                None__year=now_dt.year,
-                None__month=now_dt.month,
+                None__year=(now_dt - timedelta(days=1)).year,
+                None__month=(now_dt - timedelta(days=1)).month,
                 None__day=(now_dt - timedelta(days=1)).day,
             )
 
