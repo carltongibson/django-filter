@@ -688,7 +688,7 @@ comma-separated values.
 
 Example::
 
-    class NumberRangeFilter(BaseInFilter, NumberFilter):
+    class NumberRangeFilter(BaseRangeFilter, NumberFilter):
         pass
 
     class F(FilterSet):
