@@ -331,7 +331,8 @@ class BaseFilterSet(object):
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/master/ref/filterset.html#customise-filter-generation-with-filter-overrides"
+            "https://django-filter.readthedocs.io/en/master/ref/filterset.html"
+            "#customise-filter-generation-with-filter-overrides"
         ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
 
         return filter_class(**default)

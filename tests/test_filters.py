@@ -1408,7 +1408,7 @@ class OrderingFilterTests(TestCase):
 
     def test_normalize_fields(self):
         f = OrderingFilter.normalize_fields
-        O = OrderedDict
+        O = OrderedDict  # noqa
 
         self.assertIn('a', f({'a': 'b'}))
 
