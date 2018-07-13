@@ -869,6 +869,27 @@ class NumericRangeFilterTests(TestCase):
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__endswith=30)
 
+    def test_filtering_distinct(self):
+        f = NumericRangeFilter(distinct=True)
+
+        # range
+        qs = mock.Mock()
+        f.filter(qs, mock.Mock(start=20, stop=30))
+        qs.distinct.assert_called_once()
+        qs.distinct.return_value.filter.assert_called_once_with(None__exact=(20, 30))
+
+        # min
+        qs = mock.Mock()
+        f.filter(qs, mock.Mock(start=20, stop=None))
+        qs.distinct.assert_called_once()
+        qs.distinct.return_value.filter.assert_called_once_with(None__startswith=20)
+
+        # max
+        qs = mock.Mock()
+        f.filter(qs, mock.Mock(start=None, stop=30))
+        qs.distinct.assert_called_once()
+        qs.distinct.return_value.filter.assert_called_once_with(None__endswith=30)
+
 
 class RangeFilterTests(TestCase):
 
@@ -917,6 +938,27 @@ class RangeFilterTests(TestCase):
         f = RangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(None__range=(20, 30))
+
+    def test_filtering_distinct(self):
+        f = RangeFilter(distinct=True)
+
+        # range
+        qs = mock.Mock()
+        f.filter(qs, mock.Mock(start=20, stop=30))
+        qs.distinct.assert_called_once()
+        qs.distinct.return_value.filter.assert_called_once_with(None__range=(20, 30))
+
+        # min
+        qs = mock.Mock()
+        f.filter(qs, mock.Mock(start=20, stop=None))
+        qs.distinct.assert_called_once()
+        qs.distinct.return_value.filter.assert_called_once_with(None__gte=20)
+
+        # max
+        qs = mock.Mock()
+        f.filter(qs, mock.Mock(start=None, stop=30))
+        qs.distinct.assert_called_once()
+        qs.distinct.return_value.filter.assert_called_once_with(None__lte=30)
 
 
 class DateRangeFilterTests(TestCase):
