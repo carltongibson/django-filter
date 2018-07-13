@@ -105,6 +105,10 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
             fields = ('category', 'in_stock')
 
 
+Note that using ``filter_fields`` and ``filter_class`` together is not
+supported.
+
+
 Overriding FilterSet creation
 -----------------------------
 
