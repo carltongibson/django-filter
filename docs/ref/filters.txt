@@ -11,8 +11,8 @@ Core Arguments
 
 The following are the core arguments that apply to all filters.
 
-``name``
-~~~~~~~~
+``field_name``
+~~~~~~~~~~~~~~
 
 The name of the field this filter is supposed to filter on, if this is not
 provided it automatically becomes the filter's name on the ``FilterSet``.
