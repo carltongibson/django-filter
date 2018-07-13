@@ -141,7 +141,7 @@ class DateRangeWidget(RangeWidget):
     suffixes = ['after', 'before']
 
 
-class LookupTypeWidget(SuffixedMultiWidget):
+class LookupChoiceWidget(SuffixedMultiWidget):
     suffixes = [None, 'lookup']
 
     def decompress(self, value):

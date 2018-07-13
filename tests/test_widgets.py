@@ -6,7 +6,7 @@ from django_filters.widgets import (
     BooleanWidget,
     CSVWidget,
     LinkWidget,
-    LookupTypeWidget,
+    LookupChoiceWidget,
     QueryArrayWidget,
     RangeWidget,
     SuffixedMultiWidget
@@ -17,11 +17,11 @@ class LookupTypeWidgetTests(TestCase):
 
     def test_widget_requires_field(self):
         with self.assertRaises(TypeError):
-            LookupTypeWidget()
+            LookupChoiceWidget()
 
     def test_widget_render(self):
         widgets = [TextInput(), Select(choices=(('a', 'a'), ('b', 'b')))]
-        w = LookupTypeWidget(widgets)
+        w = LookupChoiceWidget(widgets)
         self.assertHTMLEqual(w.render('price', ''), """
             <input name="price" type="text" />
             <select name="price_lookup">

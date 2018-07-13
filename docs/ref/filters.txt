@@ -624,6 +624,31 @@ database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
+.. _lookup-choice-filter:
+
+``LookupChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~~
+
+A combined filter that allows users to select the lookup expression from a dropdown.
+
+* ``lookup_choices`` is an optional argument that accepts multiple input
+  formats, and is ultimately normlized as the choices used in the lookup
+  dropdown. See ``.get_lookup_choices()`` for more information.
+
+* ``field_class`` is an optional argument that allows you to set the inner
+  form field class used to validate the value. Default: ``forms.CharField``
+
+ex::
+
+    price = django_filters.LookupChoiceFilter(
+        field_class=forms.DecimalField,
+        lookup_choices=[
+            ('exact', 'Equals'),
+            ('gt', 'Greater than'),
+            ('lt', 'Less than'),
+        ]
+    )
+
 .. _base-in-filter:
 
 ``BaseInFilter``

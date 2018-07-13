@@ -7,12 +7,13 @@ from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 
 from .conf import settings
+from .constants import EMPTY_VALUES
 from .utils import handle_timezone
 from .widgets import (
     BaseCSVWidget,
     CSVWidget,
     DateRangeWidget,
-    LookupTypeWidget,
+    LookupChoiceWidget,
     RangeWidget
 )
 
@@ -79,32 +80,41 @@ class TimeRangeField(RangeField):
         super().__init__(fields, *args, **kwargs)
 
 
-class Lookup(namedtuple('Lookup', ('value', 'lookup_type'))):
-    # python nature is test __len__ on tuple types for boolean check
-    def __len__(self):
-        if not self.value:
-            return 0
-        return 2
+class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
+    def __new__(cls, value, lookup_expr):
+        if value in EMPTY_VALUES or lookup_expr in EMPTY_VALUES:
+            raise ValueError(
+                "Empty values ([], (), {}, '', None) are not "
+                "valid Lookup arguments. Return None instead."
+            )
+
+        return super().__new__(cls, value, lookup_expr)
 
 
-class LookupTypeField(forms.MultiValueField):
+class LookupChoiceField(forms.MultiValueField):
+    default_error_messages = {
+        'lookup_required': _('Select a lookup.'),
+    }
+
     def __init__(self, field, lookup_choices, *args, **kwargs):
-        fields = (
-            field,
-            forms.ChoiceField(choices=lookup_choices)
-        )
-        defaults = {
-            'widgets': [f.widget for f in fields],
-        }
-        widget = LookupTypeWidget(**defaults)
+        empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+        fields = (field, ChoiceField(choices=lookup_choices, empty_label=empty_label))
+        widget = LookupChoiceWidget(widgets=[f.widget for f in fields])
         kwargs['widget'] = widget
         kwargs['help_text'] = field.help_text
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
         if len(data_list) == 2:
-            return Lookup(value=data_list[0], lookup_type=data_list[1] or 'exact')
-        return Lookup(value=None, lookup_type='exact')
+            value, lookup_expr = data_list
+            if value not in EMPTY_VALUES:
+                if lookup_expr not in EMPTY_VALUES:
+                    return Lookup(value=value, lookup_expr=lookup_expr)
+                else:
+                    raise forms.ValidationError(
+                        self.error_messages['lookup_required'],
+                        code='lookup_required')
+        return None
 
 
 class IsoDateTimeField(forms.DateTimeField):

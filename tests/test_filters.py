@@ -15,12 +15,11 @@ from django_filters.fields import (
     DateRangeField,
     DateTimeRangeField,
     Lookup,
-    LookupTypeField,
+    LookupChoiceField,
     RangeField,
     TimeRangeField
 )
 from django_filters.filters import (
-    LOOKUP_TYPES,
     AllValuesFilter,
     BaseCSVFilter,
     BaseInFilter,
@@ -35,6 +34,7 @@ from django_filters.filters import (
     DateTimeFromToRangeFilter,
     DurationFilter,
     Filter,
+    LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     MultipleChoiceFilter,
@@ -94,24 +94,18 @@ class FilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.Field)
 
-    def test_field_with_none_lookup_expr(self):
-        f = Filter(lookup_expr=None)
-        field = f.field
-        self.assertIsInstance(field, LookupTypeField)
-        choice_field = field.fields[1]
-        self.assertEqual(len(choice_field.choices), len(LOOKUP_TYPES))
+    def test_field_with_lookup_types_removal(self):
+        msg = (
+            "The `lookup_expr` argument no longer accepts `None` or a list of "
+            "expressions. Use the `LookupChoiceFilter` instead. See: "
+            "https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        )
 
-    def test_field_with_lookup_expr_and_exlusion(self):
-        f = Filter(lookup_expr=None, exclude=True)
-        field = f.field
-        self.assertIsInstance(field, LookupTypeField)
+        with self.assertRaisesMessage(AssertionError, msg):
+            Filter(lookup_expr=[])
 
-    def test_field_with_list_lookup_expr(self):
-        f = Filter(lookup_expr=('istartswith', 'iendswith'))
-        field = f.field
-        self.assertIsInstance(field, LookupTypeField)
-        choice_field = field.fields[1]
-        self.assertEqual(len(choice_field.choices), 2)
+        with self.assertRaisesMessage(AssertionError, msg):
+            Filter(lookup_expr=None)
 
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
@@ -176,28 +170,6 @@ class FilterTests(TestCase):
         self.assertListEqual(qs.method_calls, [])
         self.assertEqual(qs, result)
 
-    def test_filtering_with_list_value(self):
-        qs = mock.Mock(spec=['filter'])
-        f = Filter(field_name='somefield', lookup_expr=['some_lookup_expr'])
-        result = f.filter(qs, Lookup('value', 'some_lookup_expr'))
-        qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
-        self.assertNotEqual(qs, result)
-
-    def test_filtering_skipped_with_list_value_with_blank(self):
-        qs = mock.Mock()
-        f = Filter(field_name='somefield', lookup_expr=['some_lookup_expr'])
-        result = f.filter(qs, Lookup('', 'some_lookup_expr'))
-        self.assertListEqual(qs.method_calls, [])
-        self.assertEqual(qs, result)
-
-    def test_filtering_skipped_with_list_value_with_blank_lookup(self):
-        return  # Now field is required to provide valid lookup_expr if it provides any
-        qs = mock.Mock(spec=['filter'])
-        f = Filter(field_name='somefield', lookup_expr=None)
-        result = f.filter(qs, Lookup('value', ''))
-        qs.filter.assert_called_once_with(somefield__exact='value')
-        self.assertNotEqual(qs, result)
-
     def test_filter_using_method(self):
         qs = mock.NonCallableMock(spec=[])
         method = mock.Mock()
@@ -211,33 +183,6 @@ class FilterTests(TestCase):
         f = Filter(field_name='somefield', distinct=True)
         f.filter(qs, 'value')
         result = qs.distinct.assert_called_once_with()
-        self.assertNotEqual(qs, result)
-
-
-class CustomFilterWithBooleanCheckTests(TestCase):
-
-    def setUp(self):
-        super().setUp()
-
-        class CustomTestFilter(Filter):
-            def filter(self_, qs, value):
-                if not value:
-                    return qs
-                return super().filter(qs, value)
-
-        self.test_filter_class = CustomTestFilter
-
-    def test_lookup_false(self):
-        qs = mock.Mock(spec=['filter'])
-        f = self.test_filter_class(field_name='somefield')
-        result = f.filter(qs, Lookup('', 'exact'))
-        self.assertEqual(qs, result)
-
-    def test_lookup_true(self):
-        qs = mock.Mock(spec=['filter'])
-        f = self.test_filter_class(field_name='somefield')
-        result = f.filter(qs, Lookup('somesearch', 'exact'))
-        qs.filter.assert_called_once_with(somefield__exact='somesearch')
         self.assertNotEqual(qs, result)
 
 
@@ -1209,48 +1154,79 @@ class AllValuesFilterTests(TestCase):
         ])
 
 
-class LookupTypesTests(TestCase):
-    def test_custom_lookup_exprs(self):
-        filters.LOOKUP_TYPES = [
+class LookupChoiceFilterTests(TestCase):
+
+    def test_normalize_lookup_no_display_label(self):
+        # display label has underscores replaced and is capitalized
+        display_label = LookupChoiceFilter.normalize_lookup('has_key')
+        self.assertEqual(display_label, ('has_key', 'Has key'))
+
+    def test_normalize_lookup_with_display_label(self):
+        # display label is not transformed if provided
+        display_label = LookupChoiceFilter.normalize_lookup(('equal', 'equals'))
+        self.assertEqual(display_label, ('equal', 'equals'))
+
+    def test_lookup_choices_default(self):
+        # Lookup choices should default to the model field's registered lookups
+        f = LookupChoiceFilter(field_name='username', lookup_choices=None)
+        f.model = User
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(
+            len(choice_field.choices),
+            len(User._meta.get_field('username').get_lookups()) + 1
+        )
+
+        field_choices = dict(choice_field.choices)
+        self.assertEqual(field_choices['exact'], 'Exact')
+        self.assertEqual(field_choices['startswith'], 'Startswith')
+
+    def test_lookup_choices_list(self):
+        f = LookupChoiceFilter(field_name='username', lookup_choices=[
+            'exact',
+            'startswith',
+            'has_key'
+        ])
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [
+            ('', '---------'),
+            ('exact', 'Exact'),
+            ('startswith', 'Startswith'),
+            ('has_key', 'Has key'),
+        ])
+
+    def test_lookup_choices_pairs(self):
+        f = LookupChoiceFilter(field_name='username', lookup_choices=[
+            ('exact', 'Is equal to'),
+            ('startswith', 'Starts with'),
+        ])
+
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [
             ('', '---------'),
             ('exact', 'Is equal to'),
-            ('not_exact', 'Is not equal to'),
-            ('lt', 'Lesser than'),
-            ('gt', 'Greater than'),
-            ('gte', 'Greater than or equal to'),
-            ('lte', 'Lesser than or equal to'),
             ('startswith', 'Starts with'),
-            ('endswith', 'Ends with'),
-            ('contains', 'Contains'),
-            ('not_contains', 'Does not contain'),
-        ]
+        ])
 
-        f = Filter(lookup_expr=None)
-        field = f.field
-        choice_field = field.fields[1]
-        all_choices = choice_field.choices
+    def test_lookup_choices_empty_label_default(self):
+        f = LookupChoiceFilter(field_name='username', lookup_choices=[])
 
-        self.assertIsInstance(field, LookupTypeField)
-        self.assertEqual(all_choices, filters.LOOKUP_TYPES)
-        self.assertEqual(all_choices[1][0], 'exact')
-        self.assertEqual(all_choices[1][1], 'Is equal to')
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [('', '---------')])
 
-        custom_f = Filter(lookup_expr=('endswith', 'not_contains'))
-        custom_field = custom_f.field
-        custom_choice_field = custom_field.fields[1]
-        my_custom_choices = custom_choice_field.choices
+    def test_lookup_choices_empty_label_disabled(self):
+        f = LookupChoiceFilter(field_name='username', empty_label=None, lookup_choices=[])
 
-        available_lookup_exprs = [
-            ('endswith', 'Ends with'),
-            ('not_contains', 'Does not contain'),
-        ]
+        choice_field = f.field.fields[1]
+        self.assertEqual(list(choice_field.choices), [])
 
-        self.assertIsInstance(custom_field, LookupTypeField)
-        self.assertEqual(my_custom_choices, available_lookup_exprs)
-        self.assertEqual(my_custom_choices[0][0], 'endswith')
-        self.assertEqual(my_custom_choices[0][1], 'Ends with')
-        self.assertEqual(my_custom_choices[1][0], 'not_contains')
-        self.assertEqual(my_custom_choices[1][1], 'Does not contain')
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = LookupChoiceFilter(field_name='somefield', lookup_choices=['some_lookup_expr'])
+        result = f.filter(qs, Lookup('value', 'some_lookup_expr'))
+        qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
+        self.assertNotEqual(qs, result)
 
 
 class CSVFilterTests(TestCase):

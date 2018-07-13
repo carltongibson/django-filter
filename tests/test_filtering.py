@@ -16,6 +16,7 @@ from django_filters.filters import (
     DateRangeFilter,
     DateTimeFromToRangeFilter,
     DurationFilter,
+    LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     MultipleChoiceFilter,
@@ -705,56 +706,6 @@ class NumberFilterTests(TestCase):
 
         f = F({'price': 10}, queryset=Book.objects.all())
         self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-
-    def test_filtering_with_single_lookup_expr(self):
-        class F(FilterSet):
-            price = NumberFilter(lookup_expr='lt')
-
-            class Meta:
-                model = Book
-                fields = ['price']
-
-        f = F({'price': 16}, queryset=Book.objects.all().order_by('title'))
-        self.assertQuerysetEqual(
-            f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
-
-    def test_filtering_with_single_lookup_expr_dictionary(self):
-        class F(FilterSet):
-            class Meta:
-                model = Book
-                fields = {'price': ['lt']}
-
-        f = F({'price__lt': 16}, queryset=Book.objects.all().order_by('title'))
-        self.assertQuerysetEqual(
-            f.qs, ['Ender\'s Game', 'Rainbow Six'], lambda o: o.title)
-
-    def test_filtering_with_multiple_lookup_exprs(self):
-        class F(FilterSet):
-            price = NumberFilter(lookup_expr=['lt', 'gt'])
-
-            class Meta:
-                model = Book
-                fields = ['price']
-
-        qs = Book.objects.all()
-        f = F({'price': '15', 'price_lookup': 'lt'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-        f = F({'price': '15', 'price_lookup': 'lt'})
-        self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
-        f = F({'price': '', 'price_lookup': 'lt'})
-        self.assertQuerysetEqual(f.qs,
-                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
-                                 lambda o: o.title, ordered=False)
-
-        class F(FilterSet):
-            price = NumberFilter(lookup_expr=['lt', 'gt', 'exact'])
-
-            class Meta:
-                model = Book
-                fields = ['price']
-
-        f = F({'price': '15'})
-        self.assertQuerysetEqual(f.qs, ['Rainbow Six'], lambda o: o.title)
 
 
 class RangeFilterTests(TestCase):
@@ -1665,6 +1616,64 @@ class TransformedQueryExpressionFilterTests(TestCase):
         f = F({'published__hour__gte': 17}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
         self.assertQuerysetEqual(f.qs, [a.pk], lambda o: o.pk)
+
+
+class LookupChoiceFilterTests(TestCase):
+
+    class BookFilter(FilterSet):
+        price = LookupChoiceFilter(lookup_choices=['lt', 'gt'], field_class=forms.DecimalField)
+
+        class Meta:
+            model = Book
+            fields = ['price']
+
+    @classmethod
+    def setUpTestData(cls):
+        Book.objects.create(title="Ender's Game", price='10.0',
+                            average_rating=4.7999999999999998)
+        Book.objects.create(title="Rainbow Six", price='15.0',
+                            average_rating=4.5999999999999996)
+        Book.objects.create(title="Snowcrash", price='20.0',
+                            average_rating=4.2999999999999998)
+
+    def test_filtering(self):
+        F = self.BookFilter
+
+        f = F({'price': '15', 'price_lookup': 'lt'})
+        self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
+        f = F({'price': '15', 'price_lookup': 'lt'})
+        self.assertQuerysetEqual(f.qs, ['Ender\'s Game'], lambda o: o.title)
+        f = F({'price': '', 'price_lookup': 'lt'})
+        self.assertTrue(f.is_valid())
+        self.assertQuerysetEqual(f.qs,
+                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
+                                 lambda o: o.title, ordered=False)
+        f = F({'price': '15'})
+        self.assertFalse(f.is_valid())
+        self.assertQuerysetEqual(f.qs,
+                                 ['Ender\'s Game', 'Rainbow Six', 'Snowcrash'],
+                                 lambda o: o.title, ordered=False)
+
+    def test_inner_field_class_validation(self):
+        f = self.BookFilter({'price': 'asdf', 'price_lookup': 'lt'})
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.errors, {
+            'price': ['Enter a number.'],
+        })
+
+    def test_lookup_choices_validation(self):
+        f = self.BookFilter({'price': '1', 'price_lookup': 'asdf'})
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.errors, {
+            'price': ['Select a valid choice. asdf is not one of the available choices.'],
+        })
+
+    def test_lookup_omitted(self):
+        f = self.BookFilter({'price': '1'})
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.errors, {
+            'price': ['Select a lookup.'],
+        })
 
 
 # use naive datetimes, as pytz is required to perform
