@@ -1,3 +1,5 @@
+import warnings
+
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
@@ -56,7 +58,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
     def test_view_with_model_and_fields_no_filterset(self):
         factory = RequestFactory()
         request = factory.get(self.base_url + '?price=1.0')
-        view = FilterView.as_view(model=Book, filter_fields=['price'])
+        view = FilterView.as_view(model=Book, filterset_fields=['price'])
 
         # filtering only by price
         response = view(request)
@@ -107,6 +109,19 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         view = FilterView.as_view(filterset_class=MyFilterSet)
         with self.assertRaises(ImproperlyConfigured):
             view(request)
+
+    def test_filter_fields_removed(self):
+        expected = "`View.filter_fields` attribute should be renamed `filterset_fields`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class View(FilterView):
+                filter_fields = None
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
 
 
 class GenericFunctionalViewTests(GenericViewTestCase):

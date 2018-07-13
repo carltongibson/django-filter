@@ -18,9 +18,84 @@ from .exceptions import FieldLookupError
 
 
 def deprecate(msg, level_modifier=0):
-    warnings.warn(
-        "%s See: https://django-filter.readthedocs.io/en/master/guide/migration.html" % msg,
-        DeprecationWarning, stacklevel=3 + level_modifier)
+    warnings.warn(msg, MigrationNotice, stacklevel=3 + level_modifier)
+
+
+class MigrationNotice(DeprecationWarning):
+    url = 'https://django-filter.readthedocs.io/en/master/guide/migration.html'
+
+    def __init__(self, message):
+        super().__init__('%s See: %s' % (message, self.url))
+
+
+class RenameAttributesBase(type):
+    """
+    Handles the deprecation paths when renaming an attribute.
+
+    It does the following:
+    - Defines accessors that redirect to the renamed attributes.
+    - Complain whenever an old attribute is accessed.
+
+    This is conceptually based on `django.utils.deprecation.RenameMethodsBase`.
+    """
+    renamed_attributes = ()
+
+    def __new__(metacls, name, bases, attrs):
+        # remove old attributes before creating class
+        old_names = [r[0] for r in metacls.renamed_attributes]
+        old_names = [name for name in old_names if name in attrs]
+        old_attrs = {name: attrs.pop(name) for name in old_names}
+
+        # get a handle to any accessors defined on the class
+        cls_getattr = attrs.pop('__getattr__', None)
+        cls_setattr = attrs.pop('__setattr__', None)
+
+        new_class = super().__new__(metacls, name, bases, attrs)
+
+        def __getattr__(self, name):
+            name = type(self).get_name(name)
+            if cls_getattr is not None:
+                return cls_getattr(self, name)
+            elif hasattr(super(new_class, self), '__getattr__'):
+                return super(new_class, self).__getattr__(name)
+            return self.__getattribute__(name)
+
+        def __setattr__(self, name, value):
+            name = type(self).get_name(name)
+            if cls_setattr is not None:
+                return cls_setattr(self, name, value)
+            return super(new_class, self).__setattr__(name, value)
+
+        new_class.__getattr__ = __getattr__
+        new_class.__setattr__ = __setattr__
+
+        # set renamed attributes
+        for name, value in old_attrs.items():
+            setattr(new_class, name, value)
+
+        return new_class
+
+    def get_name(metacls, name):
+        """
+        Get the real attribute name. If the attribute has been renamed,
+        the new name will be returned and a deprecation warning issued.
+        """
+        for renamed_attribute in metacls.renamed_attributes:
+            old_name, new_name, deprecation_warning = renamed_attribute
+
+            if old_name == name:
+                warnings.warn("`%s.%s` attribute should be renamed `%s`."
+                              % (metacls.__name__, old_name, new_name),
+                              deprecation_warning, 3)
+                return new_name
+
+        return name
+
+    def __getattr__(metacls, name):
+        return super().__getattribute__(metacls.get_name(name))
+
+    def __setattr__(metacls, name, value):
+        return super().__setattr__(metacls.get_name(name), value)
 
 
 def try_dbfield(fn, field_class):

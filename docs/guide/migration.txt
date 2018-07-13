@@ -45,6 +45,20 @@ The ``Filter.lookup_expr`` argument no longer accepts ``None`` or a list of
 expressions. Use the :ref:`LookupChoiceFilter <lookup-choice-filter>` instead.
 
 
+View attributes renamed (`#867`__)
+----------------------------------
+__ https://github.com/carltongibson/django-filter/pull/867
+
+Several view-related attributes have been renamed to improve consistency with
+other parts of the library. The following classes are affected:
+
+* DRF ``ViewSet.filter_class`` => ``filterset_class``
+* DRF ``ViewSet.filter_fields`` => ``filterset_fields``
+* ``DjangoFilterBackend.default_filter_set`` => ``filterset_base``
+* ``DjangoFilterBackend.get_filter_class()`` => ``get_filterset_class()``
+* ``FilterMixin.filter_fields`` => ``filterset_fields``
+
+
 FilterSet ``Meta.together`` option removed (`#791`__)
 -----------------------------------------------------
 __ https://github.com/carltongibson/django-filter/pull/791

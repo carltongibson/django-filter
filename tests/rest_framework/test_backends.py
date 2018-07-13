@@ -45,16 +45,16 @@ class FilterableItemView(generics.ListCreateAPIView):
 
 
 class FilterFieldsRootView(FilterableItemView):
-    filter_fields = ['decimal', 'date']
+    filterset_fields = ['decimal', 'date']
 
 
 class FilterClassRootView(FilterableItemView):
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
 
 
 class GetFilterClassTests(TestCase):
 
-    def test_filter_class(self):
+    def test_filterset_class(self):
         class Filter(FilterSet):
             class Meta:
                 model = FilterableItem
@@ -62,25 +62,25 @@ class GetFilterClassTests(TestCase):
 
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filter_class = Filter
+        view.filterset_class = Filter
         queryset = FilterableItem.objects.all()
 
-        filter_class = backend.get_filter_class(view, queryset)
-        self.assertIs(filter_class, Filter)
+        filterset_class = backend.get_filterset_class(view, queryset)
+        self.assertIs(filterset_class, Filter)
 
-    def test_filter_class_no_meta(self):
+    def test_filterset_class_no_meta(self):
         class Filter(FilterSet):
             pass
 
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filter_class = Filter
+        view.filterset_class = Filter
         queryset = FilterableItem.objects.all()
 
-        filter_class = backend.get_filter_class(view, queryset)
-        self.assertIs(filter_class, Filter)
+        filterset_class = backend.get_filterset_class(view, queryset)
+        self.assertIs(filterset_class, Filter)
 
-    def test_filter_class_no_queryset(self):
+    def test_filterset_class_no_queryset(self):
         class Filter(FilterSet):
             class Meta:
                 model = FilterableItem
@@ -88,54 +88,56 @@ class GetFilterClassTests(TestCase):
 
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filter_class = Filter
+        view.filterset_class = Filter
 
-        filter_class = backend.get_filter_class(view, None)
-        self.assertIs(filter_class, Filter)
+        filterset_class = backend.get_filterset_class(view, None)
+        self.assertIs(filterset_class, Filter)
 
-    def test_filter_fields(self):
+    def test_filterset_fields(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filter_fields = ['text', 'decimal', 'date']
+        view.filterset_fields = ['text', 'decimal', 'date']
         queryset = FilterableItem.objects.all()
 
-        filter_class = backend.get_filter_class(view, queryset)
-        self.assertEqual(filter_class._meta.fields, view.filter_fields)
+        filterset_class = backend.get_filterset_class(view, queryset)
+        self.assertEqual(filterset_class._meta.fields, view.filterset_fields)
 
-    def test_filter_fields_malformed(self):
+    def test_filterset_fields_malformed(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filter_fields = ['non_existent']
+        view.filterset_fields = ['non_existent']
         queryset = FilterableItem.objects.all()
 
         msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
         with self.assertRaisesMessage(TypeError, msg):
-            backend.get_filter_class(view, queryset)
+            backend.get_filterset_class(view, queryset)
 
-    def test_filter_fields_no_queryset(self):
+    def test_filterset_fields_no_queryset(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filter_fields = ['text', 'decimal', 'date']
+        view.filterset_fields = ['text', 'decimal', 'date']
 
-        filter_class = backend.get_filter_class(view, None)
-        self.assertIsNone(filter_class)
+        filterset_class = backend.get_filterset_class(view, None)
+        self.assertIsNone(filterset_class)
 
 
 @skipIf(compat.coreapi is None, 'coreapi must be installed')
 class GetSchemaFieldsTests(TestCase):
-    def test_fields_with_filter_fields_list(self):
+    def test_fields_with_filterset_fields_list(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(FilterFieldsRootView())
         fields = [f.name for f in fields]
 
         self.assertEqual(fields, ['decimal', 'date'])
 
-    def test_filter_fields_list_with_bad_get_queryset(self):
+    def test_filterset_fields_list_with_bad_get_queryset(self):
         """
         See:
           * https://github.com/carltongibson/django-filter/issues/551
         """
         class BadGetQuerySetView(FilterFieldsRootView):
+            filterset_fields = ['decimal', 'date']
+
             def get_queryset(self):
                 raise AttributeError("I don't have that")
 
@@ -151,10 +153,10 @@ class GetSchemaFieldsTests(TestCase):
             self.assertEqual(len(w), 1)
             self.assertEqual(str(w[0].message), warning)
 
-    def test_malformed_filter_fields(self):
+    def test_malformed_filterset_fields(self):
         # Malformed filter fields should raise an exception
         class View(FilterFieldsRootView):
-            filter_fields = ['non_existent']
+            filterset_fields = ['non_existent']
 
         backend = DjangoFilterBackend()
 
@@ -162,9 +164,9 @@ class GetSchemaFieldsTests(TestCase):
         with self.assertRaisesMessage(TypeError, msg):
             backend.get_schema_fields(View())
 
-    def test_fields_with_filter_fields_dict(self):
+    def test_fields_with_filterset_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):
-            filter_fields = {
+            filterset_fields = {
                 'decimal': ['exact', 'lt', 'gt'],
             }
 
@@ -174,7 +176,7 @@ class GetSchemaFieldsTests(TestCase):
 
         self.assertEqual(fields, ['decimal', 'decimal__lt', 'decimal__gt'])
 
-    def test_fields_with_filter_class(self):
+    def test_fields_with_filterset_class(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(FilterClassRootView())
         schemas = [f.schema for f in fields]
@@ -193,7 +195,7 @@ class GetSchemaFieldsTests(TestCase):
                 fields = SeveralFieldsFilter.Meta.fields + ['required_text']
 
         class FilterClassWithRequiredFieldsView(FilterClassRootView):
-            filter_class = RequiredFieldsFilter
+            filterset_class = RequiredFieldsFilter
 
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(FilterClassWithRequiredFieldsView())
@@ -216,7 +218,7 @@ class GetSchemaFieldsTests(TestCase):
             f = filters.ModelChoiceFilter(queryset=qs)
 
         class View(FilterClassRootView):
-            filter_class = F
+            filterset_class = F
 
         view = View()
         view.request = factory.get('/')
@@ -284,8 +286,8 @@ class TemplateTests(TestCase):
             self.test_backend_output()
 
 
-class DefaultFilterSetTests(TestCase):
-    def test_default_meta_inheritance(self):
+class AutoFilterSetTests(TestCase):
+    def test_autofilter_meta_inheritance(self):
         # https://github.com/carltongibson/django-filter/issues/663
 
         class F(FilterSet):
@@ -293,15 +295,15 @@ class DefaultFilterSetTests(TestCase):
                 filter_overrides = {BooleanField: {}}
 
         class Backend(DjangoFilterBackend):
-            default_filter_set = F
+            filterset_base = F
 
         view = FilterFieldsRootView()
         backend = Backend()
 
-        filter_class = backend.get_filter_class(view, view.get_queryset())
-        filter_overrides = filter_class._meta.filter_overrides
+        filterset_class = backend.get_filterset_class(view, view.get_queryset())
+        filter_overrides = filterset_class._meta.filter_overrides
 
-        # derived filter_class.Meta should inherit from default_filter_set.Meta
+        # derived filterset_class.Meta should inherit from default_filter_set.Meta
         self.assertIn(BooleanField, filter_overrides)
         self.assertDictEqual(filter_overrides[BooleanField], {})
 
@@ -319,7 +321,7 @@ class ValidationErrorTests(TestCase):
         request = factory.get('/?id=foo&author=bar&name=baz')
         request = view.initialize_request(request)
         queryset = Article.objects.all()
-        view.filter_class = F
+        view.filterset_class = F
 
         with self.assertRaises(serializers.ValidationError) as exc:
             backend.filter_queryset(request, queryset, view)
@@ -329,3 +331,70 @@ class ValidationErrorTests(TestCase):
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
         })
+
+
+class RenamedBackendAttributesTests(TestCase):
+    def test_get_filter_class(self):
+        expected = "`Backend.get_filter_class` method should be renamed `get_filterset_class`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Backend(DjangoFilterBackend):
+                def get_filter_class(self):
+                    pass
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+    def test_default_filter_set(self):
+        expected = "`Backend.default_filter_set` attribute should be renamed `filterset_base`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Backend(DjangoFilterBackend):
+                default_filter_set = None
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+
+class RenamedViewSetAttributesTests(TestCase):
+
+    def test_filter_class(self):
+        expected = "`View.filter_class` attribute should be renamed `filterset_class`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class View(generics.ListCreateAPIView):
+                filter_class = None
+
+            view = View()
+            backend = DjangoFilterBackend()
+            backend.get_filterset_class(view, None)
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+    def test_filter_fields(self):
+        expected = "`View.filter_fields` attribute should be renamed `filterset_fields`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class View(generics.ListCreateAPIView):
+                filter_fields = None
+
+            view = View()
+            backend = DjangoFilterBackend()
+            # import pdb; pdb.set_trace()
+            backend.get_filterset_class(view, None)
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
