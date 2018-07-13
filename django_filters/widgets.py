@@ -23,7 +23,7 @@ class LinkWidget(forms.Widget):
         self.data = data
         return value
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), renderer=None):
         if not hasattr(self, 'data'):
             self.data = {}
         if value is None:
