@@ -191,7 +191,9 @@ class BaseRangeField(BaseCSVField):
     def clean(self, value):
         value = super().clean(value)
 
-        if value is not None and len(value) != 2:
+        assert value is None or isinstance(value, list)
+
+        if value and len(value) != 2:
             raise forms.ValidationError(
                 self.error_messages['invalid_values'],
                 code='invalid_values')
