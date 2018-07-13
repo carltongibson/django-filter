@@ -23,7 +23,7 @@ class LinkWidget(forms.Widget):
         self.data = data
         return value
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), renderer=None):
         if not hasattr(self, 'data'):
             self.data = {}
         if value is None:
@@ -161,7 +161,7 @@ class BooleanWidget(forms.Select):
                    ('false', _('No')))
         super().__init__(attrs, choices)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         try:
             value = {
                 True: 'true',
@@ -171,7 +171,7 @@ class BooleanWidget(forms.Select):
             }[value]
         except KeyError:
             value = ''
-        return super().render(name, value, attrs)
+        return super().render(name, value, attrs, renderer=renderer)
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
@@ -201,14 +201,14 @@ class BaseCSVWidget(forms.Widget):
             return value.split(',')
         return None
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if not self._isiterable(value):
             value = [value]
 
         if len(value) <= 1:
             # delegate to main widget (Select, etc...) if not multiple values
             value = value[0] if value else ''
-            return super().render(name, value, attrs)
+            return super().render(name, value, attrs, renderer=renderer)
 
         # if we have multiple values, we need to force render as a text input
         # (otherwise, the additional values are lost)
@@ -216,7 +216,7 @@ class BaseCSVWidget(forms.Widget):
         value = [force_text(surrogate.format_value(v)) for v in value]
         value = ','.join(list(value))
 
-        return surrogate.render(name, value, attrs)
+        return surrogate.render(name, value, attrs, renderer=renderer)
 
 
 class CSVWidget(BaseCSVWidget, forms.TextInput):
