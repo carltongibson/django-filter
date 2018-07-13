@@ -4,7 +4,11 @@ from collections import OrderedDict
 from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.fields.related import ForeignObjectRel
+from django.db.models.fields.related import (
+    ManyToManyRel,
+    ManyToOneRel,
+    OneToOneRel
+)
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -33,9 +37,17 @@ from .utils import (
 
 
 def remote_queryset(field):
-    model = field.remote_field.model
-    limit_choices_to = field.get_limit_choices_to()
+    """
+    Get the queryset for the other side of a relationship. This works
+    for both `RelatedField`s and `ForignObjectRel`s.
+    """
+    model = field.related_model
 
+    # Reverse relationships do not have choice limits
+    if not hasattr(field, 'get_limit_choices_to'):
+        return model._default_manager.all()
+
+    limit_choices_to = field.get_limit_choices_to()
     return model._default_manager.complex_filter(limit_choices_to)
 
 
@@ -57,6 +69,14 @@ class FilterSetMetaclass(type):
         new_class = super().__new__(cls, name, bases, attrs)
         new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
         new_class.base_filters = new_class.get_filters()
+
+        # TODO: remove assertion in 2.1
+        assert not hasattr(new_class, 'filter_for_reverse_field'), (
+            "`%(cls)s.filter_for_reverse_field` has been removed. "
+            "`%(cls)s.filter_for_field` now generates filters for reverse fields. "
+            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+            % {'cls': new_class.__name__}
+        )
 
         return new_class
 
@@ -110,6 +130,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.GenericIPAddressField:       {'filter_class': CharFilter},
     models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
     models.UUIDField:                   {'filter_class': UUIDFilter},
+
+    # Forward relationships
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
@@ -127,6 +149,27 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         }
     },
     models.ManyToManyField: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+        }
+    },
+
+    # Reverse relationships
+    OneToOneRel: {
+        'filter_class': ModelChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+            'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
+        }
+    },
+    ManyToOneRel: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+        }
+    },
+    ManyToManyRel: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
@@ -287,11 +330,6 @@ class BaseFilterSet(object):
             if field is None:
                 undefined.append(field_name)
 
-            # ForeignObjectRel does not support non-exact lookups
-            if isinstance(field, ForeignObjectRel):
-                filters[field_name] = cls.filter_for_reverse_field(field, field_name)
-                continue
-
             for lookup_expr in lookups:
                 filter_name = cls.get_filter_name(field_name, lookup_expr)
 
@@ -338,19 +376,6 @@ class BaseFilterSet(object):
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, field, field_name):
-        rel = field.field.remote_field
-        queryset = field.field.model._default_manager.all()
-        default = {
-            'field_name': field_name,
-            'queryset': queryset,
-        }
-        if rel.multiple:
-            return ModelMultipleChoiceFilter(**default)
-        else:
-            return ModelChoiceFilter(**default)
-
-    @classmethod
     def filter_for_lookup(cls, field, lookup_type):
         DEFAULTS = dict(cls.FILTER_DEFAULTS)
         if hasattr(cls, '_meta'):
@@ -365,7 +390,7 @@ class BaseFilterSet(object):
             return None, {}
 
         # perform lookup specific checks
-        if lookup_type == 'exact' and field.choices:
+        if lookup_type == 'exact' and getattr(field, 'choices', None):
             return ChoiceFilter, {'choices': field.choices}
 
         if lookup_type == 'isnull':
