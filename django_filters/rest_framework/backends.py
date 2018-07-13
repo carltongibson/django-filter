@@ -46,11 +46,12 @@ class DjangoFilterBackend(object):
 
         return None
 
-    def filter_queryset(self, request, queryset, view):
+    def filter_queryset(self, request, queryset, view, context={}):
         filter_class = self.get_filter_class(view, queryset)
 
         if filter_class:
-            filterset = filter_class(request.query_params, queryset=queryset, request=request)
+            filterset = filter_class(request.query_params, queryset=queryset, request=request,
+                                     context=context)
             if not filterset.is_valid() and self.raise_exception:
                 raise utils.translate_validation(filterset.errors)
             return filterset.qs
