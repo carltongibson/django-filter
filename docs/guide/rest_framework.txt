@@ -64,8 +64,8 @@ To enable filtering with a ``FilterSet``, add it to the ``filter_class`` paramet
 
 
     class ProductFilter(filters.FilterSet):
-        min_price = filters.NumberFilter(name="price", lookup_expr='gte')
-        max_price = filters.NumberFilter(name="price", lookup_expr='lte')
+        min_price = filters.NumberFilter(field_name="price", lookup_expr='gte')
+        max_price = filters.NumberFilter(field_name="price", lookup_expr='lte')
 
         class Meta:
             model = Product
