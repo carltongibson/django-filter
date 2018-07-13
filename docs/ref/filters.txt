@@ -19,6 +19,21 @@ provided it automatically becomes the filter's name on the ``FilterSet``.
 You can traverse "relationship paths" using Django's ``__`` syntax to filter
 fields on a related model. eg, ``manufacturer__name``.
 
+``lookup_expr``
+~~~~~~~~~~~~~~~
+
+The lookup expression that should be performed using `Django's ORM`_.
+
+.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+
+.. _keyword-only-arguments:
+
+Keyword-only Arguments:
+-----------------------
+
+The following are optional arguments that can be used to modify the behavior of
+all filters.
+
 ``label``
 ~~~~~~~~~
 
@@ -91,46 +106,6 @@ so raw value transformation and empty value checking should be unnecessary.
         class Meta:
             model = Book
             fields = ['published']
-
-``lookup_expr``
-~~~~~~~~~~~~~~~
-
-The lookup expression that should be performed using `Django's ORM`_.
-
-.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
-
-A ``list`` or ``tuple`` of lookup types is also accepted, allowing the user to
-select the lookup from a dropdown. The list of lookup types are filtered against
-``filters.LOOKUP_TYPES``. If `lookup_expr=None` is passed, then a list of all lookup
-types will be generated::
-
-    class ProductFilter(django_filters.FilterSet):
-        name = django_filters.CharFilter(lookup_expr=['exact', 'iexact'])
-
-You can enable custom lookups by adding them to ``LOOKUP_TYPES``::
-
-    from django_filters import filters
-
-    filters.LOOKUP_TYPES = ['gt', 'gte', 'lt', 'lte', 'custom_lookup_type']
-
-Additionally, you can provide human-friendly help text by overriding ``LOOKUP_TYPES``::
-
-    # filters.py
-    from django_filters import filters
-
-    filters.LOOKUP_TYPES = [
-        ('', '---------'),
-        ('exact', 'Is equal to'),
-        ('not_exact', 'Is not equal to'),
-        ('lt', 'Lesser than'),
-        ('gt', 'Greater than'),
-        ('gte', 'Greater than or equal to'),
-        ('lte', 'Lesser than or equal to'),
-        ('startswith', 'Starts with'),
-        ('endswith', 'Ends with'),
-        ('contains', 'Contains'),
-        ('not_contains', 'Does not contain'),
-    ]
 
 
 ``distinct``
