@@ -46,7 +46,7 @@ all filters.
 
 The label as it will apear in the HTML, analogous to a form field's label
 argument. If a label is not provided, a verbose label will be generated based
-on the field ``name`` and the parts of the ``lookup_expr``
+on the field ``field_name`` and the parts of the ``lookup_expr``
 (see: :ref:`verbose-lookups-setting`).
 
 .. _filter-method:
@@ -66,7 +66,7 @@ transformation and empty value checking should be unnecessary.
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
-        published = BooleanFilter(name='published_on', method='filter_published')
+        published = BooleanFilter(field_name='published_on', method='filter_published')
 
         def filter_published(self, queryset, name, value):
             # construct the full lookup expression.
@@ -88,7 +88,7 @@ transformation and empty value checking should be unnecessary.
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
-        published = BooleanFilter(name='published_on', method=filter_not_empty)
+        published = BooleanFilter(field_name='published_on', method=filter_not_empty)
 
         class Meta:
             model = Book
@@ -373,7 +373,7 @@ To use a custom field name for the lookup, you can use ``to_field_name``::
 
     class FooFilter(BaseFilterSet):
         foo = django_filters.filters.ModelMultipleChoiceFilter(
-            name='attr__uuid',
+            field_name='attr__uuid',
             to_field_name='uuid',
             queryset=Foo.objects.all(),
         )
@@ -649,7 +649,7 @@ Example::
         pass
 
     class F(FilterSet):
-        id__in = NumberInFilter(name='id', lookup_expr='in')
+        id__in = NumberInFilter(field_name='id', lookup_expr='in')
 
         class Meta:
             model = User
@@ -676,7 +676,7 @@ Example::
         pass
 
     class F(FilterSet):
-        id__range = NumberRangeFilter(name='id', lookup_expr='range')
+        id__range = NumberRangeFilter(field_name='id', lookup_expr='range')
 
         class Meta:
             model = User
@@ -714,8 +714,8 @@ two additional arguments that are used to build the ordering choices.
 .. code-block:: python
 
     class UserFilter(FilterSet):
-        account = CharFilter(name='username')
-        status = NumberFilter(name='status')
+        account = CharFilter(field_name='username')
+        status = NumberFilter(field_name='status')
 
         o = OrderingFilter(
             # tuple-mapping retains order
@@ -752,8 +752,8 @@ want to disable descending sort options.
 .. code-block:: python
 
     class UserFilter(FilterSet):
-        account = CharFilter(name='username')
-        status = NumberFilter(name='status')
+        account = CharFilter(field_name='username')
+        status = NumberFilter(field_name='status')
 
         o = OrderingFilter(
             choices=(

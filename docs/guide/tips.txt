@@ -10,11 +10,11 @@ recommended that you read this as it provides a more complete understanding of
 how filters work.
 
 
-Filter ``name`` and ``lookup_expr`` not configured
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Filter ``field_name`` and ``lookup_expr`` not configured
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-While ``name`` and ``lookup_expr`` are optional, it is recommended that you specify
-them. By default, if ``name`` is not specified, the filter's name on the
+While ``field_name`` and ``lookup_expr`` are optional, it is recommended that you specify
+them. By default, if ``field_name`` is not specified, the filter's name on the
 filterset class will be used. Additionally, ``lookup_expr`` defaults to
 ``exact``. The following is an example of a misconfigured price filter:
 
@@ -36,7 +36,7 @@ would be:
 .. code-block:: python
 
     class ProductFilter(django_filters.FilterSet):
-        price__gt = django_filters.NumberFilter(name='price', lookup_expr='gt')
+        price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
 
 
 Missing ``lookup_expr`` for text search filters
@@ -68,7 +68,7 @@ for uncategorized products. The following is an incorrectly configured
 .. code-block:: python
 
     class ProductFilter(django_filters.FilterSet):
-        uncategorized = django_filters.NumberFilter(name='category', lookup_expr='isnull')
+        uncategorized = django_filters.NumberFilter(field_name='category', lookup_expr='isnull')
 
 So what's the issue? While the underlying column type for ``category`` is an
 integer, ``isnull`` lookups expect a boolean value. A ``NumberFilter`` however
@@ -84,8 +84,8 @@ uncategorized products and products for a set of categories:
         pass
 
     class ProductFilter(django_filters.FilterSet):
-        categories = NumberInFilter(name='category', lookup_expr='in')
-        uncategorized = django_filters.BooleanFilter(name='category', lookup_expr='isnull')
+        categories = NumberInFilter(field_name='category', lookup_expr='in')
+        uncategorized = django_filters.BooleanFilter(field_name='category', lookup_expr='isnull')
 
 More info on constructing ``in`` and ``range`` csv :ref:`filters <base-in-filter>`.
 
@@ -112,7 +112,7 @@ the FilterSet's automatic filter generation. To do this manually, simply add:
 .. code-block:: python
 
     class ProductFilter(django_filters.FilterSet):
-        uncategorized = django_filters.BooleanFilter(name='category', lookup_expr='isnull')
+        uncategorized = django_filters.BooleanFilter(field_name='category', lookup_expr='isnull')
 
 .. note::
 
@@ -124,7 +124,7 @@ You may also reverse the logic with the ``exclude`` parameter.
 .. code-block:: python
 
     class ProductFilter(django_filters.FilterSet):
-        has_category = django_filters.BooleanFilter(name='category', lookup_expr='isnull', exclude=True)
+        has_category = django_filters.BooleanFilter(field_name='category', lookup_expr='isnull', exclude=True)
 
 Solution 2: Using ``ChoiceFilter``'s null choice
 """"""""""""""""""""""""""""""""""""""""""""""""
@@ -137,7 +137,7 @@ the ``null_label`` parameter. More details in the ``ChoiceFilter`` reference
 
     class ProductFilter(django_filters.FilterSet):
         category = django_filters.ModelChoiceFilter(
-            name='category', lookup_expr='isnull',
+            field_name='category', lookup_expr='isnull',
             null_label='Uncategorized',
             queryset=Category.objects.all(),
         )
@@ -203,7 +203,7 @@ behavior as an ``isnull`` filter.
 
 
     class MyFilterSet(filters.FilterSet):
-        myfield__isempty = EmptyStringFilter(name='myfield')
+        myfield__isempty = EmptyStringFilter(field_name='myfield')
 
         class Meta:
             model = MyModel
