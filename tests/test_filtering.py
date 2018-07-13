@@ -2,8 +2,10 @@ import contextlib
 import datetime
 import mock
 import unittest
+from operator import attrgetter
 
 from django import forms
+from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
@@ -1694,106 +1696,86 @@ class CSVFilterTests(TestCase):
 
     def test_numeric_filtering(self):
         F = self.user_filter
+        qs = User.objects.order_by('pk')
 
-        qs = User.objects.all()
-        f = F(queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
+        cases = [
+            (None, [1, 2, 3, 4]),
+            (QueryDict('status__in=1&status__in=2'), [2, 3]),
+            ({'status__in': ''}, [1, 2, 3, 4]),
+            ({'status__in': ','}, []),
+            ({'status__in': '0'}, [4]),
+            ({'status__in': '0,2'}, [2, 3, 4]),
+            ({'status__in': '0,,1'}, [1, 4]),
+            ({'status__in': '2'}, [2, 3]),
+        ]
 
-        f = F({'status__in': ''}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'status__in': ','}, queryset=qs)
-        self.assertEqual(f.qs.count(), 0)
-
-        f = F({'status__in': '0'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 1)
-
-        f = F({'status__in': '0,2'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 3)
-
-        f = F({'status__in': '0,,1'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'status__in': '2'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
+        for params, expected in cases:
+            with self.subTest(params=params, expected=expected):
+                self.assertQuerysetEqual(F(params, queryset=qs).qs,
+                                         expected, attrgetter('pk'))
 
     def test_string_filtering(self):
         F = self.user_filter
+        qs = User.objects.order_by('pk')
 
-        qs = User.objects.all()
-        f = F(queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
+        cases = [
+            (None, [1, 2, 3, 4]),
+            (QueryDict('username__in=alex&username__in=aaron'), [3]),
+            ({'username__in': ''}, [1, 2, 3, 4]),
+            ({'username__in': ','}, []),
+            ({'username__in': 'alex'}, [1]),
+            ({'username__in': 'alex,aaron'}, [1, 3]),
+            ({'username__in': 'alex,,aaron'}, [1, 3]),
+            ({'username__in': 'alex,'}, [1]),
+        ]
 
-        f = F({'username__in': ''}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'username__in': ','}, queryset=qs)
-        self.assertEqual(f.qs.count(), 0)
-
-        f = F({'username__in': 'alex'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 1)
-
-        f = F({'username__in': 'alex,aaron'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'username__in': 'alex,,aaron'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'username__in': 'alex,'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 1)
+        for params, expected in cases:
+            with self.subTest(params=params, expected=expected):
+                self.assertQuerysetEqual(F(params, queryset=qs).qs,
+                                         expected, attrgetter('pk'))
 
     def test_datetime_filtering(self):
         F = self.article_filter
+        qs = Article.objects.order_by('pk')
+
         after = self.after_5pm
         before = self.before_5pm
 
-        qs = Article.objects.all()
-        f = F(queryset=qs)
-        self.assertEqual(len(f.qs), 4)
-        self.assertEqual(f.qs.count(), 4)
+        cases = [
+            (None, [1, 2, 3, 4]),
+            (QueryDict('published__in=%s&published__in=%s' % (after, before)), [3, 4]),
+            ({'published__in': ''}, [1, 2, 3, 4]),
+            ({'published__in': ','}, []),
+            ({'published__in': '%s' % (after, )}, [1, 2]),
+            ({'published__in': '%s,%s' % (after, before, )}, [1, 2, 3, 4]),
+            ({'published__in': '%s,,%s' % (after, before, )}, [1, 2, 3, 4]),
+            ({'published__in': '%s,' % (after, )}, [1, 2]),
+        ]
 
-        f = F({'published__in': ''}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'published__in': ','}, queryset=qs)
-        self.assertEqual(f.qs.count(), 0)
-
-        f = F({'published__in': '%s' % (after, )}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'published__in': '%s,%s' % (after, before, )}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'published__in': '%s,,%s' % (after, before, )}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'published__in': '%s,' % (after, )}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
+        for params, expected in cases:
+            with self.subTest(params=params, expected=expected):
+                self.assertQuerysetEqual(F(params, queryset=qs).qs,
+                                         expected, attrgetter('pk'))
 
     def test_related_filtering(self):
         F = self.article_filter
+        qs = Article.objects.order_by('pk')
 
-        qs = Article.objects.all()
-        f = F(queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
+        cases = [
+            (None, [1, 2, 3, 4]),
+            (QueryDict('author__in=1&author__in=2'), [2, 4]),
+            ({'author__in': ''}, [1, 2, 3, 4]),
+            ({'author__in': ','}, []),
+            ({'author__in': '1'}, [1, 3]),
+            ({'author__in': '1,2'}, [1, 2, 3, 4]),
+            ({'author__in': '1,,2'}, [1, 2, 3, 4]),
+            ({'author__in': '1,'}, [1, 3]),
+        ]
 
-        f = F({'author__in': ''}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'author__in': ','}, queryset=qs)
-        self.assertEqual(f.qs.count(), 0)
-
-        f = F({'author__in': '1'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'author__in': '1,2'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'author__in': '1,,2'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 4)
-
-        f = F({'author__in': '1,'}, queryset=qs)
-        self.assertEqual(f.qs.count(), 2)
+        for params, expected in cases:
+            with self.subTest(params=params, expected=expected):
+                self.assertQuerysetEqual(F(params, queryset=qs).qs,
+                                         expected, attrgetter('pk'))
 
 
 @override_settings(TIME_ZONE='UTC')
