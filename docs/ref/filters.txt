@@ -46,8 +46,8 @@ all filters.
 
 The label as it will apear in the HTML, analogous to a form field's label
 argument. If a label is not provided, a verbose label will be generated based
-on the field ``name`` and the parts of the ``lookup_expr``.
-(See: :ref:`verbose-lookups-setting`).
+on the field ``name`` and the parts of the ``lookup_expr``
+(see: :ref:`verbose-lookups-setting`).
 
 .. _filter-method:
 
@@ -56,12 +56,11 @@ on the field ``name`` and the parts of the ``lookup_expr``.
 
 An optional argument that tells the filter how to handle the queryset. It can
 accept either a callable or the name of a method on the ``FilterSet``. The
-method receives a ``QuerySet``, the name of the model field to filter on, and
-the value to filter with. It should return a ``Queryset`` that is filtered
-appropriately.
+callable receives a ``QuerySet``, the name of the model field to filter on, and
+the value to filter with. It should return a filtered ``Queryset``.
 
-The passed in value is validated and cleaned by the filter's ``field_class``,
-so raw value transformation and empty value checking should be unnecessary.
+Note that the value is validated by the ``Filter.field``, so raw value
+transformation and empty value checking should be unnecessary.
 
 .. code-block:: python
 
@@ -99,14 +98,15 @@ so raw value transformation and empty value checking should be unnecessary.
 ``distinct``
 ~~~~~~~~~~~~
 
-A boolean value that specifies whether the Filter will use distinct on the
-queryset. This option can be used to eliminate duplicate results when using filters that span related models. Defaults to ``False``.
+A boolean that specifies whether the Filter will use distinct on the queryset.
+This option can be used to eliminate duplicate results when using filters that
+span relationships. Defaults to ``False``.
 
 ``exclude``
 ~~~~~~~~~~~
 
-A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
-Defaults to ``False``.
+A boolean that specifies whether the Filter should use ``filter`` or ``exclude``
+on the queryset. Defaults to ``False``.
 
 
 ``**kwargs``
