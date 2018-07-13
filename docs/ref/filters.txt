@@ -49,25 +49,6 @@ argument. If a label is not provided, a verbose label will be generated based
 on the field ``name`` and the parts of the ``lookup_expr``.
 (See: :ref:`verbose-lookups-setting`).
 
-``widget``
-~~~~~~~~~~
-
-The django.form Widget class which will represent the ``Filter``.  In addition
-to the widgets that are included with Django that you can use there are
-additional ones that django-filter provides which may be useful:
-
-    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
-      similar to the way the Django Admin does, as a series of links. The link
-      for the selected option will have ``class="selected"``.
-    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
-      into Python's True/False values. It will convert all case variations of
-      ``True`` and ``False`` into the internal Python values.
-    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
-      value and converts it into a list of string values. It is expected that
-      the field class handle a list of values as well as type conversion.
-    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
-      to generate two form input elements using a single field.
-
 .. _filter-method:
 
 ``method``
@@ -131,7 +112,28 @@ Defaults to ``False``.
 ``**kwargs``
 ~~~~~~~~~~~~
 
-Any additional keyword arguments are stored as the ``extra`` parameter on the filter. They are provided to the accompanying form Field and can be used to provide arguments like ``choices``.
+Any additional keyword arguments are stored as the ``extra`` parameter on the
+filter. They are provided to the accompanying form ``Field`` and can be used to
+provide arguments like ``choices``. Some field-related arguments:
+
+``widget``
+""""""""""
+
+The django.form Widget class which will represent the ``Filter``.  In addition
+to the widgets that are included with Django that you can use there are
+additional ones that django-filter provides which may be useful:
+
+    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
+      similar to the way the Django Admin does, as a series of links. The link
+      for the selected option will have ``class="selected"``.
+    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
+      into Python's True/False values. It will convert all case variations of
+      ``True`` and ``False`` into the internal Python values.
+    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
+      value and converts it into a list of string values. It is expected that
+      the field class handle a list of values as well as type conversion.
+    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
+      to generate two form input elements using a single field.
 
 
 ModelChoiceFilter and ModelMultipleChoiceFilter arguments
