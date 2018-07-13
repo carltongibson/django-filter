@@ -1,6 +1,7 @@
 
 from ..filters import BooleanFilter as _BooleanFilter
 from ..filters import *
+from ..filters import BooleanFilter as _BooleanFilter
 from ..widgets import BooleanWidget
 
 
