@@ -634,9 +634,11 @@ class FilterSetInstantiationTests(TestCase):
 class FilterSetQuerysetTests(TestCase):
 
     class F(FilterSet):
+        invalid = CharFilter(method=lambda *args: None)
+
         class Meta:
             model = User
-            fields = ['username']
+            fields = ['username', 'invalid']
 
     def test_filter_queryset_called_once(self):
         m = mock.Mock()
@@ -680,6 +682,14 @@ class FilterSetQuerysetTests(TestCase):
             fn.assert_not_called()
             f.qs
             fn.assert_called()
+
+    def test_filters_must_return_queryset(self):
+        m = mock.Mock()
+        f = self.F({'invalid': 'result'}, queryset=m)
+
+        msg = "Expected 'F.invalid' to return a QuerySet, but got a NoneType instead."
+        with self.assertRaisesMessage(AssertionError, msg):
+            f.qs
 
 
 # test filter.method here, as it depends on its parent FilterSet
