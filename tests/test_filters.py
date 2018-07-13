@@ -672,7 +672,17 @@ class DurationFilterTests(TestCase):
         self.assertIsInstance(field, forms.DurationField)
 
 
-class ModelChoiceFilterTests(TestCase):
+class MockQuerySetMixin:
+    def get_mock_queryset(self):
+        """
+        Configure mock QuerySet with required methods.
+        """
+        qs = mock.NonCallableMock(spec=[])
+        qs.all = mock.Mock(return_value=qs)
+        return qs
+
+
+class ModelChoiceFilterTests(TestCase, MockQuerySetMixin):
 
     def test_default_field_without_queryset(self):
         f = ModelChoiceFilter()
@@ -690,7 +700,7 @@ class ModelChoiceFilterTests(TestCase):
         ])
 
     def test_default_field_with_queryset(self):
-        qs = mock.NonCallableMock(spec=[])
+        qs = self.get_mock_queryset()
         f = ModelChoiceFilter(queryset=qs)
         field = f.field
         self.assertIsInstance(field, forms.ModelChoiceField)
@@ -698,7 +708,7 @@ class ModelChoiceFilterTests(TestCase):
 
     def test_callable_queryset(self):
         request = mock.NonCallableMock(spec=[])
-        qs = mock.NonCallableMock(spec=[])
+        qs = self.get_mock_queryset()
 
         qs_callable = mock.Mock(return_value=qs)
 
@@ -711,7 +721,7 @@ class ModelChoiceFilterTests(TestCase):
 
     def test_get_queryset_override(self):
         request = mock.NonCallableMock(spec=[])
-        qs = mock.NonCallableMock(spec=[])
+        qs = self.get_mock_queryset()
 
         class F(ModelChoiceFilter):
             get_queryset = mock.create_autospec(ModelChoiceFilter.get_queryset, return_value=qs)
@@ -724,7 +734,7 @@ class ModelChoiceFilterTests(TestCase):
         self.assertEqual(field.queryset, qs)
 
 
-class ModelMultipleChoiceFilterTests(TestCase):
+class ModelMultipleChoiceFilterTests(TestCase, MockQuerySetMixin):
 
     def test_default_field_without_queryset(self):
         f = ModelMultipleChoiceFilter()
@@ -741,7 +751,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
         ])
 
     def test_default_field_with_queryset(self):
-        qs = mock.NonCallableMock(spec=[])
+        qs = self.get_mock_queryset()
         f = ModelMultipleChoiceFilter(queryset=qs)
         field = f.field
         self.assertIsInstance(field, forms.ModelMultipleChoiceField)
@@ -764,7 +774,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
     def test_callable_queryset(self):
         request = mock.NonCallableMock(spec=[])
-        qs = mock.NonCallableMock(spec=[])
+        qs = self.get_mock_queryset()
 
         qs_callable = mock.Mock(return_value=qs)
 
