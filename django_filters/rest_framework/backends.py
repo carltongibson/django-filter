@@ -27,6 +27,14 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
             return 'django_filters/rest_framework/crispy_form.html'
         return 'django_filters/rest_framework/form.html'
 
+    def get_filterset(self, request, queryset, view):
+        filterset_class = self.get_filterset_class(view, queryset)
+        if filterset_class is None:
+            return None
+
+        kwargs = self.get_filterset_kwargs(request, queryset, view)
+        return filterset_class(**kwargs)
+
     def get_filterset_class(self, view, queryset=None):
         """
         Return the `FilterSet` class used to filter the queryset.
@@ -71,27 +79,29 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
         return None
 
-    def filter_queryset(self, request, queryset, view):
-        filterset_class = self.get_filterset_class(view, queryset)
-
-        if filterset_class:
-            filterset = filterset_class(request.query_params, queryset=queryset, request=request)
-            if not filterset.is_valid() and self.raise_exception:
-                raise utils.translate_validation(filterset.errors)
-            return filterset.qs
-        return queryset
-
-    def to_html(self, request, queryset, view):
-        filterset_class = self.get_filterset_class(view, queryset)
-        if not filterset_class:
-            return None
-        filterset = filterset_class(request.query_params, queryset=queryset, request=request)
-
-        template = loader.get_template(self.template)
-        context = {
-            'filter': filterset
+    def get_filterset_kwargs(self, request, queryset, view):
+        return {
+            'data': request.query_params,
+            'queryset': queryset,
+            'request': request,
         }
 
+    def filter_queryset(self, request, queryset, view):
+        filterset = self.get_filterset(request, queryset, view)
+        if filterset is None:
+            return queryset
+
+        if not filterset.is_valid() and self.raise_exception:
+            raise utils.translate_validation(filterset.errors)
+        return filterset.qs
+
+    def to_html(self, request, queryset, view):
+        filterset = self.get_filterset(request, queryset, view)
+        if filterset is None:
+            return None
+
+        template = loader.get_template(self.template)
+        context = {'filter': filterset}
         return template.render(context, request)
 
     def get_coreschema_field(self, field):
