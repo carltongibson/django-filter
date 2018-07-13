@@ -31,6 +31,12 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsInstance(result, filters.BooleanFilter)
         self.assertEqual(result.extra['widget'], BooleanWidget)
 
+    def test_booleanfilter_widget_nullbooleanfield(self):
+        field = User._meta.get_field('is_employed')
+        result = FilterSet.filter_for_field(field, 'is_employed')
+        self.assertIsInstance(result, filters.BooleanFilter)
+        self.assertEqual(result.extra['widget'], BooleanWidget)
+
 
 @skipIf(is_crispy(), 'django_crispy_forms must be installed')
 @override_settings(INSTALLED_APPS=settings.INSTALLED_APPS + ('crispy_forms', ))

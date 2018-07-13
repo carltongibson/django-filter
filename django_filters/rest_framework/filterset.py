@@ -12,6 +12,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
 FILTER_FOR_DBFIELD_DEFAULTS.update({
     models.DateTimeField: {'filter_class': IsoDateTimeFilter},
     models.BooleanField: {'filter_class': BooleanFilter},
+    models.NullBooleanField: {'filter_class': BooleanFilter},
 })
 
 
