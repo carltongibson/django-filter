@@ -45,6 +45,7 @@ from .models import (
     SpacewalkRecord,
     User
 )
+from .utils import MockQuerySet
 
 
 class CharFilterTests(TestCase):
@@ -1894,10 +1895,8 @@ class MiscFilterSetTests(TestCase):
                 model = User
                 fields = ['account']
 
-        qs = mock.NonCallableMagicMock()
-        f = F({'account': 'jdoe'}, queryset=qs)
-        result = f.qs
-        self.assertNotEqual(qs, result)
+        qs = MockQuerySet()
+        F({'account': 'jdoe'}, queryset=qs).qs
         qs.all.return_value.filter.assert_called_with(username__exact='jdoe')
 
     def test_filtering_without_meta(self):
