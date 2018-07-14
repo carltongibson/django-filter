@@ -9,42 +9,45 @@ This is a reference document with a list of the filters and their arguments.
 Core Arguments
 --------------
 
-The following are the core arguments that apply to all filters.
+The following are the core arguments that apply to all filters. Note that they
+are joined to construct the complete `lookup expression`_ that is the left hand
+side of the ORM ``.filter()`` call.
+
+.. _`lookup expression`: https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
 
 ``field_name``
 ~~~~~~~~~~~~~~
 
-The name of the field this filter is supposed to filter on, if this is not
-provided it automatically becomes the filter's name on the ``FilterSet``.
-You can traverse "relationship paths" using Django's ``__`` syntax to filter
-fields on a related model. eg, ``manufacturer__name``.
+The name of the model field that is filtered against. If this argument is not
+provided, it defaults the filter's attribute name on the ``FilterSet`` class.
+Field names can traverse relationships by joining the related parts with the ORM
+lookup separator (``__``). e.g., a product's ``manufacturer__name``.
+
+``lookup_expr``
+~~~~~~~~~~~~~~~
+
+The `field lookup`_ that should be performed in the filter call. Defaults to
+``exact``. The ``lookup_expr`` can contain transforms if the expression parts
+are joined by the ORM lookup separator (``__``). e.g., filter a datetime by its
+year part ``year__gt``.
+
+.. _`Field lookup`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+
+.. _keyword-only-arguments:
+
+Keyword-only Arguments:
+-----------------------
+
+The following are optional arguments that can be used to modify the behavior of
+all filters.
 
 ``label``
 ~~~~~~~~~
 
 The label as it will apear in the HTML, analogous to a form field's label
 argument. If a label is not provided, a verbose label will be generated based
-on the field ``name`` and the parts of the ``lookup_expr``.
-(See: :ref:`verbose-lookups-setting`).
-
-``widget``
-~~~~~~~~~~
-
-The django.form Widget class which will represent the ``Filter``.  In addition
-to the widgets that are included with Django that you can use there are
-additional ones that django-filter provides which may be useful:
-
-    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
-      similar to the way the Django Admin does, as a series of links. The link
-      for the selected option will have ``class="selected"``.
-    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
-      into Python's True/False values. It will convert all case variations of
-      ``True`` and ``False`` into the internal Python values.
-    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
-      value and converts it into a list of string values. It is expected that
-      the field class handle a list of values as well as type conversion.
-    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
-      to generate two form input elements using a single field.
+on the field ``field_name`` and the parts of the ``lookup_expr``
+(see: :ref:`verbose-lookups-setting`).
 
 .. _filter-method:
 
@@ -53,18 +56,17 @@ additional ones that django-filter provides which may be useful:
 
 An optional argument that tells the filter how to handle the queryset. It can
 accept either a callable or the name of a method on the ``FilterSet``. The
-method receives a ``QuerySet``, the name of the model field to filter on, and
-the value to filter with. It should return a ``Queryset`` that is filtered
-appropriately.
+callable receives a ``QuerySet``, the name of the model field to filter on, and
+the value to filter with. It should return a filtered ``Queryset``.
 
-The passed in value is validated and cleaned by the filter's ``field_class``,
-so raw value transformation and empty value checking should be unnecessary.
+Note that the value is validated by the ``Filter.field``, so raw value
+transformation and empty value checking should be unnecessary.
 
 .. code-block:: python
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
-        published = BooleanFilter(name='published_on', method='filter_published')
+        published = BooleanFilter(field_name='published_on', method='filter_published')
 
         def filter_published(self, queryset, name, value):
             # construct the full lookup expression.
@@ -86,70 +88,52 @@ so raw value transformation and empty value checking should be unnecessary.
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
-        published = BooleanFilter(name='published_on', method=filter_not_empty)
+        published = BooleanFilter(field_name='published_on', method=filter_not_empty)
 
         class Meta:
             model = Book
             fields = ['published']
 
-``lookup_expr``
-~~~~~~~~~~~~~~~
-
-The lookup expression that should be performed using `Django's ORM`_.
-
-.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
-
-A ``list`` or ``tuple`` of lookup types is also accepted, allowing the user to
-select the lookup from a dropdown. The list of lookup types are filtered against
-``filters.LOOKUP_TYPES``. If `lookup_expr=None` is passed, then a list of all lookup
-types will be generated::
-
-    class ProductFilter(django_filters.FilterSet):
-        name = django_filters.CharFilter(lookup_expr=['exact', 'iexact'])
-
-You can enable custom lookups by adding them to ``LOOKUP_TYPES``::
-
-    from django_filters import filters
-
-    filters.LOOKUP_TYPES = ['gt', 'gte', 'lt', 'lte', 'custom_lookup_type']
-
-Additionally, you can provide human-friendly help text by overriding ``LOOKUP_TYPES``::
-
-    # filters.py
-    from django_filters import filters
-
-    filters.LOOKUP_TYPES = [
-        ('', '---------'),
-        ('exact', 'Is equal to'),
-        ('not_exact', 'Is not equal to'),
-        ('lt', 'Lesser than'),
-        ('gt', 'Greater than'),
-        ('gte', 'Greater than or equal to'),
-        ('lte', 'Lesser than or equal to'),
-        ('startswith', 'Starts with'),
-        ('endswith', 'Ends with'),
-        ('contains', 'Contains'),
-        ('not_contains', 'Does not contain'),
-    ]
-
 
 ``distinct``
 ~~~~~~~~~~~~
 
-A boolean value that specifies whether the Filter will use distinct on the
-queryset. This option can be used to eliminate duplicate results when using filters that span related models. Defaults to ``False``.
+A boolean that specifies whether the Filter will use distinct on the queryset.
+This option can be used to eliminate duplicate results when using filters that
+span relationships. Defaults to ``False``.
 
 ``exclude``
 ~~~~~~~~~~~
 
-A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
-Defaults to ``False``.
+A boolean that specifies whether the Filter should use ``filter`` or ``exclude``
+on the queryset. Defaults to ``False``.
 
 
 ``**kwargs``
 ~~~~~~~~~~~~
 
-Any additional keyword arguments are stored as the ``extra`` parameter on the filter. They are provided to the accompanying form Field and can be used to provide arguments like ``choices``.
+Any additional keyword arguments are stored as the ``extra`` parameter on the
+filter. They are provided to the accompanying form ``Field`` and can be used to
+provide arguments like ``choices``. Some field-related arguments:
+
+``widget``
+""""""""""
+
+The django.form Widget class which will represent the ``Filter``.  In addition
+to the widgets that are included with Django that you can use there are
+additional ones that django-filter provides which may be useful:
+
+    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
+      similar to the way the Django Admin does, as a series of links. The link
+      for the selected option will have ``class="selected"``.
+    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
+      into Python's True/False values. It will convert all case variations of
+      ``True`` and ``False`` into the internal Python values.
+    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
+      value and converts it into a list of string values. It is expected that
+      the field class handle a list of values as well as type conversion.
+    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
+      to generate two form input elements using a single field.
 
 
 ModelChoiceFilter and ModelMultipleChoiceFilter arguments
@@ -389,7 +373,7 @@ To use a custom field name for the lookup, you can use ``to_field_name``::
 
     class FooFilter(BaseFilterSet):
         foo = django_filters.filters.ModelMultipleChoiceFilter(
-            name='attr__uuid',
+            field_name='attr__uuid',
             to_field_name='uuid',
             queryset=Foo.objects.all(),
         )
@@ -665,7 +649,7 @@ Example::
         pass
 
     class F(FilterSet):
-        id__in = NumberInFilter(name='id', lookup_expr='in')
+        id__in = NumberInFilter(field_name='id', lookup_expr='in')
 
         class Meta:
             model = User
@@ -692,7 +676,7 @@ Example::
         pass
 
     class F(FilterSet):
-        id__range = NumberRangeFilter(name='id', lookup_expr='range')
+        id__range = NumberRangeFilter(field_name='id', lookup_expr='range')
 
         class Meta:
             model = User
@@ -730,8 +714,8 @@ two additional arguments that are used to build the ordering choices.
 .. code-block:: python
 
     class UserFilter(FilterSet):
-        account = CharFilter(name='username')
-        status = NumberFilter(name='status')
+        account = CharFilter(field_name='username')
+        status = NumberFilter(field_name='status')
 
         o = OrderingFilter(
             # tuple-mapping retains order
@@ -768,8 +752,8 @@ want to disable descending sort options.
 .. code-block:: python
 
     class UserFilter(FilterSet):
-        account = CharFilter(name='username')
-        status = NumberFilter(name='status')
+        account = CharFilter(field_name='username')
+        status = NumberFilter(field_name='status')
 
         o = OrderingFilter(
             choices=(
