@@ -54,6 +54,7 @@ setup(
         'Framework :: Django',
     ],
     zip_safe=False,
+    python_requires='>=3.4',
     install_requires=[
         'Django>=1.11',
     ],
