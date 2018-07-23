@@ -2,6 +2,7 @@ import warnings
 
 from django.template import loader
 from django.utils.deprecation import RenameMethodsBase
+from django_filters.filters import BaseInFilter
 
 from . import filters, filterset
 from .. import compat, utils
@@ -105,7 +106,9 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         return template.render(context, request)
 
     def get_coreschema_field(self, field):
-        if isinstance(field, filters.NumberFilter):
+        if isinstance(field, filters.BaseInFilter):
+            field_cls = compat.coreschema.Array
+        elif isinstance(field, filters.NumberFilter):
             field_cls = compat.coreschema.Number
         else:
             field_cls = compat.coreschema.String
