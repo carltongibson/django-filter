@@ -20,7 +20,7 @@ Requirements
 ------------
 
 * **Python**: 3.4, 3.5, 3.6, 3.7
-* **Django**: 1.11, 2.0
+* **Django**: 1.11, 2.0, 2.1
 * **DRF**: 3.8+
 
 From Version 2.0 Django Filter is Python 3 only.
