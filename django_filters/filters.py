@@ -281,6 +281,10 @@ class IsoDateTimeFilter(DateTimeFilter):
     """
     field_class = IsoDateTimeField
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('help_text', _('ISO 8601 formatted dates are supported'))
+        super().__init__(*args, **kwargs)
+
 
 class TimeFilter(Filter):
     field_class = forms.TimeField
