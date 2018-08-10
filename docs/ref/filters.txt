@@ -44,7 +44,7 @@ all filters.
 ``label``
 ~~~~~~~~~
 
-The label as it will apear in the HTML, analogous to a form field's label
+The label as it will appear in the HTML, analogous to a form field's label
 argument. If a label is not provided, a verbose label will be generated based
 on the field ``field_name`` and the parts of the ``lookup_expr``
 (see: :ref:`verbose-lookups-setting`).
@@ -616,7 +616,7 @@ of the admin.
 A combined filter that allows users to select the lookup expression from a dropdown.
 
 * ``lookup_choices`` is an optional argument that accepts multiple input
-  formats, and is ultimately normlized as the choices used in the lookup
+  formats, and is ultimately normalized as the choices used in the lookup
   dropdown. See ``.get_lookup_choices()`` for more information.
 
 * ``field_class`` is an optional argument that allows you to set the inner

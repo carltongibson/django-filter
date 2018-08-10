@@ -33,7 +33,7 @@ Migrating to 2.0
 This release contains several changes that break forwards compatibility. This
 includes removed features, renamed attributes and arguments, and some reworked
 features. Due to the nature of these changes, it is not feasible to release
-a fully forards-compatible migration release. Please review the below list of
+a fully forwards-compatible migration release. Please review the below list of
 changes and update your code accordingly.
 
 
@@ -74,7 +74,7 @@ __ https://github.com/carltongibson/django-filter/pull/791
 
 The ``Meta.together`` has been deprecated in favor of userland implementations
 that override the ``clean`` method of the ``Meta.form`` class. An example will
-be provided in a "recipes" secion in future docs.
+be provided in a "recipes" section in future docs.
 
 
 FilterSet "strictness" handling moved to view (`#788`__)
