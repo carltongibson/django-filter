@@ -10,6 +10,7 @@ from django.utils.timezone import get_default_timezone
 
 from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
+from django_filters.filters import MultipleChoiceFilter
 from django_filters.utils import (
     MigrationNotice,
     RenameAttributesBase,
@@ -511,23 +512,40 @@ class TranslateValidationDataTests(TestCase):
             model = Article
             fields = ['id', 'author', 'name']
 
+        choice = MultipleChoiceFilter(choices=[('1', 'one'), ('2', 'two')])
+
     def test_error_detail(self):
-        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        f = self.F(data={
+            'id': 'foo',
+            'author': 'bar',
+            'name': 'baz',
+            'choice': ['3'],
+        })
         exc = translate_validation(f.errors)
 
         self.assertDictEqual(exc.detail, {
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
+            'choice': ['Select a valid choice. 3 is not one of the available choices.'],
         })
 
     def test_full_error_details(self):
-        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        f = self.F(data={
+            'id': 'foo',
+            'author': 'bar',
+            'name': 'baz',
+            'choice': ['3'],
+        })
         exc = translate_validation(f.errors)
 
         self.assertEqual(exc.get_full_details(), {
             'id': [{'message': 'Enter a number.', 'code': 'invalid'}],
             'author': [{
                 'message': 'Select a valid choice. That choice is not one of the available choices.',
+                'code': 'invalid_choice',
+            }],
+            'choice': [{
+                'message': 'Select a valid choice. 3 is not one of the available choices.',
                 'code': 'invalid_choice',
             }],
         })
