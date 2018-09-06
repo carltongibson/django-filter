@@ -1,9 +1,10 @@
 from django.core.exceptions import ImproperlyConfigured
+from django.http import Http404
 from django.views.generic import View
 from django.views.generic.list import (
     MultipleObjectMixin,
-    MultipleObjectTemplateResponseMixin
-)
+    MultipleObjectTemplateResponseMixin,
+    ListView)
 
 from .constants import ALL_FIELDS
 from .filterset import filterset_factory
@@ -114,3 +115,32 @@ def object_filter(request, model=None, queryset=None, template_name=None,
                   filterset_class=filter_class)
     view = ECFilterView.as_view(**kwargs)
     return view(request, extra_context=extra_context)
+
+
+class FilterPaginatorView(ListView, FilterMixin):
+    """
+    A mixin that provides a way to handle a Filter and a Paginator in a ListView.
+    """
+    template_name_suffix = '_filter_paginator'
+
+    def get(self, request, *args, **kwargs):
+        filterset_class = self.get_filterset_class()
+        self.filterset = self.get_filterset(filterset_class)
+        queryset = self.filterset.qs
+
+        self.object_list = queryset
+        allow_empty = self.get_allow_empty()
+
+        if not allow_empty:
+            if self.get_paginate_by(self.object_list) is not None and hasattr(self.object_list, 'exists'):
+                is_empty = not self.object_list.exists()
+            else:
+                is_empty = not self.object_list
+            if is_empty:
+                raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.") % {
+                    'class_name': self.__class__.__name__,
+                })
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list)
+        return self.render_to_response(context)
