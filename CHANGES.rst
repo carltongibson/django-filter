@@ -1,3 +1,47 @@
+Version 2.0 (2018-7-13)
+-----------------------
+
+2.0 introduced a number of small changes and tidy-ups.
+Please see the migration guide:
+
+https://django-filter.readthedocs.io/en/master/guide/migration.html#migrating-to-2-0
+
+* Added testing for Python 3.7 (#944)
+* Improve exception message for invalid filter result (#943)
+* Test QueryDict against CSV filters (#937)
+* Add `renderer` argument to `render()` method of `BooleanWidget` (#923)
+* Fix lookups for reverse relationships (#915)
+* Refactor backend filterset instantiation (#865)
+* Improve view-related attribute name consistency (#867)
+* Fix distinct call for range filters (#855)
+* Fix empty value check for CSV range (#854)
+* Rework DateRangeFilter (#852)
+* Added testing for Django 2.1
+* Rework 'lookup types' handling into LookupChoiceFilter (#851)
+* Add linting and docs builds to CI (#850)
+* Use DRF BooleanFilter for NullBooleanField (#844)
+* Added Brazilian locale (#841)
+* List Django as a dependency in setup.py (#846)
+* Keep coverage reports files off version control. (#924)
+* Update migration docs (#866)
+* Added  be, cs and uk translations. Updated de and ru (#861)
+* Slovak translation (#886)
+* Added Django 2.0 support. (#836)
+* Fix warnings build (#829)
+* Add greek translation (#827)
+* Replaced super(ClassName, self) with super() (#821)
+* Fixed doc URL in utils.deprecate(). (#820)
+* Added danish translation to django-filter (#809)
+* Rework validation, add queryset filter method (#788)
+* Fix Schema warnings (#803)
+* Update {Range,LookupType}Widgets to use suffixes (#770)
+* Method signature improvements (#800)
+* Remove more deprecations (#801)
+* Drop python 2, Django<1.11 support (#797)
+* Remove 'Meta.together' option (#791)
+* [2.x] Remove some deprecations (#795)
+
+
 Version 1.1 (2017-10-19)
 ------------------------
 

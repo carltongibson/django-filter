@@ -30,7 +30,7 @@ Your view class will also need to add ``DjangoFilterBackend`` to the ``filter_ba
         queryset = Product.objects.all()
         serializer_class = ProductSerializer
         filter_backends = (filters.DjangoFilterBackend,)
-        filter_fields = ('category', 'in_stock')
+        filterset_fields = ('category', 'in_stock')
 
 If you want to use the django-filter backend by default, add it to the ``DEFAULT_FILTER_BACKENDS`` setting.
 
@@ -51,10 +51,10 @@ If you want to use the django-filter backend by default, add it to the ``DEFAULT
     }
 
 
-Adding a FilterSet with ``filter_class``
-----------------------------------------
+Adding a FilterSet with ``filterset_class``
+-------------------------------------------
 
-To enable filtering with a ``FilterSet``, add it to the ``filter_class`` parameter on your view class.
+To enable filtering with a ``FilterSet``, add it to the ``filterset_class`` parameter on your view class.
 
 .. code-block:: python
 
@@ -64,8 +64,8 @@ To enable filtering with a ``FilterSet``, add it to the ``filter_class`` paramet
 
 
     class ProductFilter(filters.FilterSet):
-        min_price = filters.NumberFilter(name="price", lookup_expr='gte')
-        max_price = filters.NumberFilter(name="price", lookup_expr='lte')
+        min_price = filters.NumberFilter(field_name="price", lookup_expr='gte')
+        max_price = filters.NumberFilter(field_name="price", lookup_expr='lte')
 
         class Meta:
             model = Product
@@ -76,13 +76,13 @@ To enable filtering with a ``FilterSet``, add it to the ``filter_class`` paramet
         queryset = Product.objects.all()
         serializer_class = ProductSerializer
         filter_backends = (filters.DjangoFilterBackend,)
-        filter_class = ProductFilter
+        filterset_class = ProductFilter
 
 
-Using the ``filter_fields`` shortcut
-------------------------------------
+Using the ``filterset_fields`` shortcut
+---------------------------------------
 
-You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
+You may bypass creating a ``FilterSet`` by instead adding ``filterset_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
 
 
 .. code-block:: python
@@ -95,7 +95,7 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
     class ProductList(generics.ListAPIView):
         queryset = Product.objects.all()
         filter_backends = (filters.DjangoFilterBackend,)
-        filter_fields = ('category', 'in_stock')
+        filterset_fields = ('category', 'in_stock')
 
 
     # Equivalent FilterSet:
@@ -104,6 +104,49 @@ You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to y
             model = Product
             fields = ('category', 'in_stock')
 
+
+Note that using ``filterset_fields`` and ``filterset_class`` together is not
+supported.
+
+
+Overriding FilterSet creation
+-----------------------------
+
+``FilterSet`` creation can be customized by overriding the following methods on the backend class:
+
+* ``.get_filterset(self, request, queryset, view)``
+* ``.get_filterset_class(self, view, queryset=None)``
+* ``.get_filterset_kwargs(self, request, queryset, view)``
+
+You can override these methods on a case-by-case basis for each view, creating unique backends, or these methods can be used to write your own hooks to the view class.
+
+.. code-block:: python
+
+    class MyFilterBackend(filters.DjangoFilterBackend):
+        def get_filterset_kwargs(self, request, queryset, view):
+            kwargs = super().get_filterset_kwargs(request, queryset, view)
+
+            # merge filterset kwargs provided by view class
+            if hasattr(view, 'get_filterset_kwargs'):
+                kwargs.update(view.get_filterset_kwargs())
+
+            return kwargs
+
+
+    class BooksFilter(filters.FilterSet):
+        def __init__(self, *args, author=None, **kwargs):
+            super().__init__(*args, **kwargs)
+            # do something w/ author
+
+
+    class BookViewSet(viewsets.ModelViewSet):
+        filter_backends = [MyFilterBackend]
+        filterset_class = BookFilter
+
+        def get_filteset_kwargs(self):
+            return {
+                'author': self.get_author(),
+            }
 
 Schema Generation with Core API
 -------------------------------
@@ -185,5 +228,4 @@ The following features are specific to the rest framework FilterSet:
 
 - ``BooleanFilter``'s use the API-friendly ``BooleanWidget``, which accepts lowercase ``true``/``false``.
 - Filter generation uses ``IsoDateTimeFilter`` for datetime model fields.
-- Raised ``ValidationError``'s are reraised as their DRF equivalent. This behavior is useful when setting FilterSet
-  strictness to ``STRICTNESS.RAISE_VALIDATION_ERROR``.
+- Raised ``ValidationError``'s are reraised as their DRF equivalent.

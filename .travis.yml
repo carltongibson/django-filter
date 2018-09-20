@@ -2,15 +2,15 @@ sudo: false
 
 language: python
 python:
-  - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7-dev"
 
 cache: pip
 
 install:
-  - pip install coverage detox tox-travis
+  - pip install coverage detox tox-travis tox-venv
 
 script:
   - coverage erase
@@ -19,9 +19,11 @@ script:
 matrix:
   include:
     - python: 3.6
-      env: TOXENV=isort
+      env: TOXENV=isort,lint,docs
     - python: 3.6
       env: TOXENV=warnings
+  allow_failures:
+    - env: TOXENV=warnings
 
 after_success:
   - coverage combine --append

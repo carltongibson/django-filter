@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 from django.forms import Select, TextInput
 from django.test import TestCase
 
@@ -8,7 +6,7 @@ from django_filters.widgets import (
     BooleanWidget,
     CSVWidget,
     LinkWidget,
-    LookupTypeWidget,
+    LookupChoiceWidget,
     QueryArrayWidget,
     RangeWidget,
     SuffixedMultiWidget
@@ -19,28 +17,28 @@ class LookupTypeWidgetTests(TestCase):
 
     def test_widget_requires_field(self):
         with self.assertRaises(TypeError):
-            LookupTypeWidget()
+            LookupChoiceWidget()
 
     def test_widget_render(self):
         widgets = [TextInput(), Select(choices=(('a', 'a'), ('b', 'b')))]
-        w = LookupTypeWidget(widgets)
+        w = LookupChoiceWidget(widgets)
         self.assertHTMLEqual(w.render('price', ''), """
-            <input name="price_0" type="text" />
-            <select name="price_1">
+            <input name="price" type="text" />
+            <select name="price_lookup">
                 <option value="a">a</option>
                 <option value="b">b</option>
             </select>""")
 
         self.assertHTMLEqual(w.render('price', None), """
-            <input name="price_0" type="text" />
-            <select name="price_1">
+            <input name="price" type="text" />
+            <select name="price_lookup">
                 <option value="a">a</option>
                 <option value="b">b</option>
             </select>""")
 
         self.assertHTMLEqual(w.render('price', ['2', 'a']), """
-            <input name="price_0" type="text" value="2" />
-            <select name="price_1">
+            <input name="price" type="text" value="2" />
+            <select name="price_lookup">
                 <option selected="selected" value="a">a</option>
                 <option value="b">b</option>
             </select>""")
@@ -194,27 +192,26 @@ class RangeWidgetTests(TestCase):
         w = RangeWidget()
         self.assertEqual(len(w.widgets), 2)
         self.assertHTMLEqual(w.render('price', ''), """
-            <input type="text" name="price_0" />
+            <input type="text" name="price_min" />
             -
-            <input type="text" name="price_1" />""")
+            <input type="text" name="price_max" />""")
 
         self.assertHTMLEqual(w.render('price', slice(5.99, 9.99)), """
-            <input type="text" name="price_0" value="5.99" />
+            <input type="text" name="price_min" value="5.99" />
             -
-            <input type="text" name="price_1" value="9.99" />""")
+            <input type="text" name="price_max" value="9.99" />""")
 
     def test_widget_attributes(self):
         w = RangeWidget(attrs={'type': 'date'})
         self.assertEqual(len(w.widgets), 2)
         self.assertHTMLEqual(w.render('date', ''), """
-            <input type="date" name="date_0" />
+            <input type="date" name="date_min" />
             -
-            <input type="date" name="date_1" />""")
+            <input type="date" name="date_max" />""")
 
 
 class BooleanWidgetTests(TestCase):
-    """
-    """
+
     def test_widget_render(self):
         w = BooleanWidget()
         self.assertHTMLEqual(w.render('price', ''), """

@@ -1,4 +1,5 @@
 import warnings
+from collections import OrderedDict
 
 import django
 from django.conf import settings
@@ -8,20 +9,93 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, RelatedField
-from django.forms import ValidationError
-from django.utils import six, timezone
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 
-from .compat import make_aware, remote_field, remote_model
 from .exceptions import FieldLookupError
 
 
 def deprecate(msg, level_modifier=0):
-    warnings.warn(
-        "%s See: https://django-filter.readthedocs.io/en/develop/migration.html" % msg,
-        DeprecationWarning, stacklevel=3 + level_modifier)
+    warnings.warn(msg, MigrationNotice, stacklevel=3 + level_modifier)
+
+
+class MigrationNotice(DeprecationWarning):
+    url = 'https://django-filter.readthedocs.io/en/master/guide/migration.html'
+
+    def __init__(self, message):
+        super().__init__('%s See: %s' % (message, self.url))
+
+
+class RenameAttributesBase(type):
+    """
+    Handles the deprecation paths when renaming an attribute.
+
+    It does the following:
+    - Defines accessors that redirect to the renamed attributes.
+    - Complain whenever an old attribute is accessed.
+
+    This is conceptually based on `django.utils.deprecation.RenameMethodsBase`.
+    """
+    renamed_attributes = ()
+
+    def __new__(metacls, name, bases, attrs):
+        # remove old attributes before creating class
+        old_names = [r[0] for r in metacls.renamed_attributes]
+        old_names = [name for name in old_names if name in attrs]
+        old_attrs = {name: attrs.pop(name) for name in old_names}
+
+        # get a handle to any accessors defined on the class
+        cls_getattr = attrs.pop('__getattr__', None)
+        cls_setattr = attrs.pop('__setattr__', None)
+
+        new_class = super().__new__(metacls, name, bases, attrs)
+
+        def __getattr__(self, name):
+            name = type(self).get_name(name)
+            if cls_getattr is not None:
+                return cls_getattr(self, name)
+            elif hasattr(super(new_class, self), '__getattr__'):
+                return super(new_class, self).__getattr__(name)
+            return self.__getattribute__(name)
+
+        def __setattr__(self, name, value):
+            name = type(self).get_name(name)
+            if cls_setattr is not None:
+                return cls_setattr(self, name, value)
+            return super(new_class, self).__setattr__(name, value)
+
+        new_class.__getattr__ = __getattr__
+        new_class.__setattr__ = __setattr__
+
+        # set renamed attributes
+        for name, value in old_attrs.items():
+            setattr(new_class, name, value)
+
+        return new_class
+
+    def get_name(metacls, name):
+        """
+        Get the real attribute name. If the attribute has been renamed,
+        the new name will be returned and a deprecation warning issued.
+        """
+        for renamed_attribute in metacls.renamed_attributes:
+            old_name, new_name, deprecation_warning = renamed_attribute
+
+            if old_name == name:
+                warnings.warn("`%s.%s` attribute should be renamed `%s`."
+                              % (metacls.__name__, old_name, new_name),
+                              deprecation_warning, 3)
+                return new_name
+
+        return name
+
+    def __getattr__(metacls, name):
+        return super().__getattribute__(metacls.get_name(name))
+
+    def __setattr__(metacls, name, value):
+        return super().__setattr__(metacls.get_name(name), value)
 
 
 def try_dbfield(fn, field_class):
@@ -50,7 +124,7 @@ def get_all_model_fields(model):
     return [
         f.name for f in sorted(opts.fields + opts.many_to_many)
         if not isinstance(f, models.AutoField) and
-        not (getattr(remote_field(f), 'parent_link', False))
+        not (getattr(f.remote_field, 'parent_link', False))
     ]
 
 
@@ -93,7 +167,7 @@ def get_field_parts(model, field_name):
 
         fields.append(field)
         if isinstance(field, RelatedField):
-            opts = remote_model(field)._meta
+            opts = field.remote_field.model._meta
         elif isinstance(field, ForeignObjectRel):
             opts = field.related_model._meta
 
@@ -141,12 +215,12 @@ def resolve_field(model_field, lookup_expr):
             lhs = query.try_transform(*args)
             lookups = lookups[1:]
     except FieldError as e:
-        six.raise_from(FieldLookupError(model_field, lookup_expr), e)
+        raise FieldLookupError(model_field, lookup_expr) from e
 
 
 def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        return make_aware(value, timezone.get_current_timezone(), is_dst)
+        return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
     elif not settings.USE_TZ and timezone.is_aware(value):
         return timezone.make_naive(value, timezone.utc)
     return value
@@ -225,7 +299,7 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
     verbose_expression = [_('exclude'), name] if exclude else [name]
 
     # iterable lookups indicate a LookupTypeField, which should not be verbose
-    if isinstance(lookup_expr, six.string_types):
+    if isinstance(lookup_expr, str):
         verbose_expression += [verbose_lookup_expr(lookup_expr)]
 
     verbose_expression = [force_text(part) for part in verbose_expression if part]
@@ -234,22 +308,17 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
     return verbose_expression
 
 
-def raw_validation(error):
+def translate_validation(error_dict):
     """
-    Deconstruct a django.forms.ValidationError into a primitive structure
-    eg, plain dicts and lists.
+    Translate a Django ErrorDict into its DRF ValidationError.
     """
-    if isinstance(error, ValidationError):
-        if hasattr(error, 'error_dict'):
-            error = error.error_dict
-        elif not hasattr(error, 'message'):
-            error = error.error_list
-        else:
-            error = error.message
+    # it's necessary to lazily import the exception, as it can otherwise create
+    # an import loop when importing django_filters inside the project settings.
+    from rest_framework.exceptions import ValidationError, ErrorDetail
 
-    if isinstance(error, dict):
-        return {key: raw_validation(value) for key, value in error.items()}
-    elif isinstance(error, list):
-        return [raw_validation(value) for value in error]
-    else:
-        return error
+    exc = OrderedDict(
+        (key, [ErrorDetail(e.message, code=e.code) for e in error_list])
+        for key, error_list in error_dict.as_data().items()
+    )
+
+    return ValidationError(exc)

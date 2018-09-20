@@ -1,30 +1,29 @@
 import datetime
-import unittest
+import warnings
 
-import django
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
-from django.forms import ValidationError
 from django.test import TestCase, override_settings
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
 
-from django_filters import STRICTNESS, FilterSet
+from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
 from django_filters.utils import (
+    MigrationNotice,
+    RenameAttributesBase,
     get_field_parts,
     get_model_field,
     handle_timezone,
     label_for_filter,
-    raw_validation,
     resolve_field,
+    translate_validation,
     verbose_field_name,
     verbose_lookup_expr
 )
 
 from .models import (
-    Account,
     Article,
     Book,
     Business,
@@ -33,6 +32,166 @@ from .models import (
     NetworkSetting,
     User
 )
+
+
+class MigrationNoticeTests(TestCase):
+
+    def test_message(self):
+        self.assertEqual(
+            str(MigrationNotice('Message.')),
+            'Message. See: https://django-filter.readthedocs.io/en/master/guide/migration.html'
+        )
+
+
+class RenameAttributes(RenameAttributesBase):
+    renamed_attributes = (
+        ('old', 'new', DeprecationWarning),
+    )
+
+
+class SENTINEL:
+    pass
+
+
+class RenameAttributesBaseTests(TestCase):
+
+    def check(self, recorded, count):
+        expected = '`Example.old` attribute should be renamed `new`.'
+
+        self.assertEqual(len(recorded), count)
+        for _ in range(count):
+            message = str(recorded.pop().message)
+            self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+    def test_class_creation_warnings(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Example(metaclass=RenameAttributes):
+                old = SENTINEL
+
+            # single warning for renamed attr on creation
+            self.check(recorded, 1)
+
+    def test_renamed_attribute_in_class_dict(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                old = SENTINEL
+
+            warnings.simplefilter('always')
+
+            # Ensure `old` and `new` are not both in class dict.
+            self.assertNotIn('old', Example.__dict__)
+            self.assertIn('new', Example.__dict__)
+
+            # Ensure `old` value assigned to `new`.
+            self.assertEqual(Example.new, SENTINEL)
+
+            self.check(recorded, 0)
+
+    def test_class_accessor_warnings(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                new = None
+
+            warnings.simplefilter('always')
+
+            self.assertIsNone(Example.new)
+            self.assertIsNone(Example.old)
+            self.check(recorded, 1)
+
+            Example.old = SENTINEL
+            self.assertIs(Example.new, SENTINEL)
+            self.assertIs(Example.old, SENTINEL)
+            self.check(recorded, 2)
+
+    def test_instance_accessor_warnings(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                new = None
+
+            warnings.simplefilter('always')
+
+            example = Example()
+            self.check(recorded, 0)
+
+            self.assertIsNone(example.new)
+            self.assertIsNone(example.old)
+            self.check(recorded, 1)
+
+            example.old = SENTINEL
+            self.assertIs(example.new, SENTINEL)
+            self.assertIs(example.old, SENTINEL)
+            self.check(recorded, 2)
+
+    def test_class_instance_values(self):
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter('ignore')
+
+            class Example(metaclass=RenameAttributes):
+                new = None
+
+            example = Example()
+
+            # setting instance should not affect class
+            example.old = SENTINEL
+            self.assertIsNone(Example.old)
+            self.assertIsNone(Example.new)
+            self.assertIs(example.old, SENTINEL)
+            self.assertIs(example.new, SENTINEL)
+
+    def test_getter_reachable(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Example(metaclass=RenameAttributes):
+                def __getattr__(self, name):
+                    if name == 'test':
+                        return SENTINEL
+                    return self.__getattribute__(name)
+
+            example = Example()
+            self.assertIs(example.test, SENTINEL)
+            self.check(recorded, 0)
+
+    def test_parent_getter_reachable(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Parent:
+                def __getattr__(self, name):
+                    if name == 'test':
+                        return SENTINEL
+                    return self.__getattribute__(name)
+
+            class Example(Parent, metaclass=RenameAttributes):
+                pass
+
+            example = Example()
+            self.assertIs(example.test, SENTINEL)
+            self.check(recorded, 0)
+
+    def test_setter_reachable(self):
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class Example(metaclass=RenameAttributes):
+                def __setattr__(self, name, value):
+                    if name == 'test':
+                        value = SENTINEL
+                    super().__setattr__(name, value)
+
+            example = Example()
+            example.test = None
+            self.assertIs(example.test, SENTINEL)
+            self.check(recorded, 0)
 
 
 class GetFieldPartsTests(TestCase):
@@ -112,7 +271,6 @@ class ResolveFieldTests(TestCase):
             self.assertIsInstance(field, models.ManyToManyField)
             self.assertEqual(lookup, term)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not reverse lookups")
     def test_resolve_reverse_related_lookups(self):
         """
         Check that lookups can be resolved for related fields
@@ -134,7 +292,6 @@ class ResolveFieldTests(TestCase):
             self.assertIsInstance(field, models.ManyToManyRel)
             self.assertEqual(lookup, term)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_resolve_transformed_lookups(self):
         """
         Check that chained field transforms are correctly resolved.
@@ -186,7 +343,6 @@ class ResolveFieldTests(TestCase):
                 self.assertIsInstance(field, models.IntegerField)
                 self.assertEqual(resolved_lookup, lookup)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_resolve_implicit_exact_lookup(self):
         # Use a DateTimeField, so we can check multiple transforms.
         # eg, date__year__gte
@@ -335,14 +491,12 @@ class LabelForFilterTests(TestCase):
 
 class HandleTimezone(TestCase):
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_ending(self):
         dst_ending_date = datetime.datetime(2017, 2, 18, 23, 59, 59, 999999)
         handled = handle_timezone(dst_ending_date, False)
         self.assertEqual(handled, get_default_timezone().localize(dst_ending_date, False))
 
-    @unittest.skipIf(django.VERSION < (1, 9), 'version doesnt supports is_dst parameter for make_aware')
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_starting(self):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
@@ -350,19 +504,30 @@ class HandleTimezone(TestCase):
         self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
 
 
-class RawValidationDataTests(TestCase):
-    def test_simple(self):
-        class F(FilterSet):
-            class Meta:
-                model = Article
-                fields = ['id', 'author', 'name']
-                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+class TranslateValidationDataTests(TestCase):
 
-        f = F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
-        with self.assertRaises(ValidationError) as exc:
-            f.qs
+    class F(FilterSet):
+        class Meta:
+            model = Article
+            fields = ['id', 'author', 'name']
 
-        self.assertDictEqual(raw_validation(exc.exception), {
+    def test_error_detail(self):
+        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        exc = translate_validation(f.errors)
+
+        self.assertDictEqual(exc.detail, {
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
+        })
+
+    def test_full_error_details(self):
+        f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
+        exc = translate_validation(f.errors)
+
+        self.assertEqual(exc.get_full_details(), {
+            'id': [{'message': 'Enter a number.', 'code': 'invalid'}],
+            'author': [{
+                'message': 'Select a valid choice. That choice is not one of the available choices.',
+                'code': 'invalid_choice',
+            }],
         })

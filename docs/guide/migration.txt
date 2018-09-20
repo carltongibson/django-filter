@@ -2,50 +2,11 @@
 Migration Guide
 ===============
 
-----------------
-Migrating to 2.0
-----------------
-
-Removal of the ``Meta.together`` option
----------------------------------------
-
-The ``Meta.together`` has been deprecated in favor of userland implementations
-that override the ``clean`` method of the ``Meta.form`` class. An example will
-be provided in a "recipes" secion in future docs.
-
-``Filter.name`` renamed to ``Filter.field_name``
-------------------------------------------------
-
-The filter ``name`` has been renamed to ``field_name`` as a way to disambiguate
-the filter's attribute name on its FilterSet class from the ``field_name`` used
-for filtering purposes.
-
-FilterSet strictness has been removed
--------------------------------------
-
-Strictness handling has been removed from the ``FilterSet`` and added to the
-view layer. As a result, the ``FILTERS_STRICTNESS`` setting, ``Meta.strict``
-option, and ``strict`` argument for the ``FilterSet`` initializer have all
-been removed.
-
-To alter strictness behavior, the appropriate view code should be overridden.
-More details will be provided in future docs.
-
-
-----------------
-Migrating to 1.0
-----------------
-
-The 1.0 release of django-filter introduces several API changes and refinements
-that break forwards compatibility. Below is a list of deprecations and
-instructions on how to migrate to the 1.0 release. A forwards-compatible 0.15
-release has also been created to help with migration. It is compatible with
-both the existing and new APIs and will raise warnings for deprecated behavior.
-
+-----------------
 Enabling warnings
 -----------------
 
-To view the deprecations, you may need to enable warnings within python. This
+To view deprecations, you may need to enable warnings within python. This
 can be achieved with either the ``-W`` `flag`__, or with  ``PYTHONWARNINGS``
 `environment variable`__. For example, you could run your test suite like so:
 
@@ -65,10 +26,111 @@ the following to raise the full exception instead:
 __ https://docs.python.org/3.6/using/cmdline.html#cmdoption-W
 __ https://docs.python.org/3.6/using/cmdline.html#envvar-PYTHONWARNINGS
 
+----------------
+Migrating to 2.0
+----------------
 
-MethodFilter and Filter.action replaced by Filter.method
+This release contains several changes that break forwards compatibility. This
+includes removed features, renamed attributes and arguments, and some reworked
+features. Due to the nature of these changes, it is not feasible to release
+a fully forwards-compatible migration release. Please review the below list of
+changes and update your code accordingly.
+
+
+``Filter.lookup_expr`` list form removed (`#851`__)
+---------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/851
+
+The ``Filter.lookup_expr`` argument no longer accepts ``None`` or a list of
+expressions. Use the :ref:`LookupChoiceFilter <lookup-choice-filter>` instead.
+
+
+FilterSet ``filter_for_reverse_field`` removed (`#915`__)
+---------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/915
+
+The ``filter_for_field`` method now generates filters for reverse relationships,
+removing  the need for ``filter_for_reverse_field``. As a result, reverse
+relationships now also obey ``Meta.filter_overrides``.
+
+
+View attributes renamed (`#867`__)
+----------------------------------
+__ https://github.com/carltongibson/django-filter/pull/867
+
+Several view-related attributes have been renamed to improve consistency with
+other parts of the library. The following classes are affected:
+
+* DRF ``ViewSet.filter_class`` => ``filterset_class``
+* DRF ``ViewSet.filter_fields`` => ``filterset_fields``
+* ``DjangoFilterBackend.default_filter_set`` => ``filterset_base``
+* ``DjangoFilterBackend.get_filter_class()`` => ``get_filterset_class()``
+* ``FilterMixin.filter_fields`` => ``filterset_fields``
+
+
+FilterSet ``Meta.together`` option removed (`#791`__)
+-----------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/791
+
+The ``Meta.together`` has been deprecated in favor of userland implementations
+that override the ``clean`` method of the ``Meta.form`` class. An example will
+be provided in a "recipes" section in future docs.
+
+
+FilterSet "strictness" handling moved to view (`#788`__)
 --------------------------------------------------------
-Details: https://github.com/carltongibson/django-filter/pull/382
+__ https://github.com/carltongibson/django-filter/pull/788
+
+Strictness handling has been removed from the ``FilterSet`` and added to the
+view layer. As a result, the ``FILTERS_STRICTNESS`` setting, ``Meta.strict``
+option, and ``strict`` argument for the ``FilterSet`` initializer have all
+been removed.
+
+To alter strictness behavior, the appropriate view code should be overridden.
+More details will be provided in future docs.
+
+
+``Filter.name`` renamed to ``Filter.field_name`` (`#792`__)
+-----------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/792
+
+The filter ``name`` has been renamed to ``field_name`` as a way to disambiguate
+the filter's attribute name on its FilterSet class from the ``field_name`` used
+for filtering purposes.
+
+
+``Filter.widget`` and ``Filter.required`` removed (`#734`__)
+------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/734
+
+The filter class no longer directly stores arguments passed to its form field.
+All arguments are located in the filter's ``.extra`` dict.
+
+
+``MultiWidget`` replaced by ``SuffixedMultiWidget`` (`#770`__)
+--------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/770
+
+``RangeWidget``, ``DateRangeWidget``, and ``LookupTypeWidget`` now inherit from
+``SuffixedMultiWidget``, changing the suffixes of their query param names. For
+example, ``RangeWidget`` now has ``_min`` and ``_max`` suffixes instead of
+``_0`` and ``_1``.
+
+
+----------------
+Migrating to 1.0
+----------------
+
+The 1.0 release of django-filter introduces several API changes and refinements
+that break forwards compatibility. Below is a list of deprecations and
+instructions on how to migrate to the 1.0 release. A forwards-compatible 0.15
+release has also been created to help with migration. It is compatible with
+both the existing and new APIs and will raise warnings for deprecated behavior.
+
+
+MethodFilter and Filter.action replaced by Filter.method (`#382`__)
+-------------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/382
 
 The functionality of ``MethodFilter`` and ``Filter.action`` has been merged
 together and replaced by the ``Filter.method`` parameter. The ``method``
@@ -102,9 +164,9 @@ instead of the raw value.
             return qs.filter(**{name: value})
 
 
-QuerySet methods are no longer proxied
---------------------------------------
-Details: https://github.com/carltongibson/django-filter/pull/440
+QuerySet methods are no longer proxied (`#440`__)
+-------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/440
 
 The ``__iter__()``, ``__len__()``, ``__getitem__()``, ``count()`` methods are
 no longer proxied from the queryset. To fix this, call the methods on the
@@ -123,9 +185,9 @@ no longer proxied from the queryset. To fix this, call the methods on the
         ...
 
 
-Filters no longer autogenerated when Meta.fields is not specified
------------------------------------------------------------------
-Details: https://github.com/carltongibson/django-filter/pull/450
+Filters no longer autogenerated when Meta.fields is not specified (`#450`__)
+----------------------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/450
 
 FilterSets had an undocumented behavior of autogenerating filters for all
 model fields when either ``Meta.fields`` was not specified or when set to
@@ -148,9 +210,9 @@ the ``Meta.exclude`` attribute.
             exclude = ['password']
 
 
-Move FilterSet options to Meta class
-------------------------------------
-Details: https://github.com/carltongibson/django-filter/issues/430
+Move FilterSet options to Meta class (`#430`__)
+-----------------------------------------------
+__ https://github.com/carltongibson/django-filter/issues/430
 
 Several ``FilterSet`` options have been moved to the ``Meta`` class to prevent
 potential conflicts with declared filter names. This includes:
@@ -178,9 +240,9 @@ potential conflicts with declared filter names. This includes:
             order_by_field = 'order'
 
 
-FilterSet ordering replaced by OrderingFilter
----------------------------------------------
-Details: https://github.com/carltongibson/django-filter/pull/472
+FilterSet ordering replaced by OrderingFilter (`#472`__)
+--------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/472
 
 The FilterSet ordering options and methods have been deprecated and replaced
 by :ref:`OrderingFilter <ordering-filter>`. Deprecated options include:
@@ -213,9 +275,9 @@ To fix this, simply remove the methods from your class. You can subclass
 ``OrderingFilter`` to migrate any custom logic.
 
 
-Deprecated ``FILTERS_HELP_TEXT_FILTER`` and ``FILTERS_HELP_TEXT_EXCLUDE``
--------------------------------------------------------------------------
-Details: https://github.com/carltongibson/django-filter/pull/437
+Deprecated ``FILTERS_HELP_TEXT_FILTER`` and ``FILTERS_HELP_TEXT_EXCLUDE`` (`#437`__)
+------------------------------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/437
 
 Generated filter labels in 1.0 will be more descriptive, including humanized
 text about the lookup being performed and if the filter is an exclusion filter.
@@ -223,8 +285,9 @@ text about the lookup being performed and if the filter is an exclusion filter.
 These settings will no longer have an effect and will be removed in the 1.0 release.
 
 
-DRF filter backend raises ``TemplateDoesNotExist`` exception
-------------------------------------------------------------
+DRF filter backend raises ``TemplateDoesNotExist`` exception (`#562`__)
+-----------------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/issues/562
 
 Templates are now provided by django-filter. If you are receiving this error,
 you may need to add ``'django_filters'`` to your ``INSTALLED_APPS`` setting.

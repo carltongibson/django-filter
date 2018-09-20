@@ -1,16 +1,15 @@
-from __future__ import unicode_literals
-
 import datetime
 from decimal import Decimal
 
 from django.conf.urls import url
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.urls import reverse
 from django.utils.dateparse import parse_date
 from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
 
-from django_filters import STRICTNESS, filters
+from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
 from .models import (
@@ -19,15 +18,6 @@ from .models import (
     DjangoFilterOrderingModel,
     FilterableItem
 )
-
-try:
-    from django.urls import reverse
-except ImportError:
-    # Django < 1.10 compatibility
-    from django.core.urlresolvers import reverse
-
-
-
 
 factory = APIRequestFactory()
 
@@ -42,7 +32,7 @@ class FilterableItemSerializer(serializers.ModelSerializer):
 class FilterFieldsRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_fields = ['decimal', 'date']
+    filterset_fields = ['decimal', 'date']
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -60,7 +50,7 @@ class SeveralFieldsFilter(FilterSet):
 class FilterClassRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -76,14 +66,14 @@ class MisconfiguredFilter(FilterSet):
 class IncorrectlyConfiguredRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = MisconfiguredFilter
+    filterset_class = MisconfiguredFilter
     filter_backends = (DjangoFilterBackend,)
 
 
 class FilterClassDetailView(generics.RetrieveAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -99,7 +89,7 @@ class BaseFilterableItemFilter(FilterSet):
 class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_class = BaseFilterableItemFilter
+    filterset_class = BaseFilterableItemFilter
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -107,13 +97,13 @@ class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
 class FilterFieldsQuerysetView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filter_fields = ['decimal', 'date']
+    filterset_fields = ['decimal', 'date']
     filter_backends = (DjangoFilterBackend,)
 
 
 class GetQuerysetView(generics.ListCreateAPIView):
     serializer_class = FilterableItemSerializer
-    filter_class = SeveralFieldsFilter
+    filterset_class = SeveralFieldsFilter
     filter_backends = (DjangoFilterBackend,)
 
     def get_queryset(self):
@@ -208,7 +198,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
 
     def test_get_filtered_class_root_view(self):
         """
-        GET requests to filtered ListCreateAPIView that have a filter_class set
+        GET requests to filtered ListCreateAPIView that have a filterset_class set
         should return filtered results.
         """
         view = FilterClassRootView.as_view()
@@ -267,7 +257,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
 
     def test_base_model_filter(self):
         """
-        The `get_filter_class` model checks should allow base model filters.
+        The `get_filterset_class` model checks should allow base model filters.
         """
         view = BaseFilterableItemFilterRootView.as_view()
 
@@ -297,8 +287,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @override_settings(FILTERS_STRICTNESS=STRICTNESS.RAISE_VALIDATION_ERROR)
-    def test_strictness_validation_error(self):
+    def test_raise_validation_error(self):
         """
         Ensure validation errors return a proper error response instead of
         an internal server error.
@@ -308,6 +297,26 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {'decimal': ['Enter a number.']})
+
+    def test_permissive(self):
+        """
+        Permissive handling should return a partially filtered result set.
+        """
+        FilterableItem.objects.create(decimal=Decimal('1.23'), date='2017-01-01')
+        FilterableItem.objects.create(decimal=Decimal('1.23'), date='2016-01-01')
+
+        class Backend(DjangoFilterBackend):
+            raise_exception = False
+
+        class View(FilterFieldsRootView):
+            filter_backends = (Backend,)
+
+        view = View.as_view()
+        request = factory.get('/?decimal=foobar&date=2017-01-01')
+        response = view(request).render()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['date'], '2017-01-01')
+        self.assertEqual(len(response.data), 1)
 
 
 @override_settings(ROOT_URLCONF='tests.rest_framework.test_integration')
@@ -321,8 +330,8 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
 
     def test_get_filtered_detail_view(self):
         """
-        GET requests to filtered RetrieveAPIView that have a filter_class set
-        should return filtered results.
+        GET requests to filtered RetrieveAPIView that have a filterset_class
+        set should return filtered results.
         """
         item = self.objects.all()[0]
         data = self._serialize_object(item)
@@ -391,7 +400,7 @@ class DjangoFilterOrderingTests(TestCase):
             serializer_class = DjangoFilterOrderingSerializer
             queryset = DjangoFilterOrderingModel.objects.all()
             filter_backends = (DjangoFilterBackend,)
-            filter_fields = ['text']
+            filterset_fields = ['text']
             ordering = ('-date',)
 
         view = DjangoFilterOrderingView.as_view()

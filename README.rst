@@ -19,9 +19,13 @@ Full documentation on `read the docs`_.
 Requirements
 ------------
 
-* **Python**: 2.7, 3.4, 3.5, 3.6
-* **Django**: 1.8, 1.10, 1.11
-* **DRF**: 3.7
+* **Python**: 3.4, 3.5, 3.6, 3.7
+* **Django**: 1.11, 2.0, 2.1
+* **DRF**: 3.8+
+
+From Version 2.0 Django Filter is Python 3 only.
+If you need to support Python 2.7 use the version 1.1 release.
+
 
 Installation
 ------------
@@ -97,6 +101,6 @@ Support
 If you have questions about usage or development you can join the
 `mailing list`_.
 
-.. _`read the docs`: https://django-filter.readthedocs.io/en/develop/
+.. _`read the docs`: https://django-filter.readthedocs.io/en/master/
 .. _`mailing list`: http://groups.google.com/group/django-filter
-.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/develop/guide/rest_framework.html
+.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/master/guide/rest_framework.html

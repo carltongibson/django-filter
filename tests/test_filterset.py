@@ -1,14 +1,10 @@
-from __future__ import absolute_import, unicode_literals
-
 import mock
 import unittest
 
-import django
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from django_filters.constants import STRICTNESS
+from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
     BaseInFilter,
     BaseRangeFilter,
@@ -44,6 +40,7 @@ from .models import (
     UUIDTestModel,
     Worker
 )
+from .utils import MockQuerySet
 
 
 def checkItemsEqual(L1, L2):
@@ -121,25 +118,25 @@ class FilterSetFilterForFieldTests(TestCase):
         f = User._meta.get_field('username')
         result = FilterSet.filter_for_field(f, 'username')
         self.assertIsInstance(result, CharFilter)
-        self.assertEqual(result.name, 'username')
+        self.assertEqual(result.field_name, 'username')
 
     def test_filter_found_for_uuidfield(self):
         f = UUIDTestModel._meta.get_field('uuid')
         result = FilterSet.filter_for_field(f, 'uuid')
         self.assertIsInstance(result, UUIDFilter)
-        self.assertEqual(result.name, 'uuid')
+        self.assertEqual(result.field_name, 'uuid')
 
     def test_filter_found_for_autofield(self):
         f = User._meta.get_field('id')
         result = FilterSet.filter_for_field(f, 'id')
         self.assertIsInstance(result, NumberFilter)
-        self.assertEqual(result.name, 'id')
+        self.assertEqual(result.field_name, 'id')
 
     def test_field_with_extras(self):
         f = User._meta.get_field('favorite_books')
         result = FilterSet.filter_for_field(f, 'favorite_books')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'favorite_books')
+        self.assertEqual(result.field_name, 'favorite_books')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Book)
@@ -148,7 +145,7 @@ class FilterSetFilterForFieldTests(TestCase):
         f = User._meta.get_field('status')
         result = FilterSet.filter_for_field(f, 'status')
         self.assertIsInstance(result, ChoiceFilter)
-        self.assertEqual(result.name, 'status')
+        self.assertEqual(result.field_name, 'status')
         self.assertTrue('choices' in result.extra)
         self.assertIsNotNone(result.extra['choices'])
 
@@ -172,7 +169,7 @@ class FilterSetFilterForFieldTests(TestCase):
         f = Node._meta.get_field('adjacents')
         result = FilterSet.filter_for_field(f, 'adjacents')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'adjacents')
+        self.assertEqual(result.field_name, 'adjacents')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Node)
@@ -181,7 +178,7 @@ class FilterSetFilterForFieldTests(TestCase):
         f = DirectedNode._meta.get_field('outbound_nodes')
         result = FilterSet.filter_for_field(f, 'outbound_nodes')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'outbound_nodes')
+        self.assertEqual(result.field_name, 'outbound_nodes')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, DirectedNode)
@@ -190,17 +187,16 @@ class FilterSetFilterForFieldTests(TestCase):
         f = Business._meta.get_field('employees')
         result = FilterSet.filter_for_field(f, 'employees')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'employees')
+        self.assertEqual(result.field_name, 'employees')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Worker)
 
-    @unittest.skipIf(django.VERSION < (1, 9), "version does not support transformed lookup expressions")
     def test_transformed_lookup_expr(self):
         f = Comment._meta.get_field('date')
         result = FilterSet.filter_for_field(f, 'date', 'year__gte')
         self.assertIsInstance(result, NumberFilter)
-        self.assertEqual(result.name, 'date')
+        self.assertEqual(result.field_name, 'date')
 
     @unittest.skip('todo')
     def test_filter_overrides(self):
@@ -247,52 +243,73 @@ class FilterSetFilterForLookupTests(TestCase):
         self.assertEqual(params['widget'], BooleanWidget)
 
 
-class FilterSetFilterForReverseFieldTests(TestCase):
+class ReverseFilterSetFilterForFieldTests(TestCase):
+    # Test reverse relationships for `filter_for_field`
 
     def test_reverse_o2o_relationship(self):
         f = Account._meta.get_field('profile')
-        result = FilterSet.filter_for_reverse_field(f, 'profile')
+        result = FilterSet.filter_for_field(f, 'profile')
         self.assertIsInstance(result, ModelChoiceFilter)
-        self.assertEqual(result.name, 'profile')
+        self.assertEqual(result.field_name, 'profile')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Profile)
 
     def test_reverse_fk_relationship(self):
         f = User._meta.get_field('comments')
-        result = FilterSet.filter_for_reverse_field(f, 'comments')
+        result = FilterSet.filter_for_field(f, 'comments')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'comments')
+        self.assertEqual(result.field_name, 'comments')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Comment)
 
     def test_reverse_m2m_relationship(self):
         f = Book._meta.get_field('lovers')
-        result = FilterSet.filter_for_reverse_field(f, 'lovers')
+        result = FilterSet.filter_for_field(f, 'lovers')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'lovers')
+        self.assertEqual(result.field_name, 'lovers')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, User)
 
     def test_reverse_non_symmetrical_selfref_m2m_field(self):
         f = DirectedNode._meta.get_field('inbound_nodes')
-        result = FilterSet.filter_for_reverse_field(f, 'inbound_nodes')
+        result = FilterSet.filter_for_field(f, 'inbound_nodes')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'inbound_nodes')
+        self.assertEqual(result.field_name, 'inbound_nodes')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, DirectedNode)
 
     def test_reverse_m2m_field_with_through_model(self):
         f = Worker._meta.get_field('employers')
-        result = FilterSet.filter_for_reverse_field(f, 'employers')
+        result = FilterSet.filter_for_field(f, 'employers')
         self.assertIsInstance(result, ModelMultipleChoiceFilter)
-        self.assertEqual(result.name, 'employers')
+        self.assertEqual(result.field_name, 'employers')
         self.assertTrue('queryset' in result.extra)
         self.assertIsNotNone(result.extra['queryset'])
         self.assertEqual(result.extra['queryset'].model, Business)
+
+    def test_reverse_relationship_lookup_expr(self):
+        f = Book._meta.get_field('lovers')
+        result = FilterSet.filter_for_field(f, 'lovers', 'isnull')
+        self.assertIsInstance(result, BooleanFilter)
+        self.assertEqual(result.field_name, 'lovers')
+        self.assertEqual(result.lookup_expr, 'isnull')
+
+
+class FilterSetFilterForReverseFieldTests(TestCase):
+
+    def test_method_raises_assertion(self):
+        msg = ("`F.filter_for_reverse_field` has been removed. "
+               "`F.filter_for_field` now generates filters for reverse fields.")
+
+        with self.assertRaisesMessage(AssertionError, msg):
+            class F(FilterSet):
+                @classmethod
+                def filter_for_reverse_field(cls, field, field_name):
+                    pass
 
 
 class FilterSetClassCreationTests(TestCase):
@@ -449,6 +466,19 @@ class FilterSetClassCreationTests(TestCase):
                               'other': ['exact'],
                               }
 
+    def test_meta_fields_invalid_lookup(self):
+        # We want to ensure that non existent lookups (or just simple misspellings)
+        # throw a useful exception containg the field and lookup expr.
+        with self.assertRaises(FieldLookupError) as context:
+            class F(FilterSet):
+                class Meta:
+                    model = User
+                    fields = {'username': ['flub']}
+
+        exc = str(context.exception)
+        self.assertIn('tests.User.username', exc)
+        self.assertIn('flub', exc)
+
     def test_meta_exlude_with_declared_and_declared_wins(self):
         class F(FilterSet):
             username = CharFilter()
@@ -592,16 +622,16 @@ class FilterSetClassCreationTests(TestCase):
 
 class FilterSetInstantiationTests(TestCase):
 
-    def test_creating_instance(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['username']
 
-        f = F()
+    def test_creating_instance(self):
+        f = self.F()
         self.assertFalse(f.is_bound)
         self.assertIsNotNone(f.queryset)
-        self.assertEqual(len(f.filters), len(F.base_filters))
+        self.assertEqual(len(f.filters), len(self.F.base_filters))
         for name, filter_ in f.filters.items():
             self.assertEqual(
                 filter_.model,
@@ -609,137 +639,79 @@ class FilterSetInstantiationTests(TestCase):
                 "%s does not have model set correctly" % name)
 
     def test_creating_bound_instance(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
-        f = F({'username': 'username'})
+        f = self.F({'username': 'username'})
         self.assertTrue(f.is_bound)
 
     def test_creating_with_queryset(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
         m = mock.Mock()
-        f = F(queryset=m)
+        f = self.F(queryset=m)
         self.assertEqual(f.queryset, m)
 
     def test_creating_with_request(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username']
-
         m = mock.Mock()
-        f = F(request=m)
+        f = self.F(request=m)
         self.assertEqual(f.request, m)
 
 
-class FilterSetStrictnessTests(TestCase):
+class FilterSetQuerysetTests(TestCase):
 
-    def test_settings_default(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
+    class F(FilterSet):
+        invalid = CharFilter(method=lambda *args: None)
 
-        # Ensure default is not IGNORE
-        self.assertEqual(F().strict, STRICTNESS.RETURN_NO_RESULTS)
+        class Meta:
+            model = User
+            fields = ['username', 'invalid']
 
-        # override and test
-        with override_settings(FILTERS_STRICTNESS=STRICTNESS.IGNORE):
-            self.assertEqual(F().strict, STRICTNESS.IGNORE)
+    def test_filter_queryset_called_once(self):
+        m = MockQuerySet()
+        f = self.F({'username': 'bob'}, queryset=m)
 
-    def test_meta_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-                strict = STRICTNESS.IGNORE
+        with mock.patch.object(f, 'filter_queryset',
+                               wraps=f.filter_queryset) as fn:
+            f.qs
+            fn.assert_called_once_with(m.all())
+            f.qs
+            fn.assert_called_once_with(m.all())
 
-        self.assertEqual(F().strict, STRICTNESS.IGNORE)
+    def test_get_form_class_called_once(self):
+        f = self.F()
 
-    def test_init_default(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
-                strict = STRICTNESS.IGNORE
+        with mock.patch.object(f, 'get_form_class',
+                               wraps=f.get_form_class) as fn:
+            f.form
+            fn.assert_called_once()
+            f.form
+            fn.assert_called_once()
 
-        strict = STRICTNESS.RAISE_VALIDATION_ERROR
-        self.assertEqual(F(strict=strict).strict, strict)
+    def test_qs_caching(self):
+        m = mock.Mock()
+        f = self.F(queryset=m)
 
-    def test_legacy_value(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = []
+        self.assertIs(f.qs, m.all())
+        self.assertIs(f.qs, f.qs)
 
-        self.assertEqual(F(strict=False).strict, STRICTNESS.IGNORE)
+    def test_form_caching(self):
+        f = self.F()
 
+        self.assertIs(f.form, f.form)
 
-class FilterSetTogetherTests(TestCase):
+    def test_qs_triggers_form_validation(self):
+        m = MockQuerySet()
+        f = self.F({'username': 'bob'}, queryset=m)
 
-    def setUp(self):
-        self.alex = User.objects.create(username='alex', status=1)
-        self.jacob = User.objects.create(username='jacob', status=2)
-        self.qs = User.objects.all().order_by('id')
+        with mock.patch.object(f.form, 'full_clean',
+                               wraps=f.form.full_clean) as fn:
+            fn.assert_not_called()
+            f.qs
+            fn.assert_called()
 
-    def test_fields_set(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status', 'is_active', 'first_name']
-                together = [
-                    ('username', 'status'),
-                    ('first_name', 'is_active'),
-                ]
-                strict = STRICTNESS.RAISE_VALIDATION_ERROR
+    def test_filters_must_return_queryset(self):
+        m = MockQuerySet()
+        f = self.F({'invalid': 'result'}, queryset=m)
 
-        f = F({}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'username': 'alex'}, queryset=self.qs)
-        with self.assertRaises(ValidationError):
-            f.qs.count()
-
-        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 1)
-        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
-
-    def test_single_fields_set(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                together = ['username', 'status']
-                strict = STRICTNESS.RAISE_VALIDATION_ERROR
-
-        f = F({}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 2)
-
-        f = F({'username': 'alex'}, queryset=self.qs)
-        with self.assertRaises(ValidationError):
-            f.qs.count()
-
-        f = F({'username': 'alex', 'status': 1}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 1)
-        self.assertQuerysetEqual(f.qs, [self.alex.pk], lambda o: o.pk)
-
-    def test_empty_values(self):
-        class F(FilterSet):
-            class Meta:
-                model = User
-                fields = ['username', 'status']
-                together = ['username', 'status']
-
-        f = F({'username': '', 'status': ''}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 2)
-        f = F({'username': 'alex', 'status': ''}, queryset=self.qs)
-        self.assertEqual(f.qs.count(), 0)
+        msg = "Expected 'F.invalid' to return a QuerySet, but got a NoneType instead."
+        with self.assertRaisesMessage(AssertionError, msg):
+            f.qs
 
 
 # test filter.method here, as it depends on its parent FilterSet
@@ -819,7 +791,7 @@ class FilterMethodTests(TestCase):
     def test_method_self_is_parent(self):
         # Ensure the method isn't 're-parented' on the `FilterMethod` helper class.
         # Filter methods should have access to the filterset's properties.
-        request = mock.Mock()
+        request = MockQuerySet()
 
         class F(FilterSet):
             f = CharFilter(method='filter_f')
@@ -831,6 +803,7 @@ class FilterMethodTests(TestCase):
             def filter_f(inner_self, qs, name, value):
                 self.assertIsInstance(inner_self, F)
                 self.assertIs(inner_self.request, request)
+                return qs
 
         F({'f': 'foo'}, request=request, queryset=User.objects.all()).qs
 

@@ -1,4 +1,4 @@
-from __future__ import absolute_import, unicode_literals
+import warnings
 
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
@@ -58,7 +58,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
     def test_view_with_model_and_fields_no_filterset(self):
         factory = RequestFactory()
         request = factory.get(self.base_url + '?price=1.0')
-        view = FilterView.as_view(model=Book, filter_fields=['price'])
+        view = FilterView.as_view(model=Book, filterset_fields=['price'])
 
         # filtering only by price
         response = view(request)
@@ -72,6 +72,26 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         self.assertEqual(response.status_code, 200)
         for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
             self.assertContains(response, b)
+
+    def test_view_with_strict_errors(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url + '?title=Snowcrash&price=four dollars')
+        view = FilterView.as_view(model=Book)
+        response = view(request)
+        titles = [o.title for o in response.context_data['object_list']]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(titles, [])
+
+    def test_view_with_non_strict_errors(self):
+        factory = RequestFactory()
+        request = factory.get(self.base_url + '?title=Snowcrash&price=four dollars')
+        view = FilterView.as_view(model=Book, strict=False)
+        response = view(request)
+        titles = [o.title for o in response.context_data['object_list']]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(titles, ['Snowcrash'],)
 
     def test_view_without_filterset_or_model(self):
         factory = RequestFactory()
@@ -89,6 +109,19 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         view = FilterView.as_view(filterset_class=MyFilterSet)
         with self.assertRaises(ImproperlyConfigured):
             view(request)
+
+    def test_filter_fields_removed(self):
+        expected = "`View.filter_fields` attribute should be renamed `filterset_fields`. " \
+                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+
+            class View(FilterView):
+                filter_fields = None
+
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
 
 
 class GenericFunctionalViewTests(GenericViewTestCase):

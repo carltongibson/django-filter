@@ -1,17 +1,17 @@
-from __future__ import absolute_import, unicode_literals
-
 import copy
 from collections import OrderedDict
 
 from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.fields.related import ForeignObjectRel
-from django.utils import six
+from django.db.models.fields.related import (
+    ManyToManyRel,
+    ManyToOneRel,
+    OneToOneRel
+)
 
-from .compat import remote_field, remote_queryset
 from .conf import settings
-from .constants import ALL_FIELDS, EMPTY_VALUES, STRICTNESS
+from .constants import ALL_FIELDS
 from .filters import (
     BaseInFilter,
     BaseRangeFilter,
@@ -29,7 +29,6 @@ from .filters import (
     UUIDFilter
 )
 from .utils import (
-    deprecate,
     get_all_model_fields,
     get_model_field,
     resolve_field,
@@ -37,31 +36,19 @@ from .utils import (
 )
 
 
-def _together_valid(form, fieldset):
-    field_presence = [
-        form.cleaned_data.get(field) not in EMPTY_VALUES
-        for field in fieldset
-    ]
+def remote_queryset(field):
+    """
+    Get the queryset for the other side of a relationship. This works
+    for both `RelatedField`s and `ForignObjectRel`s.
+    """
+    model = field.related_model
 
-    if any(field_presence):
-        return all(field_presence)
-    return True
+    # Reverse relationships do not have choice limits
+    if not hasattr(field, 'get_limit_choices_to'):
+        return model._default_manager.all()
 
-
-def get_full_clean_override(together):
-    # coerce together to list of pairs
-    if isinstance(together[0], (six.string_types)):
-        together = [together]
-
-    def full_clean(form):
-        super(form.__class__, form).full_clean()
-        message = 'Following fields must be together: %s'
-
-        for each in together:
-            if not _together_valid(form, each):
-                return form.add_error(None, message % ','.join(each))
-
-    return full_clean
+    limit_choices_to = field.get_limit_choices_to()
+    return model._default_manager.complex_filter(limit_choices_to)
 
 
 class FilterSetOptions(object):
@@ -72,22 +59,24 @@ class FilterSetOptions(object):
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
-        self.strict = getattr(options, 'strict', None)
-
         self.form = getattr(options, 'form', forms.Form)
-
-        if hasattr(options, 'together'):
-            deprecate('The `Meta.together` option has been deprecated in favor of overriding `Form.clean`.', 1)
-        self.together = getattr(options, 'together', None)
 
 
 class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
         attrs['declared_filters'] = cls.get_declared_filters(bases, attrs)
 
-        new_class = super(FilterSetMetaclass, cls).__new__(cls, name, bases, attrs)
+        new_class = super().__new__(cls, name, bases, attrs)
         new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
         new_class.base_filters = new_class.get_filters()
+
+        # TODO: remove assertion in 2.1
+        assert not hasattr(new_class, 'filter_for_reverse_field'), (
+            "`%(cls)s.filter_for_reverse_field` has been removed. "
+            "`%(cls)s.filter_for_field` now generates filters for reverse fields. "
+            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+            % {'cls': new_class.__name__}
+        )
 
         return new_class
 
@@ -141,11 +130,13 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.GenericIPAddressField:       {'filter_class': CharFilter},
     models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
     models.UUIDField:                   {'filter_class': UUIDFilter},
+
+    # Forward relationships
     models.OneToOneField: {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
-            'to_field_name': remote_field(f).field_name,
+            'to_field_name': f.remote_field.field_name,
             'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
         }
     },
@@ -153,11 +144,32 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
         'filter_class': ModelChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
-            'to_field_name': remote_field(f).field_name,
+            'to_field_name': f.remote_field.field_name,
             'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
         }
     },
     models.ManyToManyField: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+        }
+    },
+
+    # Reverse relationships
+    OneToOneRel: {
+        'filter_class': ModelChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+            'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
+        }
+    },
+    ManyToOneRel: {
+        'filter_class': ModelMultipleChoiceFilter,
+        'extra': lambda f: {
+            'queryset': remote_queryset(f),
+        }
+    },
+    ManyToManyRel: {
         'filter_class': ModelMultipleChoiceFilter,
         'extra': lambda f: {
             'queryset': remote_queryset(f),
@@ -169,80 +181,89 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet(object):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
-    def __init__(self, data=None, queryset=None, prefix=None, strict=None, request=None):
-        self.is_bound = data is not None
-        self.data = data or {}
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
+        model = queryset.model
+
+        self.is_bound = data is not None
+        self.data = data or {}
         self.queryset = queryset
-        self.form_prefix = prefix
-
-        # What to do on on validation errors
-        # Fallback to meta, then settings strictness
-        if strict is None:
-            strict = self._meta.strict
-        if strict is None:
-            strict = settings.STRICTNESS
-
-        # transform legacy values
-        self.strict = STRICTNESS._LEGACY.get(strict, strict)
-
         self.request = request
+        self.form_prefix = prefix
 
         self.filters = copy.deepcopy(self.base_filters)
 
+        # propagate the model and filterset to the filters
         for filter_ in self.filters.values():
-            # propagate the model and filterset to the filters
-            filter_.model = self._meta.model
+            filter_.model = model
             filter_.parent = self
+
+    def is_valid(self):
+        """
+        Return True if the underlying form has no errors, or False otherwise.
+        """
+        return self.is_bound and self.form.is_valid()
+
+    @property
+    def errors(self):
+        """
+        Return an ErrorDict for the data provided for the underlying form.
+        """
+        return self.form.errors
+
+    def filter_queryset(self, queryset):
+        """
+        Filter the queryset with the underlying form's `cleaned_data`. You must
+        call `is_valid()` or `errors` before calling this method.
+
+        This method should be overridden if additional filtering needs to be
+        applied to the queryset before it is cached.
+        """
+        for name, value in self.form.cleaned_data.items():
+            queryset = self.filters[name].filter(queryset, value)
+            assert isinstance(queryset, models.QuerySet), \
+                "Expected '%s.%s' to return a QuerySet, but got a %s instead." \
+                % (type(self).__name__, name, type(queryset).__name__)
+        return queryset
 
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
-            if not self.is_bound:
-                self._qs = self.queryset.all()
-                return self._qs
-
-            if not self.form.is_valid():
-                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                    raise forms.ValidationError(self.form.errors)
-                elif self.strict == STRICTNESS.RETURN_NO_RESULTS:
-                    self._qs = self.queryset.none()
-                    return self._qs
-                # else STRICTNESS.IGNORE...  ignoring
-
-            # start with all the results and filter from there
             qs = self.queryset
             # if qs is a Manager, start a Queryset
             if isinstance(self.queryset, models.Manager):
                 qs = qs.all()
-
-            for name, filter_ in six.iteritems(self.filters):
-                value = self.form.cleaned_data.get(name)
-
-                if value is not None:  # valid & clean data
-                    # undocumented method to treat the current and next filter
-                    # as a single filter.
-                    # https://blog.ionelmc.ro/2014/05/10/django-sticky-queryset-filters/
-                    # https://github.com/carltongibson/django-filter/pull/753
-                    qs = qs._next_is_sticky()
-                    qs = filter_.filter(qs, value)
-
+            if self.is_bound:
+                # ensure form validation before filtering
+                self.errors
+                # undocumented method to treat the current and next filter
+                # as a single filter.
+                # https://blog.ionelmc.ro/2014/05/10/django-sticky-queryset-filters/
+                # https://github.com/carltongibson/django-filter/pull/753
+                qs = qs._next_is_sticky()
+                qs = self.filter_queryset(qs)
             self._qs = qs
-
         return self._qs
+
+    def get_form_class(self):
+        """
+        Returns a django Form suitable of validating the filterset data.
+        
+        This method should be overridden if the form class needs to be
+        customized relative to the filterset instance.
+        """
+        fields = OrderedDict([
+            (name, filter_.field)
+            for name, filter_ in self.filters.items()])
+
+        return type(str('%sForm' % self.__class__.__name__),
+                    (self._meta.form,), fields)
 
     @property
     def form(self):
         if not hasattr(self, '_form'):
-            fields = OrderedDict([
-                (name, filter_.field)
-                for name, filter_ in six.iteritems(self.filters)])
-
-            Form = type(str('%sForm' % self.__class__.__name__),
-                        (self._meta.form,), fields)
-            if self._meta.together:
-                Form.full_clean = get_full_clean_override(self._meta.together)
+            Form = self.get_form_class()
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
             else:
@@ -320,11 +341,6 @@ class BaseFilterSet(object):
             if field is None:
                 undefined.append(field_name)
 
-            # ForeignObjectRel does not support non-exact lookups
-            if isinstance(field, ForeignObjectRel):
-                filters[field_name] = cls.filter_for_reverse_field(field, field_name)
-                continue
-
             for lookup_expr in lookups:
                 filter_name = cls.get_filter_name(field_name, lookup_expr)
 
@@ -350,61 +366,49 @@ class BaseFilterSet(object):
         return filters
 
     @classmethod
-    def filter_for_field(cls, f, field_name, lookup_expr='exact'):
-        f, lookup_type = resolve_field(f, lookup_expr)
+    def filter_for_field(cls, field, field_name, lookup_expr='exact'):
+        field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {
             'field_name': field_name,
             'lookup_expr': lookup_expr,
         }
 
-        filter_class, params = cls.filter_for_lookup(f, lookup_type)
+        filter_class, params = cls.filter_for_lookup(field, lookup_type)
         default.update(params)
 
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/develop/ref/filterset.html#customise-filter-generation-with-filter-overrides"
-        ) % (cls.__name__, field_name, lookup_expr, f.__class__.__name__)
+            "https://django-filter.readthedocs.io/en/master/ref/filterset.html"
+            "#customise-filter-generation-with-filter-overrides"
+        ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
 
         return filter_class(**default)
 
     @classmethod
-    def filter_for_reverse_field(cls, f, field_name):
-        rel = remote_field(f.field)
-        queryset = f.field.model._default_manager.all()
-        default = {
-            'field_name': field_name,
-            'queryset': queryset,
-        }
-        if rel.multiple:
-            return ModelMultipleChoiceFilter(**default)
-        else:
-            return ModelChoiceFilter(**default)
-
-    @classmethod
-    def filter_for_lookup(cls, f, lookup_type):
+    def filter_for_lookup(cls, field, lookup_type):
         DEFAULTS = dict(cls.FILTER_DEFAULTS)
         if hasattr(cls, '_meta'):
             DEFAULTS.update(cls._meta.filter_overrides)
 
-        data = try_dbfield(DEFAULTS.get, f.__class__) or {}
+        data = try_dbfield(DEFAULTS.get, field.__class__) or {}
         filter_class = data.get('filter_class')
-        params = data.get('extra', lambda f: {})(f)
+        params = data.get('extra', lambda field: {})(field)
 
         # if there is no filter class, exit early
         if not filter_class:
             return None, {}
 
         # perform lookup specific checks
-        if lookup_type == 'exact' and f.choices:
-            return ChoiceFilter, {'choices': f.choices}
+        if lookup_type == 'exact' and getattr(field, 'choices', None):
+            return ChoiceFilter, {'choices': field.choices}
 
         if lookup_type == 'isnull':
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
 
             filter_class = data.get('filter_class')
-            params = data.get('extra', lambda f: {})(f)
+            params = data.get('extra', lambda field: {})(field)
             return filter_class, params
 
         if lookup_type == 'in':
@@ -453,7 +457,7 @@ class BaseFilterSet(object):
         return str('%s%sFilter' % (type_name, lookup_name))
 
 
-class FilterSet(six.with_metaclass(FilterSetMetaclass, BaseFilterSet)):
+class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
     pass
 
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic import View
 from django.views.generic.list import (
@@ -9,14 +7,23 @@ from django.views.generic.list import (
 
 from .constants import ALL_FIELDS
 from .filterset import filterset_factory
+from .utils import MigrationNotice, RenameAttributesBase
 
 
-class FilterMixin(object):
+# TODO: remove metaclass in 2.1
+class FilterMixinRenames(RenameAttributesBase):
+    renamed_attributes = (
+        ('filter_fields', 'filterset_fields', MigrationNotice),
+    )
+
+
+class FilterMixin(metaclass=FilterMixinRenames):
     """
     A mixin that provides a way to show and handle a FilterSet in a request.
     """
     filterset_class = None
-    filter_fields = ALL_FIELDS
+    filterset_fields = ALL_FIELDS
+    strict = True
 
     def get_filterset_class(self):
         """
@@ -25,7 +32,7 @@ class FilterMixin(object):
         if self.filterset_class:
             return self.filterset_class
         elif self.model:
-            return filterset_factory(model=self.model, fields=self.filter_fields)
+            return filterset_factory(model=self.model, fields=self.filterset_fields)
         else:
             msg = "'%s' must define 'filterset_class' or 'model'"
             raise ImproperlyConfigured(msg % self.__class__.__name__)
@@ -60,13 +67,21 @@ class FilterMixin(object):
                 raise ImproperlyConfigured(msg % args)
         return kwargs
 
+    def get_strict(self):
+        return self.strict
+
 
 class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
-        self.object_list = self.filterset.qs
+
+        if self.filterset.is_valid() or not self.get_strict():
+            self.object_list = self.filterset.qs
+        else:
+            self.object_list = self.filterset.queryset.none()
+
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list)
         return self.render_to_response(context)
@@ -87,7 +102,7 @@ def object_filter(request, model=None, queryset=None, template_name=None,
     class ECFilterView(FilterView):
         """Handle the extra_context from the functional object_filter view"""
         def get_context_data(self, **kwargs):
-            context = super(ECFilterView, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             extra_context = self.kwargs.get('extra_context') or {}
             for k, v in extra_context.items():
                 if callable(v):

@@ -1,24 +1,16 @@
-
-from __future__ import absolute_import
-
 from django.conf import settings as dj_settings
 from django.core.signals import setting_changed
 from django.utils.translation import ugettext_lazy as _
 
-from .constants import STRICTNESS
 from .utils import deprecate
 
 DEFAULTS = {
     'DISABLE_HELP_TEXT': False,
-    'HELP_TEXT_FILTER': True,
-    'HELP_TEXT_EXCLUDE': True,
 
     # empty/null choices
     'EMPTY_CHOICE_LABEL': '---------',
     'NULL_CHOICE_LABEL': None,
     'NULL_CHOICE_VALUE': 'null',
-
-    'STRICTNESS': STRICTNESS.RETURN_NO_RESULTS,
 
     'VERBOSE_LOOKUPS': {
         # transforms don't need to be verbose, since their expressions are chained
@@ -63,8 +55,6 @@ DEFAULTS = {
 
 
 DEPRECATED_SETTINGS = [
-    'HELP_TEXT_FILTER',
-    'HELP_TEXT_EXCLUDE',
 ]
 
 

@@ -6,3 +6,4 @@ docs/_build
 .python-version
 .tox
 .coverage
+.coverage.*
