@@ -18,7 +18,7 @@ from .fields import (
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
-    LookupChoiceField,
+    LookupChoiceField
     ModelChoiceField,
     ModelMultipleChoiceField,
     MultipleChoiceField,
@@ -260,14 +260,14 @@ class MultipleChoiceFilter(Filter):
             return {self.field_name: getattr(v, self.field.to_field_name)}
         except (AttributeError, TypeError):
             return {self.field_name: v}
-    
+
     def get_val(self, v):
         if v == self.null_value:
             v = None
         try:
             return getattr(v, self.field.to_field_name)
         except (AttributeError, TypeError):
-            return v   
+            return v
 
 
 class TypedMultipleChoiceFilter(MultipleChoiceFilter):
