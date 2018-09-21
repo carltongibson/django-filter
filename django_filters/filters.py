@@ -18,7 +18,7 @@ from .fields import (
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
-    LookupChoiceField
+    LookupChoiceField,
     ModelChoiceField,
     ModelMultipleChoiceField,
     MultipleChoiceField,
