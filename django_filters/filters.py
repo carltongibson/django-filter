@@ -227,6 +227,7 @@ class MultipleChoiceFilter(Filter):
         return False
 
     def filter(self, qs, value):
+        from django.db.models import Count
         if not value:
             # Even though not a noop, no point filtering if empty.
             return qs
@@ -234,18 +235,22 @@ class MultipleChoiceFilter(Filter):
         if self.is_noop(qs, value):
             return qs
 
-        if not self.conjoined:
-            q = Q()
-        for v in set(value):
-            if v == self.null_value:
-                v = None
-            predicate = self.get_filter_predicate(v)
-            if self.conjoined:
-                qs = self.get_method(qs)(**predicate)
-            else:
-                q |= Q(**predicate)
+        if self.conjoined:
+            values_list = list(map(self.get_val, set(value)))
+            lookup = '{instance.field_name}__in'.format(instance=self)
+            count = 'num_{instance.field_name}'.format(instance=self)
+            count__gte = '{count}__gte'.format(count=count)
+            qs = qs.filter(**{lookup: values_list})\
+                .annotate(**{count: Count(self.field_name)})\
+                .filter(**{count__gte: len(values_list)})
 
-        if not self.conjoined:
+        else:
+            q = Q()
+            for v in set(value):
+                if v == self.null_value:
+                    v = None
+                predicate = self.get_filter_predicate(v)
+                q |= Q(**predicate)
             qs = self.get_method(qs)(q)
 
         return qs.distinct() if self.distinct else qs
@@ -255,6 +260,14 @@ class MultipleChoiceFilter(Filter):
             return {self.field_name: getattr(v, self.field.to_field_name)}
         except (AttributeError, TypeError):
             return {self.field_name: v}
+
+    def get_val(self, v):
+        if v == self.null_value:
+            v = None
+        try:
+            return getattr(v, self.field.to_field_name)
+        except (AttributeError, TypeError):
+            return v
 
 
 class TypedMultipleChoiceFilter(MultipleChoiceFilter):
