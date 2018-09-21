@@ -501,6 +501,8 @@ class MultipleChoiceFilterTests(TestCase):
                 item[1],
                 'Lists Differ: {0} != {1} for case {2}'.format(
                     expected_pks, item[1], item[0]))
+            
+            self.assertEqual(str(queryset.query).count('INNER JOIN'), 1)
 
 
 class TypedMultipleChoiceFilterTests(TestCase):
