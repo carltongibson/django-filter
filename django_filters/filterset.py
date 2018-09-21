@@ -231,9 +231,6 @@ class BaseFilterSet(object):
     def qs(self):
         if not hasattr(self, '_qs'):
             qs = self.queryset
-            # if qs is a Manager, start a Queryset
-            if isinstance(self.queryset, models.Manager):
-                qs = qs.all()
             if self.is_bound:
                 # ensure form validation before filtering
                 self.errors
@@ -243,13 +240,13 @@ class BaseFilterSet(object):
                 # https://github.com/carltongibson/django-filter/pull/753
                 qs = qs._next_is_sticky()
                 qs = self.filter_queryset(qs)
-            self._qs = qs
+            self._qs = qs.all()
         return self._qs
 
     def get_form_class(self):
         """
         Returns a django Form suitable of validating the filterset data.
-        
+
         This method should be overridden if the form class needs to be
         customized relative to the filterset instance.
         """

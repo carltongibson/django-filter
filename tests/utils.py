@@ -10,6 +10,7 @@ class MockQuerySet:
 
     def __new__(self):
         m = mock.Mock(spec_set=models.QuerySet())
+        m._next_is_sticky.return_value = m
         m.filter.return_value = m
         m.all.return_value = m
         return m

@@ -714,6 +714,22 @@ class FilterSetQuerysetTests(TestCase):
             f.qs
 
 
+class ChainedFilterTest(TestCase):
+
+    class F(FilterSet):
+        f = CharFilter(field_name='author__first_name')
+        l = CharFilter(field_name='author__last_name')
+
+        class Meta:
+            model = Article
+            fields = ['f', 'l']
+
+    def test_multiple_related_fields(self):
+        qs = Article.objects.all()
+        f = self.F({'f': 'first', 'l': 'last'}, qs)
+        self.assertEqual(str(f.qs.query).upper().count('INNER JOIN'), 1)
+
+
 # test filter.method here, as it depends on its parent FilterSet
 class FilterMethodTests(TestCase):
 
