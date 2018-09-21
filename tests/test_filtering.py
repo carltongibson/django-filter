@@ -1897,7 +1897,8 @@ class MiscFilterSetTests(TestCase):
 
         qs = MockQuerySet()
         F({'account': 'jdoe'}, queryset=qs).qs
-        qs.all.return_value.filter.assert_called_with(username__exact='jdoe')
+        qs._next_is_sticky.return_value.filter.assert_called_with(username__exact='jdoe')
+
 
     def test_filtering_without_meta(self):
         class F(FilterSet):
