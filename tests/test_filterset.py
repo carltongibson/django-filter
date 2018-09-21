@@ -713,23 +713,22 @@ class FilterSetQuerysetTests(TestCase):
         with self.assertRaisesMessage(AssertionError, msg):
             f.qs
 
-
 class ChainedFilterTest(TestCase):
 
     class F(FilterSet):
-        f = CharFilter(field_name='author__first_name')
-        l = CharFilter(field_name='author__last_name')
+        year = CharFilter(field_name='article__published__year')
+        name = CharFilter(field_name='article__name')
 
         class Meta:
-            model = Article
-            fields = ['f', 'l']
+            model = User
+            fields = ['year', 'name']
 
     def test_multiple_related_fields(self):
-        qs = Article.objects.all()
-        f = self.F({'f': 'first', 'l': 'last'}, qs)
-        self.assertEqual(str(f.qs.query).upper().count('INNER JOIN'), 1)
+        qs = User.objects.all()
+        f = self.F({'year': '1917', 'name': 'coolname'}, qs)
+        self.assertEqual(str(f.qs.query).count('INNER JOIN'), 1)
 
-
+        
 # test filter.method here, as it depends on its parent FilterSet
 class FilterMethodTests(TestCase):
 
