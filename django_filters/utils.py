@@ -317,7 +317,8 @@ def translate_validation(error_dict):
     from rest_framework.exceptions import ValidationError, ErrorDetail
 
     exc = OrderedDict(
-        (key, [ErrorDetail(e.message, code=e.code) for e in error_list])
+        (key, [ErrorDetail(
+            e.message % (e.params or {}), code=e.code) for e in error_list])
         for key, error_list in error_dict.as_data().items()
     )
 

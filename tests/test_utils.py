@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings
 from django.utils.functional import Promise
 from django.utils.timezone import get_default_timezone
 
-from django_filters import FilterSet
+from django_filters import FilterSet, ModelMultipleChoiceFilter
 from django_filters.exceptions import FieldLookupError
 from django_filters.utils import (
     MigrationNotice,
@@ -511,6 +511,13 @@ class TranslateValidationDataTests(TestCase):
             model = Article
             fields = ['id', 'author', 'name']
 
+    class G(FilterSet):
+        author = ModelMultipleChoiceFilter(queryset=User.objects.all())
+
+        class Meta:
+            model = Article
+            fields = ['id', 'author', 'name']
+
     def test_error_detail(self):
         f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
         exc = translate_validation(f.errors)
@@ -519,6 +526,15 @@ class TranslateValidationDataTests(TestCase):
             'id': ['Enter a number.'],
             'author': ['Select a valid choice. That choice is not one of the available choices.'],
         })
+
+        f = self.G({'author': ['bar', 'baz']})
+        exc = translate_validation(f.errors)
+
+        # NOTE(stephenfin): Because we can't guarantee the order than filters
+        # are evaluated, we don't use 'assertDictEqual' here
+        self.assertEqual(set(exc.detail.keys()), {'author', })
+        self.assertRegex(str(exc.detail['author'][0]),
+                         '"ba[rz]" is not a valid value')
 
     def test_full_error_details(self):
         f = self.F(data={'id': 'foo', 'author': 'bar', 'name': 'baz'})
