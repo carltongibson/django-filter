@@ -82,12 +82,42 @@ FilterSet "strictness" handling moved to view (`#788`__)
 __ https://github.com/carltongibson/django-filter/pull/788
 
 Strictness handling has been removed from the ``FilterSet`` and added to the
-view layer. As a result, the ``FILTERS_STRICTNESS`` setting, ``Meta.strict``
-option, and ``strict`` argument for the ``FilterSet`` initializer have all
-been removed.
+view layer. The ``FILTERS_STRICTNESS`` setting, ``Meta.strict`` option, and
+``strict`` argument for the ``FilterSet`` initializer have all been removed.
+In addition, the default strictness has increased. A **HTTP 400** error and
+accompanying error message will be returned for invalid filters. This is
+equivalent to the ``STRICTNESS.RAISE_VALIDATION_ERROR`` setting found in 1.x.
 
 To alter strictness behavior, the appropriate view code should be overridden.
-More details will be provided in future docs.
+If using Django REST Framework, this typically means overriding
+``DjangoFilterBackend``. To provide behavior equivalent to the
+``STRICTNESS.RETURN_NO_RESULTS`` from 1.x, you should override is the backend's
+``filter_queryset`` function.
+
+.. code-block:: python
+
+    import django_filters
+    from rest_framework import exceptions
+
+    class StrictDjangoFilterBackend(django_filters.rest_framework.DjangoFilterBackend):
+        """Return no results if the query doesn't validate."""
+
+        def filter_queryset(self, request, queryset, view):
+            try:
+                return super().filter_queryset(request, queryset, view)
+            except exceptions.ValidationError:
+                return queryset.none()
+
+To provide behavior similar to ``STRICTNESS.IGNORE``, you should override the
+backend's ``raise_exception`` attribute.
+
+.. code-block:: python
+
+    import django_filters
+
+    class StrictDjangoFilterBackend(django_filters.rest_framework.DjangoFilterBackend):
+        """Ignore invalid queries."""
+        raise_exception = False
 
 
 ``Filter.name`` renamed to ``Filter.field_name`` (`#792`__)
