@@ -364,6 +364,7 @@ class BaseFilterSet(object):
         default = {
             'field_name': field_name,
             'lookup_expr': lookup_expr,
+            'help_text': field.help_text or field.verbose_name,
         }
 
         filter_class, params = cls.filter_for_lookup(field, lookup_type)

@@ -105,13 +105,23 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         return template.render(context, request)
 
     def get_coreschema_field(self, field):
-        if isinstance(field, filters.NumberFilter):
-            field_cls = compat.coreschema.Number
+        description=str(field.extra.get('help_text', ''))
+        if isinstance(field, filters.ChoiceFilter) and \
+                not isinstance(field, filters.ModelChoiceFilter):
+            return compat.coreschema.Enum(
+                enum=[key for key,_ in field.field.choices if key != ''],
+                description=description,
+            )
         else:
-            field_cls = compat.coreschema.String
-        return field_cls(
-            description=str(field.extra.get('help_text', ''))
-        )
+            if isinstance(field, filters.NumberFilter):
+                field_cls = compat.coreschema.Number
+            elif isinstance(field, filters.BooleanFilter):
+                field_cls = compat.coreschema.Boolean
+            else:
+                field_cls = compat.coreschema.String
+            return field_cls(
+                description=description,
+            )
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
