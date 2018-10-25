@@ -79,6 +79,8 @@ class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
 
         if self.filterset.is_valid() or not self.get_strict():
             self.object_list = self.filterset.qs
+        elif not self.filterset.is_bound:
+            self.object_list = self.get_queryset()
         else:
             self.object_list = self.filterset.queryset.none()
 
