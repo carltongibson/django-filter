@@ -40,7 +40,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         factory = RequestFactory()
         request = factory.get(self.base_url)
         filterset = filterset_factory(Book)
-        view = FilterView.as_view(filterset_class=filterset)
+        view = FilterView.as_view(filterset_class=filterset, queryset=Book.objects.all())
         response = view(request)
         self.assertEqual(response.status_code, 200)
         for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
