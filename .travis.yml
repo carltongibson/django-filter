@@ -10,7 +10,8 @@ python:
 cache: pip
 
 install:
-  - pip install coverage detox tox-travis tox-venv
+  # latest detox and tox aren't compatible https://github.com/carltongibson/django-filter/issues/990
+  - pip install coverage detox==0.13 tox~=3.2.1 tox-travis tox-venv
 
 script:
   - coverage erase
