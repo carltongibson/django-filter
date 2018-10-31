@@ -81,6 +81,7 @@ class TimeRangeField(RangeField):
 
 
 class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
+
     def __new__(cls, value, lookup_expr):
         if value in EMPTY_VALUES or lookup_expr in EMPTY_VALUES:
             raise ValueError(
@@ -138,6 +139,16 @@ class IsoDateTimeField(forms.DateTimeField):
                 raise ValueError
             return handle_timezone(parsed)
         return super().strptime(value, format)
+
+
+class IsoDateTimeRangeField(RangeField):
+    widget = DateRangeWidget
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            IsoDateTimeField(),
+            IsoDateTimeField())
+        super().__init__(fields, *args, **kwargs)
 
 
 class BaseCSVField(forms.Field):
@@ -248,6 +259,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
 
 class ChoiceIteratorMixin(object):
+
     def __init__(self, *args, **kwargs):
         self.null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
         self.null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)

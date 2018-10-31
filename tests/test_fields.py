@@ -12,6 +12,7 @@ from django_filters.fields import (
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
+    IsoDateTimeRangeField,
     Lookup,
     LookupChoiceField,
     RangeField,
@@ -25,6 +26,7 @@ def to_d(float_value):
 
 
 class LookupTests(TestCase):
+
     def test_empty_attrs(self):
         with self.assertRaisesMessage(ValueError, ''):
             Lookup(None, None)
@@ -88,6 +90,23 @@ class DateTimeRangeFieldTests(TestCase):
             f.clean(['2015-01-01 10:30', '2015-01-10 8:45']),
             slice(datetime(2015, 1, 1, 10, 30, 0),
                   datetime(2015, 1, 10, 8, 45, 0)))
+
+
+class IsoDateTimeRangeFieldTests(TestCase):
+
+    def test_field(self):
+        f = IsoDateTimeRangeField()
+        self.assertEqual(len(f.fields), 2)
+
+    @override_settings(USE_TZ=False)
+    def test_clean(self):
+        w = RangeWidget()
+        f = IsoDateTimeRangeField(widget=w)
+
+        self.assertEqual(
+            f.clean(['2015-07-19T13:34:51.759', '2015-07-29T00:00:00.000']),
+            slice(datetime(2015, 7, 19, 13, 34, 51, 759000),
+                  datetime(2015, 7, 29, 0, 0, 0, 0)))
 
 
 class TimeRangeFieldTests(TestCase):
@@ -210,6 +229,7 @@ class IsoDateTimeFieldTests(TestCase):
 
 
 class BaseCSVFieldTests(TestCase):
+
     def setUp(self):
         class DecimalCSVField(BaseCSVField, forms.DecimalField):
             pass
@@ -252,6 +272,7 @@ class BaseCSVFieldTests(TestCase):
 
 
 class BaseRangeFieldTests(TestCase):
+
     def setUp(self):
         class DecimalRangeField(BaseRangeField, forms.DecimalField):
             pass
