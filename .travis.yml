@@ -1,37 +1,30 @@
 sudo: false
+
 language: python
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
 cache: pip
 
 install:
-  - pip install coverage tox tox-venv
+  # latest detox and tox aren't compatible https://github.com/carltongibson/django-filter/issues/990
+  - pip install coverage detox==0.13 tox~=3.2.1 tox-travis tox-venv
 
 script:
   - coverage erase
-  - tox
+  - detox
 
 matrix:
   include:
-    - { python: "3.4", env: TOXENV=py34-django111 }
-    - { python: "3.4", env: TOXENV=py34-django20 }
-
-    - { python: "3.5", env: TOXENV=py35-django111 }
-    - { python: "3.5", env: TOXENV=py35-django20 }
-    - { python: "3.5", env: TOXENV=py35-django21 }
-    - { python: "3.5", env: TOXENV=py35-latest }
-
-    - { python: "3.6", env: TOXENV=py36-django111 }
-    - { python: "3.6", env: TOXENV=py36-django20 }
-    - { python: "3.6", env: TOXENV=py36-django21 }
-    - { python: "3.6", env: TOXENV=py36-latest }
-
-    - { python: "3.7", env: TOXENV=py37-django21, dist: xenial, sudo: true }
-    - { python: "3.7", env: TOXENV=py37-latest,   dist: xenial, sudo: true }
-
-    - { python: "3.6", env: TOXENV=isort }
-    - { python: "3.6", env: TOXENV=lint }
-    - { python: "3.6", env: TOXENV=docs }
-    - { python: "3.6", env: TOXENV=warnings }
-
+    - python: "3.7"
+      dist: xenial
+      sudo: true
+    - python: "3.6"
+      env: TOXENV=isort,lint,docs
+    - python: "3.6"
+      env: TOXENV=warnings
   allow_failures:
     - env: TOXENV=warnings
 
