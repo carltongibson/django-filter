@@ -1,0 +1,69 @@
+####################
+# Azure Pipelines
+####################
+
+strategy:
+  matrix:
+    # For some reason, Python 3.4 tries to install Django 2.0 - disabling for now
+    # PY34:
+    #   PYTHON_VERSION: '3.4'
+    PY35:
+      PYTHON_VERSION: '3.5'
+    PY36:
+      PYTHON_VERSION: '3.6'
+    PY36_isort:
+      PYTHON_VERSION: '3.6'
+      TOXENV: isort,lint,docs
+    PY36_warnings:
+      PYTHON_VERSION: '3.6'
+      TOXENV: warnings
+    PY37:
+      PYTHON_VERSION: '3.7'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(PYTHON_VERSION)'
+    architecture: 'x64'
+
+- script: |
+    python -m pip install --upgrade pip setuptools
+  displayName: Ensure latest setuptools
+
+- script: |
+    pip install coverage tox tox-venv unittest-xml-reporting
+  displayName: Install deps
+
+- script: |
+    pip --version
+    tox --skip-missing-interpreters true
+  displayName: Run tox
+  
+- script: |
+    coverage combine
+    coverage report -m
+    coverage xml
+    coverage html
+  displayName: Coverage reporting
+  condition: eq(variables['TOXENV'], '')  # skip for the custom TOXENV legs
+
+- task: PublishCodeCoverageResults@1
+  displayName: Publish coverage results
+  inputs:
+    codeCoverageTool: cobertura
+    summaryFileLocation: '$(Build.SourcesDirectory)\coverage.xml'
+    reportDirectory: '$(Build.SourcesDirectory)\htmlcov'
+  condition: eq(variables['TOXENV'], '')  # skip for the custom TOXENV legs
+
+- task: PublishTestResults@2
+  displayName: Publish test results
+  inputs:
+    testResultsFiles: '**/TEST-*.xml'
+    testRunTitle: Python $(PYTHON_VERSION)
+
+# codecov disabled for now
+- script: |
+    pip install codecov
+    codecov
+  displayName: Codecov
+  condition: false
