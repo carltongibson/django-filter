@@ -126,13 +126,15 @@ class GenericClassBasedViewTests(GenericViewTestCase):
     def test_view_with_unbound_filter_form_returns_initial_queryset(self):
         factory = RequestFactory()
         request = factory.get(self.base_url)
+
         queryset = Book.objects.filter(title='Snowcrash')
         view = FilterView.as_view(model=Book, queryset=queryset)
+
         response = view(request)
         titles = [o.title for o in response.context_data['object_list']]
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(titles, ['Snowcrash'], )
+        self.assertEqual(titles, ['Snowcrash'])
 
 
 class GenericFunctionalViewTests(GenericViewTestCase):
