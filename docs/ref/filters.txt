@@ -565,6 +565,42 @@ Example::
     f = F({'published_before': '2016-01-01 10:00'})
     assert len(f.qs) == 2
 
+
+
+``IsoDateTimeFromToRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses ISO 8601 formatted datetime values instead of numerical values. It can be used with ``IsoDateTimeField``.
+
+Example::
+
+    class Article(models.Model):
+        published = models.IsoDateTimeField()
+
+    class F(FilterSet):
+        published = IsoDateTimeFromToRangeFilter()
+
+        class Meta:
+            model = Article
+            fields = ['published']
+
+    Article.objects.create(published='2016-01-01T8:00:00.000')
+    Article.objects.create(published='2016-01-01T9:30:00.000')
+    Article.objects.create(published='2016-01-02T8:00:00.000')
+
+    # Range: Articles published 2016-01-01 between 8:00 and 10:00
+    f = F({'published_after': '2016-01-01T8:00:00.000', 'published_before': '2016-01-01T10:00.000'})
+    assert len(f.qs) == 2
+
+    # Min-Only: Articles published after 2016-01-01T8:00:00.000
+    f = F({'published_after': '2016-01-01T8:00:00.000'})
+    assert len(f.qs) == 3
+
+    # Max-Only: Articles published before 2016-01-01T10:00:00.000
+    f = F({'published_before': '2016-01-01T10:00:00.000'})
+    assert len(f.qs) == 2
+
+
 ``TimeRangeFilter``
 ~~~~~~~~~~~~~~~~~~~
 

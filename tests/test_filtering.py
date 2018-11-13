@@ -19,6 +19,7 @@ from django_filters.filters import (
     DateRangeFilter,
     DateTimeFromToRangeFilter,
     DurationFilter,
+    IsoDateTimeFromToRangeFilter,
     LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
@@ -974,6 +975,32 @@ class DateTimeFromToRangeFilterTests(TestCase):
         results = F(data={
             'published_after': '2016-01-02 10:00',
             'published_before': '2016-01-03 19:00'})
+        self.assertEqual(len(results.qs), 2)
+
+
+class IsoDateTimeFromToRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        tz = timezone.get_current_timezone()
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+
+        class F(FilterSet):
+            published = IsoDateTimeFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_after': '2016-01-02T10:00:00.000',
+            'published_before': '2016-01-03T19:00:00.000'})
         self.assertEqual(len(results.qs), 2)
 
 
