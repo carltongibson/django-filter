@@ -14,6 +14,7 @@ from django_filters.fields import (
     BaseCSVField,
     DateRangeField,
     DateTimeRangeField,
+    IsoDateTimeRangeField,
     Lookup,
     RangeField,
     TimeRangeField
@@ -33,6 +34,7 @@ from django_filters.filters import (
     DateTimeFromToRangeFilter,
     DurationFilter,
     Filter,
+    IsoDateTimeFromToRangeFilter,
     LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
@@ -1150,6 +1152,52 @@ class DateTimeFromToRangeFilterTests(TestCase):
         value = mock.Mock(
             start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
         f = DateTimeFromToRangeFilter(lookup_expr='gte')
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+
+
+class IsoDateTimeFromToRangeFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = IsoDateTimeFromToRangeFilter()
+        field = f.field
+        self.assertIsInstance(field, IsoDateTimeRangeField)
+
+    def test_filtering_range(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(
+            start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
+        f = IsoDateTimeFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(
+            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+
+    def test_filtering_start(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=datetime(2015, 4, 7, 8, 30), stop=None)
+        f = IsoDateTimeFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__gte=datetime(2015, 4, 7, 8, 30))
+
+    def test_filtering_stop(self):
+        qs = mock.Mock(spec=['filter'])
+        value = mock.Mock(start=None, stop=datetime(2015, 9, 6, 11, 45))
+        f = IsoDateTimeFromToRangeFilter()
+        f.filter(qs, value)
+        qs.filter.assert_called_once_with(None__lte=datetime(2015, 9, 6, 11, 45))
+
+    def test_filtering_skipped_with_none_value(self):
+        qs = mock.Mock(spec=['filter'])
+        f = IsoDateTimeFromToRangeFilter()
+        result = f.filter(qs, None)
+        self.assertEqual(qs, result)
+
+    def test_filtering_ignores_lookup_expr(self):
+        qs = mock.Mock()
+        value = mock.Mock(
+            start=datetime(2015, 4, 7, 8, 30), stop=datetime(2015, 9, 6, 11, 45))
+        f = IsoDateTimeFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
