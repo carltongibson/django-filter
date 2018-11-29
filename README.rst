@@ -6,6 +6,9 @@ add dynamic ``QuerySet`` filtering from URL parameters.
 
 Full documentation on `read the docs`_.
 
+.. image:: https://dev.azure.com/noumenal/Django%20Filter/_apis/build/status/Django%20Filter-CI
+    :target:https://dev.azure.com/noumenal/Django%20Filter/_build/latest?definitionId=3
+
 .. image:: https://travis-ci.org/carltongibson/django-filter.svg?branch=master
     :target: https://travis-ci.org/carltongibson/django-filter
 
