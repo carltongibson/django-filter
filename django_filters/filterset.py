@@ -22,6 +22,7 @@ from .filters import (
     DateTimeFilter,
     DurationFilter,
     Filter,
+    LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     NumberFilter,
@@ -344,8 +345,11 @@ class BaseFilterSet(object):
                 if field is not None:
                     filters[filter_name] = cls.filter_for_field(field, field_name, lookup_expr)
 
-        # filter out declared filters
-        undefined = [f for f in undefined if f not in cls.declared_filters]
+        # filter out declared filters where expressions are same as those in declared fields
+        undefined = [f for f in undefined
+                     if f not in cls.declared_filters or
+                     ((type(cls.declared_filters[f]) != LookupChoiceFilter) and
+                     fields[f] != [cls.declared_filters[f].lookup_expr])] # noqa
         if undefined:
             raise TypeError(
                 "'Meta.fields' contains fields that are not defined on this FilterSet: "

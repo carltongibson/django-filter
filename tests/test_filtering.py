@@ -1961,3 +1961,21 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.qs.count(), 2)
+
+    def test_declared_field_additional_lookup_invalid(self):
+        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: account"
+        with self.assertRaises(TypeError) as excinfo:
+            class F(FilterSet):
+                account = CharFilter(field_name='username')
+
+                class Meta:
+                    model = User
+                    fields = {
+                        'account': ['exact', 'contains'],
+                    }
+            F()
+
+        self.assertEqual(
+            str(excinfo.exception),
+            msg
+        )
