@@ -2,6 +2,7 @@ from collections import OrderedDict
 from datetime import timedelta
 
 from django import forms
+from django.contrib.postgres.search import SearchVector
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
@@ -52,6 +53,7 @@ __all__ = [
     'NumericRangeFilter',
     'OrderingFilter',
     'RangeFilter',
+    'SearchVectorFilter',
     'TimeFilter',
     'TimeRangeFilter',
     'TypedChoiceFilter',
@@ -469,6 +471,18 @@ class DateTimeFromToRangeFilter(RangeFilter):
 
 class TimeRangeFilter(RangeFilter):
     field_class = TimeRangeField
+
+
+class SearchVectorFilter(CharFilter):
+
+    def __init__(self, field_name=None, lookup_expr='exact', *, search_fields, **kwargs):
+        super().__init__(field_name, lookup_expr, **kwargs)
+        self.search_fields = search_fields
+
+    def filter(self, qs, value):
+        search_vectors = SearchVector(*self.search_fields)
+        query = {'%s__%s' % ('search_vector', self.lookup_expr): value}
+        return qs.annotate(search_vector=search_vectors).filter(**query)
 
 
 class AllValuesFilter(ChoiceFilter):

@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 
 from django import forms
+from django.contrib.postgres.search import SearchVector
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import ugettext as _
@@ -41,11 +42,13 @@ from django_filters.filters import (
     NumericRangeFilter,
     OrderingFilter,
     RangeFilter,
+    SearchVectorFilter,
     TimeFilter,
     TimeRangeFilter,
     TypedMultipleChoiceFilter,
     UUIDFilter
 )
+
 from tests.models import Book, User
 
 
@@ -1153,6 +1156,28 @@ class DateTimeFromToRangeFilterTests(TestCase):
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
             None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+
+
+class SearchVectorFilterTest(TestCase):
+
+    def setUp(self):
+        from django.db import connection
+        if connection.vendor != 'postgresql':
+            self.skipTest('PostgreSQL backend needed to run this tests.')
+
+    def test_default_field(self):
+        f = SearchVectorFilter(search_fields=['one', 'other'])
+        field = f.field
+        self.assertIsInstance(field, forms.CharField)
+
+    def test_filter(self):
+        search_fields = ['one', 'other']
+        qs = mock.Mock(spec=['annotate', 'annotate.filter()'])
+        f = SearchVectorFilter(search_fields=search_fields)
+        result = f.filter(qs, 'value')
+        qs.annotate.assert_called_once_with(search_vector=SearchVector(*search_fields))
+        qs.annotate().filter.assert_called_once_with(search_vector__exact='value')
+        self.assertNotEqual(qs, result)
 
 
 class TimeRangeFilterTests(TestCase):
