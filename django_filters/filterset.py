@@ -348,7 +348,7 @@ class BaseFilterSet(object):
         # filter out declared filters where expressions are same as those in declared fields
         undefined = [f for f in undefined
                      if f not in cls.declared_filters or
-                     ((type(cls.declared_filters[f]) != LookupChoiceFilter) and
+                     (not isinstance(cls.declared_filters[f], LookupChoiceFilter) and
                      fields[f] != [cls.declared_filters[f].lookup_expr])] # noqa
         if undefined:
             raise TypeError(
