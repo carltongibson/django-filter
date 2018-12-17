@@ -12,6 +12,7 @@ from django_filters.fields import (
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
+    IsoDateTimeRangeField,
     Lookup,
     LookupChoiceField,
     RangeField,
@@ -88,6 +89,22 @@ class DateTimeRangeFieldTests(TestCase):
             f.clean(['2015-01-01 10:30', '2015-01-10 8:45']),
             slice(datetime(2015, 1, 1, 10, 30, 0),
                   datetime(2015, 1, 10, 8, 45, 0)))
+
+
+class IsoDateTimeRangeFieldTests(TestCase):
+
+    def test_field(self):
+        f = IsoDateTimeRangeField()
+        self.assertEqual(len(f.fields), 2)
+
+    @override_settings(USE_TZ=False)
+    def test_clean(self):
+        w = RangeWidget()
+        f = IsoDateTimeRangeField(widget=w)
+        self.assertEqual(
+            f.clean(['2015-01-01T10:30:01.123000+01:00', '2015-01-10T08:45:02.345000+01:00']),
+            slice(datetime(2015, 1, 1, 9, 30, 1, 123000),
+                  datetime(2015, 1, 10, 7, 45, 2, 345000)))
 
 
 class TimeRangeFieldTests(TestCase):

@@ -70,6 +70,16 @@ class DateTimeRangeField(RangeField):
         super().__init__(fields, *args, **kwargs)
 
 
+class IsoDateTimeRangeField(RangeField):
+    widget = DateRangeWidget
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            IsoDateTimeField(),
+            IsoDateTimeField())
+        super().__init__(fields, *args, **kwargs)
+
+
 class TimeRangeField(RangeField):
     widget = DateRangeWidget
 
