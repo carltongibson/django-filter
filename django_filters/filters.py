@@ -18,6 +18,7 @@ from .fields import (
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
+    IsoDateTimeRangeField,
     LookupChoiceField,
     ModelChoiceField,
     ModelMultipleChoiceField,
@@ -44,6 +45,7 @@ __all__ = [
     'DurationFilter',
     'Filter',
     'IsoDateTimeFilter',
+    'IsoDateTimeFromToRangeFilter',
     'LookupChoiceFilter',
     'ModelChoiceFilter',
     'ModelMultipleChoiceFilter',
@@ -271,7 +273,7 @@ class DateTimeFilter(Filter):
 
 class IsoDateTimeFilter(DateTimeFilter):
     """
-    Uses IsoDateTimeField to support filtering on ISO 8601 formated datetimes.
+    Uses IsoDateTimeField to support filtering on ISO 8601 formatted datetimes.
 
     For context see:
 
@@ -465,6 +467,10 @@ class DateFromToRangeFilter(RangeFilter):
 
 class DateTimeFromToRangeFilter(RangeFilter):
     field_class = DateTimeRangeField
+
+
+class IsoDateTimeFromToRangeFilter(RangeFilter):
+    field_class = IsoDateTimeRangeField
 
 
 class TimeRangeFilter(RangeFilter):
