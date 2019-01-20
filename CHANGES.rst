@@ -1,3 +1,17 @@
+Version 2.1 (2019-1-20)
+-----------------------
+
+* Fixed a regression in ``FilterView`` introduced in 2.0. An empty ``QuerySet`` was
+  incorrectly used whenever the FilterSet was unbound (i.e. when there were
+  no GET parameters).  The correct, pre-2.0 behaviour is now restored.
+
+  A workaround was to set ``strict=False`` on the ``FilterSet``. This is no
+  longer necessary, so you may restore `strict` behaviour as desired.
+
+* Added ``IsoDateTimeFromToRangeFilter``. Allows From-To filtering using
+  ISO-8601 formatted dates.
+
+
 Version 2.0 (2018-7-13)
 -----------------------
 
