@@ -2,7 +2,6 @@ import warnings
 
 from django.template import loader
 from django.utils.deprecation import RenameMethodsBase
-from django_filters.filters import BaseInFilter
 
 from . import filters, filterset
 from .. import compat, utils
