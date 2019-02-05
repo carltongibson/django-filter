@@ -624,9 +624,14 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
     def get_ordering_value(self, param):
         descending = param.startswith('-')
         param = param[1:] if descending else param
-        field_name = self.param_map.get(param, param)
+        field_obj = self.param_map.get(param, param)
 
-        return "-%s" % field_name if descending else field_name
+        if isinstance(field_obj, str):
+            return "-%s" % field_obj if descending else field_obj
+        elif hasattr(field_obj, 'resolve_expression'):
+            return field_obj.desc() if descending else field_obj.asc()
+
+        raise ValueError('Unsupported type for field `%s`' % field_obj)
 
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
