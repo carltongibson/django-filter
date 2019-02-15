@@ -117,6 +117,17 @@ example, ``RangeWidget`` now has ``_min`` and ``_max`` suffixes instead of
 ``_0`` and ``_1``.
 
 
+Filters like ``RangeFilter, DateRangeFilter, DateTimeFromToRangeFilter...`` (`#770`__)
+--------------------------------------------------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/770
+
+As they depend on ``MultiWidget``, they need to be adjusted. In 1.0 release
+ parameters were provided using ``_0`` and ``_1`` as suffix``. For example,
+ a parameter ``creation_date`` using``DateRangeFilter`` will expect
+ ``creation_date_after`` and ``creation_date_before`` instead of
+ ``creation_date_0`` and ``creation_date_1``.
+
+
 ----------------
 Migrating to 1.0
 ----------------
