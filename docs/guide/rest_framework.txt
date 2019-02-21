@@ -30,7 +30,7 @@ Your view class will also need to add ``DjangoFilterBackend`` to the ``filter_ba
         queryset = Product.objects.all()
         serializer_class = ProductSerializer
         filter_backends = (filters.DjangoFilterBackend,)
-        filterset_fields = ('category', 'in_stock')
+        filter_fields = ('category', 'in_stock')
 
 If you want to use the django-filter backend by default, add it to the ``DEFAULT_FILTER_BACKENDS`` setting.
 
@@ -95,7 +95,7 @@ You may bypass creating a ``FilterSet`` by instead adding ``filterset_fields`` t
     class ProductList(generics.ListAPIView):
         queryset = Product.objects.all()
         filter_backends = (filters.DjangoFilterBackend,)
-        filterset_fields = ('category', 'in_stock')
+        filter_fields = ('category', 'in_stock')
 
 
     # Equivalent FilterSet:
@@ -105,7 +105,7 @@ You may bypass creating a ``FilterSet`` by instead adding ``filterset_fields`` t
             fields = ('category', 'in_stock')
 
 
-Note that using ``filterset_fields`` and ``filterset_class`` together is not
+Note that using ``filter_fields`` and ``filter_class`` together is not
 supported.
 
 
