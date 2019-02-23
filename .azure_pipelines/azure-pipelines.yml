@@ -9,6 +9,7 @@ strategy:
     #   PYTHON_VERSION: '3.4'
     PY35:
       PYTHON_VERSION: '3.5'
+      TOXENV: django111, django20, django21
     PY36:
       PYTHON_VERSION: '3.6'
     PY36_isort:
@@ -38,7 +39,7 @@ steps:
     pip --version
     tox --skip-missing-interpreters true
   displayName: Run tox
-  
+
 - script: |
     coverage combine
     coverage report -m
