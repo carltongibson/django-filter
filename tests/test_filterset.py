@@ -851,7 +851,7 @@ class MiscFilterSetTests(TestCase):
 
     def test_no__getitem__(self):
         # The DTL processes variable lookups by the following rules:
-        # https://docs.djangoproject.com/en/1.9/ref/templates/language/#variables
+        # https://docs.djangoproject.com/en/stable/ref/templates/language/#variables
         # A __getitem__ implementation precedes normal attribute access, and in
         # the case of #58, will force the queryset to evaluate when it should
         # not (eg, when rendering a blank form).

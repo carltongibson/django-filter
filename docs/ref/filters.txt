@@ -13,7 +13,7 @@ The following are the core arguments that apply to all filters. Note that they
 are joined to construct the complete `lookup expression`_ that is the left hand
 side of the ORM ``.filter()`` call.
 
-.. _`lookup expression`: https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
+.. _`lookup expression`: https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
 
 ``field_name``
 ~~~~~~~~~~~~~~
@@ -31,7 +31,7 @@ The `field lookup`_ that should be performed in the filter call. Defaults to
 are joined by the ORM lookup separator (``__``). e.g., filter a datetime by its
 year part ``year__gt``.
 
-.. _`Field lookup`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+.. _`Field lookup`: https://docs.djangoproject.com/en/stable/ref/models/querysets/#field-lookups
 
 .. _keyword-only-arguments:
 
@@ -433,7 +433,7 @@ widget used is the ``RangeField``.
 Regular field lookups are available in addition to several containment lookups, including
 ``overlap``, ``contains``, and ``contained_by``. More details in the Django `docs`__.
 
-__ https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields
+__ https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#querying-range-fields
 
 If the lower limit value is provided, the filter automatically defaults to ``startswith``
 as the lookup and ``endswith`` if only the upper limit value is provided.

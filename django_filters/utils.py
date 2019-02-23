@@ -184,7 +184,7 @@ def resolve_field(model_field, lookup_expr):
     This method is based on django.db.models.sql.query.Query.build_lookup
 
     For more info on the lookup API:
-    https://docs.djangoproject.com/en/1.9/ref/models/lookups/
+    https://docs.djangoproject.com/en/stable/ref/models/lookups/
 
     """
     query = model_field.model._default_manager.all().query

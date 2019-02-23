@@ -25,7 +25,7 @@ based on the underlying model field's type. This option must be combined with
 either the ``fields`` or ``exclude`` option, which is the same requirement for
 Django's ``ModelForm`` class, detailed `here`__.
 
-__ https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#selecting-the-fields-to-use
+__ https://docs.djangoproject.com/en/stable/topics/forms/modelforms/#selecting-the-fields-to-use
 
 .. code-block:: python
 
@@ -69,7 +69,7 @@ in ``fields``. The dictionary syntax will create a filter for each lookup
 expression declared for its corresponding model field. These expressions may
 include both transforms and lookups, as detailed in the `lookup reference`__.
 
-__ https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
+__ https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
 
 
 .. _exclude:

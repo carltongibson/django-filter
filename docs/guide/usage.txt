@@ -75,14 +75,14 @@ There are two main arguments for filters:
   syntax can again be used in order to support lookup transforms.
   ex, ``year__gte``.
 
-.. _`field lookup`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+.. _`field lookup`: https://docs.djangoproject.com/en/stable/ref/models/querysets/#field-lookups
 
 Together, the field ``field_name`` and ``lookup_expr`` represent a complete Django
 lookup expression. A detailed explanation of lookup expressions is provided in
 Django's `lookup reference`_. django-filter supports expressions containing
 both transforms and a final lookup.
 
-.. _`lookup reference`: https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
+.. _`lookup reference`: https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
 
 
 Generating filters with Meta.fields
