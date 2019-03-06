@@ -314,6 +314,13 @@ You must provide either a ``model`` or ``filterset_class`` argument, similar to
 If you provide a ``model`` optionally you can set ``filterset_fields`` to specify a list or a tuple of
 the fields that you want to include for the automatic construction of the filterset class.
 
+
+.. note::
+
+    The current class behavior implies strict filtering. If you want to get the original queryset
+    with no filters, use ``strict = False``.
+
+
 You must provide a template at ``<app>/<model>_filter.html`` which gets the
 context parameter ``filter``.  Additionally, the context will contain
 ``object_list`` which holds the filtered queryset.
