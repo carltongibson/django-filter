@@ -253,10 +253,13 @@ class MultipleChoiceFilter(Filter):
         return qs.distinct() if self.distinct else qs
 
     def get_filter_predicate(self, v):
+        name = self.field_name
+        if name and self.lookup_expr != 'exact':
+            name = LOOKUP_SEP.join([name, self.lookup_expr])
         try:
-            return {self.field_name: getattr(v, self.field.to_field_name)}
+            return {name: getattr(v, self.field.to_field_name)}
         except (AttributeError, TypeError):
-            return {self.field_name: v}
+            return {name: v}
 
 
 class TypedMultipleChoiceFilter(MultipleChoiceFilter):

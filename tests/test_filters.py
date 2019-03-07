@@ -419,6 +419,21 @@ class MultipleChoiceFilterTests(TestCase):
             qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
             qs.exclude.return_value.distinct.assert_called_once_with()
 
+    def test_filtering_with_lookup_expr(self):
+        qs = mock.Mock(spec=['filter'])
+        f = MultipleChoiceFilter(field_name='somefield', lookup_expr='icontains')
+        with mock.patch('django_filters.filters.Q') as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ['value'])
+
+            self.assertEqual(mockQclass.call_args_list,
+                             [mock.call(), mock.call(somefield__icontains='value')])
+            mockQ1.__ior__.assert_called_once_with(mockQ2)
+            qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
+            qs.filter.return_value.distinct.assert_called_once_with()
+
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
         f = MultipleChoiceFilter(field_name='somefield', required=True)
