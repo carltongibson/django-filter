@@ -1,8 +1,8 @@
 # flake8: noqa
 import pkgutil
 
-from .filterset import FilterSet
 from .filters import *
+from .filterset import FilterSet
 
 # We make the `rest_framework` module available without an additional import.
 #   If DRF is not installed, no-op.

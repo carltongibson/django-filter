@@ -3,8 +3,8 @@ import warnings
 from django.template import loader
 from django.utils.deprecation import RenameMethodsBase
 
-from . import filters, filterset
 from .. import compat, utils
+from . import filters, filterset
 
 
 # TODO: remove metaclass in 2.1
