@@ -3,8 +3,6 @@
 build/
 dist/
 docs/_build
-.idea/
-venv/
 .python-version
 .tox
 .coverage
