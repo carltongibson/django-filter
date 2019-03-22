@@ -429,10 +429,11 @@ class FilterSetClassCreationTests(TestCase):
             username = CharFilter()
 
             class Meta:
-                model = Book
-                fields = {'id': ['exact'],
-                          'username': ['exact'],
-                          }
+                model = User
+                fields = {
+                    'id': ['exact'],
+                    'username': ['exact'],
+                }
 
         self.assertEqual(len(F.declared_filters), 1)
         self.assertEqual(len(F.base_filters), 2)
@@ -440,8 +441,11 @@ class FilterSetClassCreationTests(TestCase):
         expected_list = ['id', 'username']
         self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
 
-    def test_meta_fields_containing_unknown(self):
-        with self.assertRaises(TypeError) as excinfo:
+    def test_meta_fields_list_containing_unknown_fields(self):
+        msg = ("'Meta.fields' must not contain non-model field names: "
+               "other, another")
+
+        with self.assertRaisesMessage(TypeError, msg):
             class F(FilterSet):
                 username = CharFilter()
 
@@ -449,35 +453,46 @@ class FilterSetClassCreationTests(TestCase):
                     model = Book
                     fields = ('username', 'price', 'other', 'another')
 
-        self.assertEqual(
-            str(excinfo.exception),
-            "'Meta.fields' contains fields that are not defined on this FilterSet: "
-            "other, another"
-        )
+    def test_meta_fields_dict_containing_unknown_fields(self):
+        msg = "'Meta.fields' must not contain non-model field names: other"
 
-    def test_meta_fields_dictionary_containing_unknown(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesMessage(TypeError, msg):
             class F(FilterSet):
 
                 class Meta:
                     model = Book
-                    fields = {'id': ['exact'],
-                              'title': ['exact'],
-                              'other': ['exact'],
-                              }
+                    fields = {
+                        'id': ['exact'],
+                        'title': ['exact'],
+                        'other': ['exact'],
+                    }
+
+    def test_meta_fields_dict_containing_declarative_alias(self):
+        # Meta.fields dict cannot generate lookups for an *aliased* field
+        msg = "'Meta.fields' must not contain non-model field names: other"
+
+        with self.assertRaisesMessage(TypeError, msg):
+            class F(FilterSet):
+                other = CharFilter()
+
+                class Meta:
+                    model = Book
+                    fields = {
+                        'id': ['exact'],
+                        'title': ['exact'],
+                        'other': ['exact'],
+                    }
 
     def test_meta_fields_invalid_lookup(self):
         # We want to ensure that non existent lookups (or just simple misspellings)
         # throw a useful exception containg the field and lookup expr.
-        with self.assertRaises(FieldLookupError) as context:
+        msg = "Unsupported lookup 'flub' for field 'tests.User.username'."
+
+        with self.assertRaisesMessage(FieldLookupError, msg):
             class F(FilterSet):
                 class Meta:
                     model = User
                     fields = {'username': ['flub']}
-
-        exc = str(context.exception)
-        self.assertIn('tests.User.username', exc)
-        self.assertIn('flub', exc)
 
     def test_meta_exlude_with_declared_and_declared_wins(self):
         class F(FilterSet):

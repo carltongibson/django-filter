@@ -121,7 +121,7 @@ class GetFilterClassTests(TestCase):
         view.filterset_fields = ['non_existent']
         queryset = FilterableItem.objects.all()
 
-        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
+        msg = "'Meta.fields' must not contain non-model field names: non_existent"
         with self.assertRaisesMessage(TypeError, msg):
             backend.get_filterset_class(view, queryset)
 
@@ -173,7 +173,7 @@ class GetSchemaFieldsTests(TestCase):
 
         backend = DjangoFilterBackend()
 
-        msg = "'Meta.fields' contains fields that are not defined on this FilterSet: non_existent"
+        msg = "'Meta.fields' must not contain non-model field names: non_existent"
         with self.assertRaisesMessage(TypeError, msg):
             backend.get_schema_fields(View())
 
