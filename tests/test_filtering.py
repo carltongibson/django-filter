@@ -978,6 +978,7 @@ class DateTimeFromToRangeFilterTests(TestCase):
         self.assertEqual(len(results.qs), 2)
 
 
+@unittest.expectedFailure
 class IsoDateTimeFromToRangeFilterTests(TestCase):
 
     def test_filtering(self):
