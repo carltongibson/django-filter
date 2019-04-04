@@ -280,7 +280,7 @@ And lastly we need a template::
     {% extends "base.html" %}
 
     {% block content %}
-        <form action="" method="get">
+        <form method="get">
             {{ filter.form.as_p }}
             <input type="submit" />
         </form>
