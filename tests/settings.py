@@ -25,6 +25,8 @@ ROOT_URLCONF = 'tests.urls'
 
 USE_TZ = True
 
+TIME_ZONE = 'UTC'
+
 SECRET_KEY = 'foobar'
 
 TEMPLATES = [{
