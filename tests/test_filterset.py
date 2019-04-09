@@ -781,12 +781,10 @@ class FilterMethodTests(TestCase):
 
     def test_parent_unresolvable(self):
         f = Filter(method='filter_f')
-        with self.assertRaises(AssertionError) as w:
-            f.filter(User.objects.all(), 0)
 
-        self.assertIn("'None'", str(w.exception))
-        self.assertIn('parent', str(w.exception))
-        self.assertIn('filter_f', str(w.exception))
+        msg = "Filter 'None' must have a parent FilterSet to find '.filter_f()'"
+        with self.assertRaisesMessage(AssertionError, msg):
+            f.filter(User.objects.all(), 0)
 
     def test_method_self_is_parent(self):
         # Ensure the method isn't 're-parented' on the `FilterMethod` helper class.
