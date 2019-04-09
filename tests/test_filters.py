@@ -51,13 +51,8 @@ from tests.models import Book, User
 
 
 class ModuleImportTests(TestCase):
-    def is_filter(self, name, value):
-        return (
-            isinstance(value, type) and issubclass(value, Filter)
-        )
 
     def test_imports(self):
-        # msg = "Expected `filters.%s` to be imported in `filters.__all__`"
         filter_classes = [
             key for key, value
             in inspect.getmembers(filters)
@@ -68,8 +63,8 @@ class ModuleImportTests(TestCase):
         self.assertIn('Filter', filter_classes)
         self.assertIn('BooleanFilter', filter_classes)
 
-        for f in filter_classes:
-            self.assertIn(f, filters.__all__)
+        # Ensure all filter subclasses are included in filters.__all__
+        self.assertSetEqual(set(filter_classes), set(filters.__all__))
 
 
 class FilterTests(TestCase):
