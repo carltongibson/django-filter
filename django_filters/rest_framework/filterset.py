@@ -38,3 +38,9 @@ class FilterSet(filterset.FilterSet):
             form.helper = helper
 
         return form
+    
+    @classmethod
+    def filter_for_field(cls, field, field_name, lookup_expr='exact'):
+        filter_class = super().filter_for_field(field, field_name, lookup_expr)
+        filter_class.extra['help_text'] = field.help_text
+        return filter_class
