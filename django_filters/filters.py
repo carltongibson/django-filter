@@ -7,7 +7,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .conf import settings
 from .constants import EMPTY_VALUES

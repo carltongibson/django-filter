@@ -6,10 +6,10 @@ from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.utils import flatatt
 from django.utils.datastructures import MultiValueDict
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 class LinkWidget(forms.Widget):
@@ -37,7 +37,7 @@ class LinkWidget(forms.Widget):
         return mark_safe('\n'.join(output))
 
     def render_options(self, choices, selected_choices, name):
-        selected_choices = set(force_text(v) for v in selected_choices)
+        selected_choices = set(force_str(v) for v in selected_choices)
         output = []
         for option_value, option_label in chain(self.choices, choices):
             if isinstance(option_label, (list, tuple)):
@@ -52,7 +52,7 @@ class LinkWidget(forms.Widget):
 
     def render_option(self, name, selected_choices,
                       option_value, option_label):
-        option_value = force_text(option_value)
+        option_value = force_str(option_value)
         if option_label == BLANK_CHOICE_DASH[0][1]:
             option_label = _("All")
         data = self.data.copy()
@@ -65,7 +65,7 @@ class LinkWidget(forms.Widget):
         return self.option_string() % {
             'attrs': selected and ' class="selected"' or '',
             'query_string': url,
-            'label': force_text(option_label)
+            'label': force_str(option_label)
         }
 
     def option_string(self):
@@ -213,7 +213,7 @@ class BaseCSVWidget(forms.Widget):
         # if we have multiple values, we need to force render as a text input
         # (otherwise, the additional values are lost)
         surrogate = forms.TextInput()
-        value = [force_text(surrogate.format_value(v)) for v in value]
+        value = [force_str(surrogate.format_value(v)) for v in value]
         value = ','.join(list(value))
 
         return surrogate.render(name, value, attrs, renderer=renderer)
