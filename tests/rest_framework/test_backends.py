@@ -229,6 +229,15 @@ class GetSchemaFieldsTests(TestCase):
         self.assertEqual(fields, ['text', 'decimal', 'date', 'f'])
 
 
+class GetSchemaOperationParametersTests(TestCase):
+    def test_get_operation_parameters_with_filterset_fields_list(self):
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_operation_parameters(FilterFieldsRootView())
+        fields = [f.name for f in fields]
+
+        self.assertEqual(fields, [])
+
+
 class TemplateTests(TestCase):
     def test_backend_output(self):
         """

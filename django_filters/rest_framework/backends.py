@@ -138,3 +138,6 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 schema=self.get_coreschema_field(field)
             ) for field_name, field in filterset_class.base_filters.items()
         ]
+
+    def get_schema_operation_parameters(self, view):
+        return []
