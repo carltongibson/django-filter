@@ -140,4 +140,23 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         ]
 
     def get_schema_operation_parameters(self, view):
-        return []
+        try:
+            queryset = view.get_queryset()
+        except Exception:
+            queryset = None
+            warnings.warn(
+                "{} is not compatible with schema generation".format(view.__class__)
+            )
+
+        filterset_class = self.get_filterset_class(view, queryset)
+        return [] if not filterset_class else [
+            ({
+                'name': field_name,
+                'required': field.extra['required'],
+                'in': 'query',
+                'description': field.label if field.label is not None else field_name,
+                'schema': {
+                    'type': 'string',
+                },
+            }) for field_name, field in filterset_class.base_filters.items()
+        ]

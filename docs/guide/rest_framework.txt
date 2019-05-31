@@ -148,10 +148,10 @@ You can override these methods on a case-by-case basis for each view, creating u
                 'author': self.get_author(),
             }
 
-Schema Generation with Core API
--------------------------------
+Schema Generation with Core API and Open API
+--------------------------------------------
 
-The backend class integrates with DRF's schema generation by implementing ``get_schema_fields()``. This is automatically enabled when Core API is installed. Schema generation usually functions seamlessly, however the implementation does expect to invoke the view's ``get_queryset()`` method. There is a caveat in that views are artificially constructed during schema generation, so the ``args`` and ``kwargs`` attributes will be empty. If you depend on arguments parsed from the URL, you will need to handle their absence in ``get_queryset()``.
+The backend class integrates with DRF's schema generation by implementing ``get_schema_fields()`` and ``get_schema_operation_parameters()``. ``get_schema_fields()`` is automatically enabled when Core API is installed. ``get_schema_operation_parameters()`` is always enabled for Open API (new since DRF 3.9). Schema generation usually functions seamlessly, however the implementation does expect to invoke the view's ``get_queryset()`` method. There is a caveat in that views are artificially constructed during schema generation, so the ``args`` and ``kwargs`` attributes will be empty. If you depend on arguments parsed from the URL, you will need to handle their absence in ``get_queryset()``.
 
 For example, your get queryset method may look like this:
 

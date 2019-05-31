@@ -233,9 +233,9 @@ class GetSchemaOperationParametersTests(TestCase):
     def test_get_operation_parameters_with_filterset_fields_list(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_operation_parameters(FilterFieldsRootView())
-        fields = [f.name for f in fields]
+        fields = [f['name'] for f in fields]
 
-        self.assertEqual(fields, [])
+        self.assertEqual(fields, ['decimal', 'date'])
 
 
 class TemplateTests(TestCase):
