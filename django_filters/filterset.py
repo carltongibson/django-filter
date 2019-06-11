@@ -220,8 +220,11 @@ class BaseFilterSet(object):
         This method should be overridden if additional filtering needs to be
         applied to the queryset before it is cached.
         """
+        meta = getattr(self, 'Meta', None)
+        logic_fields = getattr(meta, 'logic_fields', [])
+
         for name, value in self.form.cleaned_data.items():
-            if not hasattr(self.Meta, 'logic_fields') or name not in self.Meta.logic_fields:
+            if name not in logic_fields:
                 queryset = self.filters[name].filter(queryset, value)
                 assert isinstance(queryset, models.QuerySet), \
                     "Expected '%s.%s' to return a QuerySet, but got a %s instead." \

@@ -861,3 +861,18 @@ class MiscFilterSetTests(TestCase):
         # The FilterSet should not proxy .qs methods - just access .qs directly
         self.assertFalse(hasattr(FilterSet, '__len__'))
         self.assertFalse(hasattr(FilterSet, '__iter__'))
+
+
+class LogicFieldsFilterSetTests(TestCase):
+    class F(FilterSet):
+        invalid = CharFilter(method=lambda *args: None)
+
+        class Meta:
+            model = User
+            fields = ['username', 'invalid']
+            logic_fields = ['invalid']
+
+    def test_logic_field(self):
+        request = MockQuerySet()
+
+        self.F({'f': 'foo'}, request=request, queryset=User.objects.all()).qs
