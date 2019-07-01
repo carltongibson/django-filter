@@ -41,6 +41,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         """
         filterset_class = getattr(view, 'filterset_class', None)
         filterset_fields = getattr(view, 'filterset_fields', None)
+        lookup_fields = getattr(view, 'lookup_fields', None)
 
         # TODO: remove assertion in 2.1
         if filterset_class is None and hasattr(view, 'filter_class'):
@@ -69,6 +70,17 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
         if filterset_fields and queryset is not None:
             MetaBase = getattr(self.filterset_base, 'Meta', object)
+
+            # Update lookup of specified fields in filterset_fields
+            if lookup_fields:
+                if not isinstance(filterset_fields, dict):
+                    filterset_fields = {f: ['exact'] for f in filterset_fields}
+                if isinstance(lookup_fields, dict):
+                    for k, v in lookup_fields.items():
+                        if isinstance(v, str):
+                            v = [v]
+                        if k in filterset_fields:
+                            filterset_fields[k] = v
 
             class AutoFilterSet(self.filterset_base):
                 class Meta(MetaBase):

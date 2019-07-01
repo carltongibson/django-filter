@@ -102,6 +102,16 @@ class GetFilterClassTests(TestCase):
         filterset_class = backend.get_filterset_class(view, queryset)
         self.assertEqual(filterset_class._meta.fields, view.filterset_fields)
 
+    def test_lookup_fields(self):
+        backend = DjangoFilterBackend()
+        view = FilterableItemView()
+        view.filterset_fields = ['text', 'decimal', 'date']
+        view.lookup_fields = {'date': ['gt', 'lt']}
+        queryset = FilterableItem.objects.all()
+
+        filterset_class = backend.get_filterset_class(view, queryset)
+        self.assertEqual(filterset_class._meta.fields['date'], view.lookup_fields['date'])
+
     def test_filterset_fields_malformed(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
