@@ -281,8 +281,8 @@ class IsoDateTimeFilter(DateTimeFilter):
     For context see:
 
     * https://code.djangoproject.com/ticket/23448
-    * https://github.com/tomchristie/django-rest-framework/issues/1338
-    * https://github.com/alex/django-filter/pull/264
+    * https://github.com/encode/django-rest-framework/issues/1338
+    * https://github.com/carltongibson/django-filter/pull/264
     """
     field_class = IsoDateTimeField
 
