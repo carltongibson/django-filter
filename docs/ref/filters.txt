@@ -108,6 +108,11 @@ span relationships. Defaults to ``False``.
 A boolean that specifies whether the Filter should use ``filter`` or ``exclude``
 on the queryset. Defaults to ``False``.
 
+``required``
+~~~~~~~~~~~~
+
+A boolean that specifies whether the Filter is required or not. Defaults to ``False``.
+
 
 ``**kwargs``
 ~~~~~~~~~~~~
