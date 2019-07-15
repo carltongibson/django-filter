@@ -3,6 +3,7 @@ import warnings
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
+from django.utils import html
 
 from django_filters.filterset import FilterSet, filterset_factory
 from django_filters.views import FilterView
@@ -27,13 +28,13 @@ class GenericClassBasedViewTests(GenericViewTestCase):
 
     def test_view(self):
         response = self.client.get(self.base_url)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
-            self.assertContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, html.escape(b))
 
     def test_view_filtering_on_title(self):
         response = self.client.get(self.base_url + '?title=Snowcrash')
-        for b in ['Ender&#39;s Game', 'Rainbow Six']:
-            self.assertNotContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six']:
+            self.assertNotContains(response, html.escape(b))
         self.assertContains(response, 'Snowcrash')
 
     def test_view_with_filterset_not_model(self):
@@ -43,8 +44,8 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         view = FilterView.as_view(filterset_class=filterset)
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
-            self.assertContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, html.escape(b))
 
     def test_view_with_model_no_filterset(self):
         factory = RequestFactory()
@@ -52,8 +53,8 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         view = FilterView.as_view(model=Book)
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
-            self.assertContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, html.escape(b))
 
     def test_view_with_model_and_fields_no_filterset(self):
         factory = RequestFactory()
@@ -63,15 +64,15 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         # filtering only by price
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
-            self.assertContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, html.escape(b))
 
         # not filtering by title
         request = factory.get(self.base_url + '?title=Snowcrash')
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
-            self.assertContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, html.escape(b))
 
     def test_view_with_strict_errors(self):
         factory = RequestFactory()
@@ -142,14 +143,14 @@ class GenericFunctionalViewTests(GenericViewTestCase):
 
     def test_view(self):
         response = self.client.get(self.base_url)
-        for b in ['Ender&#39;s Game', 'Rainbow Six', 'Snowcrash']:
-            self.assertContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six', 'Snowcrash']:
+            self.assertContains(response, html.escape(b))
         # extra context
         self.assertEqual(response.context_data['foo'], 'bar')
         self.assertEqual(response.context_data['bar'], 'foo')
 
     def test_view_filtering_on_price(self):
         response = self.client.get(self.base_url + '?title=Snowcrash')
-        for b in ['Ender&#39;s Game', 'Rainbow Six']:
-            self.assertNotContains(response, b)
+        for b in ["Ender's Game", 'Rainbow Six']:
+            self.assertNotContains(response, html.escape(b))
         self.assertContains(response, 'Snowcrash')
