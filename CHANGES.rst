@@ -1,3 +1,8 @@
+Version 2.x (unreleased)
+------------------------
+
+* Added ``DjangoFilterBackend.get_schema_operation_parameters()`` for DRF 3.10+ OpenAPI schema generation.
+
 Version 2.1 (2019-1-20)
 -----------------------
 
