@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import inspect
 import mock
 from collections import OrderedDict
@@ -7,7 +6,7 @@ from datetime import date, datetime, time, timedelta
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import translation
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from django_filters import filters, widgets
 from django_filters.fields import (

@@ -1,6 +1,6 @@
 from django.conf import settings as dj_settings
 from django.core.signals import setting_changed
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .utils import deprecate
 

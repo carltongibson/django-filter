@@ -10,9 +10,9 @@ from django.db.models.expressions import Expression
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, RelatedField
 from django.utils import timezone
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.text import capfirst
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from .exceptions import FieldLookupError
 
@@ -253,7 +253,7 @@ def verbose_field_name(model, field_name):
             else:
                 return '[invalid name]'
         else:
-            names.append(force_text(part.verbose_name))
+            names.append(force_str(part.verbose_name))
 
     return ' '.join(names)
 
@@ -278,7 +278,7 @@ def verbose_lookup_expr(lookup_expr):
 
     VERBOSE_LOOKUPS = app_settings.VERBOSE_LOOKUPS or {}
     lookups = [
-        force_text(VERBOSE_LOOKUPS.get(lookup, _(lookup)))
+        force_str(VERBOSE_LOOKUPS.get(lookup, _(lookup)))
         for lookup in lookup_expr.split(LOOKUP_SEP)
     ]
 
@@ -302,7 +302,7 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
     if isinstance(lookup_expr, str):
         verbose_expression += [verbose_lookup_expr(lookup_expr)]
 
-    verbose_expression = [force_text(part) for part in verbose_expression if part]
+    verbose_expression = [force_str(part) for part in verbose_expression if part]
     verbose_expression = capfirst(' '.join(verbose_expression))
 
     return verbose_expression

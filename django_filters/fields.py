@@ -4,7 +4,7 @@ from datetime import datetime, time
 from django import forms
 from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_str
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .conf import settings
 from .constants import EMPTY_VALUES
