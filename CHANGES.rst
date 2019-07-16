@@ -1,7 +1,11 @@
-Version 2.x (unreleased)
-------------------------
+Version 2.2 (2019-7-16)
+-----------------------
 
-* Added ``DjangoFilterBackend.get_schema_operation_parameters()`` for DRF 3.10+ OpenAPI schema generation.
+* Added ``DjangoFilterBackend.get_schema_operation_parameters()`` for DRF 3.10+
+  OpenAPI schema generation. (#1086)
+* Added ``lookup_expr`` to ``MultipleChoiceFilter`` (#1054)
+* Dropped support for EOL Python 3.4
+
 
 Version 2.1 (2019-1-20)
 -----------------------
