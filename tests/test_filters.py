@@ -1461,6 +1461,24 @@ class OrderingFilterTests(TestCase):
         result = f.filter(qs, None)
         self.assertEqual(qs, result)
 
+    def test_base_ordering(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter(base_ordering=['b'])
+        f.filter(qs, ['a'])
+        qs.order_by.assert_called_once_with('a', 'b')
+
+    def test_base_ordering_no_duplicate(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter(base_ordering=['b'])
+        f.filter(qs, ['a', 'b'])
+        qs.order_by.assert_called_once_with('a', 'b')
+
+    def test_base_ordering_no_duplicate_descending(self):
+        qs = mock.Mock(spec=['order_by'])
+        f = OrderingFilter(base_ordering=['b'])
+        f.filter(qs, ['a', '-b'])
+        qs.order_by.assert_called_once_with('a', '-b')
+
     def test_choices_unaltered(self):
         # provided 'choices' should not be altered when 'fields' is present
         f = OrderingFilter(

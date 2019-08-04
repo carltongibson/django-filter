@@ -669,6 +669,13 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
       of {field name: human readable label}. Keep in mind that the key is the
       field name, and not the exposed parameter name.
 
+    * ``base_ordering`` is an optional argument that allows you to specify
+      a set of fields that will be given to ``order_by()`` after any provided
+      ordering options. This is useful if you filter by a non-unique field
+      but want an unique field to serve as a base. Django guarantees a
+      consistent order only for querysets with at least one unique ordering
+      field. Consistent ordering is important for things like pagination.
+
     Additionally, you can just provide your own ``choices`` if you require
     explicit control over the exposed options. For example, when you might
     want to disable descending sort options.
@@ -684,12 +691,14 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         """
         ``fields`` may be either a mapping or an iterable.
         ``field_labels`` must be a map of field names to display labels
+        ``base_ordering`` must be an iterable.
         """
         fields = kwargs.pop('fields', {})
         fields = self.normalize_fields(fields)
         field_labels = kwargs.pop('field_labels', {})
 
         self.param_map = {v: k for k, v in fields.items()}
+        self.base_ordering = kwargs.pop('base_ordering', ())
 
         if 'choices' not in kwargs:
             kwargs['choices'] = self.build_choices(fields, field_labels)
@@ -706,11 +715,29 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
 
         return "-%s" % field_name if descending else field_name
 
+    def get_base_ordering(self, ordering):
+        """
+        Get base ordering for order_by call.
+
+        Removes any values already in ordering (ascending or descending).
+        """
+        base_ordering = []
+        for field in self.base_ordering:
+            descending = field.startswith('-')
+            field_ascending = field[1:] if descending else field
+            field_descending = field if descending else ('-%s' % field)
+            if (field_ascending not in ordering) and (field_descending not in ordering):
+                base_ordering.append(field)
+        return base_ordering
+
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
             return qs
 
         ordering = [self.get_ordering_value(param) for param in value]
+        if self.base_ordering:
+            base_ordering = self.get_base_ordering(ordering)
+            return qs.order_by(*ordering, *base_ordering)
         return qs.order_by(*ordering)
 
     @classmethod
