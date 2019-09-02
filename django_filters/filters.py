@@ -844,7 +844,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             return descriptor
 
         if isinstance(descriptor, collections.Sequence):
-            # A sequence of model field names
+            # A sequence of model field names or Django expressions
             return {
                 "exprs": [F(field) if isinstance(field, str) else field for field in descriptor]
             }
