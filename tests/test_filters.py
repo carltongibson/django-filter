@@ -2,8 +2,10 @@ import inspect
 import mock
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
+import warnings
 
 from django import forms
+from django.db.models.expressions import F, OrderBy
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -1433,19 +1435,19 @@ class OrderingFilterTests(TestCase):
         qs = mock.Mock(spec=['order_by'])
         f = OrderingFilter()
         f.filter(qs, ['a', 'b'])
-        qs.order_by.assert_called_once_with('a', 'b')
+        qs.order_by.assert_called_once_with(F('a'), F('b'))
 
     def test_filtering_descending(self):
         qs = mock.Mock(spec=['order_by'])
         f = OrderingFilter()
         f.filter(qs, ['-a'])
-        qs.order_by.assert_called_once_with('-a')
+        qs.order_by.assert_called_once_with(OrderBy(F('a'), descending=True))
 
     def test_filtering_with_fields(self):
         qs = mock.Mock(spec=['order_by'])
         f = OrderingFilter(fields={'a': 'b'})
         f.filter(qs, ['b', '-b'])
-        qs.order_by.assert_called_once_with('a', '-a')
+        qs.order_by.assert_called_once_with(F('a'), OrderBy(F('a'), descending=True))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['order_by'])
@@ -1580,3 +1582,178 @@ class OrderingFilterTests(TestCase):
         # regression test for #756 - the usual CSV help_text is not relevant to ordering filters.
         self.assertEqual(OrderingFilter().field.help_text, '')
         self.assertEqual(OrderingFilter(help_text='a').field.help_text, 'a')
+
+    def test_fields_argument_is_deprecated(self):
+        with mock.patch.object(warnings, 'warn', spec=['__call__']) as mocked:
+            OrderingFilter(
+                fields=['username'],
+                field_labels={'username': 'BLABLA'},
+            )
+            msg1 = "`fields` argument of OrderingFilter constructor is deprecated in favor of `params`"
+            msg2 = "`field_labels` argument of OrderingFilter constructor is deprecated in favor of `params`"
+            mocked.assert_has_calls([
+                (msg1, mock.ANY, mock.ANY),
+                (msg2, mock.ANY, mock.ANY)
+            ])
+
+    def test_fields_and_params(self):
+        # if `fields` and `params` are passed together, `AssertionError` should be raised
+        msg = "'params' and 'fields' cannot be passed simultaneously"
+        with self.assertRaisesMessage(AssertionError, msg):
+            OrderingFilter(
+                fields=['username'],
+                params=['username']
+            )
+
+    def test_field_labels_and_params(self):
+        # if `field_labels` and `params` are passed together, `AssertionError` should be raised
+        msg = "'params' and 'field_labels' cannot be passed simultaneously"
+        with self.assertRaisesMessage(AssertionError, msg):
+            OrderingFilter(
+                params=['username'],
+                field_labels={'username': 'BLABLA'}
+            )
+
+    def test_descriptor_without_exprs(self):
+        # if ordering descriptor does not contain 'expr' or 'exprs', `AssertionError` should be raised
+        msg = "'expr' or 'exprs' must be specified in the ordering descriptor"
+        with self.assertRaisesMessage(AssertionError, msg):
+            OrderingFilter(
+                params={'user': {}}
+            )
+
+    def test_expr_and_exprs(self):
+        # if both `expr` and `exprs` are specified in the ordering descriptor, `AssertionError` should be raised
+        msg = "'expr' and 'exprs' cannot be specified simultaneously"
+        with self.assertRaisesMessage(AssertionError, msg):
+            OrderingFilter(
+                params={'user': {"expr": "username", "exprs": ("username",)}}
+            )
+
+    def test_params_as_strings(self):
+        f = OrderingFilter(
+            params=['username'],
+        )
+        self.assertEqual(f._params, OrderedDict((('username', {'exprs': [F('username')]}),)))
+
+    def test_params_as_list_of_tuples_with_string(self):
+        f = OrderingFilter(
+            params=[('user', 'username')]
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_list_of_tuples_with_expression(self):
+        f = OrderingFilter(
+            params=[('user', F('username'))]
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_list_of_tuples_with_descriptor_and_string(self):
+        f = OrderingFilter(
+            params=[('user', {'expr': 'username'})]
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_list_of_tuples_with_descriptor_and_expression(self):
+        f = OrderingFilter(
+            params=[('user', {'expr': F('username')})]
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_list_of_tuples_with_descriptor_and_strings(self):
+        f = OrderingFilter(
+            params=[('user', {'exprs': ('username',)})]
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_list_of_tuples_with_descriptor_and_expressions(self):
+        f = OrderingFilter(
+            params=[('user', {'exprs': (F('username'),)})]
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_dict_with_string(self):
+        f = OrderingFilter(
+            params={'user': 'username'}
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_dict_with_expression(self):
+        f = OrderingFilter(
+            params={'user': F('username')}
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_dict_with_descriptor_and_string(self):
+        f = OrderingFilter(
+            params={'user': {'expr': 'username'}}
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_dict_with_descriptor_and_expression(self):
+        f = OrderingFilter(
+            params={'user': {'expr': F('username')}}
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_dict_with_descriptor_and_strings(self):
+        f = OrderingFilter(
+            params={'user': {'exprs': ('username',)}}
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_params_as_dict_with_descriptor_and_expressions(self):
+        f = OrderingFilter(
+            params={'user': {'exprs': (F('username'),)}}
+        )
+        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+
+    def test_choices_unaltered(self):
+        # provided 'choices' should not be altered when 'fields' is present
+        f = OrderingFilter(
+            choices=(('a', 'A'), ('b', 'B')),
+            fields=(('a', 'c'), ('b', 'd')),
+        )
+
+        self.assertSequenceEqual(list(f.field.choices), (
+            ('', '---------'),
+            ('a', 'A'),
+            ('b', 'B'),
+        ))
+
+    def test_choices_from_params(self):
+        f = OrderingFilter(
+            params=(('c', 'a'), ('d', 'b')),
+        )
+
+        self.assertSequenceEqual(list(f.field.choices), (
+            ('', '---------'),
+            ('c', 'C'),
+            ('-c', 'C (descending)'),
+            ('d', 'D'),
+            ('-d', 'D (descending)'),
+        ))
+
+    def test_params_labels(self):
+        f = OrderingFilter(
+            params=(('c', {'expr': 'a', 'label': 'foo'}), ('d', 'b')),
+        )
+
+        self.assertSequenceEqual(list(f.field.choices), (
+            ('', '---------'),
+            ('c', 'foo'),
+            ('-c', 'foo (descending)'),
+            ('d', 'D'),
+            ('-d', 'D (descending)'),
+        ))
+
+    def test_params_labels_descending(self):
+        f = OrderingFilter(
+            params=(('username', {'expr': 'username', 'label': 'BLABLA', 'desc_label': 'XYZXYZ'}),)
+        )
+
+        self.assertEqual(list(f.field.choices), [
+            ('', '---------'),
+            ('username', 'BLABLA'),
+            ('-username', 'XYZXYZ'),
+        ])

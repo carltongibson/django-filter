@@ -5,6 +5,7 @@ import unittest
 from operator import attrgetter
 
 from django import forms
+from django.db.models import expressions
 from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -1934,6 +1935,99 @@ class OrderingFilterTests(TestCase):
             ('Alex', 'Allan'),
             ('Aaron', 'Barrett'),
             (None, 'Jung'),
+        ])
+
+    def test_ordering_with_params_and_null(self):
+        class F(FilterSet):
+            o = OrderingFilter(
+                params=('first_name', 'last_name')
+            )
+
+            class Meta:
+                model = User
+                fields = ['first_name', 'last_name']
+
+        qs = User.objects.all()
+        f = F({'o': 'first_name,last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            (None, 'Jung'),
+            ('Aaron', 'Barrett'),
+            ('Alex', 'Allan'),
+            ('Jacob', 'Johnson'),
+        ])
+
+        f = F({'o': '-first_name,-last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            ('Jacob', 'Johnson'),
+            ('Alex', 'Allan'),
+            ('Aaron', 'Barrett'),
+            (None, 'Jung'),
+        ])
+
+    def test_ordering_with_params_and_nulls_last(self):
+        class F(FilterSet):
+            o = OrderingFilter(
+                params={
+                    'first_name': {'expr': expressions.F('first_name').asc(nulls_last=True)},
+                    'last_name': {'expr': expressions.F('last_name').asc(nulls_last=True)}
+                }
+            )
+
+            class Meta:
+                model = User
+                fields = ['first_name', 'last_name']
+
+        qs = User.objects.all()
+        f = F({'o': 'first_name,last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            ('Aaron', 'Barrett'),
+            ('Alex', 'Allan'),
+            ('Jacob', 'Johnson'),
+            (None, 'Jung'),
+        ])
+
+        f = F({'o': '-first_name,-last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            (None, 'Jung'),
+            ('Jacob', 'Johnson'),
+            ('Alex', 'Allan'),
+            ('Aaron', 'Barrett'),
+        ])
+
+    def test_ordering_with_params_and_desc_nulls_last(self):
+        class F(FilterSet):
+            o = OrderingFilter(
+                params={
+                    'first_name': {'expr': expressions.F('first_name').desc(nulls_last=True)},
+                    'last_name': {'expr': expressions.F('last_name').desc(nulls_last=True)}
+                }
+            )
+
+            class Meta:
+                model = User
+                fields = ['first_name', 'last_name']
+
+        qs = User.objects.all()
+        f = F({'o': 'first_name,last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            ('Jacob', 'Johnson'),
+            ('Alex', 'Allan'),
+            ('Aaron', 'Barrett'),
+            (None, 'Jung'),
+        ])
+
+        f = F({'o': '-first_name,-last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            (None, 'Jung'),
+            ('Aaron', 'Barrett'),
+            ('Alex', 'Allan'),
+            ('Jacob', 'Johnson'),
         ])
 
 
