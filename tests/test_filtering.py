@@ -1871,10 +1871,10 @@ class CSVRangeFilterTests(TestCase):
 class OrderingFilterTests(TestCase):
 
     def setUp(self):
-        User.objects.create(username='alex', status=1)
-        User.objects.create(username='jacob', status=2)
-        User.objects.create(username='aaron', status=2)
-        User.objects.create(username='carl', status=0)
+        User.objects.create(username='alex', first_name='Alex', last_name='Allan', status=1)
+        User.objects.create(username='jacob', first_name='Jacob', last_name='Johnson', status=2)
+        User.objects.create(username='aaron', first_name='Aaron', last_name='Barrett', status=2)
+        User.objects.create(username='carl', first_name=None, last_name='Jung', status=0)
 
     def test_ordering(self):
         class F(FilterSet):
@@ -1906,6 +1906,35 @@ class OrderingFilterTests(TestCase):
         f = F({'o': 'username'}, queryset=qs)
         names = f.qs.values_list('username', flat=True)
         self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob'])
+
+    def test_ordering_with_null(self):
+        class F(FilterSet):
+            o = OrderingFilter(
+                fields=('first_name', 'last_name')
+            )
+
+            class Meta:
+                model = User
+                fields = ['first_name', 'last_name']
+
+        qs = User.objects.all()
+        f = F({'o': 'first_name,last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            (None, 'Jung'),
+            ('Aaron', 'Barrett'),
+            ('Alex', 'Allan'),
+            ('Jacob', 'Johnson'),
+        ])
+
+        f = F({'o': '-first_name,-last_name'}, queryset=qs)
+        names = f.qs.values_list('first_name', 'last_name')
+        self.assertEqual(list(names), [
+            ('Jacob', 'Johnson'),
+            ('Alex', 'Allan'),
+            ('Aaron', 'Barrett'),
+            (None, 'Jung'),
+        ])
 
 
 class MiscFilterSetTests(TestCase):

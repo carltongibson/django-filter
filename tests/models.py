@@ -41,8 +41,8 @@ class SubnetMaskField(models.Field):
 
 class User(models.Model):
     username = models.CharField(_('username'), max_length=255)
-    first_name = SubCharField(max_length=100)
-    last_name = SubSubCharField(max_length=100)
+    first_name = SubCharField(max_length=100, null=True, blank=True)
+    last_name = SubSubCharField(max_length=100, null=True, blank=True)
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=0)
 
