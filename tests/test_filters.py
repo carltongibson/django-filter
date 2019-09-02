@@ -1,7 +1,7 @@
-import inspect
-import mock
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
+import inspect
+import mock
 import warnings
 
 from django import forms
@@ -1708,11 +1708,11 @@ class OrderingFilterTests(TestCase):
         )
         self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
-    def test_choices_unaltered(self):
-        # provided 'choices' should not be altered when 'fields' is present
+    def test_choices_unaltered_with_params(self):
+        # provided 'choices' should not be altered when 'params' is present
         f = OrderingFilter(
             choices=(('a', 'A'), ('b', 'B')),
-            fields=(('a', 'c'), ('b', 'd')),
+            params=(('c', 'a'), ('d', 'b')),
         )
 
         self.assertSequenceEqual(list(f.field.choices), (

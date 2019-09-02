@@ -1,12 +1,12 @@
 import collections
 import copy
-import itertools
 from datetime import timedelta
+import itertools
 
 from django import forms
 from django.db.models import Q
-from django.db.models.expressions import F, OrderBy
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.expressions import F, OrderBy
 from django.forms.utils import pretty_name
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
