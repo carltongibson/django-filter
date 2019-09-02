@@ -1426,6 +1426,37 @@ class BaseRangeFilterTests(TestCase):
 
 
 class OrderingFilterTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # Django 1.11 does not define __eq__ operators for F and OrderBy.
+        # Define them manually when needed
+        if True or not hasattr(F, '__eq__'):
+            setattr(F, '__eq__', cls.compareF)
+        if True or not hasattr(OrderBy, '__eq__'):
+            setattr(OrderBy, '__eq__', cls.compareOrderBy)
+
+    @staticmethod
+    def compareF(a, b):
+        return a.name == b.name
+
+    @staticmethod
+    def compareOrderBy(a, b):
+        return (
+            a.expression == b.expression and
+            a.descending == b.descending and
+            a.nulls_first == b.nulls_first and
+            a.nulls_last == b.nulls_last)
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(F, '__eq__') == cls.compareF:
+            delattr(F, '__eq__')
+        if getattr(OrderBy, '__eq__') == cls.compareOrderBy:
+            delattr(OrderBy, '__eq__')
+
     def test_default_field(self):
         f = OrderingFilter()
         field = f.field
