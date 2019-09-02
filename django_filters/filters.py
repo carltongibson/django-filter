@@ -1,7 +1,7 @@
 import collections
 import copy
-from datetime import timedelta
 import itertools
+from datetime import timedelta
 
 from django import forms
 from django.db.models import Q
