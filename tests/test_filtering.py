@@ -1990,3 +1990,26 @@ class MiscFilterSetTests(TestCase):
         f = F({'status': '2'}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.qs.count(), 2)
+
+
+class JSONFilterTests(TestCase):
+
+    def test_filtering(self):
+        b1 = Book.objects.create(
+            title="Ender's Game", price='1.00', average_rating=3.0, meta={"tag": 1})
+        b2 = Book.objects.create(
+            title="Rainbow Six", price='1.00', average_rating=3.0, meta={"tag": 2})
+        b3 = Book.objects.create(
+            title="Snowcrash", price='1.00', average_rating=3.0, meta={"tag2": 2})
+
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = ['meta']
+
+        qs = Book.objects.all()
+        f = F(queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b1.pk, b2.pk, b3.pk],
+                                 lambda o: o.pk, ordered=False)
+        f = F({'meta__tag': 2}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b2.pk], lambda o: o.pk)

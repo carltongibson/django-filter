@@ -287,6 +287,10 @@ Matches on a time.  Used with ``TimeField`` by default.
 
 Matches on a date and time.  Used with ``DateTimeField`` by default.
 
+``JSONFilter``
+~~~~~~~~~~~~~~
+
+Matches a json value, used with ``JSONfield`` by default.
 
 ``IsoDateTimeFilter``
 ~~~~~~~~~~~~~~~~~~~~~

@@ -9,6 +9,7 @@ from django.db.models.fields.related import (
     ManyToOneRel,
     OneToOneRel
 )
+from django.contrib.postgres.fields import JSONField
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -22,6 +23,7 @@ from .filters import (
     DateTimeFilter,
     DurationFilter,
     Filter,
+    JSONFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     NumberFilter,
@@ -130,6 +132,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.GenericIPAddressField:       {'filter_class': CharFilter},
     models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
     models.UUIDField:                   {'filter_class': UUIDFilter},
+    JSONField:                          {'filter_class': JSONFilter},
 
     # Forward relationships
     models.OneToOneField: {

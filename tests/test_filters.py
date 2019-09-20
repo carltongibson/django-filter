@@ -7,6 +7,7 @@ from django import forms
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import gettext as _
+from django.contrib.postgres.forms import JSONField
 
 from django_filters import filters, widgets
 from django_filters.fields import (
@@ -34,6 +35,7 @@ from django_filters.filters import (
     DurationFilter,
     Filter,
     IsoDateTimeFromToRangeFilter,
+    JSONFilter,
     LookupChoiceFilter,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
@@ -1593,3 +1595,11 @@ class OrderingFilterTests(TestCase):
         # regression test for #756 - the ususal CSV help_text is not relevant to ordering filters.
         self.assertEqual(OrderingFilter().field.help_text, '')
         self.assertEqual(OrderingFilter(help_text='a').field.help_text, 'a')
+
+
+class JSONFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = JSONFilter()
+        field = f.field
+        self.assertIsInstance(field, JSONField)
