@@ -60,6 +60,7 @@ class FilterSetOptions(object):
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
         self.form = getattr(options, 'form', forms.Form)
+        self.widgets = getattr(options, 'widgets', None)
 
 
 class FilterSetMetaclass(type):
@@ -245,9 +246,13 @@ class BaseFilterSet(object):
         This method should be overridden if the form class needs to be
         customized relative to the filterset instance.
         """
-        fields = OrderedDict([
-            (name, filter_.field)
-            for name, filter_ in self.filters.items()])
+        fields = OrderedDict()
+
+        for name, filter_ in self.filters.items():
+            widget = self._meta.widgets.get(name, None)
+            if widget:
+                filter_.field.widget = widget
+            fields[name] = filter_.field
 
         return type(str('%sForm' % self.__class__.__name__),
                     (self._meta.form,), fields)
