@@ -60,7 +60,7 @@ class FilterSetOptions(object):
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
         self.form = getattr(options, 'form', forms.Form)
-        self.widgets = getattr(options, 'widgets', None)
+        self.widgets = getattr(options, 'widgets', {})
 
 
 class FilterSetMetaclass(type):
