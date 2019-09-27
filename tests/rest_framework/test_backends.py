@@ -15,7 +15,7 @@ from django_filters.rest_framework import (
 )
 
 from ..models import Article
-from .models import FilterableItem
+from .models import FilterableItem, FilterableItemWithOwner
 
 factory = APIRequestFactory()
 
@@ -23,6 +23,12 @@ factory = APIRequestFactory()
 class FilterableItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterableItem
+        fields = '__all__'
+
+
+class FilterableItemWithOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FilterableItemWithOwner
         fields = '__all__'
 
 
@@ -50,6 +56,18 @@ class FilterFieldsRootView(FilterableItemView):
 
 class FilterClassRootView(FilterableItemView):
     filterset_class = SeveralFieldsFilter
+
+
+class FilterWithOwnerRootView(FilterableItemView):
+    queryset = FilterableItemWithOwner.objects.all()
+    serializer_class = FilterableItemWithOwnerSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ['decimal', 'date']
+
+    def get_queryset(self):
+        """Return only user's items"""
+        qs = super().get_queryset()
+        return qs.filter(owner=self.request.user)
 
 
 class GetFilterClassTests(TestCase):
@@ -135,17 +153,14 @@ class GetSchemaFieldsTests(TestCase):
         See:
           * https://github.com/carltongibson/django-filter/issues/551
         """
-        class BadGetQuerySetView(FilterFieldsRootView):
-            filterset_fields = ['decimal', 'date']
 
-            def get_queryset(self):
-                raise AttributeError("I don't have that")
+        class BadGetQuerySetView(generics.ListCreateAPIView):
+            filterset_fields = ['decimal', 'date']
 
         backend = DjangoFilterBackend()
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-
             fields = backend.get_schema_fields(BadGetQuerySetView())
             self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
 
@@ -235,6 +250,14 @@ class GetSchemaOperationParametersTests(TestCase):
         fields = backend.get_schema_operation_parameters(FilterFieldsRootView())
         fields = [f['name'] for f in fields]
 
+        self.assertEqual(fields, ['decimal', 'date'])
+
+    def test_get_operation_parameters_with_broken_query_set_method(self):
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_operation_parameters(
+            FilterWithOwnerRootView()
+        )
+        fields = [f['name'] for f in fields]
         self.assertEqual(fields, ['decimal', 'date'])
 
 

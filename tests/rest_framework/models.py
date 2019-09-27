@@ -20,6 +20,13 @@ class FilterableItem(BaseFilterableItem):
     date = models.DateField()
 
 
+class FilterableItemWithOwner(FilterableItem):
+    from django.conf import settings
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
+
+
 class DjangoFilterOrderingModel(models.Model):
     date = models.DateField()
     text = models.CharField(max_length=10)

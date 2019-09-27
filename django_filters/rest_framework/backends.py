@@ -120,13 +120,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         assert compat.coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
         assert compat.coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
 
-        try:
-            queryset = view.get_queryset()
-        except Exception:
-            queryset = None
-            warnings.warn(
-                "{} is not compatible with schema generation".format(view.__class__)
-            )
+        queryset = self.get_queryset_for_schema_generation(view)
 
         filterset_class = self.get_filterset_class(view, queryset)
 
@@ -140,13 +134,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         ]
 
     def get_schema_operation_parameters(self, view):
-        try:
-            queryset = view.get_queryset()
-        except Exception:
-            queryset = None
-            warnings.warn(
-                "{} is not compatible with schema generation".format(view.__class__)
-            )
+        queryset = self.get_queryset_for_schema_generation(view)
 
         filterset_class = self.get_filterset_class(view, queryset)
         return [] if not filterset_class else [
@@ -160,3 +148,18 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 },
             }) for field_name, field in filterset_class.base_filters.items()
         ]
+
+    def get_queryset_for_schema_generation(self, view):
+        """Get query set from view from schema generation"""
+        try:
+            queryset = view.get_queryset()
+        except Exception:
+            # If there is error in get_queryset, try to get queryset attr
+            queryset = getattr(view, 'queryset', None)
+            if queryset is None:
+                warnings.warn(
+                    "{} is not compatible with schema generation".format(
+                        view.__class__
+                    )
+                )
+        return queryset
