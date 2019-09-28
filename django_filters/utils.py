@@ -3,11 +3,10 @@ from collections import OrderedDict
 
 import django
 from django.conf import settings
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldDoesNotExist, FieldError
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Expression
-from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignObjectRel, RelatedField
 from django.utils import timezone
 from django.utils.encoding import force_str
