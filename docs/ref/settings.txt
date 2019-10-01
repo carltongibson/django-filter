@@ -7,6 +7,14 @@ default values. All settings are prefixed with ``FILTERS_``, although this
 is a bit verbose it helps to make it easy to identify these settings.
 
 
+FILTERS_DEFAULT_LOOKUP_EXPR
+---------------------------
+
+Default: ``'exact'``
+
+Set the default lookup expression to be generated, when none is defined.
+
+
 FILTERS_EMPTY_CHOICE_LABEL
 --------------------------
 

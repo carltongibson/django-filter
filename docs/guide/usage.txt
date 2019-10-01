@@ -122,7 +122,8 @@ The above would generate 'price__lt', 'price__gt', 'release_date', and
 
     The filter lookup type 'exact' is an implicit default and therefore never
     added to a filter name. In the above example, the release date's exact
-    filter is 'release_date', not 'release_date__exact'.
+    filter is 'release_date', not 'release_date__exact'. This can be overridden
+    by the FILTERS_DEFAULT_LOOKUP_EXPR setting.
 
 Items in the ``fields`` sequence in the ``Meta`` class may include
 "relationship paths" using Django's ``__`` syntax to filter on fields on a

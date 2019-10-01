@@ -7,6 +7,8 @@ from .utils import deprecate
 DEFAULTS = {
     'DISABLE_HELP_TEXT': False,
 
+    'DEFAULT_LOOKUP_EXPR': 'exact',
+
     # empty/null choices
     'EMPTY_CHOICE_LABEL': '---------',
     'NULL_CHOICE_LABEL': None,

@@ -66,8 +66,10 @@ class Filter(object):
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, field_name=None, lookup_expr='exact', *, label=None,
+    def __init__(self, field_name=None, lookup_expr=None, *, label=None,
                  method=None, distinct=False, exclude=False, **kwargs):
+        if lookup_expr is None:
+            lookup_expr = settings.DEFAULT_LOOKUP_EXPR
         self.field_name = field_name
         self.lookup_expr = lookup_expr
         self.label = label
@@ -80,12 +82,6 @@ class Filter(object):
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
-
-        # TODO: remove assertion in 2.1
-        assert not isinstance(self.lookup_expr, (type(None), list)), \
-            "The `lookup_expr` argument no longer accepts `None` or a list of " \
-            "expressions. Use the `LookupChoiceFilter` instead. See: " \
-            "https://django-filter.readthedocs.io/en/master/guide/migration.html"
 
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
@@ -254,7 +250,7 @@ class MultipleChoiceFilter(Filter):
 
     def get_filter_predicate(self, v):
         name = self.field_name
-        if name and self.lookup_expr != 'exact':
+        if name and self.lookup_expr != settings.DEFAULT_LOOKUP_EXPR:
             name = LOOKUP_SEP.join([name, self.lookup_expr])
         try:
             return {name: getattr(v, self.field.to_field_name)}

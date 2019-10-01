@@ -2,7 +2,7 @@ import mock
 import unittest
 
 from django.db import models
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
@@ -198,6 +198,13 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsInstance(result, NumberFilter)
         self.assertEqual(result.field_name, 'date')
 
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='icontains')
+    def test_modified_default_lookup(self):
+        f = User._meta.get_field('username')
+        result = FilterSet.filter_for_field(f, 'username')
+        self.assertIsInstance(result, CharFilter)
+        self.assertEqual(result.lookup_expr, 'icontains')
+
     @unittest.skip('todo')
     def test_filter_overrides(self):
         pass
@@ -330,6 +337,13 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 1)
         self.assertListEqual(list(F.base_filters), ['username'])
 
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='icontains')
+    def test_declaring_filter_other_default_lookup(self):
+        class F(FilterSet):
+            username = CharFilter()
+
+        self.assertEqual(F.base_filters['username'].lookup_expr, 'icontains')
+
     def test_model_derived(self):
         class F(FilterSet):
             class Meta:
@@ -340,6 +354,16 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 3)
         self.assertListEqual(list(F.base_filters),
                              ['title', 'price', 'average_rating'])
+
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='icontains')
+    def test_model_derived_other_default_lookup(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = '__all__'
+
+        for filter_ in F.base_filters.values():
+            self.assertEqual(filter_.lookup_expr, 'icontains')
 
     def test_model_no_fields_or_exclude(self):
         with self.assertRaises(AssertionError) as excinfo:
@@ -401,7 +425,6 @@ class FilterSetClassCreationTests(TestCase):
 
     def test_meta_fields_dictionary_derived(self):
         class F(FilterSet):
-
             class Meta:
                 model = Book
                 fields = {'price': ['exact', 'gte', 'lte'], }
@@ -410,6 +433,20 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 3)
 
         expected_list = ['price', 'price__gte', 'price__lte', ]
+        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='lte')
+    def test_meta_fields_dictionary_derived_other_default_lookup(self):
+        class F(FilterSet):
+
+            class Meta:
+                model = Book
+                fields = {'price': ['exact', 'gte', 'lte'], }
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 3)
+
+        expected_list = ['price__exact', 'price__gte', 'price', ]
         self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
 
     def test_meta_fields_containing_autofield(self):
@@ -633,6 +670,20 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(Parent.base_filters), 2)
         self.assertEqual(len(Child.base_filters), 1)
         self.assertEqual(len(Grandchild.base_filters), 1)
+
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='lt')
+    def test_transforms_other_default_lookup(self):
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = {
+                    'published': ['lt', 'year__lt'],
+                }
+
+        self.assertEqual(len(F.base_filters), 2)
+
+        expected_list = ['published', 'published__year']
+        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
 
     def test_declared_filter_multiple_inheritance(self):
         class A(FilterSet):
