@@ -150,7 +150,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         ]
 
     def get_queryset_for_schema_generation(self, view):
-        """Get query set from view from schema generation"""
+        """Get query set from view for schema generation"""
         try:
             queryset = view.get_queryset()
         except Exception:
