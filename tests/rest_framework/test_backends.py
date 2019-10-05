@@ -427,3 +427,10 @@ class DjangoFilterBackendTestCase(TestCase):
     def test_to_html_none_filter_class(self):
         html = self.backend.to_html(mock.Mock(), mock.Mock(), mock.Mock())
         self.assertIsNone(html)
+
+    def test_get_schema_operation_parameters_userwarning(self):
+        with self.assertWarns(UserWarning):
+            view = mock.Mock()
+            view.__class__.return_value = 'Test'
+            view.get_queryset.side_effect = Exception
+            self.backend.get_schema_operation_parameters(view)
