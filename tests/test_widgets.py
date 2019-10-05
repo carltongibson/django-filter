@@ -195,6 +195,18 @@ class SuffixedMultiWidgetTests(TestCase):
 
         self.assertIsNotNone(result)
 
+    def test_replace_name(self):
+        class A(SuffixedMultiWidget):
+            suffixes = ['test']
+
+        a = A(widgets=[BooleanWidget])
+
+        output = '<div name="test123_0"></div>'
+        index = 0
+        q = a.replace_name(output, index)
+        self.assertEqual(q, output.replace('0', 'test'))
+
+
 class RangeWidgetTests(TestCase):
 
     def test_widget(self):
