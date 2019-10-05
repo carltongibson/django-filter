@@ -1,7 +1,10 @@
 
-from django.test import TestCase, override_settings
+import warnings
 
-from django_filters.conf import is_callable, settings
+from django.test import TestCase, override_settings
+from django.conf import settings as dj_settings
+
+from django_filters.conf import is_callable, settings, DEPRECATED_SETTINGS, DEFAULTS
 
 
 class DefaultSettingsTests(TestCase):
@@ -89,3 +92,14 @@ class IsCallableTests(TestCase):
         self.assertFalse(is_callable(Class))
         self.assertTrue(is_callable(c))
         self.assertTrue(is_callable(c.method))
+
+
+class SettingsObjectTestCase(TestCase):
+
+    def test_get_setting_deprecated(self):
+        with override_settings(FILTERS_TEST_123=True):
+            with self.assertWarns(DeprecationWarning):
+                DEPRECATED_SETTINGS.append('TEST_123')
+                DEFAULTS['TEST_123'] = True
+                settings.change_setting('FILTERS_TEST_123', True, True)
+                result = settings.get_setting('TEST_123')
