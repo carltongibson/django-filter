@@ -424,3 +424,6 @@ class DjangoFilterBackendTestCase(TestCase):
         qs = self.backend.filter_queryset(mock.Mock(), mock.Mock(is_previous_qs=True), mock.Mock())
         self.assertTrue(qs.is_previous_qs)
 
+    def test_to_html_none_filter_class(self):
+        html = self.backend.to_html(mock.Mock(), mock.Mock(), mock.Mock())
+        self.assertIsNone(html)
