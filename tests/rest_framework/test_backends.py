@@ -434,3 +434,7 @@ class DjangoFilterBackendTestCase(TestCase):
             view.__class__.return_value = 'Test'
             view.get_queryset.side_effect = Exception
             self.backend.get_schema_operation_parameters(view)
+
+    @mock.patch('django_filters.compat.is_crispy', return_value=True)
+    def test_template_crispy(self, _):
+        self.assertEqual(self.backend.template, 'django_filters/rest_framework/crispy_form.html')
