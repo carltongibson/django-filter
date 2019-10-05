@@ -415,3 +415,7 @@ class DjangoFilterBackendTestCase(TestCase):
     def setUpTestData(cls):
         cls.backend = DjangoFilterBackend()
         cls.backend.get_filterset_class = lambda x, y: None
+
+    def test_get_filterset_none_filter_class(self):
+        filterset = self.backend.get_filterset(mock.Mock(), mock.Mock(), mock.Mock())
+        self.assertIsNone(filterset)
