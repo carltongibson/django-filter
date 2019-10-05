@@ -419,3 +419,8 @@ class DjangoFilterBackendTestCase(TestCase):
     def test_get_filterset_none_filter_class(self):
         filterset = self.backend.get_filterset(mock.Mock(), mock.Mock(), mock.Mock())
         self.assertIsNone(filterset)
+
+    def test_filter_queryset_none_filter_class(self):
+        qs = self.backend.filter_queryset(mock.Mock(), mock.Mock(is_previous_qs=True), mock.Mock())
+        self.assertTrue(qs.is_previous_qs)
+
