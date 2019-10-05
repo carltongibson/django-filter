@@ -206,6 +206,13 @@ class SuffixedMultiWidgetTests(TestCase):
         q = a.replace_name(output, index)
         self.assertEqual(q, output.replace('0', 'test'))
 
+    def test_decompress_value_None(self):
+        class A(SuffixedMultiWidget):
+            suffixes = ['']
+
+        a = A(widgets=[BooleanWidget])
+        self.assertEqual(a.decompress(None), [None, None])
+
 
 class RangeWidgetTests(TestCase):
 
