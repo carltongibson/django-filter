@@ -185,6 +185,15 @@ class SuffixedMultiWidgetTests(TestCase):
         }, {}, 'price')
         self.assertEqual(result, ['1', 'lt'])
 
+    def test_value_omitted_from_data(self):
+        class A(SuffixedMultiWidget):
+            suffixes = ['_b']
+
+        a = A(widgets=[BooleanWidget])
+
+        result = a.value_omitted_from_data(['a', 'b', 'c'], './.', 'test')
+
+        self.assertIsNotNone(result)
 
 class RangeWidgetTests(TestCase):
 
