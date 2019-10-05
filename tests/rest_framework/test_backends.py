@@ -1,5 +1,5 @@
 import warnings
-from unittest import skipIf
+from unittest import skipIf, mock
 
 from django.db.models import BooleanField
 from django.test import TestCase
@@ -407,3 +407,11 @@ class RenamedViewSetAttributesTests(TestCase):
         message = str(recorded.pop().message)
         self.assertEqual(message, expected)
         self.assertEqual(len(recorded), 0)
+
+
+class DjangoFilterBackendTestCase(TestCase):
+    
+    @classmethod
+    def setUpTestData(cls):
+        cls.backend = DjangoFilterBackend()
+        cls.backend.get_filterset_class = lambda x, y: None
