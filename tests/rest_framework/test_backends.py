@@ -1,5 +1,5 @@
 import warnings
-from unittest import skipIf, mock
+from unittest import mock, skipIf
 
 from django.db.models import BooleanField
 from django.test import TestCase

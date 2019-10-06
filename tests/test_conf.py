@@ -1,10 +1,15 @@
 
 import warnings
 
-from django.test import TestCase, override_settings
 from django.conf import settings as dj_settings
+from django.test import TestCase, override_settings
 
-from django_filters.conf import is_callable, settings, DEPRECATED_SETTINGS, DEFAULTS
+from django_filters.conf import (
+    DEFAULTS,
+    DEPRECATED_SETTINGS,
+    is_callable,
+    settings
+)
 
 
 class DefaultSettingsTests(TestCase):
