@@ -1,7 +1,3 @@
-
-import warnings
-
-from django.conf import settings as dj_settings
 from django.test import TestCase, override_settings
 
 from django_filters.conf import (
@@ -107,4 +103,4 @@ class SettingsObjectTestCase(TestCase):
                 DEPRECATED_SETTINGS.append('TEST_123')
                 DEFAULTS['TEST_123'] = True
                 settings.change_setting('FILTERS_TEST_123', True, True)
-                result = settings.get_setting('TEST_123')
+                settings.get_setting('TEST_123')

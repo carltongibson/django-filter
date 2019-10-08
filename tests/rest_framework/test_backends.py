@@ -410,7 +410,7 @@ class RenamedViewSetAttributesTests(TestCase):
 
 
 class DjangoFilterBackendTestCase(TestCase):
-    
+
     @classmethod
     def setUpTestData(cls):
         cls.backend = DjangoFilterBackend()
