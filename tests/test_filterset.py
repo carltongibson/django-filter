@@ -619,6 +619,19 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(Child.base_filters), 1)
         self.assertEqual(len(Grandchild.base_filters), 1)
 
+    def test_declared_filter_multiple_inheritance(self):
+        class A(FilterSet):
+            f = CharFilter()
+
+        class B(FilterSet):
+            f = NumberFilter()
+
+        class F(A, B):
+            pass
+
+        filters = {name: type(f) for name, f in F.declared_filters.items()}
+        self.assertEqual(filters, {'f': CharFilter})
+
 
 class FilterSetInstantiationTests(TestCase):
 

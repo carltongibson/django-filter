@@ -98,11 +98,11 @@ class FilterSetMetaclass(type):
         # merge declared filters from base classes
         for base in reversed(bases):
             if hasattr(base, 'declared_filters'):
-                filters = [
+                filters = filters + [
                     (name, f) for name, f
                     in base.declared_filters.items()
                     if name not in attrs
-                ] + filters
+                ]
 
         return OrderedDict(filters)
 
