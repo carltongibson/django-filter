@@ -391,8 +391,7 @@ class MultipleChoiceFilterTests(TestCase):
     def test_is_noop_false(self):
         f = MultipleChoiceFilter(required=False)
         f.always_filter = False
-        qs = mock.Mock(spec='filter')
-        self.assertFalse(f.is_noop(qs, ['value']))
+        self.assertFalse(f.is_noop(None, ['value']))
 
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
