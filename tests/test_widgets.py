@@ -199,12 +199,12 @@ class SuffixedMultiWidgetTests(TestCase):
         class A(SuffixedMultiWidget):
             suffixes = ['test']
 
-        a = A(widgets=[BooleanWidget])
+        a = A(widgets=[None])
 
         output = '<div name="test123_0"></div>'
         index = 0
         q = a.replace_name(output, index)
-        self.assertEqual(q, output.replace('0', 'test'))
+        self.assertEqual(q, '<div name="test123_test"></div>')
 
     def test_decompress_value_None(self):
         class A(SuffixedMultiWidget):
