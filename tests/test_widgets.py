@@ -187,11 +187,11 @@ class SuffixedMultiWidgetTests(TestCase):
 
     def test_value_omitted_from_data(self):
         class A(SuffixedMultiWidget):
-            suffixes = ['_b']
+            suffixes = ['b']
 
         a = A(widgets=[BooleanWidget])
 
-        result = a.value_omitted_from_data(['a', 'b', 'c'], './.', 'test')
+        result = a.value_omitted_from_data([], None, 'test')
 
         self.assertIsNotNone(result)
 
