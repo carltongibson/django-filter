@@ -156,7 +156,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 'in': 'query',
                 'description': field.label if field.label is not None else field_name,
                 'schema': {
-                    'type': 'string',
+                    'type': field.extra.get('schema_type', 'string'),
                 },
             }) for field_name, field in filterset_class.base_filters.items()
         ]
