@@ -773,7 +773,7 @@ class FilterMethod(object):
 
         # otherwise, method is the name of a method on the parent FilterSet.
         assert hasattr(instance, 'parent'), \
-            "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
+            "Filter '%s' must have a parent FilterSet to find '.%s()'." %  \
             (instance.field_name, instance.method)
 
         parent = instance.parent
