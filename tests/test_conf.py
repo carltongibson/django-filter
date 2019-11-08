@@ -4,6 +4,7 @@ from django.test import TestCase, override_settings
 
 from django_filters.conf import is_callable, settings
 
+
 class DefaultSettingsTests(TestCase):
 
     def test_verbose_lookups(self):
