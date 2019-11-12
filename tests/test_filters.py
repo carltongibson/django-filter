@@ -94,6 +94,15 @@ class FilterTests(TestCase):
         field = f.field
         self.assertIsInstance(field, forms.Field)
 
+    def test_filterset_bind(self):
+        m = mock.Mock(queryset=User.objects.all())
+        f = Filter()
+        f.bind('name', m)
+
+        self.assertEqual(f.attr, 'name')
+        self.assertIs(f.parent, m)
+        self.assertIs(f.model, User)
+
     def test_field_params(self):
         with mock.patch.object(Filter, 'field_class',
                                spec=['__call__']) as mocked:
@@ -161,6 +170,7 @@ class FilterTests(TestCase):
         qs = mock.NonCallableMock(spec=[])
         method = mock.Mock()
         f = Filter(method=method)
+        f.bind('name', mock.Mock())
         result = f.filter(qs, 'value')
         method.assert_called_once_with(qs, None, 'value')
         self.assertNotEqual(qs, result)
@@ -721,7 +731,7 @@ class ModelChoiceFilterTests(TestCase, MockQuerySetMixin):
         qs_callable = mock.Mock(return_value=qs)
 
         f = ModelChoiceFilter(queryset=qs_callable)
-        f.parent = mock.Mock(request=request)
+        f.bind('name', mock.Mock(request=request))
         field = f.field
 
         qs_callable.assert_called_with(request)
@@ -735,7 +745,7 @@ class ModelChoiceFilterTests(TestCase, MockQuerySetMixin):
             get_queryset = mock.create_autospec(ModelChoiceFilter.get_queryset, return_value=qs)
 
         f = F()
-        f.parent = mock.Mock(request=request)
+        f.bind('name', mock.Mock(request=request))
         field = f.field
 
         f.get_queryset.assert_called_with(f, request)
@@ -787,7 +797,7 @@ class ModelMultipleChoiceFilterTests(TestCase, MockQuerySetMixin):
         qs_callable = mock.Mock(return_value=qs)
 
         f = ModelMultipleChoiceFilter(queryset=qs_callable)
-        f.parent = mock.Mock(request=request)
+        f.bind('name', mock.Mock(request=request))
         field = f.field
 
         qs_callable.assert_called_with(request)
@@ -1273,7 +1283,7 @@ class AllValuesFilterTests(TestCase):
 
     def test_empty_value_in_choices(self):
         f = AllValuesFilter(field_name='username')
-        f.model = User
+        f.bind('name', mock.Mock(queryset=User.objects.all()))
 
         self.assertEqual(list(f.field.choices), [
             ('', '---------'),
@@ -1295,7 +1305,7 @@ class LookupChoiceFilterTests(TestCase):
     def test_lookup_choices_default(self):
         # Lookup choices should default to the model field's registered lookups
         f = LookupChoiceFilter(field_name='username', lookup_choices=None)
-        f.model = User
+        f.bind('name', mock.Mock(queryset=User.objects.all()))
 
         choice_field = f.field.fields[1]
         self.assertEqual(
