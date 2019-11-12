@@ -840,7 +840,7 @@ class FilterMethodTests(TestCase):
         class F(FilterSet):
             f = Filter(method='filter_f')
 
-            def filter_f(self, qs, name, value):
+            def filter_f(self, f, qs, value):
                 pass
 
         f = F({}, queryset=User.objects.all())
@@ -849,7 +849,7 @@ class FilterMethodTests(TestCase):
         self.assertIsInstance(f.filters['f'].filter, FilterMethod)
 
     def test_method_callable(self):
-        def filter_f(qs, name, value):
+        def filter_f(f, qs, value):
             pass
 
         class F(FilterSet):
@@ -864,7 +864,7 @@ class FilterMethodTests(TestCase):
         class F(FilterSet):
             f = Filter(method='filter_f')
 
-            def filter_f(self, qs, name, value):
+            def filter_f(self, f, qs, value):
                 # call mock request object to prove self.request can be accessed
                 self.request()
 
@@ -880,7 +880,7 @@ class FilterMethodTests(TestCase):
         class F(FilterSet):
             f = DateRangeFilter(method='filter_f')
 
-            def filter_f(self, qs, name, value):
+            def filter_f(self, f, qs, value):
                 pass
 
         f = F({}, queryset=User.objects.all())
@@ -907,7 +907,7 @@ class FilterMethodTests(TestCase):
                 model = User
                 fields = []
 
-            def filter_f(inner_self, qs, name, value):
+            def filter_f(inner_self, f, qs, value):
                 self.assertIsInstance(inner_self, F)
                 self.assertIs(inner_self.request, request)
                 return qs

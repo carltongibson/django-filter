@@ -1095,8 +1095,8 @@ class FilterMethodTests(TestCase):
                 model = User
                 fields = ['username']
 
-            def filter_username(self, queryset, name, value):
-                return queryset.filter(**{name: value})
+            def filter_username(self, f, qs, value):
+                return qs.filter(**{f.field_name: value})
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'}).qs),
@@ -1105,8 +1105,8 @@ class FilterMethodTests(TestCase):
                          list())
 
     def test_filtering_callable(self):
-        def filter_username(queryset, name, value):
-            return queryset.filter(**{name: value})
+        def filter_username(f, qs, value):
+            return qs.filter(**{f.field_name: value})
 
         class F(FilterSet):
             username = CharFilter(method=filter_username)
