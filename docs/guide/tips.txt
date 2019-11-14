@@ -173,7 +173,7 @@ for magic values. This is similar to the ``ChoiceFilter``'s null value handling.
 
         def filter(self, qs, value):
             if value != self.empty_value:
-                return super(MyCharFilter, self).filter(qs, value)
+                return super().filter(qs, value)
 
             qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): ""})
             return qs.distinct() if self.distinct else qs
@@ -243,4 +243,4 @@ If defaults are necessary though, the following should mimic the pre-1.0 behavio
                     if not data.get(name) and initial:
                         data[name] = initial
 
-            super(BaseFilterSet, self).__init__(data, *args, **kwargs)
+            super().__init__(data, *args, **kwargs)
