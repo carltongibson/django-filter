@@ -814,7 +814,7 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
     class CustomOrderingFilter(django_filters.OrderingFilter):
 
         def __init__(self, *args, **kwargs):
-            super(CustomOrderingFilter, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
             self.extra['choices'] += [
                 ('relevance', 'Relevance'),
                 ('-relevance', 'Relevance (descending)'),
@@ -827,4 +827,4 @@ If you wish to sort by non-model fields, you'll need to add custom handling to a
                 # sort queryset by relevance
                 return ...
 
-            return super(CustomOrderingFilter, self).filter(qs, value)
+            return super().filter(qs, value)
