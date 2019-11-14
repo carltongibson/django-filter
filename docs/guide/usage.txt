@@ -197,7 +197,7 @@ those that are published and those that are owned by the logged-in user
 
         @property
         def qs(self):
-            parent = super(ArticleFilter, self).qs
+            parent = super().qs
             author = getattr(self.request, 'user', None)
 
             return parent.filter(is_published=True) \
