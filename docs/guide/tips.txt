@@ -175,7 +175,7 @@ for magic values. This is similar to the ``ChoiceFilter``'s null value handling.
             if value != self.empty_value:
                 return super().filter(qs, value)
 
-            qs = self.get_method(qs)(**{'%s__%s' % (self.name, self.lookup_expr): ""})
+            qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): ""})
             return qs.distinct() if self.distinct else qs
 
 
@@ -199,7 +199,7 @@ behavior as an ``isnull`` filter.
             exclude = self.exclude ^ (value is False)
             method = qs.exclude if exclude else qs.filter
 
-            return method(**{self.name: ""})
+            return method(**{self.field_name: ""})
 
 
     class MyFilterSet(filters.FilterSet):
