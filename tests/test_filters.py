@@ -388,6 +388,11 @@ class MultipleChoiceFilterTests(TestCase):
         f = MultipleChoiceFilter(conjoined=True)
         self.assertTrue(f.conjoined)
 
+    def test_is_noop_false(self):
+        f = MultipleChoiceFilter(required=False)
+        f.always_filter = False
+        self.assertFalse(f.is_noop(None, ['value']))
+
     def test_filtering(self):
         qs = mock.Mock(spec=['filter'])
         f = MultipleChoiceFilter(field_name='somefield')

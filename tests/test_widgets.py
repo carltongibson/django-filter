@@ -185,6 +185,34 @@ class SuffixedMultiWidgetTests(TestCase):
         }, {}, 'price')
         self.assertEqual(result, ['1', 'lt'])
 
+    def test_value_omitted_from_data(self):
+        class A(SuffixedMultiWidget):
+            suffixes = ['b']
+
+        a = A(widgets=[BooleanWidget])
+
+        result = a.value_omitted_from_data([], None, 'test')
+
+        self.assertIsNotNone(result)
+
+    def test_replace_name(self):
+        class A(SuffixedMultiWidget):
+            suffixes = ['test']
+
+        a = A(widgets=[None])
+
+        output = '<div name="test123_0"></div>'
+        index = 0
+        q = a.replace_name(output, index)
+        self.assertEqual(q, '<div name="test123_test"></div>')
+
+    def test_decompress_value_none(self):
+        class A(SuffixedMultiWidget):
+            suffixes = ['']
+
+        a = A(widgets=[None])
+        self.assertEqual(a.decompress(None), [None, None])
+
 
 class RangeWidgetTests(TestCase):
 

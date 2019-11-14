@@ -1,3 +1,4 @@
+from unittest import mock
 
 from django.test import TestCase, override_settings
 
@@ -89,3 +90,15 @@ class IsCallableTests(TestCase):
         self.assertFalse(is_callable(Class))
         self.assertTrue(is_callable(c))
         self.assertTrue(is_callable(c.method))
+
+
+class SettingsObjectTestCase(TestCase):
+
+    @mock.patch('django_filters.conf.DEPRECATED_SETTINGS', ['TEST_123'])
+    @mock.patch.dict('django_filters.conf.DEFAULTS', {'TEST_123': True})
+    def test_get_setting_deprecated(self):
+        with override_settings(FILTERS_TEST_123=True):
+            with self.assertWarns(DeprecationWarning):
+                settings.change_setting('FILTERS_TEST_123', True, True)
+                test_setting = settings.get_setting('TEST_123')
+                self.assertTrue(test_setting)

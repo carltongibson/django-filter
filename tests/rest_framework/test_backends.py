@@ -1,5 +1,5 @@
 import warnings
-from unittest import skipIf
+from unittest import mock, skipIf
 
 from django.db.models import BooleanField
 from django.test import TestCase
@@ -407,3 +407,35 @@ class RenamedViewSetAttributesTests(TestCase):
         message = str(recorded.pop().message)
         self.assertEqual(message, expected)
         self.assertEqual(len(recorded), 0)
+
+
+class DjangoFilterBackendTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.backend = DjangoFilterBackend()
+        cls.backend.get_filterset_class = lambda x, y: None
+
+    def test_get_filterset_none_filter_class(self):
+        filterset = self.backend.get_filterset(mock.Mock(), mock.Mock(), mock.Mock())
+        self.assertIsNone(filterset)
+
+    def test_filter_queryset_none_filter_class(self):
+        prev_qs = mock.Mock()
+        qs = self.backend.filter_queryset(mock.Mock(), prev_qs, mock.Mock())
+        self.assertIs(qs, prev_qs)
+
+    def test_to_html_none_filter_class(self):
+        html = self.backend.to_html(mock.Mock(), mock.Mock(), mock.Mock())
+        self.assertIsNone(html)
+
+    def test_get_schema_operation_parameters_userwarning(self):
+        with self.assertWarns(UserWarning):
+            view = mock.Mock()
+            view.__class__.return_value = 'Test'
+            view.get_queryset.side_effect = Exception
+            self.backend.get_schema_operation_parameters(view)
+
+    @mock.patch('django_filters.compat.is_crispy', return_value=True)
+    def test_template_crispy(self, _):
+        self.assertEqual(self.backend.template, 'django_filters/rest_framework/crispy_form.html')
