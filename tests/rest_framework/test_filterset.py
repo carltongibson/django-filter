@@ -1,14 +1,16 @@
 from unittest import skipIf
 
+from django import forms
 from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 
+from django_filters import NumberFilter
 from django_filters.compat import is_crispy
 from django_filters.rest_framework import FilterSet, filters
 from django_filters.widgets import BooleanWidget
 
-from ..models import Article, User
+from ..models import Article, BankAccount, User
 
 
 class ArticleFilter(FilterSet):
@@ -49,3 +51,31 @@ class CrispyFormsCompatTests(TestCase):
     def test_form_initialization(self):
         # ensure that crispy compat does not prematurely initialize the form
         self.assertFalse(hasattr(ArticleFilter(), '_form'))
+
+
+class ExtraFieldForm(forms.Form):
+    extra_field = forms.BooleanField(required=False)
+
+    def clean(self):
+        extra_field = self.cleaned_data.get('extra_field')
+        if extra_field:
+            self.cleaned_data['number'] = 2
+        return self.cleaned_data
+
+
+class ExtraFieldFilterSet(FilterSet):
+    number = NumberFilter(field_name='amount_saved')
+
+    class Meta:
+        model = BankAccount
+        fields = ['number']
+        form = ExtraFieldForm
+
+
+class ExtraFieldInFormTests(TestCase):
+
+    def test_filter_queyset_with_extra_form_fields(self):
+        queryset = BankAccount.objects.all()
+        e = ExtraFieldFilterSet({'number': 1, 'extra_field': True}, queryset=queryset)
+        e.is_valid()
+        e.filter_queryset(queryset=queryset)
