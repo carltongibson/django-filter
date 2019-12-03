@@ -207,6 +207,7 @@ behavior as an ``isnull`` filter.
 
         class Meta:
             model = MyModel
+            fields = []
 
 
 Using ``initial`` values as defaults
