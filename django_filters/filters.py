@@ -739,7 +739,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         else:
             params = self.normalize_params(kwargs['params'])
 
-        self._params = params
+        self.params = params
 
         if 'choices' not in kwargs:
             kwargs['choices'] = self.build_choices(params)
@@ -883,7 +883,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
     def get_ordering_exprs(self, param_name):
         descending = param_name.startswith('-')
         param_name = param_name[1:] if descending else param_name
-        descriptor = self._params.get(param_name)
+        descriptor = self.params.get(param_name)
         # For backward compatibility order by param_name if descriptor is not found
         exprs = descriptor['exprs'] if descriptor is not None else (F(param_name),)
         if descending:

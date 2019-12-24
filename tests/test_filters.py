@@ -1665,103 +1665,103 @@ class OrderingFilterTests(TestCase):
         f = OrderingFilter(
             params=['username'],
         )
-        self.assertEqual(f._params, OrderedDict((('username', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('username', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_string(self):
         f = OrderingFilter(
             params=[('user', 'username')]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_strings(self):
         f = OrderingFilter(
             params=[('user', ('username',))]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_expression(self):
         f = OrderingFilter(
             params=[('user', F('username'))]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_expressions(self):
         f = OrderingFilter(
             params=[('user', (F('username'),))]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_descriptor_and_string(self):
         f = OrderingFilter(
             params=[('user', {'expr': 'username'})]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_descriptor_and_expression(self):
         f = OrderingFilter(
             params=[('user', {'expr': F('username')})]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_descriptor_and_strings(self):
         f = OrderingFilter(
             params=[('user', {'exprs': ('username',)})]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_list_of_tuples_with_descriptor_and_expressions(self):
         f = OrderingFilter(
             params=[('user', {'exprs': (F('username'),)})]
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_string(self):
         f = OrderingFilter(
             params={'user': 'username'}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_strings(self):
         f = OrderingFilter(
             params={'user': ('username',)}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_expression(self):
         f = OrderingFilter(
             params={'user': F('username')}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_expressions(self):
         f = OrderingFilter(
             params={'user': (F('username'),)}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_descriptor_and_string(self):
         f = OrderingFilter(
             params={'user': {'expr': 'username'}}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_descriptor_and_expression(self):
         f = OrderingFilter(
             params={'user': {'expr': F('username')}}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_descriptor_and_strings(self):
         f = OrderingFilter(
             params={'user': {'exprs': ('username',)}}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_params_as_dict_with_descriptor_and_expressions(self):
         f = OrderingFilter(
             params={'user': {'exprs': (F('username'),)}}
         )
-        self.assertEqual(f._params, OrderedDict((('user', {'exprs': [F('username')]}),)))
+        self.assertEqual(f.params, OrderedDict((('user', {'exprs': [F('username')]}),)))
 
     def test_choices_unaltered_with_params(self):
         # provided 'choices' should not be altered when 'params' is present
