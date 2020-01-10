@@ -1,0 +1,48 @@
+C:\Users\Ram\appproject>python manage.py runserver
+Watching for file changes with StatReloader
+Performing system checks...
+
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\urls\resolvers.py", line 410, in _check_custom_error_handlers
+    handler, param_dict = self.resolve_error_handler(status_code)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\urls\resolvers.py", line 601, in resolve_error_handler
+    from django.conf import urls
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\conf\urls\__init__.py", line 1, in <module>
+    from django.conf.urls import  patterns, include, url
+ImportError: cannot import name 'patterns' from 'django.conf.urls' (C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\conf\urls\__init__.py)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\threading.py", line 926, in _bootstrap_inner
+    self.run()
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\utils\autoreload.py", line 54, in wrapper
+    fn(*args, **kwargs)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\management\commands\runserver.py", line 117, in inner_run
+    self.check(display_num_errors=True)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\management\base.py", line 390, in check
+    include_deployment_checks=include_deployment_checks,
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\management\base.py", line 377, in _run_checks
+    return checks.run_checks(**kwargs)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\checks\registry.py", line 72, in run_checks
+    new_errors = check(app_configs=app_configs)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\checks\urls.py", line 13, in check_url_config
+    return check_resolver(resolver)
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\checks\urls.py", line 23, in check_resolver
+    return check_method()
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\urls\resolvers.py", line 400, in check
+    messages.extend(check_resolver(pattern))
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\checks\urls.py", line 23, in check_resolver
+    return check_method()
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\urls\resolvers.py", line 400, in check
+    messages.extend(check_resolver(pattern))
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\core\checks\urls.py", line 23, in check_resolver
+    return check_method()
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\urls\resolvers.py", line 401, in check
+    messages.extend(self._check_custom_error_handlers())
+  File "C:\Users\Ram\AppData\Local\Programs\Python\Python37-32\lib\site-packages\django\urls\resolvers.py", line 412, in _check_custom_error_handlers
+    path = getattr(self.urlconf_module, 'handler%s' % status_code)
+AttributeError: 'list' object has no attribute 'handler400'
