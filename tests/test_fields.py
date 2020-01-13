@@ -15,6 +15,7 @@ from django_filters.fields import (
     IsoDateTimeRangeField,
     Lookup,
     LookupChoiceField,
+    MultiWidgetField,
     RangeField,
     TimeRangeField
 )
@@ -40,6 +41,22 @@ class LookupTests(TestCase):
     def test_empty_lookup_expr(self):
         with self.assertRaisesMessage(ValueError, ''):
             Lookup('Value', '')
+
+
+class MultiWidgetFieldTests(TestCase):
+
+    def test_field(self):
+        f = MultiWidgetField(fields=[forms.CharField(), forms.DecimalField()])
+        self.assertEqual(len(f.fields), 2)
+        self.assertEqual(len(f.widget.widgets), 2)
+
+    def test_clean(self):
+        f = MultiWidgetField(fields=[forms.CharField(required=False), forms.DecimalField(required=False)], require_all_fields=False, required=False)
+
+        self.assertEqual(
+            f.clean(['abcd', '12.34']),
+            ['abcd', to_d(12.34)])
+        self.assertIsNone(f.clean([None, None]))
 
 
 class RangeFieldTests(TestCase):

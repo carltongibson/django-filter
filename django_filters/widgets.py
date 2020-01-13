@@ -3,6 +3,7 @@ from itertools import chain
 from re import search, sub
 
 from django import forms
+from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.utils import flatatt
 from django.utils.datastructures import MultiValueDict
@@ -81,7 +82,9 @@ class SuffixedMultiWidget(forms.MultiWidget):
     """
     suffixes = []
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, suffixes=None, **kwargs):
+        if suffixes is not None:
+            self.suffixes = suffixes
         super().__init__(*args, **kwargs)
 
         assert len(self.widgets) == len(self.suffixes)
@@ -119,8 +122,17 @@ class SuffixedMultiWidget(forms.MultiWidget):
 
     def decompress(self, value):
         if value is None:
-            return [None, None]
+            return [None]*len(self.suffixes)
         return value
+
+
+class RelatedMultiWidget(SuffixedMultiWidget):
+    """
+    A SuffixedMultiWidget that uses django's queryset lookup
+    separator between names and suffixes.
+    """
+    def suffixed(self, name, suffix):
+        return LOOKUP_SEP.join([name, suffix]) if suffix else name
 
 
 class RangeWidget(SuffixedMultiWidget):

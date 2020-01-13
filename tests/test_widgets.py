@@ -9,6 +9,7 @@ from django_filters.widgets import (
     LookupChoiceWidget,
     QueryArrayWidget,
     RangeWidget,
+    RelatedMultiWidget,
     SuffixedMultiWidget
 )
 
@@ -211,7 +212,34 @@ class SuffixedMultiWidgetTests(TestCase):
             suffixes = ['']
 
         a = A(widgets=[None])
-        self.assertEqual(a.decompress(None), [None, None])
+        self.assertEqual(a.decompress(None), [None])
+
+        class A(SuffixedMultiWidget):
+            suffixes = ['', 'a', 'b']
+
+        a = A(widgets=[None]*3)
+        self.assertEqual(a.decompress(None), [None]*3)
+
+    def test_passed_suffix(self):
+        a = SuffixedMultiWidget(suffixes=["a"], widgets=[None])
+        self.assertEqual(a.suffixes, ["a"])
+
+        class A(SuffixedMultiWidget):
+            suffixes = ["b"]
+
+        a = A(widgets=[None])
+        self.assertEqual(a.suffixes, ["b"])
+
+        a = A(suffixes=["a"], widgets=[None])
+        self.assertEqual(a.suffixes, ["a"])
+
+
+class RelatedWidgetTests(TestCase):
+
+    def test_suffixed(self):
+        a = RelatedMultiWidget(suffixes=[''], widgets=[None])
+        self.assertEqual(a.suffixed("a", ""), "a")
+        self.assertEqual(a.suffixed("a", "b"), "a__b")
 
 
 class RangeWidgetTests(TestCase):

@@ -14,8 +14,60 @@ from .widgets import (
     CSVWidget,
     DateRangeWidget,
     LookupChoiceWidget,
-    RangeWidget
+    RangeWidget,
+    RelatedMultiWidget,
+    SuffixedMultiWidget
 )
+
+
+class MultiWidgetField(forms.MultiValueField):
+    """
+    A MultiValueField that automatically passes the widgets from ``fields``
+    to the ``widget`` class init (only works if widget is uninitialized).
+    Also implements a basic ``compress`` method to avoid a NotImplementedError.
+
+    * ``fields`` is a required argument representing the subfields
+
+    * ``widget`` is an optional argument to override the default widget.
+
+    * ``widgets`` is an optional argument to override the widgets that get
+      passed to the widget initialization.
+    """
+    widget = forms.MultiWidget
+
+    def __init__(self, fields, widget=None, widgets=None, **kwargs):
+        widget = widget or self.widget
+        if isinstance(widget, type):
+            if widgets is None:
+                widgets = [f.widget for f in fields]
+            widget = widget(widgets=widgets)
+        super().__init__(fields, widget=widget, **kwargs)
+
+    def compress(self, data_list):
+        return data_list
+
+
+class SuffixedMultiWidgetField(MultiWidgetField):
+    """
+    A MultiWidgetField that also passes "suffixes" to the widget init.
+    """
+    widget = SuffixedMultiWidget
+
+    def __init__(self, fields, widget=None, widgets=None, suffixes=None, **kwargs):
+        widget = widget or self.widget
+        if isinstance(widget, type):
+            if widgets is None:
+                widgets = [f.widget for f in fields]
+            widget = widget(widgets=widgets, suffixes=suffixes)
+        super().__init__(fields, widget=widget, **kwargs)
+
+
+class RelatedMultiWidgetField(SuffixedMultiWidgetField):
+    """
+    A SuffixedMultiWidgetField that uses a RelatedMultiWidget to put
+    two undercores between the name and suffixes.
+    """
+    widget = RelatedMultiWidget
 
 
 class RangeField(forms.MultiValueField):

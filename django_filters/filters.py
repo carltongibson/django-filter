@@ -23,7 +23,10 @@ from .fields import (
     ModelChoiceField,
     ModelMultipleChoiceField,
     MultipleChoiceField,
+    MultiWidgetField,
     RangeField,
+    RelatedMultiWidgetField,
+    SuffixedMultiWidgetField,
     TimeRangeField
 )
 from .utils import get_model_field, label_for_filter
@@ -49,11 +52,14 @@ __all__ = [
     'LookupChoiceFilter',
     'ModelChoiceFilter',
     'ModelMultipleChoiceFilter',
+    'MultiFilter',
     'MultipleChoiceFilter',
     'NumberFilter',
     'NumericRangeFilter',
     'OrderingFilter',
     'RangeFilter',
+    'RelatedMultiFilter',
+    'SuffixedMultiFilter',
     'TimeFilter',
     'TimeRangeFilter',
     'TypedChoiceFilter',
@@ -556,6 +562,115 @@ class BaseRangeFilter(BaseCSVFilter):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('lookup_expr', 'range')
         super().__init__(*args, **kwargs)
+
+
+class MultiFilter(Filter):
+    """
+    Basic MultiWidget filter. Passes extra init arguments to the field_class
+    init (like all filters). The default ``filter`` method will generally
+    not work, so either set ``method`` or override ``filter``.
+
+    * ``fields`` should be a list of initialized fields.
+
+    See ``MultiWidgetField`` for advanced usage.
+    """
+    field_class = MultiWidgetField
+
+
+class SuffixedMultiFilter(Filter):
+    """
+    Similar to MultiFilter, but uses ``suffixes`` instead of automatic
+    indices.
+
+    * ``suffixes`` should be a list of strings.
+    * ``fields`` should be a list of initialized fields.
+
+    See ``SuffixedMultiWidgetField`` for advanced usage.
+    """
+    field_class = SuffixedMultiWidgetField
+
+
+class RelatedMultiFilter(Filter):
+    """
+    Similar to SuffixedMultiFilter, but will calculate suffixes and fields
+    from ``related_names``. Uses Django's ``LOOKUP_SEP`` between ``field_name``
+    and suffixes instead of a single underscore.
+
+    * ``related_names`` can be an iterable of suffixes or a mapping of strings and
+      lookup expressions similar to a filterset's meta ``fields``.
+    """
+    field_class = RelatedMultiWidgetField
+
+    def __init__(self, *args, related_names=None, **kwargs):
+        assert is_iterable(related_names), \
+            "'related_names' must be an iterable (e.g., a list, tuple, or mapping)."
+
+        if not isinstance(related_names, dict):
+            related_names = [(n, ['exact']) for n in related_names]
+        self.related_names = OrderedDict(related_names)
+
+        super().__init__(*args, **kwargs)
+
+    def get_full_name(self, related_name):
+        if related_name:
+            return LOOKUP_SEP.join([self.field_name, related_name])
+        return self.field_name
+
+    @property
+    def field(self):
+        if not hasattr(self, "_field"):
+            field_kwargs = self.extra.copy()
+
+            if settings.DISABLE_HELP_TEXT:
+                field_kwargs.pop("help_text", None)
+
+            suffixes = field_kwargs.pop("suffixes", [])
+            fields = field_kwargs.pop("fields", [])
+            undefined = []
+            for related_name, lookups in self.related_names.items():
+                full_name = self.get_full_name(related_name)
+                field = get_model_field(self.model, full_name)
+
+                # warn if the field doesn't exist.
+                if field is None:
+                    undefined.append(full_name)
+                    continue
+
+                for lookup_expr in lookups:
+                    filter_name = self.parent.get_filter_name(full_name, lookup_expr)
+                    filter_instance = self.parent.filter_for_field(field, full_name, lookup_expr)
+
+                    suffixes.append(filter_name[len(self.field_name)+2:])
+                    fields.append(filter_instance.field_class())
+
+            if undefined:
+                raise TypeError(
+                    "'fields' contains fields that are not defined on this FilterSet: "
+                    "%s" % ', '.join(undefined)
+                )
+
+            self._field = self.field_class(
+                suffixes=suffixes, fields=fields, label=self.label, **field_kwargs
+            )
+        return self._field
+
+    def filter(self, qs, value):
+        lookups = {}
+        widget = self.field.widget
+        name = self.field_name
+        for suffix, val in zip(widget.suffixes, value):
+            if val not in EMPTY_VALUES:
+                # lookup = widget.suffixed(name, suffix)
+                lookup = LOOKUP_SEP.join([name, suffix]) if suffix else name
+                lookups[lookup] = val
+
+        if not lookups:
+            return qs
+        if self.distinct:
+            qs = qs.distinct()
+
+        qs = self.get_method(qs)(**lookups)
+        return qs
 
 
 class LookupChoiceFilter(Filter):
