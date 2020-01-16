@@ -10,6 +10,7 @@ Meta options
 - :ref:`model <model>`
 - :ref:`fields <fields>`
 - :ref:`exclude <exclude>`
+- :ref:`groups <groups>`
 - :ref:`form <form>`
 - :ref:`filter_overrides <filter_overrides>`
 
@@ -87,6 +88,26 @@ declared directly  on the ``FilterSet``.
         class Meta:
             model = User
             exclude = ['password']
+
+
+.. _groups:
+
+Process filters together with ``groups``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``groups`` option accepts a list of ``BaseFilterGroup`` instances, enabling
+each group's filters to be validated and filtered together. For more information,
+see :doc:`group reference </ref/groups>`.
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'first_name', 'last_name']
+            groups = [
+                RequiredGroup(['first_name', 'last_name']),
+            ]
 
 
 .. _form:
