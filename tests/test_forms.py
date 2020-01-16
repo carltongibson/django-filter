@@ -3,6 +3,7 @@ from django.test import TestCase, override_settings
 
 from django_filters.filters import CharFilter, ChoiceFilter
 from django_filters.filterset import FilterSet
+from django_filters.groups import RequiredGroup
 
 from .models import MANAGER, REGULAR, STATUS_CHOICES, Book, ManagerGroup, User
 
@@ -223,6 +224,40 @@ class FilterSetFormTests(TestCase):
                 F().form.fields['title__in'].help_text,
                 ''
             )
+
+
+class FilterGroupFormTests(TestCase):
+
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['first_name', 'last_name']
+            groups = [RequiredGroup(filters=['first_name', 'last_name'])]
+
+    def test_validate_none(self):
+        f = self.F({})
+
+        self.assertTrue(f.is_valid())
+        self.assertEqual(f.errors, {})
+
+    def test_validate_empty(self):
+        f = self.F({'first_name': '', 'last_name': ''})
+
+        self.assertTrue(f.is_valid())
+        self.assertEqual(f.errors, {})
+
+    def test_validate_partial(self):
+        f = self.F({'first_name': 'Bob'})
+        msg = "'First name' and 'Last name' are mutually required."
+
+        self.assertFalse(f.is_valid())
+        self.assertEqual(f.errors, {'first_name': [msg], 'last_name': [msg]})
+
+    def test_validate_all(self):
+        f = self.F({'first_name': 'Bob', 'last_name': 'Jones'})
+
+        self.assertTrue(f.is_valid())
+        self.assertEqual(f.errors, {})
 
 
 class FilterSetValidityTests(TestCase):

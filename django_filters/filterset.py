@@ -56,6 +56,7 @@ class FilterSetOptions(object):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
+        self.groups = getattr(options, 'groups', [])
 
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
@@ -193,11 +194,17 @@ class BaseFilterSet(object):
         self.form_prefix = prefix
 
         self.filters = copy.deepcopy(self.base_filters)
+        self.groups = copy.deepcopy(self._meta.groups)
 
         # propagate the model and filterset to the filters
         for filter_ in self.filters.values():
             filter_.model = model
             filter_.parent = self
+
+        # propagate the model and filterset to the groups
+        for group in self.groups:
+            group.model = model
+            group.parent = self
 
     def is_valid(self):
         """
@@ -220,11 +227,21 @@ class BaseFilterSet(object):
         This method should be overridden if additional filtering needs to be
         applied to the queryset before it is cached.
         """
-        for name, value in self.form.cleaned_data.items():
+        cleaned_data = self.form.cleaned_data.copy()
+
+        # Extract the grouped data from the rest of the `cleaned_data`. This
+        # ensures that the original filter methods aren't called in addition
+        # to the group filter methods.
+        for group in self.groups:
+            group_data, cleaned_data = group.extract_data(cleaned_data)
+            queryset = group.filter(queryset, **group_data)
+
+        for name, value in cleaned_data.items():
             queryset = self.filters[name].filter(queryset, value)
             assert isinstance(queryset, models.QuerySet), \
                 "Expected '%s.%s' to return a QuerySet, but got a %s instead." \
                 % (type(self).__name__, name, type(queryset).__name__)
+
         return queryset
 
     @property
@@ -245,12 +262,24 @@ class BaseFilterSet(object):
         This method should be overridden if the form class needs to be
         customized relative to the filterset instance.
         """
+        class FilterSetForm(forms.Form):
+            def clean(form):
+                cleaned_data = super().clean()
+
+                for group in self.groups:
+                    # Ignore the modified `cleaned_data`, as we only want to remove
+                    # data on error, which is accomplished through `form.add_error`.
+                    group_data, _ = group.extract_data(cleaned_data)
+                    group.validate(form, **group_data)
+
+                return cleaned_data
+
         fields = OrderedDict([
             (name, filter_.field)
             for name, filter_ in self.filters.items()])
 
         return type(str('%sForm' % self.__class__.__name__),
-                    (self._meta.form,), fields)
+                    (FilterSetForm, self._meta.form,), fields)
 
     @property
     def form(self):

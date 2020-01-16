@@ -20,6 +20,7 @@ from django_filters.filters import (
     UUIDFilter
 )
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet
+from django_filters.groups import RequiredGroup
 from django_filters.widgets import BooleanWidget
 
 from .models import (
@@ -625,7 +626,8 @@ class FilterSetInstantiationTests(TestCase):
     class F(FilterSet):
         class Meta:
             model = User
-            fields = ['username']
+            fields = ['username', 'first_name', 'last_name']
+            groups = [RequiredGroup(['first_name', 'last_name'])]
 
     def test_creating_instance(self):
         f = self.F()
@@ -651,6 +653,18 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = self.F(request=m)
         self.assertEqual(f.request, m)
+
+    def test_filter_parent_and_model_set(self):
+        filterset = self.F({})
+        f = filterset.filters['username']
+        self.assertIs(f.parent, filterset)
+        self.assertIs(f.model, User)
+
+    def test_group_parent_and_model_set(self):
+        filterset = self.F({})
+        g = filterset.groups[0]
+        self.assertIs(g.parent, filterset)
+        self.assertIs(g.model, User)
 
 
 class FilterSetQuerysetTests(TestCase):

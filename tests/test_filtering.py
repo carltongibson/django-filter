@@ -5,6 +5,7 @@ import unittest
 from operator import attrgetter
 
 from django import forms
+from django.db.models import Q
 from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -30,6 +31,7 @@ from django_filters.filters import (
     TypedMultipleChoiceFilter
 )
 from django_filters.filterset import FilterSet
+from django_filters.groups import CombinedGroup
 
 from .models import (
     STATUS_CHOICES,
@@ -1906,6 +1908,41 @@ class OrderingFilterTests(TestCase):
         f = F({'o': 'username'}, queryset=qs)
         names = f.qs.values_list('username', flat=True)
         self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob'])
+
+
+class FilterGroupTests(TestCase):
+
+    class F(FilterSet):
+        class Meta:
+            model = User
+            fields = ['first_name', 'last_name']
+            groups = [CombinedGroup(filters=['first_name', 'last_name'])]
+
+    def test_filter_none(self):
+        qs = MockQuerySet()
+        self.F({}, queryset=qs).qs
+
+        qs.all.return_value.filter.assert_not_called()
+
+    def test_filter_empty(self):
+        qs = MockQuerySet()
+        self.F({'first_name': '', 'last_name': ''}, queryset=qs).qs
+
+        qs.all.return_value.filter.assert_not_called()
+
+    def test_filter_partial(self):
+        qs = MockQuerySet()
+        self.F({'first_name': 'Bob', 'last_name': ''}, queryset=qs).qs
+
+        expected = Q(first_name__exact='Bob')
+        qs.all.return_value.filter.assert_called_once_with(expected)
+
+    def test_filter_all(self):
+        qs = MockQuerySet()
+        self.F({'first_name': 'Bob', 'last_name': 'Jones'}, queryset=qs).qs
+
+        expected = Q(first_name__exact='Bob') & Q(last_name__exact='Jones')
+        qs.all.return_value.filter.assert_called_once_with(expected)
 
 
 class MiscFilterSetTests(TestCase):
