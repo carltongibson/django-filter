@@ -3,10 +3,9 @@ Group Reference
 ===============
 
 By default, a ``FilterSet`` validates and then filters its query parameters
-independently of each other, ultimately resulting in a sequence of chained
-``.filter()`` calls. Due to the nature of filter chaining, it's not trivial
-to, for example, make a group of filters mutually exclusive, or to OR them
-together into a single filter call.
+independently of each other, ultimately resulting in a chain of ``.filter()``
+calls. Due to the nature of filter chaining, it's not trivial to, for example,
+make a group of filters that are mutually exclusive to each other.
 
 Filter groups solve this limitation by processing subsets of parameters
 together, enabling higher level validation and filtering behavior.
@@ -15,9 +14,9 @@ Validation
 ==========
 
 A filter group only applies group-level validation. For example, a mutually
-exclusive group is only responsible for validating that one of its parameters
-is present. It is not responsible for individual value validation, which is
-still performed by the underlying filter instances.
+exclusive group is responsible for validating that *only* one of its parameters
+is present. It is not responsible for validating the individual values, which
+is still performed by the underlying filter instances.
 
 Filtering
 =========

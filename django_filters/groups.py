@@ -1,5 +1,6 @@
 import functools
 import operator
+from abc import abstractmethod
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -30,6 +31,7 @@ class BaseFilterGroup:
         self.parent = None
         self.model = None
 
+    @abstractmethod
     def validate(self, form, **data):
         """Validate the subset of cleaned data provided by the form.
 
@@ -42,6 +44,7 @@ class BaseFilterGroup:
         """
         raise NotImplementedError
 
+    @abstractmethod
     def filter(self, qs, **data):
         """Filter the result queryset with the subset of cleaned data.
 
@@ -49,6 +52,9 @@ class BaseFilterGroup:
             qs: The ``QuerySet`` instance to filter.
             **data: The subset of a form's ``cleaned_data`` for the filters in
                 the group.
+
+        Returns:
+            The filtered queryset instance.
         """
         raise NotImplementedError
 
