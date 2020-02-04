@@ -26,3 +26,7 @@ class DjangoFilterOrderingModel(models.Model):
 
     class Meta:
         ordering = ['-date']
+
+
+class CategoryItem(BaseFilterableItem):
+    category = models.CharField(max_length=10, choices=(("home", "Home"), ("office", "Office")))

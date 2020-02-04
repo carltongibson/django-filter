@@ -149,8 +149,13 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
             )
 
         filterset_class = self.get_filterset_class(view, queryset)
-        return [] if not filterset_class else [
-            ({
+
+        if not filterset_class:
+            return []
+
+        parameters = []
+        for field_name, field in filterset_class.base_filters.items():
+            parameter = {
                 'name': field_name,
                 'required': field.extra['required'],
                 'in': 'query',
@@ -158,5 +163,8 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 'schema': {
                     'type': 'string',
                 },
-            }) for field_name, field in filterset_class.base_filters.items()
-        ]
+            }
+            if field.extra and 'choices' in field.extra:
+                parameter['schema']['enum'] = [c[0] for c in field.extra['choices']]
+            parameters.append(parameter)
+        return parameters
