@@ -15,7 +15,7 @@ from django_filters.rest_framework import (
 )
 
 from ..models import Article
-from .models import FilterableItem
+from .models import CategoryItem, FilterableItem
 
 factory = APIRequestFactory()
 
@@ -23,6 +23,12 @@ factory = APIRequestFactory()
 class FilterableItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterableItem
+        fields = '__all__'
+
+
+class CategoryItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoryItem
         fields = '__all__'
 
 
@@ -50,6 +56,13 @@ class FilterFieldsRootView(FilterableItemView):
 
 class FilterClassRootView(FilterableItemView):
     filterset_class = SeveralFieldsFilter
+
+
+class CategoryItemView(generics.ListCreateAPIView):
+    queryset = CategoryItem.objects.all()
+    serializer_class = CategoryItemSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ["category"]
 
 
 class GetFilterClassTests(TestCase):
@@ -236,6 +249,25 @@ class GetSchemaOperationParametersTests(TestCase):
         fields = [f['name'] for f in fields]
 
         self.assertEqual(fields, ['decimal', 'date'])
+
+    def test_get_operation_parameters_with_filterset_fields_list_with_choices(self):
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_operation_parameters(CategoryItemView())
+
+        self.assertEqual(
+            fields,
+            [{
+                'name': 'category',
+                'required': False,
+                'in': 'query',
+                'description': 'category',
+                'schema': {
+                    'type': 'string',
+                    'enum': ['home', 'office']
+                },
+
+            }]
+        )
 
 
 class TemplateTests(TestCase):
