@@ -51,6 +51,20 @@ class FilterSetFormTests(TestCase):
         f = F(prefix='prefix').form
         self.assertEqual(f.prefix, 'prefix')
 
+    def test_form_extra_kwargs(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = ('title',)
+
+            def get_form_kwargs(self):
+                kwargs = super().get_form_kwargs()
+                kwargs.update(label_suffix='')
+                return kwargs
+
+        f = F().form
+        self.assertEqual(f.label_suffix, '')
+
     def test_form_fields(self):
         class F(FilterSet):
             class Meta:

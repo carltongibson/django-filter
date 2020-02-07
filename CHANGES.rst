@@ -1,3 +1,10 @@
+Unreleased
+----------
+
+* Added ``FilterSet.get_form_kwargs()``, which allow to override keyword arguments
+  passed to the resulting form.
+
+
 Version 2.2 (2019-7-16)
 -----------------------
 

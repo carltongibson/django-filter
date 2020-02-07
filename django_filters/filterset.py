@@ -252,14 +252,21 @@ class BaseFilterSet(object):
         return type(str('%sForm' % self.__class__.__name__),
                     (self._meta.form,), fields)
 
+    def get_form_kwargs(self):
+        """
+        Return the keyword arguments for instantiating the form.
+        """
+        return {'prefix': self.form_prefix}
+
     @property
     def form(self):
         if not hasattr(self, '_form'):
             Form = self.get_form_class()
+            form_kwargs = self.get_form_kwargs()
             if self.is_bound:
-                self._form = Form(self.data, prefix=self.form_prefix)
+                self._form = Form(self.data, **form_kwargs)
             else:
-                self._form = Form(prefix=self.form_prefix)
+                self._form = Form(**form_kwargs)
         return self._form
 
     @classmethod
