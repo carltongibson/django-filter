@@ -25,6 +25,11 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertIsInstance(result, filters.IsoDateTimeFilter)
         self.assertEqual(result.field_name, 'published')
 
+    def test_filter_label(self):
+        field = Article._meta.get_field('name')
+        result = FilterSet.filter_for_field(field, 'name')
+        self.assertEqual(result.label, 'Title')
+
     def test_booleanfilter_widget(self):
         field = User._meta.get_field('is_active')
         result = FilterSet.filter_for_field(field, 'is_active')

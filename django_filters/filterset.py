@@ -359,6 +359,7 @@ class BaseFilterSet(object):
 
     @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr='exact'):
+        model = field.model
         field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {
@@ -376,7 +377,9 @@ class BaseFilterSet(object):
             "#customise-filter-generation-with-filter-overrides"
         ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
 
-        return filter_class(**default)
+        f = filter_class(**default)
+        f.model = model
+        return f
 
     @classmethod
     def filter_for_lookup(cls, field, lookup_type):
