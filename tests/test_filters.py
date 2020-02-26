@@ -1508,17 +1508,19 @@ class OrderingFilterTests(TestCase):
 
     def test_field_labels_descending(self):
         f = OrderingFilter(
-            fields=['username'],
+            fields=(('a', 'c'), ('b', 'd')),
             field_labels={
-                'username': 'BLABLA',
-                '-username': 'XYZXYZ',
+                '-a': 'BLABLA',
+                '-b': 'XYZXYZ',
             }
         )
 
         self.assertEqual(list(f.field.choices), [
             ('', '---------'),
-            ('username', 'BLABLA'),
-            ('-username', 'XYZXYZ'),
+            ('c', 'C'),
+            ('-c', 'BLABLA'),
+            ('d', 'D'),
+            ('-d', 'XYZXYZ'),
         ])
 
     def test_normalize_fields(self):
