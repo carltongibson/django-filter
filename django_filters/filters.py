@@ -737,12 +737,13 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         ])
 
     def build_choices(self, fields, labels):
+        fields = {param: field for field, param in fields.items()}
         ascending = [
             (param, labels.get(field, _(pretty_name(param))))
-            for field, param in fields.items()
+            for param, field in fields.items()
         ]
         descending = [
-            ('-%s' % param, labels.get('-%s' % param, self.descending_fmt % label))
+            ('-%s' % param, labels.get('-%s' % fields[param], self.descending_fmt % label))
             for param, label in ascending
         ]
 
