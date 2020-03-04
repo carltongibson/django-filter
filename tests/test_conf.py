@@ -11,6 +11,9 @@ class DefaultSettingsTests(TestCase):
         self.assertIsInstance(settings.VERBOSE_LOOKUPS, dict)
         self.assertIn('exact', settings.VERBOSE_LOOKUPS)
 
+    def test_default_lookup_expr(self):
+        self.assertEqual(settings.DEFAULT_LOOKUP_EXPR, 'exact')
+
     def test_disable_help_text(self):
         self.assertFalse(settings.DISABLE_HELP_TEXT)
 

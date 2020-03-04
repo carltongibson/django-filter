@@ -294,7 +294,7 @@ class BaseFilterSet(object):
         # Remove excluded fields
         exclude = exclude or []
         if not isinstance(fields, dict):
-            fields = [(f, ['exact']) for f in fields if f not in exclude]
+            fields = [(f, [settings.DEFAULT_LOOKUP_EXPR]) for f in fields if f not in exclude]
         else:
             fields = [(f, lookups) for f, lookups in fields.items() if f not in exclude]
 
@@ -310,9 +310,9 @@ class BaseFilterSet(object):
         filter_name = LOOKUP_SEP.join([field_name, lookup_expr])
 
         # This also works with transformed exact lookups, such as 'date__exact'
-        _exact = LOOKUP_SEP + 'exact'
-        if filter_name.endswith(_exact):
-            filter_name = filter_name[:-len(_exact)]
+        _default_expr = LOOKUP_SEP + settings.DEFAULT_LOOKUP_EXPR
+        if filter_name.endswith(_default_expr):
+            filter_name = filter_name[:-len(_default_expr)]
 
         return filter_name
 
@@ -366,7 +366,9 @@ class BaseFilterSet(object):
         return filters
 
     @classmethod
-    def filter_for_field(cls, field, field_name, lookup_expr='exact'):
+    def filter_for_field(cls, field, field_name, lookup_expr=None):
+        if lookup_expr is None:
+            lookup_expr = settings.DEFAULT_LOOKUP_EXPR
         field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {
