@@ -294,8 +294,10 @@ class BaseCSVWidgetTests(TestCase):
             <input type="text" name="price" value="1,2" />""")
 
     def test_widget_value_from_datadict(self):
-        w = CSVWidget()
+        class NumberCSVWidget(BaseCSVWidget, NumberInput):
+            pass
 
+        w = NumberCSVWidget()
         data = {'price': None}
         result = w.value_from_datadict(data, {}, 'price')
         self.assertEqual(result, None)
