@@ -271,21 +271,21 @@ class BaseCSVWidgetTests(TestCase):
         class NumberCSVWidget(BaseCSVWidget, NumberInput):
             pass
 
-        w = NumberCSVWidget()
+        w = NumberCSVWidget(attrs={'test': 'attr'})
         self.assertHTMLEqual(w.render('price', None), """
-            <input type="number" name="price" />""")
+            <input type="number" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', ''), """
-            <input type="number" name="price" />""")
+            <input type="number" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', []), """
-            <input type="number" name="price" />""")
+            <input type="number" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', '1'), """
-            <input type="number" name="price" value="1" />""")
+            <input type="number" test="attr" name="price" value="1" />""")
 
         self.assertHTMLEqual(w.render('price', '1,2'), """
-            <input type="number" name="price" value="1,2" />""")
+            <input type="number" test="attr" name="price" value="1,2" />""")
 
         self.assertHTMLEqual(w.render('price', ['1', '2']), """
             <input type="text" name="price" value="1,2" />""")
@@ -330,27 +330,27 @@ class BaseCSVWidgetTests(TestCase):
 
 class CSVWidgetTests(TestCase):
     def test_widget_render(self):
-        w = CSVWidget()
+        w = CSVWidget(attrs={'test': 'attr'})
         self.assertHTMLEqual(w.render('price', None), """
-            <input type="text" name="price" />""")
+            <input type="text" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', ''), """
-            <input type="text" name="price" />""")
+            <input type="text" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', []), """
-            <input type="text" name="price" />""")
+            <input type="text" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', '1'), """
-            <input type="text" name="price" value="1" />""")
+            <input type="text" test="attr" name="price" value="1" />""")
 
         self.assertHTMLEqual(w.render('price', '1,2'), """
-            <input type="text" name="price" value="1,2" />""")
+            <input type="text" test="attr" name="price" value="1,2" />""")
 
         self.assertHTMLEqual(w.render('price', ['1', '2']), """
-            <input type="text" name="price" value="1,2" />""")
+            <input type="text" test="attr" name="price" value="1,2" />""")
 
         self.assertHTMLEqual(w.render('price', [1, 2]), """
-            <input type="text" name="price" value="1,2" />""")
+            <input type="text" test="attr" name="price" value="1,2" />""")
 
 
 class CSVSelectTests(TestCase):
