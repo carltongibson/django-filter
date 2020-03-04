@@ -1,7 +1,6 @@
 import warnings
 from collections import OrderedDict
 
-import django
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, FieldError
 from django.db import models
@@ -196,9 +195,6 @@ def resolve_field(model_field, lookup_expr):
         while lookups:
             name = lookups[0]
             args = (lhs, name)
-            if django.VERSION < (2, 0):
-                # rest_of_lookups was removed in Django 2.0
-                args += (lookups,)
             # If there is just one part left, try first get_lookup() so
             # that if the lhs supports both transform and lookup for the
             # name, then lookup will be picked.
