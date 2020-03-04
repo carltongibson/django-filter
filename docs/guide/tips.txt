@@ -207,6 +207,7 @@ behavior as an ``isnull`` filter.
 
         class Meta:
             model = MyModel
+            fields = []
 
 
 Filtering by relative times
