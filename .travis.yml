@@ -1,16 +1,11 @@
 os: linux
 dist: bionic
 language: python
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
 
 cache: pip
 
 install:
-  - pip install coverage tox tox-travis
+  - pip install coverage tox tox-factor
 
 script:
   - coverage erase
@@ -19,6 +14,11 @@ script:
 jobs:
   fast_finish: true
   include:
+    - { python: "3.5", env: TOXFACTOR=py35 }
+    - { python: "3.6", env: TOXFACTOR=py36 }
+    - { python: "3.7", env: TOXFACTOR=py37 }
+    - { python: "3.8", env: TOXFACTOR=py38 }
+
     - python: "3.8"
       env: TOXENV=isort,lint,docs
     - python: "3.8"
