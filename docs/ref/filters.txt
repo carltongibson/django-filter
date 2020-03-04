@@ -73,8 +73,8 @@ transformation and empty value checking should be unnecessary.
             lookup = '__'.join([name, 'isnull'])
             return queryset.filter(**{lookup: False})
 
-            # alternatively, it may not be necessary to construct the lookup.
-            return queryset.filter(published_on__isnull=False)
+            # alternatively, you could opt to hardcode the lookup. e.g.,
+            # return queryset.filter(published_on__isnull=False)
 
         class Meta:
             model = Book
