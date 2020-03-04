@@ -4,22 +4,25 @@
 
 strategy:
   matrix:
-    # For some reason, Python 3.4 tries to install Django 2.0 - disabling for now
-    # PY34:
-    #   PYTHON_VERSION: '3.4'
     PY35:
       PYTHON_VERSION: '3.5'
-      TOXENV: django111, django20, django21
+      TOXFACTOR: py35
     PY36:
       PYTHON_VERSION: '3.6'
-    PY36_isort:
-      PYTHON_VERSION: '3.6'
-      TOXENV: isort,lint,docs
-    PY36_warnings:
-      PYTHON_VERSION: '3.6'
-      TOXENV: warnings
+      TOXFACTOR: py36
     PY37:
       PYTHON_VERSION: '3.7'
+      TOXFACTOR: py37
+    PY38:
+      PYTHON_VERSION: '3.8'
+      TOXFACTOR: py38
+
+    PY38_isort:
+      PYTHON_VERSION: '3.8'
+      TOXENV: isort,lint,docs
+    PY38_warnings:
+      PYTHON_VERSION: '3.8'
+      TOXENV: warnings
 
 steps:
 - task: UsePythonVersion@0
@@ -32,12 +35,13 @@ steps:
   displayName: Ensure latest setuptools
 
 - script: |
-    pip install coverage tox tox-venv unittest-xml-reporting
+    pip install coverage tox tox-factor unittest-xml-reporting
   displayName: Install deps
 
 - script: |
     pip --version
-    tox --skip-missing-interpreters true
+    tox --version
+    tox
   displayName: Run tox
 
 - script: |
