@@ -329,6 +329,21 @@ class BaseCSVWidgetTests(TestCase):
         result = w.value_from_datadict({}, {}, 'price')
         self.assertEqual(result, None)
 
+    def test_surrogate_class(self):
+        class ClassSurrogate(BaseCSVWidget, NumberInput):
+            surrogate = NumberInput
+
+        w = ClassSurrogate()
+        self.assertIsInstance(w.surrogate, NumberInput)
+
+    def test_surrogate_instance(self):
+        class InstanceSurrogate(BaseCSVWidget, NumberInput):
+            surrogate = NumberInput()
+
+        w = InstanceSurrogate()
+        self.assertIsInstance(w.surrogate, NumberInput)
+        self.assertIsNot(InstanceSurrogate.surrogate, w.surrogate)  # deepcopied
+
 
 class CSVWidgetTests(TestCase):
     def test_widget_render(self):

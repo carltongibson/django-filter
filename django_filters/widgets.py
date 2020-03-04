@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from copy import deepcopy
 from itertools import chain
 from re import search, sub
 
@@ -189,6 +190,17 @@ class BooleanWidget(forms.Select):
 
 
 class BaseCSVWidget(forms.Widget):
+    # Surrogate widget for rendering multiple values
+    surrogate = forms.TextInput
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if isinstance(self.surrogate, type):
+            self.surrogate = self.surrogate()
+        else:
+            self.surrogate = deepcopy(self.surrogate)
+
     def _isiterable(self, value):
         return isinstance(value, Iterable) and not isinstance(value, str)
 
@@ -212,15 +224,18 @@ class BaseCSVWidget(forms.Widget):
 
         # if we have multiple values, we need to force render as a text input
         # (otherwise, the additional values are lost)
-        surrogate = forms.TextInput()
-        value = [force_str(surrogate.format_value(v)) for v in value]
+        value = [force_str(self.surrogate.format_value(v)) for v in value]
         value = ','.join(list(value))
 
-        return surrogate.render(name, value, attrs, renderer=renderer)
+        return self.surrogate.render(name, value, attrs, renderer=renderer)
 
 
 class CSVWidget(BaseCSVWidget, forms.TextInput):
-    pass
+    def __init__(self, *args, attrs=None, **kwargs):
+        super().__init__(*args, attrs, **kwargs)
+
+        if attrs is not None:
+            self.surrogate.attrs.update(attrs)
 
 
 class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
