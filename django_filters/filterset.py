@@ -344,12 +344,14 @@ class BaseFilterSet(object):
                 if field is not None:
                     filters[filter_name] = cls.filter_for_field(field, field_name, lookup_expr)
 
-        # filter out declared filters
-        undefined = [f for f in undefined if f not in cls.declared_filters]
+        # Allow Meta.fields to contain declared filters *only* when a list/tuple
+        if isinstance(cls._meta.fields, (list, tuple)):
+            undefined = [f for f in undefined if f not in cls.declared_filters]
+
         if undefined:
             raise TypeError(
-                "'Meta.fields' contains fields that are not defined on this FilterSet: "
-                "%s" % ', '.join(undefined)
+                "'Meta.fields' must not contain non-model field names: %s"
+                % ', '.join(undefined)
             )
 
         # Add in declared filters. This is necessary since we don't enforce adding

@@ -71,6 +71,25 @@ include both transforms and lookups, as detailed in the `lookup reference`__.
 
 __ https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
 
+Note that it is **not** necessary to included declared filters in a ``fields``
+list - doing so will have no effect - and including declarative aliases in a
+``fields`` dict will raise an error.
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        username = filters.CharFilter()
+        login_timestamp = filters.IsoDateTimeFilter(field_name='last_login')
+
+        class Meta:
+            model = User
+            fields = {
+                'username': ['exact', 'contains'],
+                'login_timestamp': ['exact'],
+            }
+
+    TypeError("'Meta.fields' contains fields that are not defined on this FilterSet: login_timestamp")
+
 
 .. _exclude:
 
