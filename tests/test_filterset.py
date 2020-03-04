@@ -632,6 +632,35 @@ class FilterSetClassCreationTests(TestCase):
         filters = {name: type(f) for name, f in F.declared_filters.items()}
         self.assertEqual(filters, {'f': CharFilter})
 
+    def test_declared_filter_multiple_inheritance_field_ordering(self):
+        class Base(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        class A(Base):
+            f3 = NumberFilter()
+
+        class B(FilterSet):
+            f3 = CharFilter()
+            f4 = CharFilter()
+
+        class F(A, B):
+            f2 = NumberFilter()
+            f5 = CharFilter()
+
+        fields = {name: type(f) for name, f in F.declared_filters.items()}
+
+        # `NumberFilter`s should be the 'winners' in filter name conflicts
+        # - `F.f2` should override `Base.F2`
+        # - `A.f3` should override `B.f3`
+        assert fields == {
+            'f1': CharFilter,
+            'f2': NumberFilter,
+            'f3': NumberFilter,
+            'f4': CharFilter,
+            'f5': CharFilter,
+        }
+
 
 class FilterSetInstantiationTests(TestCase):
 
