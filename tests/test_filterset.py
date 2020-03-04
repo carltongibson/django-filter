@@ -20,6 +20,7 @@ from django_filters.filters import (
     UUIDFilter
 )
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet
+from django_filters.groups import RequiredGroup
 from django_filters.widgets import BooleanWidget
 
 from .models import (
@@ -682,7 +683,8 @@ class FilterSetInstantiationTests(TestCase):
     class F(FilterSet):
         class Meta:
             model = User
-            fields = ['username']
+            fields = ['username', 'first_name', 'last_name']
+            groups = [RequiredGroup(['first_name', 'last_name'])]
 
     def test_creating_instance(self):
         f = self.F()
@@ -708,6 +710,18 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = self.F(request=m)
         self.assertEqual(f.request, m)
+
+    def test_filter_parent_and_model_set(self):
+        filterset = self.F({})
+        f = filterset.filters['username']
+        self.assertIs(f.parent, filterset)
+        self.assertIs(f.model, User)
+
+    def test_group_parent_and_model_set(self):
+        filterset = self.F({})
+        g = filterset.groups[0]
+        self.assertIs(g.parent, filterset)
+        self.assertIs(g.model, User)
 
 
 class FilterSetQuerysetTests(TestCase):
@@ -838,12 +852,10 @@ class FilterMethodTests(TestCase):
 
     def test_parent_unresolvable(self):
         f = Filter(method='filter_f')
-        with self.assertRaises(AssertionError) as w:
-            f.filter(User.objects.all(), 0)
 
-        self.assertIn("'None'", str(w.exception))
-        self.assertIn('parent', str(w.exception))
-        self.assertIn('filter_f', str(w.exception))
+        msg = "Filter 'None' must have a parent FilterSet to find '.filter_f()'"
+        with self.assertRaisesMessage(AssertionError, msg):
+            f.filter(User.objects.all(), 0)
 
     def test_method_self_is_parent(self):
         # Ensure the method isn't 're-parented' on the `FilterMethod` helper class.

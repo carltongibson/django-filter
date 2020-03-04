@@ -81,6 +81,10 @@ class Filter(object):
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
 
+        # Set during parent FilterSet class creation
+        self.parent = None
+        self.model = None
+
         # TODO: remove assertion in 2.1
         assert not isinstance(self.lookup_expr, (type(None), list)), \
             "The `lookup_expr` argument no longer accepts `None` or a list of " \
@@ -117,7 +121,7 @@ class Filter(object):
 
     def label():
         def fget(self):
-            if self._label is None and hasattr(self, 'model'):
+            if self._label is None and self.model is not None:
                 self._label = label_for_filter(
                     self.model, self.field_name, self.lookup_expr, self.exclude
                 )
@@ -776,7 +780,7 @@ class FilterMethod(object):
             return instance.method
 
         # otherwise, method is the name of a method on the parent FilterSet.
-        assert hasattr(instance, 'parent'), \
+        assert instance.parent is not None, \
             "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
             (instance.field_name, instance.method)
 

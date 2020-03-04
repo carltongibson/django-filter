@@ -72,9 +72,19 @@ FilterSet ``Meta.together`` option removed (`#791`__)
 -----------------------------------------------------
 __ https://github.com/carltongibson/django-filter/pull/791
 
-The ``Meta.together`` has been deprecated in favor of userland implementations
-that override the ``clean`` method of the ``Meta.form`` class. An example will
-be provided in a "recipes" section in future docs.
+The ``Meta.together`` has been deprecated, and has now been replaced by the
+``Meta.groups`` option, which provides a more generic and flexible interface.
+For more information, see the :doc:`group reference </ref/groups>`.
+
+.. code-block:: python
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = ['price', 'release_date', 'rating']
+            groups = [
+                RequiredGroup(['rating', 'price']),
+            ]
 
 
 FilterSet "strictness" handling moved to view (`#788`__)

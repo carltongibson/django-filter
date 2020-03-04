@@ -24,6 +24,7 @@ do this.
     ref/filterset
     ref/filters
     ref/fields
+    ref/groups
     ref/widgets
     ref/settings
 

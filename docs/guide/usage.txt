@@ -85,8 +85,8 @@ both transforms and a final lookup.
 .. _`lookup reference`: https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
 
 
-Generating filters with Meta.fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Generating filters with ``Meta.fields``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The FilterSet Meta class provides a ``fields`` attribute that can be used for
 easily specifying multiple filters without significant code duplication. The
@@ -165,6 +165,26 @@ default filters for all the models fields of the same kind using
             }
 
 
+Process filters together with ``Meta.groups``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Filters can be added to a group, allowing them to be processed together. This
+overrides their validation and filtering behavior. In the example below,
+``first_name`` and ``last_name`` are mutually required. Filtering by one
+of the params requires that both are provided. For more information, see
+the :doc:`group reference </ref/groups>`.
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'first_name', 'last_name']
+            groups = [
+                RequiredGroup(['first_name', 'last_name']),
+            ]
+
+
 Request-based filtering
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -175,8 +195,8 @@ logged-in user or the ``Accepts-Languages`` header.
 
 .. note::
 
-    It is not guaranteed that a `request` will be provied to the `FilterSet`
-    instance. Any code depending on a request should handle the `None` case.
+    It is not guaranteed that a ``request`` will be provied to the ``FilterSet``
+    instance. Any code depending on a request should handle the ``None`` case.
 
 
 Filtering the primary ``.qs``
