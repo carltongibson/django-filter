@@ -1,4 +1,4 @@
-from django.forms import Select, TextInput
+from django.forms import NumberInput, Select, TextInput
 from django.test import TestCase
 
 from django_filters.widgets import (
@@ -266,23 +266,26 @@ class BooleanWidgetTests(TestCase):
         self.assertEqual(result, None)
 
 
-class CSVWidgetTests(TestCase):
-    def test_widget(self):
-        w = CSVWidget()
+class BaseCSVWidgetTests(TestCase):
+    def test_widget_render(self):
+        class NumberCSVWidget(BaseCSVWidget, NumberInput):
+            pass
+
+        w = NumberCSVWidget()
         self.assertHTMLEqual(w.render('price', None), """
-            <input type="text" name="price" />""")
+            <input type="number" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', ''), """
-            <input type="text" name="price" />""")
+            <input type="number" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', []), """
-            <input type="text" name="price" />""")
+            <input type="number" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', '1'), """
-            <input type="text" name="price" value="1" />""")
+            <input type="number" name="price" value="1" />""")
 
         self.assertHTMLEqual(w.render('price', '1,2'), """
-            <input type="text" name="price" value="1,2" />""")
+            <input type="number" name="price" value="1,2" />""")
 
         self.assertHTMLEqual(w.render('price', ['1', '2']), """
             <input type="text" name="price" value="1,2" />""")
@@ -323,6 +326,31 @@ class CSVWidgetTests(TestCase):
 
         result = w.value_from_datadict({}, {}, 'price')
         self.assertEqual(result, None)
+
+
+class CSVWidgetTests(TestCase):
+    def test_widget_render(self):
+        w = CSVWidget()
+        self.assertHTMLEqual(w.render('price', None), """
+            <input type="text" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', ''), """
+            <input type="text" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', []), """
+            <input type="text" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', '1'), """
+            <input type="text" name="price" value="1" />""")
+
+        self.assertHTMLEqual(w.render('price', '1,2'), """
+            <input type="text" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', ['1', '2']), """
+            <input type="text" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', [1, 2]), """
+            <input type="text" name="price" value="1,2" />""")
 
 
 class CSVSelectTests(TestCase):
