@@ -95,16 +95,22 @@ class FilterSetMetaclass(type):
 
         filters.sort(key=lambda x: x[1].creation_counter)
 
-        # merge declared filters from base classes
-        for base in reversed(bases):
-            if hasattr(base, 'declared_filters'):
-                filters = [
-                    (name, f) for name, f
-                    in base.declared_filters.items()
-                    if name not in attrs
-                ] + filters
+        # Ensures a base class field doesn't override cls attrs, and maintains
+        # field precedence when inheriting multiple parents. e.g. if there is a
+        # class C(A, B), and A and B both define 'field', use 'field' from A.
+        known = set(attrs)
 
-        return OrderedDict(filters)
+        def visit(name):
+            known.add(name)
+            return name
+
+        base_filters = [
+            (visit(name), f)
+            for base in bases if hasattr(base, 'declared_filters')
+            for name, f in base.declared_filters.items() if name not in known
+        ]
+
+        return OrderedDict(base_filters + filters)
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
