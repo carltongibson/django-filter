@@ -1,4 +1,4 @@
-from django.forms import Select, TextInput
+from django.forms import NumberInput, Select, TextInput
 from django.test import TestCase
 
 from django_filters.widgets import (
@@ -266,23 +266,26 @@ class BooleanWidgetTests(TestCase):
         self.assertEqual(result, None)
 
 
-class CSVWidgetTests(TestCase):
-    def test_widget(self):
-        w = CSVWidget()
+class BaseCSVWidgetTests(TestCase):
+    def test_widget_render(self):
+        class NumberCSVWidget(BaseCSVWidget, NumberInput):
+            pass
+
+        w = NumberCSVWidget(attrs={'test': 'attr'})
         self.assertHTMLEqual(w.render('price', None), """
-            <input type="text" name="price" />""")
+            <input type="number" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', ''), """
-            <input type="text" name="price" />""")
+            <input type="number" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', []), """
-            <input type="text" name="price" />""")
+            <input type="number" test="attr" name="price" />""")
 
         self.assertHTMLEqual(w.render('price', '1'), """
-            <input type="text" name="price" value="1" />""")
+            <input type="number" test="attr" name="price" value="1" />""")
 
         self.assertHTMLEqual(w.render('price', '1,2'), """
-            <input type="text" name="price" value="1,2" />""")
+            <input type="number" test="attr" name="price" value="1,2" />""")
 
         self.assertHTMLEqual(w.render('price', ['1', '2']), """
             <input type="text" name="price" value="1,2" />""")
@@ -291,8 +294,10 @@ class CSVWidgetTests(TestCase):
             <input type="text" name="price" value="1,2" />""")
 
     def test_widget_value_from_datadict(self):
-        w = CSVWidget()
+        class NumberCSVWidget(BaseCSVWidget, NumberInput):
+            pass
 
+        w = NumberCSVWidget()
         data = {'price': None}
         result = w.value_from_datadict(data, {}, 'price')
         self.assertEqual(result, None)
@@ -323,6 +328,46 @@ class CSVWidgetTests(TestCase):
 
         result = w.value_from_datadict({}, {}, 'price')
         self.assertEqual(result, None)
+
+    def test_surrogate_class(self):
+        class ClassSurrogate(BaseCSVWidget, NumberInput):
+            surrogate = NumberInput
+
+        w = ClassSurrogate()
+        self.assertIsInstance(w.surrogate, NumberInput)
+
+    def test_surrogate_instance(self):
+        class InstanceSurrogate(BaseCSVWidget, NumberInput):
+            surrogate = NumberInput()
+
+        w = InstanceSurrogate()
+        self.assertIsInstance(w.surrogate, NumberInput)
+        self.assertIsNot(InstanceSurrogate.surrogate, w.surrogate)  # deepcopied
+
+
+class CSVWidgetTests(TestCase):
+    def test_widget_render(self):
+        w = CSVWidget(attrs={'test': 'attr'})
+        self.assertHTMLEqual(w.render('price', None), """
+            <input type="text" test="attr" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', ''), """
+            <input type="text" test="attr" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', []), """
+            <input type="text" test="attr" name="price" />""")
+
+        self.assertHTMLEqual(w.render('price', '1'), """
+            <input type="text" test="attr" name="price" value="1" />""")
+
+        self.assertHTMLEqual(w.render('price', '1,2'), """
+            <input type="text" test="attr" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', ['1', '2']), """
+            <input type="text" test="attr" name="price" value="1,2" />""")
+
+        self.assertHTMLEqual(w.render('price', [1, 2]), """
+            <input type="text" test="attr" name="price" value="1,2" />""")
 
 
 class CSVSelectTests(TestCase):
