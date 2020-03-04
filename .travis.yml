@@ -11,7 +11,7 @@ python:
 cache: pip
 
 install:
-  - pip install coverage tox tox-travis tox-venv
+  - pip install coverage tox tox-travis
 
 script:
   - coverage erase

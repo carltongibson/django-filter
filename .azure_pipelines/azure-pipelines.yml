@@ -32,7 +32,7 @@ steps:
   displayName: Ensure latest setuptools
 
 - script: |
-    pip install coverage tox tox-venv unittest-xml-reporting
+    pip install coverage tox unittest-xml-reporting
   displayName: Install deps
 
 - script: |
