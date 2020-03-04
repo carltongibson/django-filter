@@ -4,22 +4,22 @@
 
 strategy:
   matrix:
-    # For some reason, Python 3.4 tries to install Django 2.0 - disabling for now
-    # PY34:
-    #   PYTHON_VERSION: '3.4'
     PY35:
       PYTHON_VERSION: '3.5'
       TOXENV: django111, django20, django21
     PY36:
       PYTHON_VERSION: '3.6'
-    PY36_isort:
-      PYTHON_VERSION: '3.6'
-      TOXENV: isort,lint,docs
-    PY36_warnings:
-      PYTHON_VERSION: '3.6'
-      TOXENV: warnings
     PY37:
       PYTHON_VERSION: '3.7'
+    PY38:
+      PYTHON_VERSION: '3.8'
+
+    PY38_isort:
+      PYTHON_VERSION: '3.8'
+      TOXENV: isort,lint,docs
+    PY38_warnings:
+      PYTHON_VERSION: '3.8'
+      TOXENV: warnings
 
 steps:
 - task: UsePythonVersion@0
