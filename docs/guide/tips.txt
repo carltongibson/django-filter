@@ -214,7 +214,7 @@ Filtering by relative times
 
 Given a model with a timestamp field, it may be useful to filter based on relative times.
 For instance, perhaps we want to get data from the past *n* hours.
-This could be accomplished the with a ``NumberFilter`` that invokes a custom method. 
+This could be accomplished the with a ``NumberFilter`` that invokes a custom method.
 
 .. code-block:: python
 
@@ -224,8 +224,8 @@ This could be accomplished the with a ``NumberFilter`` that invokes a custom met
 
     class DataModel(models.Model):
         time_stamp = models.DateTimeField()
-    
-    
+
+
     class DataFilter(django_filters.FilterSet):
         hours = django_filters.NumberFilter(
             field_name='time_stamp', method='get_past_n_hours', label="Past n hours")
@@ -273,3 +273,17 @@ If defaults are necessary though, the following should mimic the pre-1.0 behavio
                         data[name] = initial
 
             super().__init__(data, *args, **kwargs)
+
+
+Adding model field ``help_text`` to filters
+-------------------------------------------
+
+Model field ``help_text`` is not used by filters by default. It can be added
+using a simple FilterSet base class::
+
+  class HelpfulFilterSet(django_filters.FilterSet):
+      @classmethod
+      def filter_for_field(cls, f, name, lookup_expr):
+          filter = super(HelpfulFilterSet, cls).filter_for_field(f, name, lookup_expr)
+          filter.extra['help_text'] = f.help_text
+          return filter
