@@ -209,6 +209,35 @@ behavior as an ``isnull`` filter.
             model = MyModel
 
 
+Filtering by relative times
+---------------------------
+
+Given a model with a timestamp field, it may be useful to filter based on relative times.
+For instance, perhaps we want to get data from the past *n* hours.
+This could be accomplished the with a ``NumberFilter`` that invokes a custom method. 
+
+.. code-block:: python
+
+    from django.utils import timezone
+    from datetime import timedelta
+    ...
+
+    class DataModel(models.Model):
+        time_stamp = models.DateTimeField()
+    
+    
+    class DataFilter(django_filters.FilterSet):
+        hours = django_filters.NumberFilter(
+            field_name='time_stamp', method='get_past_n_hours', label="Past n hours")
+
+        def get_past_n_hours(self, queryset, field_name, value):
+            time_threshold = timezone.now() - timedelta(hours=int(value))
+            return queryset.filter(time_stamp__gte=time_threshold)
+
+        class Meta:
+            model = DataModel
+            fields = ('hours',)
+
 Using ``initial`` values as defaults
 ------------------------------------
 
