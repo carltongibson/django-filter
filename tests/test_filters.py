@@ -1271,15 +1271,10 @@ class AllValuesFilterTests(TestCase):
             f.field
 
     def test_default_field_with_assigning_model(self):
-        mocked = mock.Mock()
-        chained_call = '.'.join(['_default_manager', 'distinct.return_value',
-                                 'order_by.return_value',
-                                 'values_list.return_value'])
-        mocked.configure_mock(**{chained_call: iter([])})
-        f = AllValuesFilter()
-        f.model = mocked
-        field = f.field
-        self.assertIsInstance(field, forms.ChoiceField)
+        f = AllValuesFilter(field_name='username')
+        f.bind('name', mock.Mock(queryset=User.objects.all()))
+
+        self.assertIsInstance(f.field, forms.ChoiceField)
 
     def test_empty_value_in_choices(self):
         f = AllValuesFilter(field_name='username')
