@@ -737,14 +737,22 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         ])
 
     def build_choices(self, fields, labels):
-        fields = {param: field for field, param in fields.items()}
         ascending = [
             (param, labels.get(field, _(pretty_name(param))))
-            for param, field in fields.items()
+            for field, param in fields.items()
+        ]
+
+        # Descending labels are more complicated:
+        # - Generated from parameter name
+        # - Generated from ascending label
+        # - Provided a descending label
+        descending = [
+            (field, param, self.descending_fmt % labels.get(field, _(pretty_name(param))))
+            for field, param in fields.items()
         ]
         descending = [
-            ('-%s' % param, labels.get('-%s' % fields[param], self.descending_fmt % label))
-            for param, label in ascending
+            ('-%s' % param, labels.get('-%s' % field, default_label))
+            for field, param, default_label in descending
         ]
 
         # interleave the ascending and descending choices
