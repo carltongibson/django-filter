@@ -578,7 +578,7 @@ Similar to a ``RangeFilter`` except it uses ISO 8601 formatted values instead of
 Example::
 
     class Article(models.Model):
-        published = dajngo_filters.IsoDateTimeField()
+        published = django_filters.IsoDateTimeField()
 
     class F(FilterSet):
         published = IsoDateTimeFromToRangeFilter()
