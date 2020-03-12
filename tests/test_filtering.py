@@ -1,8 +1,8 @@
 import contextlib
 import datetime
-import mock
 import unittest
 from operator import attrgetter
+from unittest import mock
 
 from django import forms
 from django.http import QueryDict
