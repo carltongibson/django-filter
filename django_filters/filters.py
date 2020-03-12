@@ -642,10 +642,10 @@ class LookupChoiceFilter(Filter):
 
     def filter(self, qs, lookup):
         if not lookup:
-            return super(LookupChoiceFilter, self).filter(qs, None)
+            return super().filter(qs, None)
 
         self.lookup_expr = lookup.lookup_expr
-        return super(LookupChoiceFilter, self).filter(qs, lookup.value)
+        return super().filter(qs, lookup.value)
 
 
 class OrderingFilter(BaseCSVFilter, ChoiceFilter):
