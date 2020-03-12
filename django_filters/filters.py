@@ -62,7 +62,7 @@ __all__ = [
 ]
 
 
-class Filter(object):
+class Filter:
     creation_counter = 0
     field_class = forms.Field
 
@@ -291,7 +291,7 @@ class DurationFilter(Filter):
     field_class = forms.DurationField
 
 
-class QuerySetRequestMixin(object):
+class QuerySetRequestMixin:
     """
     Add callable functionality to filters that support the ``queryset``
     argument. If the ``queryset`` is callable, then it **must** accept the
@@ -746,7 +746,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         return [val for pair in zip(ascending, descending) for val in pair]
 
 
-class FilterMethod(object):
+class FilterMethod:
     """
     This helper is used to override Filter.filter() when a 'method' argument
     is passed. It proxies the call to the actual method on the filter's parent.

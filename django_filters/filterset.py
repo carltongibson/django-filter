@@ -51,7 +51,7 @@ def remote_queryset(field):
     return model._default_manager.complex_filter(limit_choices_to)
 
 
-class FilterSetOptions(object):
+class FilterSetOptions:
     def __init__(self, options=None):
         self.model = getattr(options, 'model', None)
         self.fields = getattr(options, 'fields', None)
@@ -184,7 +184,7 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 }
 
 
-class BaseFilterSet(object):
+class BaseFilterSet:
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
     def __init__(self, data=None, queryset=None, *, request=None, prefix=None):

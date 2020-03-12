@@ -65,7 +65,7 @@ def is_callable(value):
     return callable(value) and not isinstance(value, type)
 
 
-class Settings(object):
+class Settings:
 
     def __getattr__(self, name):
         if name not in DEFAULTS:
