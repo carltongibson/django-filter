@@ -16,34 +16,33 @@ from django_filters.fields import (
     Lookup,
     LookupChoiceField,
     RangeField,
-    TimeRangeField
+    TimeRangeField,
 )
 from django_filters.widgets import BaseCSVWidget, CSVWidget, RangeWidget
 
 
 def to_d(float_value):
-    return decimal.Decimal('%.2f' % float_value)
+    return decimal.Decimal("%.2f" % float_value)
 
 
 class LookupTests(TestCase):
     def test_empty_attrs(self):
-        with self.assertRaisesMessage(ValueError, ''):
+        with self.assertRaisesMessage(ValueError, ""):
             Lookup(None, None)
 
-        with self.assertRaisesMessage(ValueError, ''):
-            Lookup('', '')
+        with self.assertRaisesMessage(ValueError, ""):
+            Lookup("", "")
 
     def test_empty_value(self):
-        with self.assertRaisesMessage(ValueError, ''):
-            Lookup('', 'exact')
+        with self.assertRaisesMessage(ValueError, ""):
+            Lookup("", "exact")
 
     def test_empty_lookup_expr(self):
-        with self.assertRaisesMessage(ValueError, ''):
-            Lookup('Value', '')
+        with self.assertRaisesMessage(ValueError, ""):
+            Lookup("Value", "")
 
 
 class RangeFieldTests(TestCase):
-
     def test_field(self):
         f = RangeField()
         self.assertEqual(len(f.fields), 2)
@@ -52,14 +51,11 @@ class RangeFieldTests(TestCase):
         w = RangeWidget()
         f = RangeField(widget=w, required=False)
 
-        self.assertEqual(
-            f.clean(['12.34', '55']),
-            slice(to_d(12.34), to_d(55)))
+        self.assertEqual(f.clean(["12.34", "55"]), slice(to_d(12.34), to_d(55)))
         self.assertIsNone(f.clean([]))
 
 
 class DateRangeFieldTests(TestCase):
-
     def test_field(self):
         f = DateRangeField()
         self.assertEqual(len(f.fields), 2)
@@ -69,14 +65,13 @@ class DateRangeFieldTests(TestCase):
         w = RangeWidget()
         f = DateRangeField(widget=w, required=False)
         self.assertEqual(
-            f.clean(['2015-01-01', '2015-01-10']),
-            slice(datetime(2015, 1, 1, 0, 0, 0),
-                  datetime(2015, 1, 10, 23, 59, 59, 999999)))
+            f.clean(["2015-01-01", "2015-01-10"]),
+            slice(datetime(2015, 1, 1, 0, 0, 0), datetime(2015, 1, 10, 23, 59, 59, 999999)),
+        )
         self.assertIsNone(f.clean([]))
 
 
 class DateTimeRangeFieldTests(TestCase):
-
     def test_field(self):
         f = DateTimeRangeField()
         self.assertEqual(len(f.fields), 2)
@@ -86,13 +81,12 @@ class DateTimeRangeFieldTests(TestCase):
         w = RangeWidget()
         f = DateTimeRangeField(widget=w)
         self.assertEqual(
-            f.clean(['2015-01-01 10:30', '2015-01-10 8:45']),
-            slice(datetime(2015, 1, 1, 10, 30, 0),
-                  datetime(2015, 1, 10, 8, 45, 0)))
+            f.clean(["2015-01-01 10:30", "2015-01-10 8:45"]),
+            slice(datetime(2015, 1, 1, 10, 30, 0), datetime(2015, 1, 10, 8, 45, 0)),
+        )
 
 
 class IsoDateTimeRangeFieldTests(TestCase):
-
     def test_field(self):
         f = IsoDateTimeRangeField()
         self.assertEqual(len(f.fields), 2)
@@ -102,14 +96,13 @@ class IsoDateTimeRangeFieldTests(TestCase):
         f = IsoDateTimeRangeField(widget=w)
         expected = slice(
             datetime(2015, 1, 1, 9, 30, 1, 123000, tzinfo=timezone.utc),
-            datetime(2015, 1, 10, 7, 45, 2, 345000, tzinfo=timezone.utc)
+            datetime(2015, 1, 10, 7, 45, 2, 345000, tzinfo=timezone.utc),
         )
-        actual = f.clean(['2015-01-01T10:30:01.123000+01:00', '2015-01-10T08:45:02.345000+01:00'])
+        actual = f.clean(["2015-01-01T10:30:01.123000+01:00", "2015-01-10T08:45:02.345000+01:00"])
         self.assertEqual(expected, actual)
 
 
 class TimeRangeFieldTests(TestCase):
-
     def test_field(self):
         f = DateRangeField()
         self.assertEqual(len(f.fields), 2)
@@ -118,46 +111,45 @@ class TimeRangeFieldTests(TestCase):
         w = RangeWidget()
         f = TimeRangeField(widget=w)
 
-        self.assertEqual(
-            f.clean(['10:15', '12:30']),
-            slice(time(10, 15, 0), time(12, 30, 0)))
+        self.assertEqual(f.clean(["10:15", "12:30"]), slice(time(10, 15, 0), time(12, 30, 0)))
 
 
 class LookupChoiceFieldTests(TestCase):
-
     def test_field(self):
         inner = forms.DecimalField()
-        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')])
+        f = LookupChoiceField(inner, [("gt", "gt"), ("lt", "lt")])
         self.assertEqual(len(f.fields), 2)
 
     def test_clean(self):
         inner = forms.DecimalField()
-        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')], required=False)
-        self.assertEqual(
-            f.clean(['12.34', 'lt']),
-            Lookup(to_d(12.34), 'lt'))
-        self.assertEqual(
-            f.clean([]),
-            None)
+        f = LookupChoiceField(inner, [("gt", "gt"), ("lt", "lt")], required=False)
+        self.assertEqual(f.clean(["12.34", "lt"]), Lookup(to_d(12.34), "lt"))
+        self.assertEqual(f.clean([]), None)
 
-        with self.assertRaisesMessage(forms.ValidationError, 'Select a lookup.'):
-            f.clean(['12.34', ''])
+        with self.assertRaisesMessage(forms.ValidationError, "Select a lookup."):
+            f.clean(["12.34", ""])
 
     def test_render_used_html5(self):
         inner = forms.DecimalField()
-        f = LookupChoiceField(inner, [('gt', 'gt'), ('lt', 'lt')], empty_label=None)
-        self.assertHTMLEqual(f.widget.render('price', ''), """
+        f = LookupChoiceField(inner, [("gt", "gt"), ("lt", "lt")], empty_label=None)
+        self.assertHTMLEqual(
+            f.widget.render("price", ""),
+            """
             <input type="number" step="any" name="price" />
             <select name="price_lookup">
                 <option value="gt">gt</option>
                 <option value="lt">lt</option>
-            </select>""")
-        self.assertHTMLEqual(f.widget.render('price', ['abc', 'lt']), """
+            </select>""",
+        )
+        self.assertHTMLEqual(
+            f.widget.render("price", ["abc", "lt"]),
+            """
             <input type="number" step="any" name="price" value="abc" />
             <select name="price_lookup">
                 <option value="gt">gt</option>
                 <option selected="selected" value="lt">lt</option>
-            </select>""")
+            </select>""",
+        )
 
 
 class IsoDateTimeFieldTests(TestCase):
@@ -180,9 +172,9 @@ class IsoDateTimeFieldTests(TestCase):
         d = self.parse_input(self.reference_str + "Z")
         self.assertTrue(isinstance(d, datetime))
 
-    @override_settings(TIME_ZONE='UTC')
+    @override_settings(TIME_ZONE="UTC")
     def test_datetime_timezone_awareness(self):
-        utc, tokyo = pytz.timezone('UTC'), pytz.timezone('Asia/Tokyo')
+        utc, tokyo = pytz.timezone("UTC"), pytz.timezone("Asia/Tokyo")
 
         # by default, use the server timezone
         reference = utc.localize(self.reference_dt)
@@ -218,13 +210,13 @@ class IsoDateTimeFieldTests(TestCase):
 
     def test_datetime_non_iso_format(self):
         f = IsoDateTimeField()
-        parsed = f.strptime('19-07-2015T51:34:13.759', '%d-%m-%YT%S:%M:%H.%f')
+        parsed = f.strptime("19-07-2015T51:34:13.759", "%d-%m-%YT%S:%M:%H.%f")
         self.assertTrue(isinstance(parsed, datetime))
         self.assertEqual(parsed, self.reference_dt)
 
     def test_datetime_wrong_format(self):
         with self.assertRaises(ValueError):
-            self.parse_input('19-07-2015T51:34:13.759')
+            self.parse_input("19-07-2015T51:34:13.759")
 
 
 class BaseCSVFieldTests(TestCase):
@@ -236,17 +228,17 @@ class BaseCSVFieldTests(TestCase):
 
     def test_clean(self):
         self.assertEqual(self.field.clean(None), None)
-        self.assertEqual(self.field.clean(''), [])
-        self.assertEqual(self.field.clean(['1']), [1])
-        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
-        self.assertEqual(self.field.clean(['1', '2', '3']), [1, 2, 3])
+        self.assertEqual(self.field.clean(""), [])
+        self.assertEqual(self.field.clean(["1"]), [1])
+        self.assertEqual(self.field.clean(["1", "2"]), [1, 2])
+        self.assertEqual(self.field.clean(["1", "2", "3"]), [1, 2, 3])
 
     def test_validation_error(self):
         with self.assertRaises(forms.ValidationError):
-            self.field.clean([''])
+            self.field.clean([""])
 
         with self.assertRaises(forms.ValidationError):
-            self.field.clean(['a', 'b', 'c'])
+            self.field.clean(["a", "b", "c"])
 
     def test_derived_widget(self):
         with self.assertRaises(AssertionError) as excinfo:
@@ -256,10 +248,10 @@ class BaseCSVFieldTests(TestCase):
         self.assertIn("'BaseCSVField.widget' must be a widget class", msg)
         self.assertIn("RangeWidget", msg)
 
-        widget = CSVWidget(attrs={'class': 'class'})
+        widget = CSVWidget(attrs={"class": "class"})
         field = BaseCSVField(widget=widget)
         self.assertIsInstance(field.widget, CSVWidget)
-        self.assertEqual(field.widget.attrs, {'class': 'class'})
+        self.assertEqual(field.widget.attrs, {"class": "class"})
 
         field = BaseCSVField(widget=CSVWidget)
         self.assertIsInstance(field.widget, CSVWidget)
@@ -278,16 +270,16 @@ class BaseRangeFieldTests(TestCase):
 
     def test_clean(self):
         self.assertEqual(self.field.clean(None), None)
-        self.assertEqual(self.field.clean(''), [])
+        self.assertEqual(self.field.clean(""), [])
         self.assertEqual(self.field.clean([]), [])
-        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
+        self.assertEqual(self.field.clean(["1", "2"]), [1, 2])
 
     def test_validation_error(self):
         with self.assertRaises(forms.ValidationError):
-            self.field.clean([''])
+            self.field.clean([""])
 
         with self.assertRaises(forms.ValidationError):
-            self.field.clean(['1'])
+            self.field.clean(["1"])
 
         with self.assertRaises(forms.ValidationError):
-            self.field.clean(['1', '2', '3'])
+            self.field.clean(["1", "2", "3"])

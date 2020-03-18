@@ -15,7 +15,7 @@ from .models import (
     BaseFilterableItem,
     BasicModel,
     DjangoFilterOrderingModel,
-    FilterableItem
+    FilterableItem,
 )
 
 factory = APIRequestFactory()
@@ -24,26 +24,26 @@ factory = APIRequestFactory()
 class FilterableItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterableItem
-        fields = '__all__'
+        fields = "__all__"
 
 
 # Basic filter on a list view.
 class FilterFieldsRootView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filterset_fields = ['decimal', 'date']
+    filterset_fields = ["decimal", "date"]
     filter_backends = (DjangoFilterBackend,)
 
 
 # These class are used to test a filter class.
 class SeveralFieldsFilter(FilterSet):
-    text = filters.CharFilter(lookup_expr='icontains')
-    decimal = filters.NumberFilter(lookup_expr='lt')
-    date = filters.DateFilter(lookup_expr='gt')
+    text = filters.CharFilter(lookup_expr="icontains")
+    decimal = filters.NumberFilter(lookup_expr="lt")
+    date = filters.DateFilter(lookup_expr="gt")
 
     class Meta:
         model = FilterableItem
-        fields = ['text', 'decimal', 'date']
+        fields = ["text", "decimal", "date"]
 
 
 class FilterClassRootView(generics.ListCreateAPIView):
@@ -55,11 +55,11 @@ class FilterClassRootView(generics.ListCreateAPIView):
 
 # These classes are used to test a misconfigured filter class.
 class MisconfiguredFilter(FilterSet):
-    text = filters.CharFilter(lookup_expr='icontains')
+    text = filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = BasicModel
-        fields = ['text']
+        fields = ["text"]
 
 
 class IncorrectlyConfiguredRootView(generics.ListCreateAPIView):
@@ -82,7 +82,7 @@ class BaseFilterableItemFilter(FilterSet):
 
     class Meta:
         model = BaseFilterableItem
-        fields = '__all__'
+        fields = "__all__"
 
 
 class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
@@ -96,7 +96,7 @@ class BaseFilterableItemFilterRootView(generics.ListCreateAPIView):
 class FilterFieldsQuerysetView(generics.ListCreateAPIView):
     queryset = FilterableItem.objects.all()
     serializer_class = FilterableItemSerializer
-    filterset_fields = ['decimal', 'date']
+    filterset_fields = ["decimal", "date"]
     filter_backends = (DjangoFilterBackend,)
 
 
@@ -110,21 +110,21 @@ class GetQuerysetView(generics.ListCreateAPIView):
 
 
 urlpatterns = [
-    path('<int:pk>/', FilterClassDetailView.as_view(), name='detail-view'),
-    path('', FilterClassRootView.as_view(), name='root-view'),
-    path('get-queryset/', GetQuerysetView.as_view(), name='get-queryset-view'),
+    path("<int:pk>/", FilterClassDetailView.as_view(), name="detail-view"),
+    path("", FilterClassRootView.as_view(), name="root-view"),
+    path("get-queryset/", GetQuerysetView.as_view(), name="get-queryset-view"),
 ]
 
 
 class CommonFilteringTestCase(TestCase):
     def _serialize_object(self, obj):
-        return {'id': obj.id, 'text': obj.text, 'decimal': str(obj.decimal), 'date': obj.date.isoformat()}
+        return {"id": obj.id, "text": obj.text, "decimal": str(obj.decimal), "date": obj.date.isoformat()}
 
     def setUp(self):
         """
         Create 10 FilterableItem instances.
         """
-        base_data = ('a', Decimal('0.25'), datetime.date(2012, 10, 8))
+        base_data = ("a", Decimal("0.25"), datetime.date(2012, 10, 8))
         for i in range(10):
             text = chr(i + ord(base_data[0])) * 3  # Produces string 'aaa', 'bbb', etc.
             decimal = base_data[1] + i
@@ -132,10 +132,7 @@ class CommonFilteringTestCase(TestCase):
             FilterableItem(text=text, decimal=decimal, date=date).save()
 
         self.objects = FilterableItem.objects
-        self.data = [
-            self._serialize_object(obj)
-            for obj in self.objects.all()
-        ]
+        self.data = [self._serialize_object(obj) for obj in self.objects.all()]
 
 
 class IntegrationTestFiltering(CommonFilteringTestCase):
@@ -150,25 +147,25 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         view = FilterFieldsRootView.as_view()
 
         # Basic test with no filter.
-        request = factory.get('/')
+        request = factory.get("/")
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.data)
 
         # Tests that the decimal filter works.
-        search_decimal = Decimal('2.25')
-        request = factory.get('/', {'decimal': '%s' % search_decimal})
+        search_decimal = Decimal("2.25")
+        request = factory.get("/", {"decimal": "%s" % search_decimal})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if Decimal(f['decimal']) == search_decimal]
+        expected_data = [f for f in self.data if Decimal(f["decimal"]) == search_decimal]
         self.assertEqual(response.data, expected_data)
 
         # Tests that the date filter works.
         search_date = datetime.date(2012, 9, 22)
-        request = factory.get('/', {'date': '%s' % search_date})  # search_date str: '2012-09-22'
+        request = factory.get("/", {"date": "%s" % search_date})  # search_date str: '2012-09-22'
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if parse_date(f['date']) == search_date]
+        expected_data = [f for f in self.data if parse_date(f["date"]) == search_date]
         self.assertEqual(response.data, expected_data)
 
     def test_filter_with_queryset(self):
@@ -178,11 +175,11 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         view = FilterFieldsQuerysetView.as_view()
 
         # Tests that the decimal filter works.
-        search_decimal = Decimal('2.25')
-        request = factory.get('/', {'decimal': '%s' % search_decimal})
+        search_decimal = Decimal("2.25")
+        request = factory.get("/", {"decimal": "%s" % search_decimal})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if Decimal(f['decimal']) == search_decimal]
+        expected_data = [f for f in self.data if Decimal(f["decimal"]) == search_decimal]
         self.assertEqual(response.data, expected_data)
 
     def test_filter_with_get_queryset_only(self):
@@ -190,7 +187,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         Regression test for #834.
         """
         view = GetQuerysetView.as_view()
-        request = factory.get('/get-queryset/')
+        request = factory.get("/get-queryset/")
         view(request).render()
         # Used to raise "issubclass() arg 2 must be a class or tuple of classes"
         # here when neither `model' nor `queryset' was specified.
@@ -203,46 +200,44 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         view = FilterClassRootView.as_view()
 
         # Basic test with no filter.
-        request = factory.get('/')
+        request = factory.get("/")
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.data)
 
         # Tests that the decimal filter set with 'lt' in the filter class works.
-        search_decimal = Decimal('4.25')
-        request = factory.get('/', {'decimal': '%s' % search_decimal})
+        search_decimal = Decimal("4.25")
+        request = factory.get("/", {"decimal": "%s" % search_decimal})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if Decimal(f['decimal']) < search_decimal]
+        expected_data = [f for f in self.data if Decimal(f["decimal"]) < search_decimal]
         self.assertEqual(response.data, expected_data)
 
         # Tests that the date filter set with 'gt' in the filter class works.
         search_date = datetime.date(2012, 10, 2)
-        request = factory.get('/', {'date': '%s' % search_date})  # search_date str: '2012-10-02'
+        request = factory.get("/", {"date": "%s" % search_date})  # search_date str: '2012-10-02'
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if parse_date(f['date']) > search_date]
+        expected_data = [f for f in self.data if parse_date(f["date"]) > search_date]
         self.assertEqual(response.data, expected_data)
 
         # Tests that the text filter set with 'icontains' in the filter class works.
-        search_text = 'ff'
-        request = factory.get('/', {'text': '%s' % search_text})
+        search_text = "ff"
+        request = factory.get("/", {"text": "%s" % search_text})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if search_text in f['text'].lower()]
+        expected_data = [f for f in self.data if search_text in f["text"].lower()]
         self.assertEqual(response.data, expected_data)
 
         # Tests that multiple filters works.
-        search_decimal = Decimal('5.25')
+        search_decimal = Decimal("5.25")
         search_date = datetime.date(2012, 10, 2)
-        request = factory.get('/', {
-            'decimal': '%s' % (search_decimal,),
-            'date': '%s' % (search_date,)
-        })
+        request = factory.get("/", {"decimal": "%s" % (search_decimal,), "date": "%s" % (search_date,)})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if parse_date(f['date']) > search_date and
-                         Decimal(f['decimal']) < search_decimal]
+        expected_data = [
+            f for f in self.data if parse_date(f["date"]) > search_date and Decimal(f["decimal"]) < search_decimal
+        ]
         self.assertEqual(response.data, expected_data)
 
     def test_incorrectly_configured_filter(self):
@@ -251,7 +246,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         """
         view = IncorrectlyConfiguredRootView.as_view()
 
-        request = factory.get('/')
+        request = factory.get("/")
         self.assertRaises(AssertionError, view, request)
 
     def test_base_model_filter(self):
@@ -260,7 +255,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         """
         view = BaseFilterableItemFilterRootView.as_view()
 
-        request = factory.get('/?text=aaa')
+        request = factory.get("/?text=aaa")
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
@@ -272,7 +267,7 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         view = FilterFieldsRootView.as_view()
 
         search_integer = 10
-        request = factory.get('/', {'integer': '%s' % search_integer})
+        request = factory.get("/", {"integer": "%s" % search_integer})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -281,8 +276,8 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         Make sure response renders w/ backend
         """
         view = FilterFieldsRootView.as_view()
-        request = factory.get('/')
-        request.META['HTTP_ACCEPT'] = 'text/html'
+        request = factory.get("/")
+        request.META["HTTP_ACCEPT"] = "text/html"
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -292,17 +287,17 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         an internal server error.
         """
         view = FilterFieldsRootView.as_view()
-        request = factory.get('/?decimal=foobar')
+        request = factory.get("/?decimal=foobar")
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, {'decimal': ['Enter a number.']})
+        self.assertEqual(response.data, {"decimal": ["Enter a number."]})
 
     def test_permissive(self):
         """
         Permissive handling should return a partially filtered result set.
         """
-        FilterableItem.objects.create(decimal=Decimal('1.23'), date='2017-01-01')
-        FilterableItem.objects.create(decimal=Decimal('1.23'), date='2016-01-01')
+        FilterableItem.objects.create(decimal=Decimal("1.23"), date="2017-01-01")
+        FilterableItem.objects.create(decimal=Decimal("1.23"), date="2016-01-01")
 
         class Backend(DjangoFilterBackend):
             raise_exception = False
@@ -311,21 +306,21 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
             filter_backends = (Backend,)
 
         view = View.as_view()
-        request = factory.get('/?decimal=foobar&date=2017-01-01')
+        request = factory.get("/?decimal=foobar&date=2017-01-01")
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['date'], '2017-01-01')
+        self.assertEqual(response.data[0]["date"], "2017-01-01")
         self.assertEqual(len(response.data), 1)
 
 
-@override_settings(ROOT_URLCONF='tests.rest_framework.test_integration')
+@override_settings(ROOT_URLCONF="tests.rest_framework.test_integration")
 class IntegrationTestDetailFiltering(CommonFilteringTestCase):
     """
     Integration tests for filtered detail views.
     """
 
     def _get_url(self, item):
-        return reverse('detail-view', kwargs=dict(pk=item.pk))
+        return reverse("detail-view", kwargs=dict(pk=item.pk))
 
     def test_get_filtered_detail_view(self):
         """
@@ -341,33 +336,32 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
         self.assertEqual(response.data, data)
 
         # Tests that the decimal filter set that should fail.
-        search_decimal = Decimal('4.25')
+        search_decimal = Decimal("4.25")
         high_item = self.objects.filter(decimal__gt=search_decimal)[0]
         response = self.client.get(
-            '{url}'.format(url=self._get_url(high_item)),
-            {'decimal': '{param}'.format(param=search_decimal)})
+            "{url}".format(url=self._get_url(high_item)), {"decimal": "{param}".format(param=search_decimal)}
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Tests that the decimal filter set that should succeed.
-        search_decimal = Decimal('4.25')
+        search_decimal = Decimal("4.25")
         low_item = self.objects.filter(decimal__lt=search_decimal)[0]
         low_item_data = self._serialize_object(low_item)
         response = self.client.get(
-            '{url}'.format(url=self._get_url(low_item)),
-            {'decimal': '{param}'.format(param=search_decimal)})
+            "{url}".format(url=self._get_url(low_item)), {"decimal": "{param}".format(param=search_decimal)}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, low_item_data)
 
         # Tests that multiple filters works.
-        search_decimal = Decimal('5.25')
+        search_decimal = Decimal("5.25")
         search_date = datetime.date(2012, 10, 2)
         valid_item = self.objects.filter(decimal__lt=search_decimal, date__gt=search_date)[0]
         valid_item_data = self._serialize_object(valid_item)
         response = self.client.get(
-            '{url}'.format(url=self._get_url(valid_item)), {
-                'decimal': '{decimal}'.format(decimal=search_decimal),
-                'date': '{date}'.format(date=search_date)
-            })
+            "{url}".format(url=self._get_url(valid_item)),
+            {"decimal": "{decimal}".format(decimal=search_decimal), "date": "{date}".format(date=search_date)},
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, valid_item_data)
 
@@ -375,21 +369,16 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
 class DjangoFilterOrderingSerializer(serializers.ModelSerializer):
     class Meta:
         model = DjangoFilterOrderingModel
-        fields = '__all__'
+        fields = "__all__"
 
 
 class DjangoFilterOrderingTests(TestCase):
     def setUp(self):
-        data = [{
-            'date': datetime.date(2012, 10, 8),
-            'text': 'abc'
-        }, {
-            'date': datetime.date(2013, 10, 8),
-            'text': 'bcd'
-        }, {
-            'date': datetime.date(2014, 10, 8),
-            'text': 'cde'
-        }]
+        data = [
+            {"date": datetime.date(2012, 10, 8), "text": "abc"},
+            {"date": datetime.date(2013, 10, 8), "text": "bcd"},
+            {"date": datetime.date(2014, 10, 8), "text": "cde"},
+        ]
 
         for d in data:
             DjangoFilterOrderingModel.objects.create(**d)
@@ -399,18 +388,18 @@ class DjangoFilterOrderingTests(TestCase):
             serializer_class = DjangoFilterOrderingSerializer
             queryset = DjangoFilterOrderingModel.objects.all()
             filter_backends = (DjangoFilterBackend,)
-            filterset_fields = ['text']
-            ordering = ('-date',)
+            filterset_fields = ["text"]
+            ordering = ("-date",)
 
         view = DjangoFilterOrderingView.as_view()
-        request = factory.get('/')
+        request = factory.get("/")
         response = view(request)
 
         self.assertEqual(
             response.data,
             [
-                {'id': 3, 'date': '2014-10-08', 'text': 'cde'},
-                {'id': 2, 'date': '2013-10-08', 'text': 'bcd'},
-                {'id': 1, 'date': '2012-10-08', 'text': 'abc'}
-            ]
+                {"id": 3, "date": "2014-10-08", "text": "cde"},
+                {"id": 2, "date": "2013-10-08", "text": "bcd"},
+                {"id": 1, "date": "2012-10-08", "text": "abc"},
+            ],
         )

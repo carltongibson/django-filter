@@ -6,10 +6,10 @@ from .models import Book
 
 
 def _foo():
-    return 'bar'
+    return "bar"
 
 
 urlpatterns = [
-    path('books-legacy/', object_filter, {'model': Book, 'extra_context': {'foo': _foo, 'bar': 'foo'}}),
-    path('books/', FilterView.as_view(model=Book)),
+    path("books-legacy/", object_filter, {"model": Book, "extra_context": {"foo": _foo, "bar": "foo"}}),
+    path("books/", FilterView.as_view(model=Book)),
 ]

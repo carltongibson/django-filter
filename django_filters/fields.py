@@ -14,7 +14,7 @@ from .widgets import (
     CSVWidget,
     DateRangeWidget,
     LookupChoiceWidget,
-    RangeWidget
+    RangeWidget,
 )
 
 
@@ -23,9 +23,7 @@ class RangeField(forms.MultiValueField):
 
     def __init__(self, fields=None, *args, **kwargs):
         if fields is None:
-            fields = (
-                forms.DecimalField(),
-                forms.DecimalField())
+            fields = (forms.DecimalField(), forms.DecimalField())
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
@@ -38,24 +36,16 @@ class DateRangeField(RangeField):
     widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
-        fields = (
-            forms.DateField(),
-            forms.DateField())
+        fields = (forms.DateField(), forms.DateField())
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
         if data_list:
             start_date, stop_date = data_list
             if start_date:
-                start_date = handle_timezone(
-                    datetime.combine(start_date, time.min),
-                    False
-                )
+                start_date = handle_timezone(datetime.combine(start_date, time.min), False)
             if stop_date:
-                stop_date = handle_timezone(
-                    datetime.combine(stop_date, time.max),
-                    False
-                )
+                stop_date = handle_timezone(datetime.combine(stop_date, time.max), False)
             return slice(start_date, stop_date)
         return None
 
@@ -64,9 +54,7 @@ class DateTimeRangeField(RangeField):
     widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
-        fields = (
-            forms.DateTimeField(),
-            forms.DateTimeField())
+        fields = (forms.DateTimeField(), forms.DateTimeField())
         super().__init__(fields, *args, **kwargs)
 
 
@@ -74,9 +62,7 @@ class IsoDateTimeRangeField(RangeField):
     widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
-        fields = (
-            IsoDateTimeField(),
-            IsoDateTimeField())
+        fields = (IsoDateTimeField(), IsoDateTimeField())
         super().__init__(fields, *args, **kwargs)
 
 
@@ -84,18 +70,15 @@ class TimeRangeField(RangeField):
     widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
-        fields = (
-            forms.TimeField(),
-            forms.TimeField())
+        fields = (forms.TimeField(), forms.TimeField())
         super().__init__(fields, *args, **kwargs)
 
 
-class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
+class Lookup(namedtuple("Lookup", ("value", "lookup_expr"))):
     def __new__(cls, value, lookup_expr):
         if value in EMPTY_VALUES or lookup_expr in EMPTY_VALUES:
             raise ValueError(
-                "Empty values ([], (), {}, '', None) are not "
-                "valid Lookup arguments. Return None instead."
+                "Empty values ([], (), {}, '', None) are not " "valid Lookup arguments. Return None instead."
             )
 
         return super().__new__(cls, value, lookup_expr)
@@ -103,15 +86,15 @@ class Lookup(namedtuple('Lookup', ('value', 'lookup_expr'))):
 
 class LookupChoiceField(forms.MultiValueField):
     default_error_messages = {
-        'lookup_required': _('Select a lookup.'),
+        "lookup_required": _("Select a lookup."),
     }
 
     def __init__(self, field, lookup_choices, *args, **kwargs):
-        empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+        empty_label = kwargs.pop("empty_label", settings.EMPTY_CHOICE_LABEL)
         fields = (field, ChoiceField(choices=lookup_choices, empty_label=empty_label))
         widget = LookupChoiceWidget(widgets=[f.widget for f in fields])
-        kwargs['widget'] = widget
-        kwargs['help_text'] = field.help_text
+        kwargs["widget"] = widget
+        kwargs["help_text"] = field.help_text
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
@@ -121,9 +104,7 @@ class LookupChoiceField(forms.MultiValueField):
                 if lookup_expr not in EMPTY_VALUES:
                     return Lookup(value=value, lookup_expr=lookup_expr)
                 else:
-                    raise forms.ValidationError(
-                        self.error_messages['lookup_required'],
-                        code='lookup_required')
+                    raise forms.ValidationError(self.error_messages["lookup_required"], code="lookup_required")
         return None
 
 
@@ -136,7 +117,8 @@ class IsoDateTimeField(forms.DateTimeField):
 
     Based on Gist example by David Medina https://gist.github.com/copitux/5773821
     """
-    ISO_8601 = 'iso-8601'
+
+    ISO_8601 = "iso-8601"
     input_formats = [ISO_8601]
 
     def strptime(self, value, format):
@@ -160,28 +142,31 @@ class BaseCSVField(forms.Field):
             pass
 
     """
+
     base_widget_class = BaseCSVWidget
 
     def __init__(self, *args, **kwargs):
-        widget = kwargs.get('widget') or self.widget
-        kwargs['widget'] = self._get_widget_class(widget)
+        widget = kwargs.get("widget") or self.widget
+        kwargs["widget"] = self._get_widget_class(widget)
 
         super().__init__(*args, **kwargs)
 
     def _get_widget_class(self, widget):
         # passthrough, allows for override
-        if isinstance(widget, BaseCSVWidget) or (
-                isinstance(widget, type) and
-                issubclass(widget, BaseCSVWidget)):
+        if isinstance(widget, BaseCSVWidget) or (isinstance(widget, type) and issubclass(widget, BaseCSVWidget)):
             return widget
 
         # complain since we are unable to reconstruct widget instances
-        assert isinstance(widget, type), \
-            "'%s.widget' must be a widget class, not %s." \
-            % (self.__class__.__name__, repr(widget))
+        assert isinstance(widget, type), "'%s.widget' must be a widget class, not %s." % (
+            self.__class__.__name__,
+            repr(widget),
+        )
 
-        bases = (self.base_widget_class, widget, )
-        return type(str('CSV%s' % widget.__name__), bases, {})
+        bases = (
+            self.base_widget_class,
+            widget,
+        )
+        return type(str("CSV%s" % widget.__name__), bases, {})
 
     def clean(self, value):
         if value is None:
@@ -194,9 +179,7 @@ class BaseRangeField(BaseCSVField):
     # input would only allow a user to input one value and would always fail.
     widget = CSVWidget
 
-    default_error_messages = {
-        'invalid_values': _('Range query expects two values.')
-    }
+    default_error_messages = {"invalid_values": _("Range query expects two values.")}
 
     def clean(self, value):
         value = super().clean(value)
@@ -204,9 +187,7 @@ class BaseRangeField(BaseCSVField):
         assert value is None or isinstance(value, list)
 
         if value and len(value) != 2:
-            raise forms.ValidationError(
-                self.error_messages['invalid_values'],
-                code='invalid_values')
+            raise forms.ValidationError(self.error_messages["invalid_values"], code="invalid_values")
 
         return value
 
@@ -253,8 +234,8 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
 class ChoiceIteratorMixin:
     def __init__(self, *args, **kwargs):
-        self.null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
-        self.null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)
+        self.null_label = kwargs.pop("null_label", settings.NULL_CHOICE_LABEL)
+        self.null_value = kwargs.pop("null_value", settings.NULL_CHOICE_VALUE)
 
         super().__init__(*args, **kwargs)
 
@@ -266,6 +247,7 @@ class ChoiceIteratorMixin:
         value = self.iterator(self, self._choices)
 
         self._choices = self.widget.choices = value
+
     choices = property(_get_choices, _set_choices)
 
 
@@ -274,7 +256,7 @@ class ChoiceField(ChoiceIteratorMixin, forms.ChoiceField):
     iterator = ChoiceIterator
 
     def __init__(self, *args, **kwargs):
-        self.empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+        self.empty_label = kwargs.pop("empty_label", settings.EMPTY_CHOICE_LABEL)
         super().__init__(*args, **kwargs)
 
 

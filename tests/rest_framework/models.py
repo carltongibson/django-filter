@@ -1,14 +1,9 @@
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
 class BasicModel(models.Model):
-    text = models.CharField(
-        max_length=100,
-        verbose_name=_("Text comes here"),
-        help_text=_("Text description.")
-    )
+    text = models.CharField(max_length=100, verbose_name=_("Text comes here"), help_text=_("Text description."))
 
 
 class BaseFilterableItem(models.Model):
@@ -25,7 +20,7 @@ class DjangoFilterOrderingModel(models.Model):
     text = models.CharField(max_length=10)
 
     class Meta:
-        ordering = ['-date']
+        ordering = ["-date"]
 
 
 class CategoryItem(BaseFilterableItem):

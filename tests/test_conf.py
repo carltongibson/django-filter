@@ -6,29 +6,27 @@ from django_filters.conf import is_callable, settings
 
 
 class DefaultSettingsTests(TestCase):
-
     def test_verbose_lookups(self):
         self.assertIsInstance(settings.VERBOSE_LOOKUPS, dict)
-        self.assertIn('exact', settings.VERBOSE_LOOKUPS)
+        self.assertIn("exact", settings.VERBOSE_LOOKUPS)
 
     def test_default_lookup_expr(self):
-        self.assertEqual(settings.DEFAULT_LOOKUP_EXPR, 'exact')
+        self.assertEqual(settings.DEFAULT_LOOKUP_EXPR, "exact")
 
     def test_disable_help_text(self):
         self.assertFalse(settings.DISABLE_HELP_TEXT)
 
     def test_empty_choice_label(self):
-        self.assertEqual(settings.EMPTY_CHOICE_LABEL, '---------')
+        self.assertEqual(settings.EMPTY_CHOICE_LABEL, "---------")
 
     def test_null_choice_label(self):
         self.assertIsNone(settings.NULL_CHOICE_LABEL)
 
     def test_null_choice_value(self):
-        self.assertEqual(settings.NULL_CHOICE_VALUE, 'null')
+        self.assertEqual(settings.NULL_CHOICE_VALUE, "null")
 
 
 class OverrideSettingsTests(TestCase):
-
     def test_attribute_override(self):
         self.assertIsInstance(settings.VERBOSE_LOOKUPS, dict)
 
@@ -43,7 +41,8 @@ class OverrideSettingsTests(TestCase):
         # ensure that changed setting behaves correctly when
         # not originally present in the user's settings.
         from django.conf import settings as dj_settings
-        self.assertFalse(hasattr(dj_settings, 'FILTERS_DISABLE_HELP_TEXT'))
+
+        self.assertFalse(hasattr(dj_settings, "FILTERS_DISABLE_HELP_TEXT"))
 
         # Default value
         self.assertFalse(settings.DISABLE_HELP_TEXT)
@@ -55,27 +54,26 @@ class OverrideSettingsTests(TestCase):
         self.assertFalse(settings.DISABLE_HELP_TEXT)
 
     def test_non_filters_setting(self):
-        self.assertFalse(hasattr(settings, 'USE_TZ'))
+        self.assertFalse(hasattr(settings, "USE_TZ"))
 
         with override_settings(USE_TZ=False):
-            self.assertFalse(hasattr(settings, 'USE_TZ'))
+            self.assertFalse(hasattr(settings, "USE_TZ"))
 
-        self.assertFalse(hasattr(settings, 'USE_TZ'))
+        self.assertFalse(hasattr(settings, "USE_TZ"))
 
     def test_non_existent_setting(self):
-        self.assertFalse(hasattr(settings, 'FILTERS_FOOBAR'))
-        self.assertFalse(hasattr(settings, 'FOOBAR'))
+        self.assertFalse(hasattr(settings, "FILTERS_FOOBAR"))
+        self.assertFalse(hasattr(settings, "FOOBAR"))
 
-        with override_settings(FILTERS_FOOBAR='blah'):
-            self.assertFalse(hasattr(settings, 'FILTERS_FOOBAR'))
-            self.assertFalse(hasattr(settings, 'FOOBAR'))
+        with override_settings(FILTERS_FOOBAR="blah"):
+            self.assertFalse(hasattr(settings, "FILTERS_FOOBAR"))
+            self.assertFalse(hasattr(settings, "FOOBAR"))
 
-        self.assertFalse(hasattr(settings, 'FILTERS_FOOBAR'))
-        self.assertFalse(hasattr(settings, 'FOOBAR'))
+        self.assertFalse(hasattr(settings, "FILTERS_FOOBAR"))
+        self.assertFalse(hasattr(settings, "FOOBAR"))
 
 
 class IsCallableTests(TestCase):
-
     def test_behavior(self):
         def func():
             pass
@@ -96,12 +94,11 @@ class IsCallableTests(TestCase):
 
 
 class SettingsObjectTestCase(TestCase):
-
-    @mock.patch('django_filters.conf.DEPRECATED_SETTINGS', ['TEST_123'])
-    @mock.patch.dict('django_filters.conf.DEFAULTS', {'TEST_123': True})
+    @mock.patch("django_filters.conf.DEPRECATED_SETTINGS", ["TEST_123"])
+    @mock.patch.dict("django_filters.conf.DEFAULTS", {"TEST_123": True})
     def test_get_setting_deprecated(self):
         with override_settings(FILTERS_TEST_123=True):
             with self.assertWarns(DeprecationWarning):
-                settings.change_setting('FILTERS_TEST_123', True, True)
-                test_setting = settings.get_setting('TEST_123')
+                settings.change_setting("FILTERS_TEST_123", True, True)
+                test_setting = settings.get_setting("TEST_123")
                 self.assertTrue(test_setting)
