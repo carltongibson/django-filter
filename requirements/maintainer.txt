@@ -2,6 +2,7 @@ alabaster==0.7.7
 argh==0.26.1
 Babel==2.2.0
 backports.ssl-match-hostname==3.4.0.2
+Black
 bumpversion==0.5.3
 certifi==2015.9.6.2
 docutils==0.12

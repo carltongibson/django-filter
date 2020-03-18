@@ -2,7 +2,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.views.generic import View
 from django.views.generic.list import (
     MultipleObjectMixin,
-    MultipleObjectTemplateResponseMixin
+    MultipleObjectTemplateResponseMixin,
 )
 
 from .constants import ALL_FIELDS
@@ -12,15 +12,14 @@ from .utils import MigrationNotice, RenameAttributesBase
 
 # TODO: remove metaclass in 2.1
 class FilterMixinRenames(RenameAttributesBase):
-    renamed_attributes = (
-        ('filter_fields', 'filterset_fields', MigrationNotice),
-    )
+    renamed_attributes = (("filter_fields", "filterset_fields", MigrationNotice),)
 
 
 class FilterMixin(metaclass=FilterMixinRenames):
     """
     A mixin that provides a way to show and handle a FilterSet in a request.
     """
+
     filterset_class = None
     filterset_fields = ALL_FIELDS
     strict = True
@@ -49,20 +48,22 @@ class FilterMixin(metaclass=FilterMixinRenames):
         Returns the keyword arguments for instanciating the filterset.
         """
         kwargs = {
-            'data': self.request.GET or None,
-            'request': self.request,
+            "data": self.request.GET or None,
+            "request": self.request,
         }
         try:
-            kwargs.update({
-                'queryset': self.get_queryset(),
-            })
+            kwargs.update(
+                {"queryset": self.get_queryset(),}
+            )
         except ImproperlyConfigured:
             # ignore the error here if the filterset has a model defined
             # to acquire a queryset from
             if filterset_class._meta.model is None:
-                msg = ("'%s' does not define a 'model' and the view '%s' does "
-                       "not return a valid queryset from 'get_queryset'.  You "
-                       "must fix one of them.")
+                msg = (
+                    "'%s' does not define a 'model' and the view '%s' does "
+                    "not return a valid queryset from 'get_queryset'.  You "
+                    "must fix one of them."
+                )
                 args = (filterset_class.__name__, self.__class__.__name__)
                 raise ImproperlyConfigured(msg % args)
         return kwargs
@@ -72,7 +73,6 @@ class FilterMixin(metaclass=FilterMixinRenames):
 
 
 class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
-
     def get(self, request, *args, **kwargs):
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
@@ -82,8 +82,7 @@ class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
         else:
             self.object_list = self.filterset.queryset.none()
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list)
+        context = self.get_context_data(filter=self.filterset, object_list=self.object_list)
         return self.render_to_response(context)
 
 
@@ -93,24 +92,31 @@ class FilterView(MultipleObjectTemplateResponseMixin, BaseFilterView):
     `self.queryset`.
     `self.queryset` can actually be any iterable of items, not just a queryset.
     """
-    template_name_suffix = '_filter'
+
+    template_name_suffix = "_filter"
 
 
-def object_filter(request, model=None, queryset=None, template_name=None,
-                  extra_context=None, context_processors=None,
-                  filter_class=None):
+def object_filter(
+    request,
+    model=None,
+    queryset=None,
+    template_name=None,
+    extra_context=None,
+    context_processors=None,
+    filter_class=None,
+):
     class ECFilterView(FilterView):
         """Handle the extra_context from the functional object_filter view"""
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            extra_context = self.kwargs.get('extra_context') or {}
+            extra_context = self.kwargs.get("extra_context") or {}
             for k, v in extra_context.items():
                 if callable(v):
                     v = v()
                 context[k] = v
             return context
 
-    kwargs = dict(model=model, queryset=queryset, template_name=template_name,
-                  filterset_class=filter_class)
+    kwargs = dict(model=model, queryset=queryset, template_name=template_name, filterset_class=filter_class)
     view = ECFilterView.as_view(**kwargs)
     return view(request, extra_context=extra_context)
