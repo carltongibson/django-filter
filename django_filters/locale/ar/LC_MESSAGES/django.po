@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-03-24 00:19+0100\n"
-"PO-Revision-Date: 2020-03-24 00:38+0100\n"
+"PO-Revision-Date: 2020-03-24 00:48+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -79,7 +79,7 @@ msgstr "أصغر من أو يساوي"
 
 #: conf.py:38 conf.py:39
 msgid "starts with"
-msgstr "يابدأ ب"
+msgstr "يبدأ ب"
 
 #: conf.py:40 conf.py:41
 msgid "ends with"
