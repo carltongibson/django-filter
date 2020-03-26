@@ -1577,6 +1577,6 @@ class OrderingFilterTests(TestCase):
             ])
 
     def test_help_text(self):
-        # regression test for #756 - the ususal CSV help_text is not relevant to ordering filters.
+        # regression test for #756 - the usual CSV help_text is not relevant to ordering filters.
         self.assertEqual(OrderingFilter().field.help_text, '')
         self.assertEqual(OrderingFilter(help_text='a').field.help_text, 'a')
