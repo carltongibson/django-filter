@@ -133,7 +133,7 @@ You can override these methods on a case-by-case basis for each view, creating u
             return kwargs
 
 
-    class BooksFilter(filters.FilterSet):
+    class BookFilter(filters.FilterSet):
         def __init__(self, *args, author=None, **kwargs):
             super().__init__(*args, **kwargs)
             # do something w/ author
