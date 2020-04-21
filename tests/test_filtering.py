@@ -5,6 +5,7 @@ import unittest
 from operator import attrgetter
 
 from django import forms
+from django.db import models
 from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -1926,7 +1927,7 @@ class MiscFilterSetTests(TestCase):
 
         qs = MockQuerySet()
         F({'account': 'jdoe'}, queryset=qs).qs
-        qs.all.return_value.filter.assert_called_with(username__exact='jdoe')
+        qs.all.return_value.filter.assert_called_with(models.Q(username__exact='jdoe'))
 
     def test_filtering_without_meta(self):
         class F(FilterSet):

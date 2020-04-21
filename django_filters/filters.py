@@ -136,13 +136,30 @@ class Filter(object):
             self._field = self.field_class(label=self.label, **field_kwargs)
         return self._field
 
+    def get_filter_predicate(self, value):
+        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
+        return {lookup: value}
+
+    def _create_q_object(self, value):
+        q = Q(**self.get_filter_predicate(value))
+        return ~q if self.exclude else q
+
+    def get_q_objects(self, value):
+        if value in EMPTY_VALUES:
+            return (Q(), )
+        return (self._create_q_object(value), )
+
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
             return qs
+
         if self.distinct:
             qs = qs.distinct()
-        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
-        qs = self.get_method(qs)(**{lookup: value})
+
+        q_list = self.get_q_objects(value)
+        for q in q_list:
+            qs = qs.filter(q)
+
         return qs
 
 
@@ -161,12 +178,11 @@ class ChoiceFilter(Filter):
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
         super().__init__(*args, **kwargs)
 
-    def filter(self, qs, value):
+    def get_q_objects(self, value):
         if value != self.null_value:
-            return super().filter(qs, value)
+            return super().get_q_objects(value)
 
-        qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): None})
-        return qs.distinct() if self.distinct else qs
+        return (self._create_q_object(None), )
 
 
 class TypedChoiceFilter(Filter):
@@ -224,6 +240,21 @@ class MultipleChoiceFilter(Filter):
 
         return False
 
+    def get_q_objects(self, value):
+        q_list = [Q()]
+        for v in set(value):
+            if v == self.null_value:
+                v = None
+            if self.conjoined:
+                q_list.append(self._create_q_object(v))
+            else:
+                q_list[0] |= Q(**self.get_filter_predicate(v))
+
+        if not self.conjoined and self.exclude:
+            q_list[0] = ~q_list[0]
+
+        return q_list
+
     def filter(self, qs, value):
         if not value:
             # Even though not a noop, no point filtering if empty.
@@ -232,19 +263,9 @@ class MultipleChoiceFilter(Filter):
         if self.is_noop(qs, value):
             return qs
 
-        if not self.conjoined:
-            q = Q()
-        for v in set(value):
-            if v == self.null_value:
-                v = None
-            predicate = self.get_filter_predicate(v)
-            if self.conjoined:
-                qs = self.get_method(qs)(**predicate)
-            else:
-                q |= Q(**predicate)
-
-        if not self.conjoined:
-            qs = self.get_method(qs)(q)
+        q_list = self.get_q_objects(value)
+        for q in q_list:
+            qs = qs.filter(q)
 
         return qs.distinct() if self.distinct else qs
 
@@ -407,27 +428,27 @@ class DateRangeFilter(ChoiceFilter):
     ]
 
     filters = {
-        'today': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month,
-            '%s__day' % name: now().day
-        }),
-        'yesterday': lambda qs, name: qs.filter(**{
-            '%s__year' % name: (now() - timedelta(days=1)).year,
-            '%s__month' % name: (now() - timedelta(days=1)).month,
-            '%s__day' % name: (now() - timedelta(days=1)).day,
-        }),
-        'week': lambda qs, name: qs.filter(**{
-            '%s__gte' % name: _truncate(now() - timedelta(days=7)),
-            '%s__lt' % name: _truncate(now() + timedelta(days=1)),
-        }),
-        'month': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month
-        }),
-        'year': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-        }),
+        'today': lambda name: (
+            Q(**{'%s__year' % name: now().year}) &
+            Q(**{'%s__month' % name: now().month}) &
+            Q(**{'%s__day' % name: now().day}),
+        ),
+        'yesterday': lambda name: (
+            Q(**{'%s__year' % name: (now() - timedelta(days=1)).year}) &
+            Q(**{'%s__month' % name: (now() - timedelta(days=1)).month}) &
+            Q(**{'%s__day' % name: (now() - timedelta(days=1)).day}),
+        ),
+        'week': lambda name: (
+            Q(**{'%s__gte' % name: _truncate(now() - timedelta(days=7))}) &
+            Q(**{'%s__lt' % name: _truncate(now() + timedelta(days=1))}),
+        ),
+        'month': lambda name: (
+            Q(**{'%s__year' % name: now().year}) &
+            Q(**{'%s__month' % name: now().month}),
+        ),
+        'year': lambda name: (
+            Q(**{'%s__year' % name: now().year}),
+        ),
     }
 
     def __init__(self, choices=None, filters=None, *args, **kwargs):
@@ -450,13 +471,16 @@ class DateRangeFilter(ChoiceFilter):
         kwargs.setdefault('null_label', None)
         super().__init__(choices=self.choices, *args, **kwargs)
 
+    def get_q_objects(self, value):
+        assert value in self.filters
+
+        return self.filters[value](self.field_name)
+
     def filter(self, qs, value):
         if not value:
             return qs
 
-        assert value in self.filters
-
-        qs = self.filters[value](qs, self.field_name)
+        qs = qs.filter(*self.get_q_objects(value))
         return qs.distinct() if self.distinct else qs
 
 

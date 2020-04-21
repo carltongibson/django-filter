@@ -4,6 +4,7 @@ from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 
 from django import forms
+from django.db import models
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -126,21 +127,21 @@ class FilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = Filter()
         result = f.filter(qs, 'value')
-        qs.filter.assert_called_once_with(None__exact='value')
+        qs.filter.assert_called_once_with(models.Q(None__exact='value'))
         self.assertNotEqual(qs, result)
 
     def test_filtering_exclude(self):
         qs = mock.Mock(spec=['filter', 'exclude'])
         f = Filter(exclude=True)
         result = f.filter(qs, 'value')
-        qs.exclude.assert_called_once_with(None__exact='value')
+        qs.filter.assert_called_once_with(~models.Q(None__exact='value'))
         self.assertNotEqual(qs, result)
 
     def test_filtering_uses_name(self):
         qs = mock.Mock(spec=['filter'])
         f = Filter(field_name='somefield')
         f.filter(qs, 'value')
-        result = qs.filter.assert_called_once_with(somefield__exact='value')
+        result = qs.filter.assert_called_once_with(models.Q(somefield__exact='value'))
         self.assertNotEqual(qs, result)
 
     def test_filtering_skipped_with_blank_value(self):
@@ -200,14 +201,14 @@ class BooleanFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = BooleanFilter(field_name='somefield')
         result = f.filter(qs, True)
-        qs.filter.assert_called_once_with(somefield__exact=True)
+        qs.filter.assert_called_once_with(models.Q(somefield__exact=True))
         self.assertNotEqual(qs, result)
 
     def test_filtering_exclude(self):
-        qs = mock.Mock(spec=['exclude'])
+        qs = mock.Mock(spec=['filter'])
         f = BooleanFilter(field_name='somefield', exclude=True)
         result = f.filter(qs, True)
-        qs.exclude.assert_called_once_with(somefield__exact=True)
+        qs.filter.assert_called_once_with(~models.Q(somefield__exact=True))
         self.assertNotEqual(qs, result)
 
     def test_filtering_skipped_with_blank_value(self):
@@ -228,7 +229,7 @@ class BooleanFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = BooleanFilter(field_name='somefield', lookup_expr='isnull')
         result = f.filter(qs, True)
-        qs.filter.assert_called_once_with(somefield__isnull=True)
+        qs.filter.assert_called_once_with(models.Q(somefield__isnull=True))
         self.assertNotEqual(qs, result)
 
 
@@ -396,7 +397,7 @@ class MultipleChoiceFilterTests(TestCase):
             qs.filter.return_value.distinct.assert_called_once_with()
 
     def test_filtering_exclude(self):
-        qs = mock.Mock(spec=['exclude'])
+        qs = mock.Mock(spec=['filter'])
         f = MultipleChoiceFilter(field_name='somefield', exclude=True)
         with mock.patch('django_filters.filters.Q') as mockQclass:
             mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
@@ -407,8 +408,8 @@ class MultipleChoiceFilterTests(TestCase):
             self.assertEqual(mockQclass.call_args_list,
                              [mock.call(), mock.call(somefield='value')])
             mockQ1.__ior__.assert_called_once_with(mockQ2)
-            qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
-            qs.exclude.return_value.distinct.assert_called_once_with()
+            qs.filter.assert_called_once_with(mockQ1.__ior__.return_value.__invert__.return_value)
+            qs.filter.return_value.distinct.assert_called_once_with()
 
     def test_filtering_with_lookup_expr(self):
         qs = mock.Mock(spec=['filter'])
@@ -548,7 +549,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
             qs.filter.return_value.distinct.assert_called_once_with()
 
     def test_filtering_exclude(self):
-        qs = mock.Mock(spec=['exclude'])
+        qs = mock.Mock(spec=['filter'])
         f = TypedMultipleChoiceFilter(field_name='somefield', exclude=True)
         with mock.patch('django_filters.filters.Q') as mockQclass:
             mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
@@ -559,8 +560,8 @@ class TypedMultipleChoiceFilterTests(TestCase):
             self.assertEqual(mockQclass.call_args_list,
                              [mock.call(), mock.call(somefield='value')])
             mockQ1.__ior__.assert_called_once_with(mockQ2)
-            qs.exclude.assert_called_once_with(mockQ1.__ior__.return_value)
-            qs.exclude.return_value.distinct.assert_called_once_with()
+            qs.filter.assert_called_once_with(mockQ1.__ior__.return_value.__invert__.return_value)
+            qs.filter.return_value.distinct.assert_called_once_with()
 
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(self):
         qs = mock.Mock(spec=[])
@@ -805,21 +806,21 @@ class NumberFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = NumberFilter()
         f.filter(qs, 1)
-        qs.filter.assert_called_once_with(None__exact=1)
+        qs.filter.assert_called_once_with(models.Q(None__exact=1))
         # Also test 0 as it once had a bug
         qs.reset_mock()
         f.filter(qs, 0)
-        qs.filter.assert_called_once_with(None__exact=0)
+        qs.filter.assert_called_once_with(models.Q(None__exact=0))
 
     def test_filtering_exclude(self):
-        qs = mock.Mock(spec=['exclude'])
+        qs = mock.Mock(spec=['filter'])
         f = NumberFilter(exclude=True)
         f.filter(qs, 1)
-        qs.exclude.assert_called_once_with(None__exact=1)
+        qs.filter.assert_called_once_with(~models.Q(None__exact=1))
         # Also test 0 as it once had a bug
         qs.reset_mock()
         f.filter(qs, 0)
-        qs.exclude.assert_called_once_with(None__exact=0)
+        qs.filter.assert_called_once_with(~models.Q(None__exact=0))
 
 
 class NumericRangeFilterTests(TestCase):
@@ -834,14 +835,14 @@ class NumericRangeFilterTests(TestCase):
         value = mock.Mock(start=20, stop=30)
         f = NumericRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__exact=(20, 30))
+        qs.filter.assert_called_once_with(models.Q(None__exact=(20, 30)))
 
     def test_filtering_exclude(self):
-        qs = mock.Mock(spec=['exclude'])
+        qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=20, stop=30)
         f = NumericRangeFilter(exclude=True)
         f.filter(qs, value)
-        qs.exclude.assert_called_once_with(None__exact=(20, 30))
+        qs.filter.assert_called_once_with(~models.Q(None__exact=(20, 30)))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -854,28 +855,28 @@ class NumericRangeFilterTests(TestCase):
         value = mock.Mock(start=20, stop=30)
         f = NumericRangeFilter(lookup_expr=('overlap'))
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__overlap=(20, 30))
+        qs.filter.assert_called_once_with(models.Q(None__overlap=(20, 30)))
 
     def test_zero_to_zero(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=0, stop=0)
         f = NumericRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__exact=(0, 0))
+        qs.filter.assert_called_once_with(models.Q(None__exact=(0, 0)))
 
     def test_filtering_startswith(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=20, stop=None)
         f = NumericRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__startswith=20)
+        qs.filter.assert_called_once_with(models.Q(None__startswith=20))
 
     def test_filtering_endswith(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=None, stop=30)
         f = NumericRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__endswith=30)
+        qs.filter.assert_called_once_with(models.Q(None__endswith=30))
 
     def test_filtering_distinct(self):
         f = NumericRangeFilter(distinct=True)
@@ -884,19 +885,19 @@ class NumericRangeFilterTests(TestCase):
         qs = mock.Mock()
         f.filter(qs, mock.Mock(start=20, stop=30))
         qs.distinct.assert_called_once()
-        qs.distinct.return_value.filter.assert_called_once_with(None__exact=(20, 30))
+        qs.distinct.return_value.filter.assert_called_once_with(models.Q(None__exact=(20, 30)))
 
         # min
         qs = mock.Mock()
         f.filter(qs, mock.Mock(start=20, stop=None))
         qs.distinct.assert_called_once()
-        qs.distinct.return_value.filter.assert_called_once_with(None__startswith=20)
+        qs.distinct.return_value.filter.assert_called_once_with(models.Q(None__startswith=20))
 
         # max
         qs = mock.Mock()
         f.filter(qs, mock.Mock(start=None, stop=30))
         qs.distinct.assert_called_once()
-        qs.distinct.return_value.filter.assert_called_once_with(None__endswith=30)
+        qs.distinct.return_value.filter.assert_called_once_with(models.Q(None__endswith=30))
 
 
 class RangeFilterTests(TestCase):
@@ -911,28 +912,28 @@ class RangeFilterTests(TestCase):
         value = mock.Mock(start=20, stop=30)
         f = RangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__range=(20, 30))
+        qs.filter.assert_called_once_with(models.Q(None__range=(20, 30)))
 
     def test_filtering_exclude(self):
-        qs = mock.Mock(spec=['exclude'])
+        qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=20, stop=30)
         f = RangeFilter(exclude=True)
         f.filter(qs, value)
-        qs.exclude.assert_called_once_with(None__range=(20, 30))
+        qs.filter.assert_called_once_with(~models.Q(None__range=(20, 30)))
 
     def test_filtering_start(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=20, stop=None)
         f = RangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__gte=20)
+        qs.filter.assert_called_once_with(models.Q(None__gte=20))
 
     def test_filtering_stop(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=None, stop=30)
         f = RangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__lte=30)
+        qs.filter.assert_called_once_with(models.Q(None__lte=30))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -945,7 +946,7 @@ class RangeFilterTests(TestCase):
         value = mock.Mock(start=20, stop=30)
         f = RangeFilter(lookup_expr='gte')
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__range=(20, 30))
+        qs.filter.assert_called_once_with(models.Q(None__range=(20, 30)))
 
     def test_filtering_distinct(self):
         f = RangeFilter(distinct=True)
@@ -954,19 +955,19 @@ class RangeFilterTests(TestCase):
         qs = mock.Mock()
         f.filter(qs, mock.Mock(start=20, stop=30))
         qs.distinct.assert_called_once()
-        qs.distinct.return_value.filter.assert_called_once_with(None__range=(20, 30))
+        qs.distinct.return_value.filter.assert_called_once_with(models.Q(None__range=(20, 30)))
 
         # min
         qs = mock.Mock()
         f.filter(qs, mock.Mock(start=20, stop=None))
         qs.distinct.assert_called_once()
-        qs.distinct.return_value.filter.assert_called_once_with(None__gte=20)
+        qs.distinct.return_value.filter.assert_called_once_with(models.Q(None__gte=20))
 
         # max
         qs = mock.Mock()
         f.filter(qs, mock.Mock(start=None, stop=30))
         qs.distinct.assert_called_once()
-        qs.distinct.return_value.filter.assert_called_once_with(None__lte=30)
+        qs.distinct.return_value.filter.assert_called_once_with(models.Q(None__lte=30))
 
 
 class DateRangeFilterTests(TestCase):
@@ -996,7 +997,7 @@ class DateRangeFilterTests(TestCase):
 
     def test_filtering_skipped_with_out_of_range_value(self):
         # Field validation should prevent this from occuring
-        qs = mock.Mock(spec=[])
+        qs = mock.Mock(spec=['filter'])
         f = DateRangeFilter()
         with self.assertRaises(AssertionError):
             f.filter(qs, 'tomorrow')
@@ -1023,7 +1024,7 @@ class DateRangeFilterTests(TestCase):
             f = DateRangeFilter()
             f.filter(qs, 'year')
             qs.filter.assert_called_once_with(
-                None__year=now_dt.year)
+                models.Q(None__year=now_dt.year))
 
     def test_filtering_for_this_month(self):
         qs = mock.Mock(spec=['filter'])
@@ -1032,7 +1033,7 @@ class DateRangeFilterTests(TestCase):
             f = DateRangeFilter()
             f.filter(qs, 'month')
             qs.filter.assert_called_once_with(
-                None__year=now_dt.year, None__month=now_dt.month)
+                models.Q(None__year=now_dt.year) & models.Q(None__month=now_dt.month))
 
     def test_filtering_for_7_days(self):
         qs = mock.Mock(spec=['filter'])
@@ -1047,7 +1048,7 @@ class DateRangeFilterTests(TestCase):
                 mock_td.call_args_list,
                 [mock.call(days=7), mock.call(days=1)]
             )
-            qs.filter.assert_called_once_with(None__lt=mock_d2, None__gte=mock_d1)
+            qs.filter.assert_called_once_with(models.Q(None__gte=mock_d1) & models.Q(None__lt=mock_d2) )
 
     def test_filtering_for_today(self):
         qs = mock.Mock(spec=['filter'])
@@ -1056,9 +1057,9 @@ class DateRangeFilterTests(TestCase):
             f = DateRangeFilter()
             f.filter(qs, 'today')
             qs.filter.assert_called_once_with(
-                None__year=now_dt.year,
-                None__month=now_dt.month,
-                None__day=now_dt.day)
+                models.Q(None__year=now_dt.year) &
+                models.Q(None__month=now_dt.month) &
+                models.Q(None__day=now_dt.day))
 
     def test_filtering_for_yesterday(self):
         qs = mock.Mock(spec=['filter'])
@@ -1067,9 +1068,9 @@ class DateRangeFilterTests(TestCase):
             f = DateRangeFilter()
             f.filter(qs, 'yesterday')
             qs.filter.assert_called_once_with(
-                None__year=(now_dt - timedelta(days=1)).year,
-                None__month=(now_dt - timedelta(days=1)).month,
-                None__day=(now_dt - timedelta(days=1)).day,
+                models.Q(None__year=(now_dt - timedelta(days=1)).year) &
+                models.Q(None__month=(now_dt - timedelta(days=1)).month) &
+                models.Q(None__day=(now_dt - timedelta(days=1)).day),
             )
 
 
@@ -1086,21 +1087,21 @@ class DateFromToRangeFilterTests(TestCase):
         f = DateFromToRangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+            models.Q(None__range=(date(2015, 4, 7), date(2015, 9, 6))))
 
     def test_filtering_start(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=date(2015, 4, 7), stop=None)
         f = DateFromToRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__gte=date(2015, 4, 7))
+        qs.filter.assert_called_once_with(models.Q(None__gte=date(2015, 4, 7)))
 
     def test_filtering_stop(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=None, stop=date(2015, 9, 6))
         f = DateFromToRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__lte=date(2015, 9, 6))
+        qs.filter.assert_called_once_with(models.Q(None__lte=date(2015, 9, 6)))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -1114,7 +1115,7 @@ class DateFromToRangeFilterTests(TestCase):
         f = DateFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(date(2015, 4, 7), date(2015, 9, 6)))
+            models.Q(None__range=(date(2015, 4, 7), date(2015, 9, 6))))
 
 
 class DateTimeFromToRangeFilterTests(TestCase):
@@ -1131,21 +1132,21 @@ class DateTimeFromToRangeFilterTests(TestCase):
         f = DateTimeFromToRangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+            models.Q(None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45))))
 
     def test_filtering_start(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=datetime(2015, 4, 7, 8, 30), stop=None)
         f = DateTimeFromToRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__gte=datetime(2015, 4, 7, 8, 30))
+        qs.filter.assert_called_once_with(models.Q(None__gte=datetime(2015, 4, 7, 8, 30)))
 
     def test_filtering_stop(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=None, stop=datetime(2015, 9, 6, 11, 45))
         f = DateTimeFromToRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__lte=datetime(2015, 9, 6, 11, 45))
+        qs.filter.assert_called_once_with(models.Q(None__lte=datetime(2015, 9, 6, 11, 45)))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -1160,7 +1161,7 @@ class DateTimeFromToRangeFilterTests(TestCase):
         f = DateTimeFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+            models.Q(None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45))))
 
 
 class IsoDateTimeFromToRangeFilterTests(TestCase):
@@ -1177,21 +1178,21 @@ class IsoDateTimeFromToRangeFilterTests(TestCase):
         f = IsoDateTimeFromToRangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+            models.Q(None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45))))
 
     def test_filtering_start(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=datetime(2015, 4, 7, 8, 30), stop=None)
         f = IsoDateTimeFromToRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__gte=datetime(2015, 4, 7, 8, 30))
+        qs.filter.assert_called_once_with(models.Q(None__gte=datetime(2015, 4, 7, 8, 30)))
 
     def test_filtering_stop(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=None, stop=datetime(2015, 9, 6, 11, 45))
         f = IsoDateTimeFromToRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__lte=datetime(2015, 9, 6, 11, 45))
+        qs.filter.assert_called_once_with(models.Q(None__lte=datetime(2015, 9, 6, 11, 45)))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -1206,7 +1207,7 @@ class IsoDateTimeFromToRangeFilterTests(TestCase):
         f = IsoDateTimeFromToRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45)))
+            models.Q(None__range=(datetime(2015, 4, 7, 8, 30), datetime(2015, 9, 6, 11, 45))))
 
 
 class TimeRangeFilterTests(TestCase):
@@ -1222,21 +1223,21 @@ class TimeRangeFilterTests(TestCase):
         f = TimeRangeFilter()
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(time(10, 15), time(12, 30)))
+            models.Q(None__range=(time(10, 15), time(12, 30))))
 
     def test_filtering_start(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=time(10, 15), stop=None)
         f = TimeRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__gte=time(10, 15))
+        qs.filter.assert_called_once_with(models.Q(None__gte=time(10, 15)))
 
     def test_filtering_stop(self):
         qs = mock.Mock(spec=['filter'])
         value = mock.Mock(start=None, stop=time(12, 30))
         f = TimeRangeFilter()
         f.filter(qs, value)
-        qs.filter.assert_called_once_with(None__lte=time(12, 30))
+        qs.filter.assert_called_once_with(models.Q(None__lte=time(12, 30)))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -1250,7 +1251,7 @@ class TimeRangeFilterTests(TestCase):
         f = TimeRangeFilter(lookup_expr='gte')
         f.filter(qs, value)
         qs.filter.assert_called_once_with(
-            None__range=(time(10, 15), time(12, 30)))
+            models.Q(None__range=(time(10, 15), time(12, 30))))
 
 
 class AllValuesFilterTests(TestCase):
@@ -1351,7 +1352,7 @@ class LookupChoiceFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = LookupChoiceFilter(field_name='somefield', lookup_choices=['some_lookup_expr'])
         result = f.filter(qs, Lookup('value', 'some_lookup_expr'))
-        qs.filter.assert_called_once_with(somefield__some_lookup_expr='value')
+        qs.filter.assert_called_once_with(models.Q(somefield__some_lookup_expr='value'))
         self.assertNotEqual(qs, result)
 
 
@@ -1386,7 +1387,7 @@ class CSVFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = self.number_in
         f.filter(qs, [1, 2])
-        qs.filter.assert_called_once_with(None__in=[1, 2])
+        qs.filter.assert_called_once_with(models.Q(None__in=[1, 2]))
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=['filter'])
@@ -1398,7 +1399,7 @@ class CSVFilterTests(TestCase):
         qs = mock.Mock()
         f = self.datetimeyear_in
         f.filter(qs, [1, 2])
-        qs.filter.assert_called_once_with(None__year__in=[1, 2])
+        qs.filter.assert_called_once_with(models.Q(None__year__in=[1, 2]))
 
 
 class BaseInFilterTests(TestCase):
@@ -1409,7 +1410,7 @@ class BaseInFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = NumberInFilter()
         f.filter(qs, [1, 2])
-        qs.filter.assert_called_once_with(None__in=[1, 2])
+        qs.filter.assert_called_once_with(models.Q(None__in=[1, 2]))
 
 
 class BaseRangeFilterTests(TestCase):
@@ -1420,7 +1421,7 @@ class BaseRangeFilterTests(TestCase):
         qs = mock.Mock(spec=['filter'])
         f = NumberInFilter()
         f.filter(qs, [1, 2])
-        qs.filter.assert_called_once_with(None__range=[1, 2])
+        qs.filter.assert_called_once_with(models.Q(None__range=[1, 2]))
 
 
 class OrderingFilterTests(TestCase):
