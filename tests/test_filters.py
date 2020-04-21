@@ -1048,7 +1048,8 @@ class DateRangeFilterTests(TestCase):
                 mock_td.call_args_list,
                 [mock.call(days=7), mock.call(days=1)]
             )
-            qs.filter.assert_called_once_with(models.Q(None__gte=mock_d1) & models.Q(None__lt=mock_d2) )
+            qs.filter.assert_called_once_with(
+                models.Q(None__gte=mock_d1) & models.Q(None__lt=mock_d2))
 
     def test_filtering_for_today(self):
         qs = mock.Mock(spec=['filter'])
