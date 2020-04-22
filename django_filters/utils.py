@@ -165,10 +165,18 @@ def get_field_parts(model, field_name):
             return None
 
         fields.append(field)
-        if isinstance(field, RelatedField):
-            opts = field.remote_field.model._meta
-        elif isinstance(field, ForeignObjectRel):
-            opts = field.related_model._meta
+        try:
+            if isinstance(field, RelatedField):
+                opts = field.remote_field.model._meta
+            elif isinstance(field, ForeignObjectRel):
+                opts = field.related_model._meta
+        except AttributeError:
+            # Lazy relationships are not resolved until registry is populated.
+            raise RuntimeError(
+                "Unable to resolve relationship `%s` for `%s`. Django is most "
+                "likely not initialized, and its apps registry not populated. "
+                "Ensure Django has finished setup before loading `FilterSet`s."
+                % (field_name, model._meta.label))
 
     return fields
 

@@ -222,6 +222,22 @@ class GetFieldPartsTests(TestCase):
         self.assertIsInstance(parts[1], models.ManyToManyField)
         self.assertIsInstance(parts[2], models.CharField)
 
+    def test_lazy_relationship_not_ready(self):
+        """
+        This simulates trying to create a FilterSet before the app registry has
+        been populated. Lazy relationships have not yet been resolved from their
+        strings into their remote model referencess.
+        """
+        class TestModel(models.Model):
+            fk = models.ForeignKey('remote.Model', on_delete=models.CASCADE)
+
+        msg = ("Unable to resolve relationship `fk__f` for `tests.TestModel`. "
+               "Django is most likely not initialized, and its apps registry "
+               "not populated. Ensure Django has finished setup before loading "
+               "`FilterSet`s.")
+        with self.assertRaisesMessage(RuntimeError, msg):
+            get_field_parts(TestModel, 'fk__f')
+
 
 class GetModelFieldTests(TestCase):
 
