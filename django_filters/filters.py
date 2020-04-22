@@ -382,7 +382,7 @@ class NumberFilter(Filter):
 class NumericRangeFilter(Filter):
     field_class = RangeField
 
-    def filter(self, qs, value):
+    def get_q_objects(self, value):
         if value:
             if value.start is not None and value.stop is not None:
                 value = (value.start, value.stop)
@@ -393,13 +393,13 @@ class NumericRangeFilter(Filter):
                 self.lookup_expr = 'endswith'
                 value = value.stop
 
-        return super().filter(qs, value)
+        return super().get_q_objects(value)
 
 
 class RangeFilter(Filter):
     field_class = RangeField
 
-    def filter(self, qs, value):
+    def get_q_objects(self, value):
         if value:
             if value.start is not None and value.stop is not None:
                 self.lookup_expr = 'range'
@@ -411,7 +411,7 @@ class RangeFilter(Filter):
                 self.lookup_expr = 'lte'
                 value = value.stop
 
-        return super().filter(qs, value)
+        return super().get_q_objects(value)
 
 
 def _truncate(dt):
@@ -664,12 +664,12 @@ class LookupChoiceFilter(Filter):
 
         return self._field
 
-    def filter(self, qs, lookup):
+    def get_q_objects(self, lookup):
         if not lookup:
-            return super(LookupChoiceFilter, self).filter(qs, None)
+            return super(LookupChoiceFilter, self).get_q_objects(None)
 
         self.lookup_expr = lookup.lookup_expr
-        return super(LookupChoiceFilter, self).filter(qs, lookup.value)
+        return super(LookupChoiceFilter, self).get_q_objects(lookup.value)
 
 
 class OrderingFilter(BaseCSVFilter, ChoiceFilter):
@@ -725,6 +725,9 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         field_name = self.param_map.get(param, param)
 
         return "-%s" % field_name if descending else field_name
+
+    def get_q_objects(self, value):
+        return super().get_q_objects(None)
 
     def filter(self, qs, value):
         if value in EMPTY_VALUES:

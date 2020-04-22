@@ -25,6 +25,7 @@ from .filters import (
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
     NumberFilter,
+    OrderingFilter,
     TimeFilter,
     UUIDFilter
 )
@@ -226,12 +227,40 @@ class BaseFilterSet(object):
         This method should be overridden if additional filtering needs to be
         applied to the queryset before it is cached.
         """
-        for name, value in self.form.cleaned_data.items():
-            queryset = self.filters[name].filter(queryset, value)
-            assert isinstance(queryset, models.QuerySet), \
-                "Expected '%s.%s' to return a QuerySet, but got a %s instead." \
-                % (type(self).__name__, name, type(queryset).__name__)
+        filter_map = self.build_filter_map()
+        for name, filter_ in filter_map.items():
+            queryset = queryset.filter(*filter_['q_list'])
+            if filter_['distinct']:
+                queryset = queryset.distinct()
+        return self.order_queryset(queryset)
+
+    def order_queryset(self, queryset):
+        """
+        Orders the filtered query set after it has been filtered.
+        """
+        order_filters = (
+            (self.filters[name], value)
+            for name, value in self.form.cleaned_data.items()
+            if isinstance(self.filters[name], OrderingFilter)
+        )
+        for filter_, value in order_filters:
+            queryset = filter_.filter(queryset, value)
         return queryset
+
+    def build_filter_map(self):
+        """
+        Builds a map of the generated `Q` object lists with additional meta data.
+
+        This method should be overridden if more complex filters needs to be applied.
+        """
+        filter_map = {}
+        for name, value in self.form.cleaned_data.items():
+            q_list = self.filters[name].get_q_objects(value)
+            filter_map[name] = {
+                'q_list': q_list,
+                'distinct': self.filters[name].distinct
+            }
+        return filter_map
 
     @property
     def qs(self):
