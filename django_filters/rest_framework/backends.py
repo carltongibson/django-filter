@@ -2,6 +2,7 @@ import warnings
 
 from django.template import loader
 from django.utils.deprecation import RenameMethodsBase
+from django.utils.encoding import force_str
 
 from .. import compat, utils
 from . import filters, filterset
@@ -159,7 +160,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 'name': field_name,
                 'required': field.extra['required'],
                 'in': 'query',
-                'description': field.label if field.label is not None else field_name,
+                'description': force_str(field.label) if field.label is not None else field_name,
                 'schema': {
                     'type': 'string',
                 },
