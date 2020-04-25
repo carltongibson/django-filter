@@ -39,7 +39,7 @@ from .utils import (
 def remote_queryset(field):
     """
     Get the queryset for the other side of a relationship. This works
-    for both `RelatedField`s and `ForignObjectRel`s.
+    for both `RelatedField`s and `ForeignObjectRel`s.
     """
     model = field.related_model
 
