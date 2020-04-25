@@ -46,7 +46,7 @@ class FilterMixin(metaclass=FilterMixinRenames):
 
     def get_filterset_kwargs(self, filterset_class):
         """
-        Returns the keyword arguments for instanciating the filterset.
+        Returns the keyword arguments for instantiating the filterset.
         """
         kwargs = {
             'data': self.request.GET or None,
