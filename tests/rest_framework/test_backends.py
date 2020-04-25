@@ -4,6 +4,7 @@ from unittest import mock, skipIf
 from django.db.models import BooleanField
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.utils.translation import gettext_lazy as _
 from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
 
@@ -268,6 +269,17 @@ class GetSchemaOperationParametersTests(TestCase):
 
             }]
         )
+
+    def test_get_operation_parameters_with_lazy_text_as_label(self):
+        class LazyTextFilterSet(FilterSet):
+            text = filters.CharFilter(label=_('Text'))
+
+        class FilterableCategoryItemView(CategoryItemView):
+            filterset_class = LazyTextFilterSet
+
+        backend = DjangoFilterBackend()
+        fields = backend.get_schema_operation_parameters(FilterableCategoryItemView())
+        self.assertEqual(fields[0]['description'], 'Text')
 
 
 class TemplateTests(TestCase):
