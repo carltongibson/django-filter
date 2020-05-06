@@ -227,25 +227,35 @@ class IsoDateTimeFieldTests(TestCase):
 
 
 class BaseCSVFieldTests(TestCase):
-    def setUp(self):
-        class DecimalCSVField(BaseCSVField, forms.DecimalField):
-            pass
-
-        self.field = DecimalCSVField()
+    class DecimalCSVField(BaseCSVField, forms.DecimalField):
+        pass
 
     def test_clean(self):
-        self.assertEqual(self.field.clean(None), None)
-        self.assertEqual(self.field.clean(''), [])
-        self.assertEqual(self.field.clean(['1']), [1])
-        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
-        self.assertEqual(self.field.clean(['1', '2', '3']), [1, 2, 3])
+        # Filter class sets required=False by default
+        field = self.DecimalCSVField(required=False)
+
+        self.assertEqual(field.clean(None), None)
+        self.assertEqual(field.clean(''), [])
+        self.assertEqual(field.clean(['1']), [1])
+        self.assertEqual(field.clean(['1', '2']), [1, 2])
+        self.assertEqual(field.clean(['1', '2', '3']), [1, 2, 3])
 
     def test_validation_error(self):
-        with self.assertRaises(forms.ValidationError):
-            self.field.clean([''])
+        field = self.DecimalCSVField()
 
-        with self.assertRaises(forms.ValidationError):
-            self.field.clean(['a', 'b', 'c'])
+        msg = 'Enter a number.'
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean(['a', 'b', 'c'])
+
+    def test_required_error(self):
+        field = self.DecimalCSVField(required=True)
+
+        msg = 'This field is required.'
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean(None)
+
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean([''])
 
     def test_derived_widget(self):
         with self.assertRaises(AssertionError) as excinfo:
@@ -269,24 +279,34 @@ class BaseCSVFieldTests(TestCase):
 
 
 class BaseRangeFieldTests(TestCase):
-    def setUp(self):
-        class DecimalRangeField(BaseRangeField, forms.DecimalField):
-            pass
-
-        self.field = DecimalRangeField()
+    class DecimalRangeField(BaseRangeField, forms.DecimalField):
+        pass
 
     def test_clean(self):
-        self.assertEqual(self.field.clean(None), None)
-        self.assertEqual(self.field.clean(''), [])
-        self.assertEqual(self.field.clean([]), [])
-        self.assertEqual(self.field.clean(['1', '2']), [1, 2])
+        # Filter class sets required=False by default
+        field = self.DecimalRangeField(required=False)
+
+        self.assertEqual(field.clean(None), None)
+        self.assertEqual(field.clean(''), [])
+        self.assertEqual(field.clean([]), [])
+        self.assertEqual(field.clean(['1', '2']), [1, 2])
 
     def test_validation_error(self):
-        with self.assertRaises(forms.ValidationError):
-            self.field.clean([''])
+        field = self.DecimalRangeField()
 
-        with self.assertRaises(forms.ValidationError):
-            self.field.clean(['1'])
+        msg = 'Range query expects two values.'
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean(['1'])
 
-        with self.assertRaises(forms.ValidationError):
-            self.field.clean(['1', '2', '3'])
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean(['1', '2', '3'])
+
+    def test_required_error(self):
+        field = self.DecimalRangeField(required=True)
+
+        msg = 'This field is required.'
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean(None)
+
+        with self.assertRaisesMessage(forms.ValidationError, msg):
+            field.clean([''])
