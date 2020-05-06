@@ -184,6 +184,9 @@ class BaseCSVField(forms.Field):
         return type(str('CSV%s' % widget.__name__), bases, {})
 
     def clean(self, value):
+        if value in self.empty_values and self.required:
+            raise forms.ValidationError(self.error_messages['required'], code='required')
+
         if value is None:
             return None
         return [super(BaseCSVField, self).clean(v) for v in value]
