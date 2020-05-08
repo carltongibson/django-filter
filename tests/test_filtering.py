@@ -2,6 +2,7 @@ import contextlib
 import datetime
 import mock
 import unittest
+import warnings
 from operator import attrgetter
 
 from django import forms
@@ -1120,6 +1121,19 @@ class FilterMethodTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
+
+    def test_deprecated_signature(self):
+        class F(FilterSet):
+            username = CharFilter(method='filter_username')
+
+            def filter_username(self, qs, field_name, value):
+                return qs.filter(**{field_name: value})
+
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter('ignore')
+            qs = F({'username': 'alex'}, queryset=User.objects.all()).qs
+
+        self.assertEqual(list(qs), [User.objects.get(username='alex')])
 
 
 class O2ORelationshipTests(TestCase):

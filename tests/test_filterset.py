@@ -1,5 +1,6 @@
 import mock
 import unittest
+import warnings
 
 from django.db import models
 from django.test import TestCase, override_settings
@@ -898,7 +899,7 @@ class FilterMethodTests(TestCase):
     def test_method_self_is_parent(self):
         # Ensure the method isn't 're-parented' on the `FilterMethod` helper class.
         # Filter methods should have access to the filterset's properties.
-        request = MockQuerySet()
+        request = object()
 
         class F(FilterSet):
             f = CharFilter(method='filter_f')
@@ -954,6 +955,65 @@ class FilterMethodTests(TestCase):
         f.method = None
         self.assertIsNone(f.method)
         self.assertIs(f.filter, TestFilter.filter)
+
+    def test_deprecated_method_signature(self):
+        queryset = MockQuerySet()
+
+        class F(FilterSet):
+            username = Filter(method='filter_username')
+
+            # fn(qs, field_name, value) => fn(f, qs, value)
+            def filter_username(self, qs, field_name, value):
+                # Note that this results in a TypeError, since both the queryset
+                # and filter instances have their respective `filter` methods.
+                return qs.filter(username='bob')
+
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+            qs = F({'username': 'value'}, queryset=queryset).qs
+
+        expected = "Please update the signature for `tests.test_filterset.F.filter_username`. " \
+                   "See: https://django-filter.readthedocs.io/en/stable/guide/migration.html"
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+        self.assertIs(qs, queryset)
+        queryset.filter.assert_called_once_with(username='bob')
+
+    def test_deprecated_callable_signature(self):
+        queryset = MockQuerySet()
+
+        def filter_username(qs, field_name, value):
+            return qs.filter(username='bob')
+
+        class F(FilterSet):
+            username = Filter(method=filter_username)
+
+        with warnings.catch_warnings(record=True) as recorded:
+            warnings.simplefilter('always')
+            qs = F({'username': 'value'}, queryset=queryset).qs
+
+        expected = "Please update the signature for `filter_username`. " \
+                   "See: https://django-filter.readthedocs.io/en/stable/guide/migration.html"
+        message = str(recorded.pop().message)
+        self.assertEqual(message, expected)
+        self.assertEqual(len(recorded), 0)
+
+        self.assertIs(qs, queryset)
+        queryset.filter.assert_called_once_with(username='bob')
+
+    def test_unexpected_exception(self):
+        queryset = MockQuerySet()
+
+        class F(FilterSet):
+            username = Filter(method='filter_username')
+
+            def filter_username(self, f, qs, value):
+                raise RuntimeError('!')
+
+        with self.assertRaisesMessage(RuntimeError, '!'):
+            F({'username': 'value'}, queryset=queryset).qs
 
 
 class MiscFilterSetTests(TestCase):

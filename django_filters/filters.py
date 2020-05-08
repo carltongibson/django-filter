@@ -26,7 +26,7 @@ from .fields import (
     RangeField,
     TimeRangeField
 )
-from .utils import get_model_field, label_for_filter
+from .utils import deprecate, get_model_field, label_for_filter
 
 __all__ = [
     'AllValuesFilter',
@@ -769,7 +769,25 @@ class FilterMethod(object):
         if value in EMPTY_VALUES:
             return qs
 
-        return self.method(self.f, qs, value)
+        try:
+            return self.method(self.f, qs, value)
+        except Exception as e:
+            # TODO: remove in version ????
+            try:
+                # Attempt fallback with old signature
+                result = self.method(qs, self.f.field_name, value)
+            except Exception:
+                # Raise original exception if fallback fails
+                raise e
+            else:
+                # Fallback succeeded, warn about deprecation
+                if callable(self.f.method):
+                    name = self.f.method.__name__
+                else:
+                    cls = self.f.parent.__class__
+                    name = '%s.%s.%s' % (cls.__module__, cls.__name__, self.f.method)
+                deprecate('Please update the signature for `%s`.' % name)
+                return result
 
     @property
     def method(self):
