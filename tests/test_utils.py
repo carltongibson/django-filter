@@ -40,7 +40,7 @@ class MigrationNoticeTests(TestCase):
     def test_message(self):
         self.assertEqual(
             str(MigrationNotice('Message.')),
-            'Message. See: https://django-filter.readthedocs.io/en/master/guide/migration.html'
+            'Message. See: https://django-filter.readthedocs.io/en/stable/guide/migration.html'
         )
 
 
