@@ -27,6 +27,31 @@ __ https://docs.python.org/3.6/using/cmdline.html#cmdoption-W
 __ https://docs.python.org/3.6/using/cmdline.html#envvar-PYTHONWARNINGS
 
 ----------------
+Migrating to ???
+----------------
+
+``Filter.method`` signature changed (`#1150`__)
+-----------------------------------------------
+__ https://github.com/carltongibson/django-filter/pull/1150
+
+The ``Filter.method`` signature is now provided the filter instance (``f``) in
+lieu of the filter's ``field_name`` attribute. By providing the filter instance,
+methods may now inspect other attributes and respond accordingly (e.g., is the
+filter configured to ``exclude`` results or be ``distinct``). The ``field_name``
+should now also be accessed as an attribute on the filter instance.
+
+.. code-block:: python
+
+    class MyFilterSet(FilterSet):
+        def old_signature(self, qs, field_name, value):
+            ...
+
+        def new_signature(self, f, qs, value):
+            field_name = f.field_name
+            ...
+
+
+----------------
 Migrating to 2.0
 ----------------
 

@@ -243,10 +243,8 @@ Note that you may access the filterset's properties, such as the ``request``.
             model = User
             fields = ['username']
 
-        def my_custom_filter(self, queryset, name, value):
-            return queryset.filter(**{
-                name: value,
-            })
+        def my_custom_filter(self, f, qs, value):
+            return qs.filter(**{f.field_name: value})
 
 
 The view
