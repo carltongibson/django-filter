@@ -156,10 +156,11 @@ class BooleanWidget(forms.Select):
     This can be used for AJAX queries that pass true/false from JavaScript's
     internal types through.
     """
-    def __init__(self, attrs=None):
-        choices = (('', _('Unknown')),
-                   ('true', _('Yes')),
-                   ('false', _('No')))
+    def __init__(self, attrs=None, choices=None):
+        if not choices:
+            choices = (('', _('Unknown')),
+                       ('true', _('Yes')),
+                       ('false', _('No')))
         super().__init__(attrs, choices)
 
     def render(self, name, value, attrs=None, renderer=None):

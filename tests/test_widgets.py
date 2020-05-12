@@ -249,6 +249,18 @@ class BooleanWidgetTests(TestCase):
                 <option value="false">No</option>
             </select>""")
 
+    def test_widget_render_with_custom_choices(self):
+        choices = (('', 'Both'),
+                   ('true', 'True'),
+                   ('false', 'False'))
+        w = BooleanWidget(choices=choices)
+        self.assertHTMLEqual(w.render('price', ''), """
+            <select name="price">
+                <option selected="selected" value="">Both</option>
+                <option value="true">True</option>
+                <option value="false">False</option>
+            </select>""")
+
     def test_widget_value_from_datadict(self):
         """
         """
