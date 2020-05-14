@@ -211,7 +211,7 @@ class BaseRangeField(BaseCSVField):
         return value
 
 
-class ChoiceIterator(object):
+class ChoiceIterator:
     # Emulates the behavior of ModelChoiceIterator, but instead wraps
     # the field's _choices iterable.
 
@@ -257,7 +257,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
         return super().__len__() + add
 
 
-class ChoiceIteratorMixin(object):
+class ChoiceIteratorMixin:
     def __init__(self, *args, **kwargs):
         self.null_label = kwargs.pop('null_label', settings.NULL_CHOICE_LABEL)
         self.null_value = kwargs.pop('null_value', settings.NULL_CHOICE_VALUE)

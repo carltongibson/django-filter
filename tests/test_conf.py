@@ -80,7 +80,7 @@ class IsCallableTests(TestCase):
         def func():
             pass
 
-        class Class(object):
+        class Class:
             def __call__(self):
                 pass
 
