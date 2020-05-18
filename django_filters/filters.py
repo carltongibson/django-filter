@@ -623,7 +623,7 @@ class LookupChoiceFilter(Filter):
             field = get_model_field(self.model, self.field_name)
             lookups = field.get_lookups()
 
-        return [self.normalize_lookup(l) for l in lookups]
+        return [self.normalize_lookup(lookup) for lookup in lookups]
 
     @property
     def field(self):
