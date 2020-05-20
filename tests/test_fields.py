@@ -97,14 +97,15 @@ class IsoDateTimeRangeFieldTests(TestCase):
         f = IsoDateTimeRangeField()
         self.assertEqual(len(f.fields), 2)
 
-    @override_settings(USE_TZ=False)
     def test_clean(self):
         w = RangeWidget()
         f = IsoDateTimeRangeField(widget=w)
-        self.assertEqual(
-            f.clean(['2015-01-01T10:30:01.123000+01:00', '2015-01-10T08:45:02.345000+01:00']),
-            slice(datetime(2015, 1, 1, 9, 30, 1, 123000),
-                  datetime(2015, 1, 10, 7, 45, 2, 345000)))
+        expected = slice(
+            datetime(2015, 1, 1, 9, 30, 1, 123000, tzinfo=timezone.utc),
+            datetime(2015, 1, 10, 7, 45, 2, 345000, tzinfo=timezone.utc)
+        )
+        actual = f.clean(['2015-01-01T10:30:01.123000+01:00', '2015-01-10T08:45:02.345000+01:00'])
+        self.assertEqual(expected, actual)
 
 
 class TimeRangeFieldTests(TestCase):
