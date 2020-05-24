@@ -1433,9 +1433,9 @@ class OrderingFilterTests(TestCase):
 
         # Django 1.11 does not define __eq__ operators for F and OrderBy.
         # Define them manually when needed
-        if True or not hasattr(F, '__eq__'):
+        if not hasattr(F, '__eq__'):
             setattr(F, '__eq__', cls.compareF)
-        if True or not hasattr(OrderBy, '__eq__'):
+        if not hasattr(OrderBy, '__eq__'):
             setattr(OrderBy, '__eq__', cls.compareOrderBy)
 
     @staticmethod
