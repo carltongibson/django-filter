@@ -41,8 +41,8 @@ class SubnetMaskField(models.Field):
 
 class User(models.Model):
     username = models.CharField(_('username'), max_length=255)
-    first_name = SubCharField(max_length=100, null=True, blank=True)
-    last_name = SubSubCharField(max_length=100, null=True, blank=True)
+    first_name = SubCharField(max_length=100)
+    last_name = SubSubCharField(max_length=100)
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=0)
 
@@ -50,6 +50,8 @@ class User(models.Model):
     is_employed = models.NullBooleanField(default=False)
 
     favorite_books = models.ManyToManyField('Book', related_name='lovers')
+
+    last_login = models.DateTimeField(null=True)
 
     def __str__(self):
         return self.username

@@ -1872,10 +1872,11 @@ class CSVRangeFilterTests(TestCase):
 class OrderingFilterTests(TestCase):
 
     def setUp(self):
-        User.objects.create(username='alex', first_name='Alex', last_name='Allan', status=1)
-        User.objects.create(username='jacob', first_name='Jacob', last_name='Johnson', status=2)
-        User.objects.create(username='aaron', first_name='Aaron', last_name='Barrett', status=2)
-        User.objects.create(username='carl', first_name=None, last_name='Jung', status=0)
+        tz = timezone.utc
+        User.objects.create(username='alex', status=1, last_login=datetime.datetime(2020, 1, 1, tzinfo=tz))
+        User.objects.create(username='jacob', status=2, last_login=datetime.datetime(2020, 2, 1, tzinfo=tz))
+        User.objects.create(username='aaron', status=2, last_login=datetime.datetime(2020, 3, 1, tzinfo=tz))
+        User.objects.create(username='carl', status=0)
 
     def test_ordering(self):
         class F(FilterSet):
@@ -1909,125 +1910,131 @@ class OrderingFilterTests(TestCase):
         self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob'])
 
     def test_ordering_with_null(self):
+        tz = timezone.utc
+
         class F(FilterSet):
             o = OrderingFilter(
-                fields=('first_name', 'last_name')
+                fields=('last_login',)
             )
 
             class Meta:
                 model = User
-                fields = ['first_name', 'last_name']
+                fields = ['last_login']
 
         qs = User.objects.all()
-        f = F({'o': 'first_name,last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            (None, 'Jung'),
-            ('Aaron', 'Barrett'),
-            ('Alex', 'Allan'),
-            ('Jacob', 'Johnson'),
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
         ])
 
-        f = F({'o': '-first_name,-last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            ('Jacob', 'Johnson'),
-            ('Alex', 'Allan'),
-            ('Aaron', 'Barrett'),
-            (None, 'Jung'),
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('carl', None),
         ])
 
     def test_ordering_with_params_and_null(self):
+        tz = timezone.utc
+
         class F(FilterSet):
             o = OrderingFilter(
-                params=('first_name', 'last_name')
+                params=('last_login',)
             )
 
             class Meta:
                 model = User
-                fields = ['first_name', 'last_name']
+                fields = ['last_login']
 
         qs = User.objects.all()
-        f = F({'o': 'first_name,last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            (None, 'Jung'),
-            ('Aaron', 'Barrett'),
-            ('Alex', 'Allan'),
-            ('Jacob', 'Johnson'),
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
         ])
 
-        f = F({'o': '-first_name,-last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            ('Jacob', 'Johnson'),
-            ('Alex', 'Allan'),
-            ('Aaron', 'Barrett'),
-            (None, 'Jung'),
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('carl', None),
         ])
 
     def test_ordering_with_params_and_nulls_last(self):
+        tz = timezone.utc
+
         class F(FilterSet):
             o = OrderingFilter(
                 params={
-                    'first_name': {'expr': expressions.F('first_name').asc(nulls_last=True)},
-                    'last_name': {'expr': expressions.F('last_name').asc(nulls_last=True)}
+                    'last_login': {'expr': expressions.F('last_login').asc(nulls_last=True)},
                 }
             )
 
             class Meta:
                 model = User
-                fields = ['first_name', 'last_name']
+                fields = ['last_login']
 
         qs = User.objects.all()
-        f = F({'o': 'first_name,last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            ('Aaron', 'Barrett'),
-            ('Alex', 'Allan'),
-            ('Jacob', 'Johnson'),
-            (None, 'Jung'),
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('carl', None),
         ])
 
-        f = F({'o': '-first_name,-last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            (None, 'Jung'),
-            ('Jacob', 'Johnson'),
-            ('Alex', 'Allan'),
-            ('Aaron', 'Barrett'),
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
         ])
 
     def test_ordering_with_params_and_desc_nulls_last(self):
+        tz = timezone.utc
+
         class F(FilterSet):
             o = OrderingFilter(
                 params={
-                    'first_name': {'expr': expressions.F('first_name').desc(nulls_last=True)},
-                    'last_name': {'expr': expressions.F('last_name').desc(nulls_last=True)}
+                    'last_login': {'expr': expressions.F('last_login').desc(nulls_last=True)},
                 }
             )
 
             class Meta:
                 model = User
-                fields = ['first_name', 'last_name']
+                fields = ['last_login']
 
         qs = User.objects.all()
-        f = F({'o': 'first_name,last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            ('Jacob', 'Johnson'),
-            ('Alex', 'Allan'),
-            ('Aaron', 'Barrett'),
-            (None, 'Jung'),
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('carl', None),
         ])
 
-        f = F({'o': '-first_name,-last_name'}, queryset=qs)
-        names = f.qs.values_list('first_name', 'last_name')
-        self.assertEqual(list(names), [
-            (None, 'Jung'),
-            ('Aaron', 'Barrett'),
-            ('Alex', 'Allan'),
-            ('Jacob', 'Johnson'),
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
         ])
 
 
