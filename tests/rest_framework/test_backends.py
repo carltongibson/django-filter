@@ -11,6 +11,7 @@ from django_filters import compat, filters
 from django_filters.rest_framework import (
     DjangoFilterBackend,
     FilterSet,
+    IsoDateTimeFromToRangeFilter,
     backends
 )
 
@@ -268,6 +269,18 @@ class GetSchemaOperationParametersTests(TestCase):
 
             }]
         )
+
+    def test_get_schema_operation_parameters_from_filterset(self):
+
+        class Filter(FilterSet):
+            date = IsoDateTimeFromToRangeFilter()
+
+        backend = DjangoFilterBackend()
+        schema = backend.get_schema_operation_parameters_from_filterset(Filter)
+
+        fields = [f['name'] for f in schema]
+
+        self.assertEqual(fields, ['date_before', 'date_after'])
 
 
 class TemplateTests(TestCase):
