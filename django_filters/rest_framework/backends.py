@@ -153,18 +153,28 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         if not filterset_class:
             return []
 
+        return self.get_schema_operation_parameters_from_filterset(filterset_class)
+
+    def get_schema_operation_parameters_from_filterset(self, filterset_class):
         parameters = []
+
         for field_name, field in filterset_class.base_filters.items():
-            parameter = {
-                'name': field_name,
-                'required': field.extra['required'],
-                'in': 'query',
-                'description': field.label if field.label is not None else field_name,
-                'schema': {
-                    'type': 'string',
-                },
-            }
-            if field.extra and 'choices' in field.extra:
-                parameter['schema']['enum'] = [c[0] for c in field.extra['choices']]
-            parameters.append(parameter)
+            if hasattr(field, "get_schema_operation_parameters"):
+                parameters += field.get_schema_operation_parameters(field_name)
+            else:
+                parameters += self.create_default_schema_operation_parameters(field_name, field)
         return parameters
+
+    def create_default_schema_operation_parameters(self, field_name, field):
+        parameter = {
+            'name': field_name,
+            'required': field.extra['required'],
+            'in': 'query',
+            'description': field.label if field.label is not None else field_name,
+            'schema': {
+                'type': 'string',
+            },
+        }
+        if field.extra and 'choices' in field.extra:
+            parameter['schema']['enum'] = [c[0] for c in field.extra['choices']]
+        return [parameter]
