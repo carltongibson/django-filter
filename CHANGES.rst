@@ -1,3 +1,15 @@
+Version 2.3.0 (2020-6-5)
+------------------------
+
+* Fixed import of FieldDoesNotExist. (#1127)
+* Added testing against Django 3.0. (#1125)
+* Declared support for, and added testing against, Python 3.8. (#1138)
+* Fix filterset multiple inheritance bug (#1131)
+* Allowed customising default lookup expression. (#1129)
+* Drop Django 2.1 and below (#1180)
+* Fixed IsoDateTimeRangeFieldTests for Django 3.1
+* Require tests to pass against Django `master`.
+
 Version 2.2 (2019-7-16)
 -----------------------
 

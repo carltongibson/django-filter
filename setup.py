@@ -6,7 +6,7 @@ f = open('README.rst')
 readme = f.read()
 f.close()
 
-version = '2.2.0'
+version = '2.3.0'
 
 if sys.argv[-1] == 'publish':
     if os.system("pip freeze | grep wheel"):
@@ -56,6 +56,6 @@ setup(
     zip_safe=False,
     python_requires='>=3.5',
     install_requires=[
-        'Django>=1.11',
+        'Django>=2.2',
     ],
 )
