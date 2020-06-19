@@ -44,6 +44,7 @@ __all__ = [
     'DateTimeFromToRangeFilter',
     'DurationFilter',
     'Filter',
+    'IntegerFilter',
     'IsoDateTimeFilter',
     'IsoDateTimeFromToRangeFilter',
     'LookupChoiceFilter',
@@ -352,6 +353,10 @@ class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
     field_class = ModelMultipleChoiceField
+
+
+class IntegerFilter(Filter):
+    field_class = forms.IntegerField
 
 
 class NumberFilter(Filter):

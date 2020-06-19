@@ -33,6 +33,7 @@ from django_filters.filters import (
     DateTimeFromToRangeFilter,
     DurationFilter,
     Filter,
+    IntegerFilter,
     IsoDateTimeFromToRangeFilter,
     LookupChoiceFilter,
     ModelChoiceFilter,
@@ -820,6 +821,26 @@ class NumberFilterTests(TestCase):
         qs.reset_mock()
         f.filter(qs, 0)
         qs.exclude.assert_called_once_with(None__exact=0)
+
+
+class IntegerFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = IntegerFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.IntegerField)
+
+    def test_filtering(self):
+        qs = mock.Mock(spec=['filter'])
+        f = IntegerFilter()
+        f.filter(qs, 2)
+        qs.filter.assert_called_once_with(None__exact=2)
+
+    def test_filtering_exclude(self):
+        qs = mock.Mock(spec=['exclude'])
+        f = IntegerFilter(exclude=True)
+        f.filter(qs, 2)
+        qs.exclude.assert_called_once_with(None__exact=2)
 
 
 class NumericRangeFilterTests(TestCase):
