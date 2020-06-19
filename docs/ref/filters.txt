@@ -421,7 +421,7 @@ QuerySet, which then gets used as the model's manager::
 
 
 ``IntegerFilter``
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 Matches on an integer value. Used with ``IntegerField`` by default.
 
