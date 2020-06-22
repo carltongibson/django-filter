@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from .conf import settings
 from .constants import EMPTY_VALUES
 from .fields import (
+    ArrayField,
     BaseCSVField,
     BaseRangeField,
     ChoiceField,
@@ -29,6 +30,7 @@ from .fields import (
 from .utils import get_model_field, label_for_filter
 
 __all__ = [
+    'ArrayFilter',
     'AllValuesFilter',
     'AllValuesMultipleFilter',
     'BaseCSVFilter',
@@ -145,6 +147,8 @@ class Filter:
         qs = self.get_method(qs)(**{lookup: value})
         return qs
 
+class ArrayFilter(Filter):
+    field_class = ArrayField
 
 class CharFilter(Filter):
     field_class = forms.CharField
