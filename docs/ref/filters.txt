@@ -163,6 +163,33 @@ as the model's attribute.
 
 Filters
 -------
+``ArrayFilter``
+~~~~~~~~~~~~~~
+
+This filter matches values in array, used with ``ArrayField``. For example,
+
+.. code-block:: python
+
+    class Vehicle(models.Model):
+        registration_number = models.CharField(max_length=64, unique=True)
+        STATUS = (
+            ("AV", "Available"),
+            ("NA", "Not Available"),
+            ("BR", "Broken"),
+            ("RP", "Repairing"),
+            ("OT", "On Trip"),
+            ("AR", "Archived"),
+        )
+        status = models.CharField(max_length=3, choices=STATUS, default="AV")
+
+    class VehicleFilter(FilterSet):
+        status = ArrayFilter(field_name="status", lookup_expr="in")
+        
+        class Meta:
+            model = Vehicle
+            fields = ["status"]
+
+    Input : status = ["AV", "NA", "BR]
 
 ``CharFilter``
 ~~~~~~~~~~~~~~
