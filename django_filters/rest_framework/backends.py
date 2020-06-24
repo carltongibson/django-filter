@@ -107,6 +107,11 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
     def get_coreschema_field(self, field):
         if isinstance(field, filters.BaseCSVFilter):
             field_cls = compat.coreschema.String
+        elif isinstance(field, filters.ModelChoiceFilter):
+            model_field_cls = type(field.queryset.model._meta.get_field(field.field.to_field_name))
+            if model_field_cls in filterset.FILTER_FOR_DBFIELD_DEFAULTS:
+                related_filter = filterset.FILTER_FOR_DBFIELD_DEFAULTS[model_field_cls]['filter_class']()
+                return self.get_coreschema_field(related_filter)
         elif isinstance(field, filters.NumberFilter):
             field_cls = compat.coreschema.Number
         else:
