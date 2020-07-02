@@ -164,9 +164,10 @@ as the model's attribute.
 Filters
 -------
 ``ArrayFilter``
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
-This filter matches values in array, used with ``ArrayField``. For example,
+This filter matches values in array, used with ``ArrayField``. For example, 
+Input : status = ["AV", "NA", "BR]
 
 .. code-block:: python
 
@@ -188,8 +189,6 @@ This filter matches values in array, used with ``ArrayField``. For example,
         class Meta:
             model = Vehicle
             fields = ["status"]
-
-    Input : status = ["AV", "NA", "BR]
 
 ``CharFilter``
 ~~~~~~~~~~~~~~
