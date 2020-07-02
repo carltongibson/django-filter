@@ -53,11 +53,11 @@ class ArrayFilterTests(TestCase):
 
     def test_filtering(self):
         b1 = Book.objects.create(
-            title="Ender's Game", price='1.00', average_rating=3)
+            title="Webphoenix", price='10.00', average_rating=3)
         b2 = Book.objects.create(
-            title="Rainbow Six", price='1.00', average_rating=2)
+            title="SpaceX", price='10.00', average_rating=2)
         b3 = Book.objects.create(
-            title="Snowcrash", price='1.00', average_rating=1)
+            title="Silicon", price='10.00', average_rating=1)
 
         class F(FilterSet):
             class Meta:
