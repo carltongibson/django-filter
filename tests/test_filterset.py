@@ -6,6 +6,7 @@ from django.test import TestCase, override_settings
 
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
+    ArrayFilter
     BaseInFilter,
     BaseRangeFilter,
     BooleanFilter,
@@ -69,6 +70,7 @@ class DbFieldDefaultFiltersTests(TestCase):
 
     def test_expected_db_fields_get_filters(self):
         to_check = [
+            models.ArrayField,
             models.BooleanField,
             models.CharField,
             models.CommaSeparatedIntegerField,

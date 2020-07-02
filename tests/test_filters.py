@@ -20,6 +20,7 @@ from django_filters.fields import (
 )
 from django_filters.filters import (
     AllValuesFilter,
+    ArrayFilter
     BaseCSVFilter,
     BaseInFilter,
     BaseRangeFilter,
@@ -172,6 +173,13 @@ class FilterTests(TestCase):
         result = qs.distinct.assert_called_once_with()
         self.assertNotEqual(qs, result)
 
+
+class ArrayFilterTests(TestCase):
+    
+    def test_default_field(self):
+        f = ArrayFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.ArrayField)
 
 class CharFilterTests(TestCase):
 
