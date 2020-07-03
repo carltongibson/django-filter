@@ -137,7 +137,6 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
     models.GenericIPAddressField:       {'filter_class': CharFilter},
     models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
     models.UUIDField:                   {'filter_class': UUIDFilter},
-    models.ArrayField:                  {'filter_class': ArrayFilter},
 
     # Forward relationships
     models.OneToOneField: {

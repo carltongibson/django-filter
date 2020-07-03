@@ -70,7 +70,6 @@ class DbFieldDefaultFiltersTests(TestCase):
 
     def test_expected_db_fields_get_filters(self):
         to_check = [
-            models.ArrayField,
             models.BooleanField,
             models.CharField,
             models.CommaSeparatedIntegerField,
