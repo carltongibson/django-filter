@@ -6,7 +6,7 @@ from django.test import TestCase, override_settings
 
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
-    ArrayFilter
+    ArrayFilter,
     BaseInFilter,
     BaseRangeFilter,
     BooleanFilter,

@@ -20,7 +20,7 @@ from django_filters.fields import (
 )
 from django_filters.filters import (
     AllValuesFilter,
-    ArrayFilter
+    ArrayFilter,
     BaseCSVFilter,
     BaseInFilter,
     BaseRangeFilter,
