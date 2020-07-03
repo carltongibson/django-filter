@@ -68,9 +68,10 @@ class ArrayFilterTests(TestCase):
         f = F(queryset=qs)
         self.assertQuerysetEqual(f.qs, [b1.pk, b2.pk, b3.pk],
                                  lambda o: o.pk, ordered=False)
-        f = F({'average_rating': '[2,3]'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, [b2.pk,b3.pk], lambda o: o.pk, ordered=False)
-
+        f = F({'average_rating': '2'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b2.pk], lambda o: o.pk, ordered=False)
+        f = F({'average_rating': '3'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk, ordered=False)
 class CharFilterTests(TestCase):
 
     def test_filtering(self):

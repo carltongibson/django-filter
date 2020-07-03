@@ -10,6 +10,7 @@ from django.utils.translation import gettext as _
 
 from django_filters import filters, widgets
 from django_filters.fields import (
+    ArrayField,
     BaseCSVField,
     DateRangeField,
     DateTimeRangeField,
@@ -179,7 +180,7 @@ class ArrayFilterTests(TestCase):
     def test_default_field(self):
         f = ArrayFilter()
         field = f.field
-        self.assertIsInstance(field, forms.ArrayField)
+        self.assertIsInstance(field, ArrayField)
 
 class CharFilterTests(TestCase):
 
