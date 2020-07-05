@@ -176,11 +176,12 @@ class FilterTests(TestCase):
 
 
 class ArrayFilterTests(TestCase):
-    
+
     def test_default_field(self):
         f = ArrayFilter()
         field = f.field
         self.assertIsInstance(field, ArrayField)
+
 
 class CharFilterTests(TestCase):
 

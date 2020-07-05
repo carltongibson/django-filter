@@ -315,7 +315,9 @@ class ModelMultipleChoiceField(ChoiceIteratorMixin, forms.ModelMultipleChoiceFie
         result += [self.null_value] if null else []
         return result
 
+
 class ArrayField(forms.Field):
+
     def __init__(self, *, max_length=None, min_length=None, strip=True, empty_value="", **kwargs):
         self.max_length = max_length
         self.min_length = min_length

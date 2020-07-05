@@ -147,8 +147,10 @@ class Filter:
         qs = self.get_method(qs)(**{lookup: value})
         return qs
 
+
 class ArrayFilter(Filter):
     field_class = ArrayField
+
 
 class CharFilter(Filter):
     field_class = forms.CharField

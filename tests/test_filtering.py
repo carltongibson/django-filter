@@ -13,7 +13,6 @@ from django.utils.timezone import make_aware, now
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
-    ArrayFilter,
     CharFilter,
     ChoiceFilter,
     DateFromToRangeFilter,
@@ -49,29 +48,32 @@ from .models import (
 )
 from .utils import MockQuerySet
 
+
 class ArrayFilterTests(TestCase):
 
     def test_filtering(self):
         b1 = Book.objects.create(
-            title="Webphoenix", price='10.00', average_rating=3)
+            title="Webphoenix", price='10.00', average_rating=1)
         b2 = Book.objects.create(
             title="SpaceX", price='10.00', average_rating=2)
         b3 = Book.objects.create(
-            title="Silicon", price='10.00', average_rating=1)
+            title="Silicon", price='10.00', average_rating=3)
 
         class F(FilterSet):
             class Meta:
                 model = Book
-                fields = ['title']
+                fields = ['average_rating']
 
         qs = Book.objects.all()
         f = F(queryset=qs)
         self.assertQuerysetEqual(f.qs, [b1.pk, b2.pk, b3.pk],
                                  lambda o: o.pk, ordered=False)
-        f = F({'average_rating': '2'}, queryset=qs)
-        self.assertQuerysetEqual(f.qs, [b2.pk], lambda o: o.pk, ordered=False)
+        f = F({'average_rating': '[2,3]'}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [b2.pk, b3.pk], lambda o: o.pk, ordered=False)
         f = F({'average_rating': '3'}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [b3.pk], lambda o: o.pk, ordered=False)
+
+
 class CharFilterTests(TestCase):
 
     def test_filtering(self):

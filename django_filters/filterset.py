@@ -13,7 +13,6 @@ from django.db.models.fields.related import (
 from .conf import settings
 from .constants import ALL_FIELDS
 from .filters import (
-    ArrayFilter,
     BaseInFilter,
     BaseRangeFilter,
     BooleanFilter,
