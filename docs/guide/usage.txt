@@ -176,7 +176,7 @@ logged-in user or the ``Accepts-Languages`` header.
 
 .. note::
 
-    It is not guaranteed that a `request` will be provied to the `FilterSet`
+    It is not guaranteed that a `request` will be provided to the `FilterSet`
     instance. Any code depending on a request should handle the `None` case.
 
 
