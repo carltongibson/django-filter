@@ -367,9 +367,16 @@ class BaseFilterSet:
 
     @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr=None):
+        valid_types = (tuple, set, list)
+
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
         field, lookup_type = resolve_field(field, lookup_expr)
+
+        assert type(lookup_expr) in valid_types, (
+            "The lookup_expr must be one of the following types %s, but %s"
+            "was given instead." % (valid_types, type(lookup_expr))
+        )
 
         default = {
             'field_name': field_name,
