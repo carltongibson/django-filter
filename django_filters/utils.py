@@ -309,7 +309,7 @@ def translate_validation(error_dict):
     """
     # it's necessary to lazily import the exception, as it can otherwise create
     # an import loop when importing django_filters inside the project settings.
-    from rest_framework.exceptions import ValidationError, ErrorDetail
+    from rest_framework.exceptions import ErrorDetail, ValidationError
 
     exc = OrderedDict(
         (key, [ErrorDetail(e.message % (e.params or ()), code=e.code)
