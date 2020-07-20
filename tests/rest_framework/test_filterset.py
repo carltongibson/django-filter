@@ -1,8 +1,7 @@
-from unittest import skipIf
-
 from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
+from unittest import skipIf
 
 from django_filters.compat import is_crispy
 from django_filters.rest_framework import FilterSet, filters

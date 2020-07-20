@@ -1,6 +1,5 @@
-from unittest import mock
-
 from django.test import TestCase, override_settings
+from unittest import mock
 
 from django_filters.conf import is_callable, settings
 

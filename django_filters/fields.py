@@ -1,7 +1,7 @@
 from collections import namedtuple
 from datetime import datetime, time
-
 from django import forms
+from django.core import validators
 from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
@@ -16,7 +16,6 @@ from .widgets import (
     LookupChoiceWidget,
     RangeWidget
 )
-from django.core import validators
 
 
 class RangeField(forms.MultiValueField):

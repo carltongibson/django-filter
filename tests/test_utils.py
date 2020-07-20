@@ -1,6 +1,5 @@
 import datetime
 import warnings
-
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel

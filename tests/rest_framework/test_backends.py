@@ -1,11 +1,10 @@
 import warnings
-from unittest import mock, skipIf
-
 from django.db.models import BooleanField
 from django.test import TestCase
 from django.test.utils import override_settings
 from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
+from unittest import mock, skipIf
 
 from django_filters import compat, filters
 from django_filters.rest_framework import (
