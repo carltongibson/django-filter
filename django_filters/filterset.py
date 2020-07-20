@@ -1,6 +1,5 @@
 import copy
 from collections import OrderedDict
-
 from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
