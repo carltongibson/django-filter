@@ -1,10 +1,9 @@
 import datetime
 from decimal import Decimal
 
-from django.conf.urls import url
 from django.test import TestCase
 from django.test.utils import override_settings
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.dateparse import parse_date
 from rest_framework import generics, serializers, status
 from rest_framework.test import APIRequestFactory
@@ -111,9 +110,9 @@ class GetQuerysetView(generics.ListCreateAPIView):
 
 
 urlpatterns = [
-    url(r'^(?P<pk>\d+)/$', FilterClassDetailView.as_view(), name='detail-view'),
-    url(r'^$', FilterClassRootView.as_view(), name='root-view'),
-    url(r'^get-queryset/$', GetQuerysetView.as_view(), name='get-queryset-view'),
+    path('<int:pk>/', FilterClassDetailView.as_view(), name='detail-view'),
+    path('', FilterClassRootView.as_view(), name='root-view'),
+    path('get-queryset/', GetQuerysetView.as_view(), name='get-queryset-view'),
 ]
 
 
