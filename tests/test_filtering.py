@@ -13,7 +13,7 @@ from django.utils.timezone import make_aware, now
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
-    ArrayFilter
+    ArrayFilter,
     CharFilter,
     ChoiceFilter,
     DateFromToRangeFilter,
@@ -61,6 +61,7 @@ class ArrayFilterTests(TestCase):
             title="Silicon", price='10.00', average_rating=3)
 
         class F(FilterSet):
+            average_rating = ArrayFilter(field_name="average_rating", lookup_expr="in")
             class Meta:
                 model = Book
                 fields = ['average_rating']
