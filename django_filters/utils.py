@@ -1,5 +1,6 @@
 import warnings
 from collections import OrderedDict
+
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, FieldError
 from django.db import models
@@ -308,7 +309,7 @@ def translate_validation(error_dict):
     """
     # it's necessary to lazily import the exception, as it can otherwise create
     # an import loop when importing django_filters inside the project settings.
-    from rest_framework.exceptions import ErrorDetail, ValidationError
+    from rest_framework.exceptions import ValidationError, ErrorDetail
 
     exc = OrderedDict(
         (key, [ErrorDetail(e.message % (e.params or ()), code=e.code)

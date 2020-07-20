@@ -1,5 +1,8 @@
 from collections.abc import Iterable
 from copy import deepcopy
+from itertools import chain
+from re import search, sub
+
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.utils import flatatt
@@ -8,8 +11,6 @@ from django.utils.encoding import force_str
 from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
-from itertools import chain
-from re import search, sub
 
 
 class LinkWidget(forms.Widget):
