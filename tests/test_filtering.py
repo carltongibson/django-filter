@@ -62,6 +62,7 @@ class ArrayFilterTests(TestCase):
 
         class F(FilterSet):
             average_rating = ArrayFilter(field_name="average_rating", lookup_expr="in")
+
             class Meta:
                 model = Book
                 fields = ['average_rating']
@@ -71,7 +72,7 @@ class ArrayFilterTests(TestCase):
         self.assertQuerysetEqual(f.qs, [b1.pk, b2.pk, b3.pk],
                                  lambda o: o.pk, ordered=False)
 
-        f = F({'average_rating': [2,3]}, queryset=qs)
+        f = F({'average_rating': [2, 3]}, queryset=qs)
         self.assertQuerysetEqual(f.qs, [b2.pk, b3.pk], lambda o: o.pk, ordered=False)
 
         f = F({'average_rating': '3'}, queryset=qs)
