@@ -43,13 +43,6 @@ from .models import (
 from .utils import MockQuerySet
 
 
-def checkItemsEqual(L1, L2):
-    """
-    TestCase.assertItemsEqual() is not available in Python 2.6.
-    """
-    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
-
-
 class HelperMethodsTests(TestCase):
 
     @unittest.skip('todo')
@@ -433,7 +426,7 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 3)
 
         expected_list = ['price', 'price__gte', 'price__lte', ]
-        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+        self.assertCountEqual(list(F.base_filters), expected_list)
 
     @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='lte')
     def test_meta_fields_dictionary_derived_other_default_lookup(self):
@@ -447,7 +440,7 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 3)
 
         expected_list = ['price__exact', 'price__gte', 'price', ]
-        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+        self.assertCountEqual(list(F.base_filters), expected_list)
 
     def test_meta_fields_containing_autofield(self):
         class F(FilterSet):
@@ -476,7 +469,7 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 2)
 
         expected_list = ['id', 'username']
-        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+        self.assertCountEqual(list(F.base_filters), expected_list)
 
     def test_meta_fields_list_containing_unknown_fields(self):
         msg = ("'Meta.fields' must not contain non-model field names: "
@@ -683,7 +676,7 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 2)
 
         expected_list = ['published', 'published__year']
-        self.assertTrue(checkItemsEqual(list(F.base_filters), expected_list))
+        self.assertCountEqual(list(F.base_filters), expected_list)
 
     def test_declared_filter_multiple_inheritance(self):
         class A(FilterSet):

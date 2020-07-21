@@ -224,10 +224,7 @@ class ChoiceIterator:
             yield ("", self.field.empty_label)
         if self.field.null_label is not None:
             yield (self.field.null_value, self.field.null_label)
-
-        # Python 2 lacks 'yield from'
-        for choice in self.choices:
-            yield choice
+        yield from self.choices
 
     def __len__(self):
         add = 1 if self.field.empty_label is not None else 0
@@ -247,10 +244,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
             yield next(iterable)
         if self.field.null_label is not None:
             yield (self.field.null_value, self.field.null_label)
-
-        # Python 2 lacks 'yield from'
-        for value in iterable:
-            yield value
+        yield from iterable
 
     def __len__(self):
         add = 1 if self.field.null_label is not None else 0
