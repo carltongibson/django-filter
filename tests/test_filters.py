@@ -1,8 +1,8 @@
-import mock
-
 import inspect
+import mock
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
+
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import translation

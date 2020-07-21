@@ -1,5 +1,6 @@
-from django.db import models
 from unittest import mock
+
+from django.db import models
 
 
 class MockQuerySet:

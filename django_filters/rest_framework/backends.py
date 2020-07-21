@@ -1,4 +1,5 @@
 import warnings
+
 from django.template import loader
 from django.utils.deprecation import RenameMethodsBase
 

@@ -1,14 +1,14 @@
-import mock
-
 import contextlib
 import datetime
+import mock
 import unittest
+from operator import attrgetter
+
 from django import forms
 from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
-from operator import attrgetter
 
 from django_filters.filters import (
     AllValuesFilter,
