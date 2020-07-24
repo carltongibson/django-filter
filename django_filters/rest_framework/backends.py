@@ -9,8 +9,12 @@ from . import filters, filterset
 
 # TODO: remove metaclass in 2.1
 class RenameAttributes(utils.RenameAttributesBase, RenameMethodsBase):
-    renamed_attributes = (("default_filter_set", "filterset_base", utils.MigrationNotice),)
-    renamed_methods = (("get_filter_class", "get_filterset_class", utils.MigrationNotice),)
+    renamed_attributes = (
+        ("default_filter_set", "filterset_base", utils.MigrationNotice),
+    )
+    renamed_methods = (
+        ("get_filter_class", "get_filterset_class", utils.MigrationNotice),
+    )
 
 
 class DjangoFilterBackend(metaclass=RenameAttributes):
@@ -41,14 +45,16 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         # TODO: remove assertion in 2.1
         if filterset_class is None and hasattr(view, "filter_class"):
             utils.deprecate(
-                "`%s.filter_class` attribute should be renamed `filterset_class`." % view.__class__.__name__
+                "`%s.filter_class` attribute should be renamed `filterset_class`."
+                % view.__class__.__name__
             )
             filterset_class = getattr(view, "filter_class", None)
 
         # TODO: remove assertion in 2.1
         if filterset_fields is None and hasattr(view, "filter_fields"):
             utils.deprecate(
-                "`%s.filter_fields` attribute should be renamed `filterset_fields`." % view.__class__.__name__
+                "`%s.filter_fields` attribute should be renamed `filterset_fields`."
+                % view.__class__.__name__
             )
             filterset_fields = getattr(view, "filter_fields", None)
 
@@ -57,9 +63,10 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
             # FilterSets do not need to specify a Meta class
             if filterset_model and queryset is not None:
-                assert issubclass(
-                    queryset.model, filterset_model
-                ), "FilterSet model %s does not match queryset model %s" % (filterset_model, queryset.model)
+                assert issubclass(queryset.model, filterset_model), (
+                    "FilterSet model %s does not match queryset model %s"
+                    % (filterset_model, queryset.model)
+                )
 
             return filterset_class
 
@@ -111,14 +118,20 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
-        assert compat.coreapi is not None, "coreapi must be installed to use `get_schema_fields()`"
-        assert compat.coreschema is not None, "coreschema must be installed to use `get_schema_fields()`"
+        assert (
+            compat.coreapi is not None
+        ), "coreapi must be installed to use `get_schema_fields()`"
+        assert (
+            compat.coreschema is not None
+        ), "coreschema must be installed to use `get_schema_fields()`"
 
         try:
             queryset = view.get_queryset()
         except Exception:
             queryset = None
-            warnings.warn("{} is not compatible with schema generation".format(view.__class__))
+            warnings.warn(
+                "{} is not compatible with schema generation".format(view.__class__)
+            )
 
         filterset_class = self.get_filterset_class(view, queryset)
 
@@ -141,7 +154,9 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
             queryset = view.get_queryset()
         except Exception:
             queryset = None
-            warnings.warn("{} is not compatible with schema generation".format(view.__class__))
+            warnings.warn(
+                "{} is not compatible with schema generation".format(view.__class__)
+            )
 
         filterset_class = self.get_filterset_class(view, queryset)
 

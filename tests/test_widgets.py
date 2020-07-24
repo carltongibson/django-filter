@@ -188,7 +188,9 @@ class SuffixedMultiWidgetTests(TestCase):
             suffixes = ["min", "max"]
 
         w = W(widgets=[TextInput, TextInput])
-        result = w.value_from_datadict({"price_min": "1", "price_max": "2"}, {}, "price")
+        result = w.value_from_datadict(
+            {"price_min": "1", "price_max": "2"}, {}, "price"
+        )
         self.assertEqual(result, ["1", "2"])
 
         result = w.value_from_datadict({}, {}, "price")
@@ -199,7 +201,9 @@ class SuffixedMultiWidgetTests(TestCase):
             suffixes = ["", "lookup"]
 
         w = W(widgets=[TextInput, TextInput])
-        result = w.value_from_datadict({"price": "1", "price_lookup": "lt"}, {}, "price")
+        result = w.value_from_datadict(
+            {"price": "1", "price_lookup": "lt"}, {}, "price"
+        )
         self.assertEqual(result, ["1", "lt"])
 
     def test_value_omitted_from_data(self):

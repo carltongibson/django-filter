@@ -74,7 +74,8 @@ class FilterSetMetaclass(type):
         assert not hasattr(new_class, "filter_for_reverse_field"), (
             "`%(cls)s.filter_for_reverse_field` has been removed. "
             "`%(cls)s.filter_for_field` now generates filters for reverse fields. "
-            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html" % {"cls": new_class.__name__}
+            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+            % {"cls": new_class.__name__}
         )
 
         return new_class
@@ -82,7 +83,9 @@ class FilterSetMetaclass(type):
     @classmethod
     def get_declared_filters(cls, bases, attrs):
         filters = [
-            (filter_name, attrs.pop(filter_name)) for filter_name, obj in list(attrs.items()) if isinstance(obj, Filter)
+            (filter_name, attrs.pop(filter_name))
+            for filter_name, obj in list(attrs.items())
+            if isinstance(obj, Filter)
         ]
 
         # Default the `filter.field_name` to the attribute name on the filterset
@@ -164,8 +167,14 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
             "null_label": settings.NULL_CHOICE_LABEL if f.null else None,
         },
     },
-    ManyToOneRel: {"filter_class": ModelMultipleChoiceFilter, "extra": lambda f: {"queryset": remote_queryset(f)}},
-    ManyToManyRel: {"filter_class": ModelMultipleChoiceFilter, "extra": lambda f: {"queryset": remote_queryset(f)}},
+    ManyToOneRel: {
+        "filter_class": ModelMultipleChoiceFilter,
+        "extra": lambda f: {"queryset": remote_queryset(f)},
+    },
+    ManyToManyRel: {
+        "filter_class": ModelMultipleChoiceFilter,
+        "extra": lambda f: {"queryset": remote_queryset(f)},
+    },
 }
 
 
@@ -237,7 +246,9 @@ class BaseFilterSet:
         This method should be overridden if the form class needs to be
         customized relative to the filterset instance.
         """
-        fields = OrderedDict([(name, filter_.field) for name, filter_ in self.filters.items()])
+        fields = OrderedDict(
+            [(name, filter_.field) for name, filter_ in self.filters.items()]
+        )
 
         return type(str("%sForm" % self.__class__.__name__), (self._meta.form,), fields)
 
@@ -278,7 +289,9 @@ class BaseFilterSet:
         # Remove excluded fields
         exclude = exclude or []
         if not isinstance(fields, dict):
-            fields = [(f, [settings.DEFAULT_LOOKUP_EXPR]) for f in fields if f not in exclude]
+            fields = [
+                (f, [settings.DEFAULT_LOOKUP_EXPR]) for f in fields if f not in exclude
+            ]
         else:
             fields = [(f, lookups) for f, lookups in fields.items() if f not in exclude]
 
@@ -332,14 +345,19 @@ class BaseFilterSet:
                     continue
 
                 if field is not None:
-                    filters[filter_name] = cls.filter_for_field(field, field_name, lookup_expr)
+                    filters[filter_name] = cls.filter_for_field(
+                        field, field_name, lookup_expr
+                    )
 
         # Allow Meta.fields to contain declared filters *only* when a list/tuple
         if isinstance(cls._meta.fields, (list, tuple)):
             undefined = [f for f in undefined if f not in cls.declared_filters]
 
         if undefined:
-            raise TypeError("'Meta.fields' must not contain non-model field names: %s" % ", ".join(undefined))
+            raise TypeError(
+                "'Meta.fields' must not contain non-model field names: %s"
+                % ", ".join(undefined)
+            )
 
         # Add in declared filters. This is necessary since we don't enforce adding
         # declared filters to the 'Meta.fields' option
@@ -399,7 +417,9 @@ class BaseFilterSet:
             class ConcreteInFilter(BaseInFilter, filter_class):
                 pass
 
-            ConcreteInFilter.__name__ = cls._csv_filter_class_name(filter_class, lookup_type)
+            ConcreteInFilter.__name__ = cls._csv_filter_class_name(
+                filter_class, lookup_type
+            )
 
             return ConcreteInFilter, params
 
@@ -408,7 +428,9 @@ class BaseFilterSet:
             class ConcreteRangeFilter(BaseRangeFilter, filter_class):
                 pass
 
-            ConcreteRangeFilter.__name__ = cls._csv_filter_class_name(filter_class, lookup_type)
+            ConcreteRangeFilter.__name__ = cls._csv_filter_class_name(
+                filter_class, lookup_type
+            )
 
             return ConcreteRangeFilter, params
 
@@ -446,5 +468,7 @@ class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
 
 def filterset_factory(model, fields=ALL_FIELDS):
     meta = type(str("Meta"), (object,), {"model": model, "fields": fields})
-    filterset = type(str("%sFilterSet" % model._meta.object_name), (FilterSet,), {"Meta": meta})
+    filterset = type(
+        str("%sFilterSet" % model._meta.object_name), (FilterSet,), {"Meta": meta}
+    )
     return filterset

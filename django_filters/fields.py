@@ -43,9 +43,13 @@ class DateRangeField(RangeField):
         if data_list:
             start_date, stop_date = data_list
             if start_date:
-                start_date = handle_timezone(datetime.combine(start_date, time.min), False)
+                start_date = handle_timezone(
+                    datetime.combine(start_date, time.min), False
+                )
             if stop_date:
-                stop_date = handle_timezone(datetime.combine(stop_date, time.max), False)
+                stop_date = handle_timezone(
+                    datetime.combine(stop_date, time.max), False
+                )
             return slice(start_date, stop_date)
         return None
 
@@ -78,7 +82,8 @@ class Lookup(namedtuple("Lookup", ("value", "lookup_expr"))):
     def __new__(cls, value, lookup_expr):
         if value in EMPTY_VALUES or lookup_expr in EMPTY_VALUES:
             raise ValueError(
-                "Empty values ([], (), {}, '', None) are not " "valid Lookup arguments. Return None instead."
+                "Empty values ([], (), {}, '', None) are not "
+                "valid Lookup arguments. Return None instead."
             )
 
         return super().__new__(cls, value, lookup_expr)
@@ -104,7 +109,9 @@ class LookupChoiceField(forms.MultiValueField):
                 if lookup_expr not in EMPTY_VALUES:
                     return Lookup(value=value, lookup_expr=lookup_expr)
                 else:
-                    raise forms.ValidationError(self.error_messages["lookup_required"], code="lookup_required")
+                    raise forms.ValidationError(
+                        self.error_messages["lookup_required"], code="lookup_required"
+                    )
         return None
 
 
@@ -153,13 +160,15 @@ class BaseCSVField(forms.Field):
 
     def _get_widget_class(self, widget):
         # passthrough, allows for override
-        if isinstance(widget, BaseCSVWidget) or (isinstance(widget, type) and issubclass(widget, BaseCSVWidget)):
+        if isinstance(widget, BaseCSVWidget) or (
+            isinstance(widget, type) and issubclass(widget, BaseCSVWidget)
+        ):
             return widget
 
         # complain since we are unable to reconstruct widget instances
-        assert isinstance(widget, type), "'%s.widget' must be a widget class, not %s." % (
-            self.__class__.__name__,
-            repr(widget),
+        assert isinstance(widget, type), (
+            "'%s.widget' must be a widget class, not %s."
+            % (self.__class__.__name__, repr(widget),)
         )
 
         bases = (
@@ -187,7 +196,9 @@ class BaseRangeField(BaseCSVField):
         assert value is None or isinstance(value, list)
 
         if value and len(value) != 2:
-            raise forms.ValidationError(self.error_messages["invalid_values"], code="invalid_values")
+            raise forms.ValidationError(
+                self.error_messages["invalid_values"], code="invalid_values"
+            )
 
         return value
 

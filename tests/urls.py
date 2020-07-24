@@ -10,6 +10,10 @@ def _foo():
 
 
 urlpatterns = [
-    path("books-legacy/", object_filter, {"model": Book, "extra_context": {"foo": _foo, "bar": "foo"}}),
+    path(
+        "books-legacy/",
+        object_filter,
+        {"model": Book, "extra_context": {"foo": _foo, "bar": "foo"}},
+    ),
     path("books/", FilterView.as_view(model=Book)),
 ]

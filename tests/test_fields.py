@@ -66,7 +66,9 @@ class DateRangeFieldTests(TestCase):
         f = DateRangeField(widget=w, required=False)
         self.assertEqual(
             f.clean(["2015-01-01", "2015-01-10"]),
-            slice(datetime(2015, 1, 1, 0, 0, 0), datetime(2015, 1, 10, 23, 59, 59, 999999)),
+            slice(
+                datetime(2015, 1, 1, 0, 0, 0), datetime(2015, 1, 10, 23, 59, 59, 999999)
+            ),
         )
         self.assertIsNone(f.clean([]))
 
@@ -98,7 +100,9 @@ class IsoDateTimeRangeFieldTests(TestCase):
             datetime(2015, 1, 1, 9, 30, 1, 123000, tzinfo=timezone.utc),
             datetime(2015, 1, 10, 7, 45, 2, 345000, tzinfo=timezone.utc),
         )
-        actual = f.clean(["2015-01-01T10:30:01.123000+01:00", "2015-01-10T08:45:02.345000+01:00"])
+        actual = f.clean(
+            ["2015-01-01T10:30:01.123000+01:00", "2015-01-10T08:45:02.345000+01:00"]
+        )
         self.assertEqual(expected, actual)
 
 
@@ -111,7 +115,9 @@ class TimeRangeFieldTests(TestCase):
         w = RangeWidget()
         f = TimeRangeField(widget=w)
 
-        self.assertEqual(f.clean(["10:15", "12:30"]), slice(time(10, 15, 0), time(12, 30, 0)))
+        self.assertEqual(
+            f.clean(["10:15", "12:30"]), slice(time(10, 15, 0), time(12, 30, 0))
+        )
 
 
 class LookupChoiceFieldTests(TestCase):

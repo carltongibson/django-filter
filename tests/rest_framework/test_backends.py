@@ -160,9 +160,13 @@ class GetSchemaFieldsTests(TestCase):
             warnings.simplefilter("always")
 
             fields = backend.get_schema_fields(BadGetQuerySetView())
-            self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
+            self.assertEqual(
+                fields, [], "get_schema_fields should handle AttributeError"
+            )
 
-            warning = "{} is not compatible with schema generation".format(BadGetQuerySetView)
+            warning = "{} is not compatible with schema generation".format(
+                BadGetQuerySetView
+            )
             self.assertEqual(len(w), 1)
             self.assertEqual(str(w[0].message), warning)
 
@@ -225,7 +229,9 @@ class GetSchemaFieldsTests(TestCase):
         def qs(request):
             # users expect a valid request object to be provided which cannot
             # be guaranteed during schema generation.
-            self.fail("callable queryset should not be invoked during schema generation")
+            self.fail(
+                "callable queryset should not be invoked during schema generation"
+            )
 
         class F(SeveralFieldsFilter):
             f = filters.ModelChoiceFilter(queryset=qs)
@@ -320,8 +326,15 @@ class TemplateTests(TestCase):
 
     def test_multiple_engines(self):
         # See: https://github.com/carltongibson/django-filter/issues/578
-        DTL = {"BACKEND": "django.template.backends.django.DjangoTemplates", "APP_DIRS": True}
-        ALT = {"BACKEND": "django.template.backends.django.DjangoTemplates", "APP_DIRS": True, "NAME": "alt"}
+        DTL = {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+        }
+        ALT = {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+            "NAME": "alt",
+        }
 
         # multiple DTL backends
         with override_settings(TEMPLATES=[DTL, ALT]):
@@ -372,7 +385,9 @@ class ValidationErrorTests(TestCase):
             exc.exception.detail,
             {
                 "id": ["Enter a number."],
-                "author": ["Select a valid choice. That choice is not one of the available choices."],
+                "author": [
+                    "Select a valid choice. That choice is not one of the available choices."
+                ],
             },
         )
 
@@ -479,4 +494,6 @@ class DjangoFilterBackendTestCase(TestCase):
 
     @mock.patch("django_filters.compat.is_crispy", return_value=True)
     def test_template_crispy(self, _):
-        self.assertEqual(self.backend.template, "django_filters/rest_framework/crispy_form.html")
+        self.assertEqual(
+            self.backend.template, "django_filters/rest_framework/crispy_form.html"
+        )

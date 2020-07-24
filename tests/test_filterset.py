@@ -151,7 +151,8 @@ class FilterSetFilterForFieldTests(TestCase):
             FilterSet.filter_for_field(f, "mask")
 
         self.assertIn(
-            "FilterSet resolved field 'mask' with 'exact' lookup " "to an unrecognized field type SubnetMaskField",
+            "FilterSet resolved field 'mask' with 'exact' lookup "
+            "to an unrecognized field type SubnetMaskField",
             excinfo.exception.args[0],
         )
 
@@ -359,7 +360,10 @@ class FilterSetClassCreationTests(TestCase):
                 class Meta:
                     model = Book
 
-        self.assertIn("Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude'", str(excinfo.exception))
+        self.assertIn(
+            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude'",
+            str(excinfo.exception),
+        )
 
     def test_model_fields_empty(self):
         class F(FilterSet):
@@ -392,7 +396,9 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(len(F.declared_filters), 1)
         self.assertEqual(len(F.base_filters), 4)
-        self.assertListEqual(list(F.base_filters), ["title", "price", "average_rating", "username"])
+        self.assertListEqual(
+            list(F.base_filters), ["title", "price", "average_rating", "username"]
+        )
 
     def test_meta_fields_with_declared_and_model_derived(self):
         class F(FilterSet):
@@ -537,7 +543,9 @@ class FilterSetClassCreationTests(TestCase):
 
         self.assertEqual(len(F.declared_filters), 1)
         self.assertEqual(len(F.base_filters), 3)
-        self.assertListEqual(list(F.base_filters), ["title", "average_rating", "username"])
+        self.assertListEqual(
+            list(F.base_filters), ["title", "average_rating", "username"]
+        )
 
     def test_meta_fields_and_exlude_and_exclude_wins(self):
         class F(FilterSet):
@@ -645,7 +653,9 @@ class FilterSetClassCreationTests(TestCase):
                 fields = "__all__"
 
         # fails due to 'account_ptr' getting picked up
-        self.assertEqual(list(F.base_filters) + ["amount_saved"], list(FtiF.base_filters))
+        self.assertEqual(
+            list(F.base_filters) + ["amount_saved"], list(FtiF.base_filters)
+        )
 
     def test_declared_filter_disabling(self):
         class Parent(FilterSet):
@@ -731,7 +741,9 @@ class FilterSetInstantiationTests(TestCase):
         self.assertIsNotNone(f.queryset)
         self.assertEqual(len(f.filters), len(self.F.base_filters))
         for name, filter_ in f.filters.items():
-            self.assertEqual(filter_.model, User, "%s does not have model set correctly" % name)
+            self.assertEqual(
+                filter_.model, User, "%s does not have model set correctly" % name
+            )
 
     def test_creating_bound_instance(self):
         f = self.F({"username": "username"})

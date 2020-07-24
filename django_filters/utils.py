@@ -84,7 +84,8 @@ class RenameAttributesBase(type):
 
             if old_name == name:
                 warnings.warn(
-                    "`%s.%s` attribute should be renamed `%s`." % (metacls.__name__, old_name, new_name),
+                    "`%s.%s` attribute should be renamed `%s`."
+                    % (metacls.__name__, old_name, new_name),
                     deprecation_warning,
                     3,
                 )
@@ -125,7 +126,8 @@ def get_all_model_fields(model):
     return [
         f.name
         for f in sorted(opts.fields + opts.many_to_many)
-        if not isinstance(f, models.AutoField) and not (getattr(f.remote_field, "parent_link", False))
+        if not isinstance(f, models.AutoField)
+        and not (getattr(f.remote_field, "parent_link", False))
     ]
 
 
@@ -275,7 +277,10 @@ def verbose_lookup_expr(lookup_expr):
     from .conf import settings as app_settings
 
     VERBOSE_LOOKUPS = app_settings.VERBOSE_LOOKUPS or {}
-    lookups = [force_str(VERBOSE_LOOKUPS.get(lookup, _(lookup))) for lookup in lookup_expr.split(LOOKUP_SEP)]
+    lookups = [
+        force_str(VERBOSE_LOOKUPS.get(lookup, _(lookup)))
+        for lookup in lookup_expr.split(LOOKUP_SEP)
+    ]
 
     return " ".join(lookups)
 
@@ -312,7 +317,13 @@ def translate_validation(error_dict):
     from rest_framework.exceptions import ErrorDetail, ValidationError
 
     exc = OrderedDict(
-        (key, [ErrorDetail(e.message % (e.params or ()), code=e.code) for e in error_list])
+        (
+            key,
+            [
+                ErrorDetail(e.message % (e.params or ()), code=e.code)
+                for e in error_list
+            ],
+        )
         for key, error_list in error_dict.as_data().items()
     )
 

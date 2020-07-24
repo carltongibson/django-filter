@@ -25,7 +25,9 @@ TIME_ZONE = "UTC"
 
 SECRET_KEY = "foobar"
 
-TEMPLATES = [{"BACKEND": "django.template.backends.django.DjangoTemplates", "APP_DIRS": True}]
+TEMPLATES = [
+    {"BACKEND": "django.template.backends.django.DjangoTemplates", "APP_DIRS": True}
+]
 
 
 STATIC_URL = "/static/"

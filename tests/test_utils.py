@@ -335,21 +335,27 @@ class ResolveFieldTests(TestCase):
 
         # ex: 'date__gt'
         for lookup in standard_lookups:
-            field, resolved_lookup = resolve_field(model_field, LOOKUP_SEP.join(["date", lookup]))
+            field, resolved_lookup = resolve_field(
+                model_field, LOOKUP_SEP.join(["date", lookup])
+            )
             self.assertIsInstance(field, models.DateField)
             self.assertEqual(resolved_lookup, lookup)
 
         # ex: 'year__iexact'
         for part in datetime_lookups:
             for lookup in standard_lookups:
-                field, resolved_lookup = resolve_field(model_field, LOOKUP_SEP.join([part, lookup]))
+                field, resolved_lookup = resolve_field(
+                    model_field, LOOKUP_SEP.join([part, lookup])
+                )
                 self.assertIsInstance(field, models.IntegerField)
                 self.assertEqual(resolved_lookup, lookup)
 
         # ex: 'date__year__lte'
         for part in date_lookups:
             for lookup in standard_lookups:
-                field, resolved_lookup = resolve_field(model_field, LOOKUP_SEP.join(["date", part, lookup]))
+                field, resolved_lookup = resolve_field(
+                    model_field, LOOKUP_SEP.join(["date", part, lookup])
+                )
                 self.assertIsInstance(field, models.IntegerField)
                 self.assertEqual(resolved_lookup, lookup)
 
@@ -501,13 +507,17 @@ class HandleTimezone(TestCase):
     def test_handle_dst_ending(self):
         dst_ending_date = datetime.datetime(2017, 2, 18, 23, 59, 59, 999999)
         handled = handle_timezone(dst_ending_date, False)
-        self.assertEqual(handled, get_default_timezone().localize(dst_ending_date, False))
+        self.assertEqual(
+            handled, get_default_timezone().localize(dst_ending_date, False)
+        )
 
     @override_settings(TIME_ZONE="America/Sao_Paulo")
     def test_handle_dst_starting(self):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
         handled = handle_timezone(dst_starting_date, True)
-        self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
+        self.assertEqual(
+            handled, get_default_timezone().localize(dst_starting_date, True)
+        )
 
 
 class TranslateValidationDataTests(TestCase):
@@ -526,8 +536,12 @@ class TranslateValidationDataTests(TestCase):
             exc.detail,
             {
                 "id": ["Enter a number."],
-                "author": ["Select a valid choice. That choice is not one of the available choices."],
-                "choice": ["Select a valid choice. 3 is not one of the available choices."],
+                "author": [
+                    "Select a valid choice. That choice is not one of the available choices."
+                ],
+                "choice": [
+                    "Select a valid choice. 3 is not one of the available choices."
+                ],
             },
         )
 

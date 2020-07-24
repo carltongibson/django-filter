@@ -59,7 +59,9 @@ class FilterSetFormTests(TestCase):
         f = F().form
         self.assertEqual(len(f.fields), 1)
         self.assertIn("status", f.fields)
-        self.assertSequenceEqual(list(f.fields["status"].choices), (("", "---------"),) + STATUS_CHOICES)
+        self.assertSequenceEqual(
+            list(f.fields["status"].choices), (("", "---------"),) + STATUS_CHOICES
+        )
 
     def test_form_fields_exclusion(self):
         class F(FilterSet):
@@ -75,7 +77,9 @@ class FilterSetFormTests(TestCase):
     def test_complex_form_fields(self):
         class F(FilterSet):
             username = CharFilter(label="Filter for users with username")
-            exclude_username = CharFilter(field_name="username", lookup_expr="iexact", exclude=True)
+            exclude_username = CharFilter(
+                field_name="username", lookup_expr="iexact", exclude=True
+            )
 
             class Meta:
                 model = User
@@ -91,13 +95,21 @@ class FilterSetFormTests(TestCase):
         self.assertEqual(fields["status"].label, "Status")
         self.assertEqual(fields["status__lt"].label, "Status is less than")
         self.assertEqual(fields["status__gt"].label, "Status is greater than")
-        self.assertEqual(fields["favorite_books__title__iexact"].label, "Favorite books title")
-        self.assertEqual(fields["favorite_books__title__in"].label, "Favorite books title is in")
-        self.assertEqual(fields["manager_of__users__username"].label, "Manager of users username")
+        self.assertEqual(
+            fields["favorite_books__title__iexact"].label, "Favorite books title"
+        )
+        self.assertEqual(
+            fields["favorite_books__title__in"].label, "Favorite books title is in"
+        )
+        self.assertEqual(
+            fields["manager_of__users__username"].label, "Manager of users username"
+        )
 
     def test_form_fields_using_widget(self):
         class F(FilterSet):
-            status = ChoiceFilter(widget=forms.RadioSelect, choices=STATUS_CHOICES, empty_label=None)
+            status = ChoiceFilter(
+                widget=forms.RadioSelect, choices=STATUS_CHOICES, empty_label=None
+            )
 
             class Meta:
                 model = User
@@ -189,7 +201,9 @@ class FilterSetFormTests(TestCase):
 
         f = F().form
         self.assertEqual(list(f.fields["users"].choices), [(2, "active")])
-        self.assertEqual(list(f.fields["manager"].choices), [("", "---------"), (3, "manager")])
+        self.assertEqual(
+            list(f.fields["manager"].choices), [("", "---------"), (3, "manager")]
+        )
 
     def test_disabled_help_text(self):
         class F(FilterSet):
@@ -200,7 +214,10 @@ class FilterSetFormTests(TestCase):
                     "title": ["in"]
                 }
 
-        self.assertEqual(F().form.fields["title__in"].help_text, "Multiple values may be separated by commas.")
+        self.assertEqual(
+            F().form.fields["title__in"].help_text,
+            "Multiple values may be separated by commas.",
+        )
 
         with override_settings(FILTERS_DISABLE_HELP_TEXT=True):
 

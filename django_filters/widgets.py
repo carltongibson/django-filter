@@ -45,7 +45,11 @@ class LinkWidget(forms.Widget):
                 for option in option_label:
                     output.append(self.render_option(name, selected_choices, *option))
             else:
-                output.append(self.render_option(name, selected_choices, option_value, option_label))
+                output.append(
+                    self.render_option(
+                        name, selected_choices, option_value, option_label
+                    )
+                )
         return "\n".join(output)
 
     def render_option(self, name, selected_choices, option_value, option_label):
@@ -170,7 +174,14 @@ class BooleanWidget(forms.Select):
         if isinstance(value, str):
             value = value.lower()
 
-        return {"1": True, "0": False, "true": True, "false": False, True: True, False: False}.get(value, None)
+        return {
+            "1": True,
+            "0": False,
+            "true": True,
+            "false": False,
+            True: True,
+            False: False,
+        }.get(value, None)
 
 
 class BaseCSVWidget(forms.Widget):

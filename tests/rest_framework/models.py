@@ -3,7 +3,11 @@ from django.utils.translation import gettext_lazy as _
 
 
 class BasicModel(models.Model):
-    text = models.CharField(max_length=100, verbose_name=_("Text comes here"), help_text=_("Text description."))
+    text = models.CharField(
+        max_length=100,
+        verbose_name=_("Text comes here"),
+        help_text=_("Text description."),
+    )
 
 
 class BaseFilterableItem(models.Model):
@@ -24,4 +28,6 @@ class DjangoFilterOrderingModel(models.Model):
 
 
 class CategoryItem(BaseFilterableItem):
-    category = models.CharField(max_length=10, choices=(("home", "Home"), ("office", "Office")))
+    category = models.CharField(
+        max_length=10, choices=(("home", "Home"), ("office", "Office"))
+    )

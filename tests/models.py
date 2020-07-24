@@ -56,9 +56,14 @@ class User(models.Model):
 
 
 class ManagerGroup(models.Model):
-    users = models.ManyToManyField(User, limit_choices_to={"is_active": True}, related_name="member_of")
+    users = models.ManyToManyField(
+        User, limit_choices_to={"is_active": True}, related_name="member_of"
+    )
     manager = models.ForeignKey(
-        User, limit_choices_to=lambda: {"status": MANAGER}, related_name="manager_of", on_delete=models.CASCADE
+        User,
+        limit_choices_to=lambda: {"status": MANAGER},
+        related_name="manager_of",
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
@@ -133,7 +138,9 @@ class Company(models.Model):
 
 
 class Location(models.Model):
-    company = models.ForeignKey(Company, related_name="locations", on_delete=models.CASCADE)
+    company = models.ForeignKey(
+        Company, related_name="locations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
     open_days = models.CharField(max_length=7)
@@ -149,7 +156,9 @@ class Account(models.Model):
 
 
 class Profile(models.Model):
-    account = models.OneToOneField(Account, related_name="profile", on_delete=models.CASCADE)
+    account = models.OneToOneField(
+        Account, related_name="profile", on_delete=models.CASCADE
+    )
     likes_coffee = models.BooleanField(default=False)
     likes_tea = models.BooleanField(default=False)
 
@@ -165,7 +174,9 @@ class Node(models.Model):
 
 class DirectedNode(models.Model):
     name = models.CharField(max_length=20)
-    outbound_nodes = models.ManyToManyField("self", symmetrical=False, related_name="inbound_nodes")
+    outbound_nodes = models.ManyToManyField(
+        "self", symmetrical=False, related_name="inbound_nodes"
+    )
 
 
 class Worker(models.Model):
@@ -181,7 +192,9 @@ class HiredWorker(models.Model):
 
 class Business(models.Model):
     name = models.CharField(max_length=100)
-    employees = models.ManyToManyField(Worker, through=HiredWorker, related_name="employers")
+    employees = models.ManyToManyField(
+        Worker, through=HiredWorker, related_name="employers"
+    )
 
 
 class UUIDTestModel(models.Model):

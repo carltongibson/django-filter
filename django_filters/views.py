@@ -75,12 +75,18 @@ class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
 
-        if not self.filterset.is_bound or self.filterset.is_valid() or not self.get_strict():
+        if (
+            not self.filterset.is_bound
+            or self.filterset.is_valid()
+            or not self.get_strict()
+        ):
             self.object_list = self.filterset.qs
         else:
             self.object_list = self.filterset.queryset.none()
 
-        context = self.get_context_data(filter=self.filterset, object_list=self.object_list)
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list
+        )
         return self.render_to_response(context)
 
 
@@ -115,6 +121,11 @@ def object_filter(
                 context[k] = v
             return context
 
-    kwargs = dict(model=model, queryset=queryset, template_name=template_name, filterset_class=filter_class)
+    kwargs = dict(
+        model=model,
+        queryset=queryset,
+        template_name=template_name,
+        filterset_class=filter_class,
+    )
     view = ECFilterView.as_view(**kwargs)
     return view(request, extra_context=extra_context)

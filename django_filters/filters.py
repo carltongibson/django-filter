@@ -67,7 +67,15 @@ class Filter:
     field_class = forms.Field
 
     def __init__(
-        self, field_name=None, lookup_expr=None, *, label=None, method=None, distinct=False, exclude=False, **kwargs
+        self,
+        field_name=None,
+        lookup_expr=None,
+        *,
+        label=None,
+        method=None,
+        distinct=False,
+        exclude=False,
+        **kwargs
     ):
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
@@ -117,7 +125,9 @@ class Filter:
     def label():
         def fget(self):
             if self._label is None and hasattr(self, "model"):
-                self._label = label_for_filter(self.model, self.field_name, self.lookup_expr, self.exclude)
+                self._label = label_for_filter(
+                    self.model, self.field_name, self.lookup_expr, self.exclude
+                )
             return self._label
 
         def fset(self, value):
@@ -167,7 +177,9 @@ class ChoiceFilter(Filter):
         if value != self.null_value:
             return super().filter(qs, value)
 
-        qs = self.get_method(qs)(**{"%s__%s" % (self.field_name, self.lookup_expr): None})
+        qs = self.get_method(qs)(
+            **{"%s__%s" % (self.field_name, self.lookup_expr): None}
+        )
         return qs.distinct() if self.distinct else qs
 
 
@@ -413,7 +425,11 @@ class DateRangeFilter(ChoiceFilter):
 
     filters = {
         "today": lambda qs, name: qs.filter(
-            **{"%s__year" % name: now().year, "%s__month" % name: now().month, "%s__day" % name: now().day}
+            **{
+                "%s__year" % name: now().year,
+                "%s__month" % name: now().month,
+                "%s__day" % name: now().day,
+            }
         ),
         "yesterday": lambda qs, name: qs.filter(
             **{
@@ -428,7 +444,9 @@ class DateRangeFilter(ChoiceFilter):
                 "%s__lt" % name: _truncate(now() + timedelta(days=1)),
             }
         ),
-        "month": lambda qs, name: qs.filter(**{"%s__year" % name: now().year, "%s__month" % name: now().month}),
+        "month": lambda qs, name: qs.filter(
+            **{"%s__year" % name: now().year, "%s__month" % name: now().month}
+        ),
         "year": lambda qs, name: qs.filter(**{"%s__year" % name: now().year}),
     }
 
@@ -439,8 +457,9 @@ class DateRangeFilter(ChoiceFilter):
             self.filters = filters
 
         unique = set([x[0] for x in self.choices]) ^ set(self.filters)
-        assert not unique, "Keys must be present in both 'choices' and 'filters'. Missing keys: " "'%s'" % ", ".join(
-            sorted(unique)
+        assert not unique, (
+            "Keys must be present in both 'choices' and 'filters'. Missing keys: "
+            "'%s'" % ", ".join(sorted(unique))
         )
 
         # TODO: remove assertion in 2.1
@@ -511,7 +530,9 @@ class BaseCSVFilter(Filter):
         class ConcreteCSVField(self.base_field_class, self.field_class):
             pass
 
-        ConcreteCSVField.__name__ = self._field_class_name(self.field_class, self.lookup_expr)
+        ConcreteCSVField.__name__ = self._field_class_name(
+            self.field_class, self.lookup_expr
+        )
 
         self.field_class = ConcreteCSVField
 
@@ -583,7 +604,9 @@ class LookupChoiceFilter(Filter):
     field_class = forms.CharField
     outer_class = LookupChoiceField
 
-    def __init__(self, field_name=None, lookup_choices=None, field_class=None, **kwargs):
+    def __init__(
+        self, field_name=None, lookup_choices=None, field_class=None, **kwargs
+    ):
         self.empty_label = kwargs.pop("empty_label", settings.EMPTY_CHOICE_LABEL)
 
         super(LookupChoiceFilter, self).__init__(field_name=field_name, **kwargs)
@@ -635,7 +658,11 @@ class LookupChoiceFilter(Filter):
             lookups = self.get_lookup_choices()
 
             self._field = self.outer_class(
-                inner_field, lookups, label=self.label, empty_label=self.empty_label, required=self.extra["required"],
+                inner_field,
+                lookups,
+                label=self.label,
+                empty_label=self.empty_label,
+                required=self.extra["required"],
             )
 
         return self._field
@@ -720,20 +747,28 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             return OrderedDict(fields)
 
         # convert iterable of values => iterable of pairs (field name, param name)
-        assert is_iterable(fields), "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
+        assert is_iterable(
+            fields
+        ), "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
         # fields is an iterable of field names
         assert all(
-            isinstance(field, str) or is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
+            isinstance(field, str)
+            or is_iterable(field)
+            and len(field) == 2  # may need to be wrapped in parens
             for field in fields
         ), "'fields' must contain strings or (field name, param name) pairs."
 
         return OrderedDict([(f, f) if isinstance(f, str) else f for f in fields])
 
     def build_choices(self, fields, labels):
-        ascending = [(param, labels.get(field, _(pretty_name(param)))) for field, param in fields.items()]
+        ascending = [
+            (param, labels.get(field, _(pretty_name(param))))
+            for field, param in fields.items()
+        ]
         descending = [
-            ("-%s" % param, labels.get("-%s" % param, self.descending_fmt % label)) for param, label in ascending
+            ("-%s" % param, labels.get("-%s" % param, self.descending_fmt % label))
+            for param, label in ascending
         ]
 
         # interleave the ascending and descending choices
@@ -767,18 +802,17 @@ class FilterMethod:
             return instance.method
 
         # otherwise, method is the name of a method on the parent FilterSet.
-        assert hasattr(instance, "parent"), "Filter '%s' must have a parent FilterSet to find '.%s()'" % (
-            instance.field_name,
-            instance.method,
+        assert hasattr(instance, "parent"), (
+            "Filter '%s' must have a parent FilterSet to find '.%s()'"
+            % (instance.field_name, instance.method,)
         )
 
         parent = instance.parent
         method = getattr(parent, instance.method, None)
 
-        assert callable(method), "Expected parent FilterSet '%s.%s' to have a '.%s()' method." % (
-            parent.__class__.__module__,
-            parent.__class__.__name__,
-            instance.method,
+        assert callable(method), (
+            "Expected parent FilterSet '%s.%s' to have a '.%s()' method."
+            % (parent.__class__.__module__, parent.__class__.__name__, instance.method,)
         )
 
         return method

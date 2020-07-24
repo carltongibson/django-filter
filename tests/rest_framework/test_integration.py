@@ -118,7 +118,12 @@ urlpatterns = [
 
 class CommonFilteringTestCase(TestCase):
     def _serialize_object(self, obj):
-        return {"id": obj.id, "text": obj.text, "decimal": str(obj.decimal), "date": obj.date.isoformat()}
+        return {
+            "id": obj.id,
+            "text": obj.text,
+            "decimal": str(obj.decimal),
+            "date": obj.date.isoformat(),
+        }
 
     def setUp(self):
         """
@@ -157,12 +162,16 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         request = factory.get("/", {"decimal": "%s" % search_decimal})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if Decimal(f["decimal"]) == search_decimal]
+        expected_data = [
+            f for f in self.data if Decimal(f["decimal"]) == search_decimal
+        ]
         self.assertEqual(response.data, expected_data)
 
         # Tests that the date filter works.
         search_date = datetime.date(2012, 9, 22)
-        request = factory.get("/", {"date": "%s" % search_date})  # search_date str: '2012-09-22'
+        request = factory.get(
+            "/", {"date": "%s" % search_date}
+        )  # search_date str: '2012-09-22'
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_data = [f for f in self.data if parse_date(f["date"]) == search_date]
@@ -179,7 +188,9 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         request = factory.get("/", {"decimal": "%s" % search_decimal})
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        expected_data = [f for f in self.data if Decimal(f["decimal"]) == search_decimal]
+        expected_data = [
+            f for f in self.data if Decimal(f["decimal"]) == search_decimal
+        ]
         self.assertEqual(response.data, expected_data)
 
     def test_filter_with_get_queryset_only(self):
@@ -215,7 +226,9 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
 
         # Tests that the date filter set with 'gt' in the filter class works.
         search_date = datetime.date(2012, 10, 2)
-        request = factory.get("/", {"date": "%s" % search_date})  # search_date str: '2012-10-02'
+        request = factory.get(
+            "/", {"date": "%s" % search_date}
+        )  # search_date str: '2012-10-02'
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_data = [f for f in self.data if parse_date(f["date"]) > search_date]
@@ -232,11 +245,16 @@ class IntegrationTestFiltering(CommonFilteringTestCase):
         # Tests that multiple filters works.
         search_decimal = Decimal("5.25")
         search_date = datetime.date(2012, 10, 2)
-        request = factory.get("/", {"decimal": "%s" % (search_decimal,), "date": "%s" % (search_date,)})
+        request = factory.get(
+            "/", {"decimal": "%s" % (search_decimal,), "date": "%s" % (search_date,)}
+        )
         response = view(request).render()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_data = [
-            f for f in self.data if parse_date(f["date"]) > search_date and Decimal(f["decimal"]) < search_decimal
+            f
+            for f in self.data
+            if parse_date(f["date"]) > search_date
+            and Decimal(f["decimal"]) < search_decimal
         ]
         self.assertEqual(response.data, expected_data)
 
@@ -339,7 +357,8 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
         search_decimal = Decimal("4.25")
         high_item = self.objects.filter(decimal__gt=search_decimal)[0]
         response = self.client.get(
-            "{url}".format(url=self._get_url(high_item)), {"decimal": "{param}".format(param=search_decimal)}
+            "{url}".format(url=self._get_url(high_item)),
+            {"decimal": "{param}".format(param=search_decimal)},
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -348,7 +367,8 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
         low_item = self.objects.filter(decimal__lt=search_decimal)[0]
         low_item_data = self._serialize_object(low_item)
         response = self.client.get(
-            "{url}".format(url=self._get_url(low_item)), {"decimal": "{param}".format(param=search_decimal)}
+            "{url}".format(url=self._get_url(low_item)),
+            {"decimal": "{param}".format(param=search_decimal)},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, low_item_data)
@@ -356,11 +376,16 @@ class IntegrationTestDetailFiltering(CommonFilteringTestCase):
         # Tests that multiple filters works.
         search_decimal = Decimal("5.25")
         search_date = datetime.date(2012, 10, 2)
-        valid_item = self.objects.filter(decimal__lt=search_decimal, date__gt=search_date)[0]
+        valid_item = self.objects.filter(
+            decimal__lt=search_decimal, date__gt=search_date
+        )[0]
         valid_item_data = self._serialize_object(valid_item)
         response = self.client.get(
             "{url}".format(url=self._get_url(valid_item)),
-            {"decimal": "{decimal}".format(decimal=search_decimal), "date": "{date}".format(date=search_date)},
+            {
+                "decimal": "{decimal}".format(decimal=search_decimal),
+                "date": "{date}".format(date=search_date),
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, valid_item_data)
