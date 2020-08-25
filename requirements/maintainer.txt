@@ -6,7 +6,7 @@ bumpversion==0.5.3
 certifi==2015.9.6.2
 docutils==0.12
 funcsigs==0.4
-Jinja2==2.8
+Jinja2>=2.10.1
 livereload==2.4.0
 MarkupSafe==0.23
 pathtools==0.1.2
