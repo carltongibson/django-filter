@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -102,6 +103,7 @@ class Book(models.Model):
     title = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     average_rating = models.FloatField()
+    meta = JSONField()
 
     def __str__(self):
         return self.title
