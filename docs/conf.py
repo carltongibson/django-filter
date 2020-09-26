@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'django-filter'
-copyright = u'2019, Alex Gaynor, Carlton Gibson and others.'
+copyright = u'2020, Alex Gaynor, Carlton Gibson and others.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
