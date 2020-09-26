@@ -255,3 +255,17 @@ class FilterSetValidityTests(TestCase):
         self.assertFalse(f.is_valid())
         self.assertEqual(f.data, {'price': 'four dollars'})
         self.assertEqual(f.errors, {'price': ['Enter a number.']})
+
+    def test_number_filter_max_value_validation(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = ['average_rating']
+
+        f = F({'average_rating': '1E1001'})
+        self.assertTrue(f.is_bound)
+        self.assertFalse(f.is_valid())
+        self.assertEqual(
+            f.errors,
+            {'average_rating': ['Ensure this value is less than or equal to 1e+50.']}
+        )
