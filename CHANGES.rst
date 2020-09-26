@@ -1,3 +1,22 @@
+Version 20.9.0 (2020-9-27)
+--------------------------
+
+* SECURITY: Added a ``MaxValueValidator`` to the form field for
+  ``NumberFilter``. This prevents a potential DoS attack if numbers with very
+  large exponents were subsequently converted to integers.
+
+  The default limit value for the validator is ``1e50``.
+
+  The new ``NumberFilter.get_max_validator()`` allows customising the used
+  validator, and may return ``None`` to disable the validation entirely.
+
+* Added testing against Django 3.1 and Python 3.9.
+
+  In addition tests against Django main development branch are now required to
+  pass.
+
+* Adopted `CalVer <https://calver.org/>`_ versioning.
+
 Version 2.3.0 (2020-6-5)
 ------------------------
 
