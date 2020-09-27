@@ -426,6 +426,12 @@ QuerySet, which then gets used as the model's manager::
 Filters based on a numerical value, used with ``IntegerField``, ``FloatField``,
 and ``DecimalField`` by default.
 
+.. method:: NumberFilter.get_max_validator()
+
+    Return a ``MaxValueValidator`` instance that will be added to
+    ``field.validators``. By default uses a limit value of ``1e50``. Return
+    ``None`` to disable maximum value validation.
+
 ``NumericRangeFilter``
 ~~~~~~~~~~~~~~~~~~~~~~
 

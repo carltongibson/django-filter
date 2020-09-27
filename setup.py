@@ -2,11 +2,14 @@ import os
 import sys
 from setuptools import setup, find_packages
 
+# FIXME: Main module requires django to be present, so cannot run setup.py in
+# clean environment.
+# from django_filters import __version__
+__version__ = '2.4.0'
+
 f = open('README.rst')
 readme = f.read()
 f.close()
-
-version = '2.3.0'
 
 if sys.argv[-1] == 'publish':
     if os.system("pip freeze | grep wheel"):
@@ -18,13 +21,13 @@ if sys.argv[-1] == 'publish':
     os.system("python setup.py sdist bdist_wheel")
     os.system("twine upload dist/*")
     print("You probably want to also tag the version now:")
-    print("  git tag -a %s -m 'version %s'" % (version, version))
+    print("  git tag -a %s -m 'version %s'" % (__version__, __version__))
     print("  git push --tags")
     sys.exit()
 
 setup(
     name='django-filter',
-    version=version,
+    version=__version__,
     description=('Django-filter is a reusable Django application for allowing'
                  ' users to filter querysets dynamically.'),
     long_description=readme,

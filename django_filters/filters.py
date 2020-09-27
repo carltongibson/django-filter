@@ -2,6 +2,7 @@ from collections import OrderedDict
 from datetime import timedelta
 
 from django import forms
+from django.core.validators import MaxValueValidator
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
@@ -356,6 +357,23 @@ class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
 
 class NumberFilter(Filter):
     field_class = forms.DecimalField
+
+    def get_max_validator(self):
+        """
+        Return a MaxValueValidator for the field, or None to disable.
+        """
+        return MaxValueValidator(1e50)
+
+    @property
+    def field(self):
+        if not hasattr(self, '_field'):
+            field = super().field
+            max_validator = self.get_max_validator()
+            if max_validator:
+                field.validators.append(max_validator)
+
+            self._field = field
+        return self._field
 
 
 class NumericRangeFilter(Filter):
