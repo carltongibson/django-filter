@@ -1,4 +1,4 @@
-Version 20.9.0 (2020-9-27)
+Version 2.4.0 (2020-9-27)
 --------------------------
 
 * SECURITY: Added a ``MaxValueValidator`` to the form field for
@@ -14,8 +14,6 @@ Version 20.9.0 (2020-9-27)
 
   In addition tests against Django main development branch are now required to
   pass.
-
-* Adopted `CalVer <https://calver.org/>`_ versioning.
 
 Version 2.3.0 (2020-6-5)
 ------------------------
