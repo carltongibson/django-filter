@@ -6,7 +6,7 @@ Migration Guide
 Enabling warnings
 -----------------
 
-To view deprecations, you may need to enable warnings within python. This
+To view deprecations, you may need to enable warnings within Python. This
 can be achieved with either the ``-W`` `flag`__, or with  ``PYTHONWARNINGS``
 `environment variable`__. For example, you could run your test suite like so:
 
