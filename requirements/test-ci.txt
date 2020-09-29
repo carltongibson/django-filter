@@ -1,8 +1,8 @@
-markdown==3.2.2
-coreapi==2.3.3
-django-crispy-forms==1.9.2
+markdown
+coreapi
+django-crispy-forms
 
-coverage==5.3
-mock==4.0.2
-pytz==2020.1
-unittest-xml-reporting==3.0.2
+coverage
+mock
+pytz
+unittest-xml-reporting
