@@ -82,7 +82,7 @@ To enable filtering with a ``FilterSet``, add it to the ``filterset_class`` para
 Using the ``filterset_fields`` shortcut
 ---------------------------------------
 
-You may bypass creating a ``FilterSet`` by instead adding ``filterset_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
+You may bypass creating a ``FilterSet`` by instead adding ``filterset_fields`` to your view class. This is equivalent to creating a ``FilterSet`` with just :ref:`Meta.fields <fields>`.
 
 
 .. code-block:: python

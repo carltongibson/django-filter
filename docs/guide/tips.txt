@@ -5,7 +5,7 @@ Tips and Solutions
 Common problems for declared filters
 ------------------------------------
 
-Below are some of the common problem that occur when declaring filters. It is
+Below are some of the common problems that occur when declaring filters. It is
 recommended that you read this as it provides a more complete understanding of
 how filters work.
 
@@ -15,7 +15,7 @@ Filter ``field_name`` and ``lookup_expr`` not configured
 
 While ``field_name`` and ``lookup_expr`` are optional, it is recommended that you specify
 them. By default, if ``field_name`` is not specified, the filter's name on the
-filterset class will be used. Additionally, ``lookup_expr`` defaults to
+``FilterSet`` class will be used. Additionally, ``lookup_expr`` defaults to
 ``exact``. The following is an example of a misconfigured price filter:
 
 .. code-block:: python
