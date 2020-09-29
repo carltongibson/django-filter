@@ -268,6 +268,6 @@ class FilterSetValidityTests(TestCase):
         self.assertEqual(
             f.errors,
             {'average_rating': [
-                f'Ensure this value is less than or equal to {int(1e+50)}.'
+                'Ensure this value is less than or equal to %d.' % int(1e50)
                 ]}
         )
