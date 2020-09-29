@@ -26,7 +26,7 @@ jobs:
         name: Configure pip caching
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/text-ci.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Ensure latest setuptools
@@ -62,7 +62,7 @@ jobs:
         name: Configure pip caching
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/text-ci.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Ensure latest setuptools
@@ -90,7 +90,7 @@ jobs:
         name: Configure pip caching
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/text-ci.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Ensure latest setuptools
