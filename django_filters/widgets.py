@@ -157,7 +157,7 @@ class BooleanWidget(forms.Select):
     internal types through.
     """
     def __init__(self, attrs=None, empty_label=None):
-        choices = (('', empty_label if empty_label else _('Unknown')),
+        choices = (('', empty_label or _('Unknown')),
                    ('true', _('Yes')),
                    ('false', _('No')))
         super().__init__(attrs, choices)
