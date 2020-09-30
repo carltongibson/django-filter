@@ -358,16 +358,11 @@ class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
 class NumberFilter(Filter):
     field_class = forms.DecimalField
 
-    def __init__(self, *args, **kwargs):
-        self.max_value = kwargs.get('max_value', int(1e50))
-        super().__init__(*args, **kwargs)
-
     def get_max_validator(self):
         """
         Return a MaxValueValidator for the field, or None to disable.
         """
-        if self.max_value is not None:
-            return MaxValueValidator(self.max_value)
+        return MaxValueValidator(int(1e50))
 
     @property
     def field(self):
