@@ -65,6 +65,7 @@ the :ref:`core filter arguments <core-arguments>` on a ``FilterSet``::
 
         class Meta:
             model = Product
+            fields = ['price', 'release_date', 'manufacturer']
 
 There are two main arguments for filters:
 
