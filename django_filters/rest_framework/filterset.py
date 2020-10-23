@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from django_filters import filterset
 
@@ -18,6 +19,8 @@ FILTER_FOR_DBFIELD_DEFAULTS.update({
 
 class FilterSet(filterset.FilterSet):
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
+
+    validation_error_class = ValidationError
 
     @property
     def form(self):

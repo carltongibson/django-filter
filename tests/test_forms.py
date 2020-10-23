@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 
 from django_filters.filters import CharFilter, ChoiceFilter
@@ -269,3 +270,10 @@ class FilterSetValidityTests(TestCase):
             f.errors,
             {'average_rating': ['Ensure this value is less than or equal to 1e+50.']}
         )
+
+    def test_raise_exception(self):
+        f = self.F({'price': 'four dollars'})
+        self.assertFalse(f.is_valid())
+
+        with self.assertRaises(ValidationError):
+            f.is_valid(raise_exception=True)

@@ -2,6 +2,7 @@ import copy
 from collections import OrderedDict
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import (
@@ -187,6 +188,8 @@ FILTER_FOR_DBFIELD_DEFAULTS = {
 class BaseFilterSet:
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
+    validation_error_class = ValidationError
+
     def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
@@ -205,11 +208,14 @@ class BaseFilterSet:
             filter_.model = model
             filter_.parent = self
 
-    def is_valid(self):
+    def is_valid(self, raise_exception=False):
         """
         Return True if the underlying form has no errors, or False otherwise.
         """
-        return self.is_bound and self.form.is_valid()
+        is_valid = self.is_bound and self.form.is_valid()
+        if raise_exception and not is_valid:
+            raise self.validation_error_class(self.errors)
+        return is_valid
 
     @property
     def errors(self):
