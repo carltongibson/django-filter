@@ -49,7 +49,7 @@ class FilterMixin(metaclass=FilterMixinRenames):
         Returns the keyword arguments for instantiating the filterset.
         """
         kwargs = {
-            'data': self.request.GET or None,
+            'data': getattr(self.request, self.request.method, None) or None,
             'request': self.request,
         }
         try:

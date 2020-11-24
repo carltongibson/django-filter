@@ -137,6 +137,21 @@ class GenericClassBasedViewTests(GenericViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(titles, ['Snowcrash'])
 
+    def test_view_with_post_method(self):
+        class MyFilterView(FilterView):
+            def post(self, request, *args, **kwargs):
+                return super().get(request, *args, **kwargs)
+
+        factory = RequestFactory()
+        request = factory.post(self.base_url, data={'title': 'Snowcrash'})
+        filterset = filterset_factory(Book)
+        view = MyFilterView.as_view(filterset_class=filterset)
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        for b in ["Ender's Game", 'Rainbow Six']:
+            self.assertNotContains(response, html.escape(b))
+        self.assertContains(response, 'Snowcrash')
+
 
 class GenericFunctionalViewTests(GenericViewTestCase):
     base_url = '/books-legacy/'

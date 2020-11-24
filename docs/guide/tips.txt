@@ -288,3 +288,20 @@ using a simple FilterSet base class::
           filter = super(HelpfulFilterSet, cls).filter_for_field(f, name, lookup_expr)
           filter.extra['help_text'] = f.help_text
           return filter
+
+
+Accepting filters via POST
+--------------------------
+
+django-filter is designed to work with ``GET`` requests, but in
+certain cases it may be useful to process filters sent via other HTTP
+methods such as ``POST``. One such case would be if your web server
+restricts URL length and rejects requests with a large number of
+filters applied via ``GET``.
+
+To create a filter view that accepts ``POST`` requests, define a
+``post`` method that proxies through to ``get``::
+
+  class MyFilterView(FilterView):
+      def post(self, request, *args, **kwargs):
+          return super().get(request, *args, **kwargs)
