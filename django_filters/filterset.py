@@ -236,13 +236,16 @@ class BaseFilterSet:
     @property
     def qs(self):
         if not hasattr(self, '_qs'):
-            qs = self.queryset.all()
+            qs = self.get_queryset()
             if self.is_bound:
                 # ensure form validation before filtering
                 self.errors
                 qs = self.filter_queryset(qs)
             self._qs = qs
         return self._qs
+    
+    def get_queryset(self):
+        return self.queryset.all()
 
     def get_form_class(self):
         """
