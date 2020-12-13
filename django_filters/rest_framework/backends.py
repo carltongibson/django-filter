@@ -153,13 +153,17 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         if not filterset_class:
             return []
 
+        def get_filter_description(filter):
+            field = filter.field
+            return field.help_text if field.help_text is not None else filter.label
+
         parameters = []
         for field_name, field in filterset_class.base_filters.items():
             parameter = {
                 'name': field_name,
                 'required': field.extra['required'],
                 'in': 'query',
-                'description': field.label if field.label is not None else field_name,
+                'description': get_filter_description(field) or field_name,
                 'schema': {
                     'type': 'string',
                 },
