@@ -6,6 +6,12 @@ from django.utils.deprecation import RenameMethodsBase
 from .. import compat, utils
 from . import filters, filterset
 
+_FILTERS_OPANAPI_TYPE_MAP = {
+    filters.CharFilter: 'string',
+    filters.BooleanFilter: 'boolean',
+    filters.NumberFilter: 'number',
+}
+
 
 # TODO: remove metaclass in 2.1
 class RenameAttributes(utils.RenameAttributesBase, RenameMethodsBase):
@@ -153,6 +159,12 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         if not filterset_class:
             return []
 
+        def get_filter_openapi_type(filter):
+            for filter_type, openapi_type in _FILTERS_OPANAPI_TYPE_MAP.items():
+                if isinstance(filter, filter_type):
+                    return openapi_type
+            return 'string'
+
         parameters = []
         for field_name, field in filterset_class.base_filters.items():
             parameter = {
@@ -161,7 +173,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
                 'in': 'query',
                 'description': field.label if field.label is not None else field_name,
                 'schema': {
-                    'type': 'string',
+                    'type': get_filter_openapi_type(field),
                 },
             }
             if field.extra and 'choices' in field.extra:
