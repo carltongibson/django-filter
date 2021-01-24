@@ -21,7 +21,7 @@ msgstr ""
 
 #: conf.py:17
 msgid "date"
-msgstr "Daten"
+msgstr "Datum"
 
 #: conf.py:18
 msgid "year"
@@ -32,10 +32,8 @@ msgid "month"
 msgstr "Monat"
 
 #: conf.py:20
-#, fuzzy
-#| msgid "Today"
 msgid "day"
-msgstr "Heute"
+msgstr "Tag"
 
 #: conf.py:21
 msgid "week day"
@@ -51,7 +49,7 @@ msgstr "Minute"
 
 #: conf.py:24
 msgid "second"
-msgstr "zweite"
+msgstr "Sekunde"
 
 #: conf.py:29 conf.py:30
 msgid "contains"
@@ -87,7 +85,7 @@ msgstr "endet mit"
 
 #: conf.py:40
 msgid "is in range"
-msgstr "ist in Reichweite"
+msgstr "ist im Bereich"
 
 #: conf.py:42 conf.py:43
 msgid "matches regex"
@@ -115,7 +113,7 @@ msgstr "hat Schlüssel"
 
 #: conf.py:51
 msgid "has any keys"
-msgstr "hat irgendwelche Schlüssel"
+msgstr "hat beliebige Schlüssel"
 
 #: fields.py:178
 msgid "Range query expects two values."
@@ -156,12 +154,12 @@ msgstr "%s (absteigend)"
 
 #: filters.py:607
 msgid "Ordering"
-msgstr "Ordnung"
+msgstr "Sortierung"
 
 #: rest_framework/filterset.py:30
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
-msgstr "Einreichen"
+msgstr "Absenden"
 
 #: templates/django_filters/rest_framework/crispy_form.html:4
 #: templates/django_filters/rest_framework/form.html:2
