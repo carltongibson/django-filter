@@ -131,7 +131,10 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         except AttributeError:
             return [field_name]
         else:
-            return [field_name] if not suffixes else [f'{field_name}_{suffix}' for suffix in suffixes if suffix]
+            return [field_name] if not suffixes else [
+                '{}_{}'.format(field_name, suffix)
+                for suffix in suffixes if suffix
+            ]
 
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
