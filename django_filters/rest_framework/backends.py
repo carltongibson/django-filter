@@ -113,6 +113,26 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
             description=str(field.extra.get('help_text', ''))
         )
 
+    def build_coreapi_field(self, name, field):
+        return compat.coreapi.Field(
+            name=name,
+            required=field.extra['required'],
+            location='query',
+            schema=self.get_coreschema_field(field),
+        )
+
+    def get_schema_field_names(self, field_name, field):
+        """
+        Get the corresponding schema field names required to generate the openAPI schema
+        by referencing the widget suffixes if available.
+        """
+        try:
+            suffixes = field.field_class.widget.suffixes
+        except AttributeError:
+            return [field_name]
+        else:
+            return [field_name] if not suffixes else [f'{field_name}_{suffix}' for suffix in suffixes if suffix]
+
     def get_schema_fields(self, view):
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
@@ -130,14 +150,13 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
         filterset_class = self.get_filterset_class(view, queryset)
 
-        return [] if not filterset_class else [
-            compat.coreapi.Field(
-                name=field_name,
-                required=field.extra['required'],
-                location='query',
-                schema=self.get_coreschema_field(field)
-            ) for field_name, field in filterset_class.base_filters.items()
-        ]
+        if not filterset_class:
+            return []
+
+        return [self.build_coreapi_field(schema_field_name, field)
+                for field_name, field in filterset_class.base_filters.items()
+                for schema_field_name in self.get_schema_field_names(field_name, field)
+                ]
 
     def get_schema_operation_parameters(self, view):
         try:
