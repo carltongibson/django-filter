@@ -277,6 +277,7 @@ class GetSchemaFieldsTests(TestCase):
         for custom_suffix in custom_suffixes:
             self.assertIn('date_{}'.format(custom_suffix), field_names)
 
+
 class GetSchemaOperationParametersTests(TestCase):
     def test_get_operation_parameters_with_filterset_fields_list(self):
         backend = DjangoFilterBackend()
