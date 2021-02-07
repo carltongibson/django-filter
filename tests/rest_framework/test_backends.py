@@ -8,11 +8,7 @@ from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
 
 from django_filters import compat, filters
-from django_filters.rest_framework import (
-    DjangoFilterBackend,
-    FilterSet,
-    backends
-)
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, backends
 
 from ..models import Article
 from .models import CategoryItem, FilterableItem
