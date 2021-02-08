@@ -65,6 +65,14 @@ class CategoryItemView(generics.ListCreateAPIView):
     filterset_fields = ["category"]
 
 
+class FilterClassWithDateRangeFilter(SeveralFieldsFilter):
+    date = filters.DateFromToRangeFilter()
+
+
+class ViewWithDateRangeFilter(FilterClassRootView):
+    filterset_class = FilterClassWithDateRangeFilter
+
+
 class GetFilterClassTests(TestCase):
 
     def test_filterset_class(self):
@@ -243,13 +251,7 @@ class GetSchemaFieldsTests(TestCase):
 
     def test_fields_with_range_type_filter_default_suffixes(self):
 
-        class F(SeveralFieldsFilter):
-            date = filters.DateFromToRangeFilter()
-
-        class View(FilterClassRootView):
-            filterset_class = F
-
-        view = View()
+        view = ViewWithDateRangeFilter()
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(view)
         field_names = [f.name for f in fields]
@@ -308,6 +310,39 @@ class GetSchemaOperationParametersTests(TestCase):
 
             }]
         )
+
+    def test_get_operation_parameters_with_range_type_filter_with_default_suffixes(self):
+        view = ViewWithDateRangeFilter()
+        backend = DjangoFilterBackend()
+
+        fields = backend.get_schema_operation_parameters(view)
+        fields = [f['name'] for f in fields]
+
+        self.assertEqual(fields, ['text', 'decimal', 'date_after', 'date_before'])
+
+    def test_get_operation_parameters_with_range_type_filter_with_custom_suffixes(self):
+        custom_suffixes = ['previous', 'later']
+
+        mock_widget = mock.Mock(suffixes=custom_suffixes)
+        mock_field_class = mock.Mock(widget=mock_widget)
+
+        class CustomDateFromtoRangeFilter(filters.DateFromToRangeFilter):
+            field_class = mock_field_class
+
+        class F(SeveralFieldsFilter):
+            date = CustomDateFromtoRangeFilter()
+
+        class View(FilterClassRootView):
+            filterset_class = F
+
+        view = View()
+        backend = DjangoFilterBackend()
+
+        fields = backend.get_schema_operation_parameters(view)
+        field_names = [f['name'] for f in fields]
+
+        for custom_suffix in custom_suffixes:
+            self.assertIn('date_{}'.format(custom_suffix), field_names)
 
 
 class TemplateTests(TestCase):

@@ -153,13 +153,32 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
         filterset_class = self.get_filterset_class(view, queryset)
 
+        return self.build_fields(filterset_class, self.build_coreapi_field)
+
+    def build_fields(self, filterset_class, build_field_method):
         if not filterset_class:
             return []
 
-        return [self.build_coreapi_field(schema_field_name, field)
+        return [build_field_method(schema_field_name, field)
                 for field_name, field in filterset_class.base_filters.items()
                 for schema_field_name in self.get_schema_field_names(field_name, field)
                 ]
+
+    def build_openapi_field(self, field_name, field):
+        openapi_field = {
+            'name': field_name,
+            'required': field.extra['required'],
+            'in': 'query',
+            'description': field.label if field.label is not None else field_name,
+            'schema': {
+                'type': 'string',
+            },
+        }
+
+        if field.extra and 'choices' in field.extra:
+            openapi_field['schema']['enum'] = [c[0] for c in field.extra['choices']]
+
+        return openapi_field
 
     def get_schema_operation_parameters(self, view):
         try:
@@ -172,21 +191,4 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
 
         filterset_class = self.get_filterset_class(view, queryset)
 
-        if not filterset_class:
-            return []
-
-        parameters = []
-        for field_name, field in filterset_class.base_filters.items():
-            parameter = {
-                'name': field_name,
-                'required': field.extra['required'],
-                'in': 'query',
-                'description': field.label if field.label is not None else field_name,
-                'schema': {
-                    'type': 'string',
-                },
-            }
-            if field.extra and 'choices' in field.extra:
-                parameter['schema']['enum'] = [c[0] for c in field.extra['choices']]
-            parameters.append(parameter)
-        return parameters
+        return self.build_fields(filterset_class, self.build_openapi_field)
