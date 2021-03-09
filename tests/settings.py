@@ -45,3 +45,6 @@ TEST_OUTPUT_DIR = '.xmlcoverage'
 # help verify that DEFAULTS is importable from conf.
 def FILTERS_VERBOSE_LOOKUPS():
     return DEFAULTS['VERBOSE_LOOKUPS']
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
