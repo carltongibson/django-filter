@@ -9,7 +9,9 @@ from django.db.models.fields.related import (
     ManyToOneRel,
     OneToOneRel
 )
+from django.utils.translation import gettext_lazy as _
 
+from . import compat
 from .conf import settings
 from .constants import ALL_FIELDS
 from .filters import (
@@ -460,7 +462,25 @@ class BaseFilterSet:
 
 
 class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
-    pass
+    @property
+    def form(self):
+        form = super().form
+
+        if compat.is_crispy():
+            from crispy_forms.helper import FormHelper
+            from crispy_forms.layout import Layout, Submit
+
+            layout_components = list(form.fields.keys()) + [
+                Submit('', _('Submit'), css_class='btn-default'),
+            ]
+            helper = FormHelper()
+            helper.form_method = 'GET'
+            helper.template_pack = 'bootstrap3'
+            helper.layout = Layout(*layout_components)
+
+            form.helper = helper
+
+        return form
 
 
 def filterset_factory(model, fields=ALL_FIELDS):
