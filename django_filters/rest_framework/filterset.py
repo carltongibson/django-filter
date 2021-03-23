@@ -6,13 +6,14 @@ from django.utils.translation import gettext_lazy as _
 from django_filters import filterset
 
 from .. import compat
-from .filters import BooleanFilter, IsoDateTimeFilter
+from .filters import BooleanFilter, IsoDateTimeFilter, CharFilter
 
 FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
 FILTER_FOR_DBFIELD_DEFAULTS.update({
     models.DateTimeField: {'filter_class': IsoDateTimeFilter},
     models.BooleanField: {'filter_class': BooleanFilter},
     models.NullBooleanField: {'filter_class': BooleanFilter},
+    models.UUIDField: {'filter_class': CharFilter},
 })
 
 
