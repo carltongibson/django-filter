@@ -2,6 +2,7 @@ Unreleased
 ----------
 
 * Added testing against Django 3.2.
+* Drop support for Django 3.0.
 
 Version 2.4.0 (2020-9-27)
 --------------------------
