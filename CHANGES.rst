@@ -1,3 +1,8 @@
+Unreleased
+----------
+
+* Added testing against Django 3.2.
+
 Version 2.4.0 (2020-9-27)
 --------------------------
 
