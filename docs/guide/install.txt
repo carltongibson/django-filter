@@ -29,6 +29,6 @@ __ http://www.django-rest-framework.org/
 
 
 
-* **Python**: 3.5, 3.6, 3.7, 3.8
+* **Python**: 3.6, 3.7, 3.8
 * **Django**: 2.2, 3.1, 3.2
 * **DRF**: 3.10+

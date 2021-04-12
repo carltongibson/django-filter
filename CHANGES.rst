@@ -2,7 +2,9 @@ Unreleased
 ----------
 
 * Added testing against Django 3.2.
-* Drop support for Django 3.0.
+* Dropped support for Django 3.0.
+* Dropped support for Python 3.5.
+
 
 Version 2.4.0 (2020-9-27)
 --------------------------
@@ -21,6 +23,7 @@ Version 2.4.0 (2020-9-27)
   In addition tests against Django main development branch are now required to
   pass.
 
+
 Version 2.3.0 (2020-6-5)
 ------------------------
 
@@ -32,6 +35,7 @@ Version 2.3.0 (2020-6-5)
 * Drop Django 2.1 and below (#1180)
 * Fixed IsoDateTimeRangeFieldTests for Django 3.1
 * Require tests to pass against Django `master`.
+
 
 Version 2.2 (2019-7-16)
 -----------------------
