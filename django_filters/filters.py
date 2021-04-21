@@ -209,6 +209,7 @@ class MultipleChoiceFilter(Filter):
         kwargs.setdefault('distinct', True)
         self.conjoined = kwargs.pop('conjoined', False)
         self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
+        self.values_format = kwargs.pop('values_format', 'list')
         super().__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
@@ -229,6 +230,9 @@ class MultipleChoiceFilter(Filter):
         if not value:
             # Even though not a noop, no point filtering if empty.
             return qs
+
+        if self.values_format == 'csv':
+            value = value.split(',')
 
         if self.is_noop(qs, value):
             return qs
