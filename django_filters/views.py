@@ -83,7 +83,8 @@ class BaseFilterView(FilterMixin, MultipleObjectMixin, View):
             self.object_list = self.filterset.queryset.none()
 
         context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list)
+                                        object_list=self.object_list,
+                                        **kwargs)
         return self.render_to_response(context)
 
 
