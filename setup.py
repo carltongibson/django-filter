@@ -35,7 +35,7 @@ setup(
     author_email='alex.gaynor@gmail.com',
     maintainer='Carlton Gibson',
     maintainer_email='carlton.gibson@noumenal.es',
-    url='https://github.com/carltongibson/django-filter/tree/master',
+    url='https://github.com/carltongibson/django-filter/tree/main',
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     license='BSD',
