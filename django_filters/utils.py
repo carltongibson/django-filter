@@ -245,6 +245,9 @@ def verbose_field_name(model, field_name):
         if isinstance(part, ForeignObjectRel):
             if part.related_name:
                 names.append(part.related_name.replace('_', ' '))
+            elif part.related_model:
+                meta = part.related_model._meta
+                names.append(force_str(meta.verbose_name))
             else:
                 return '[invalid name]'
         else:
