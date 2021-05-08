@@ -4,6 +4,7 @@ Unreleased
 * Added testing against Django 3.2.
 * Dropped support for Django 3.0.
 * Dropped support for Python 3.5.
+* Added project_urls to setup.py.
 
 
 Version 2.4.0 (2020-9-27)
