@@ -37,6 +37,12 @@ setup(
     maintainer_email='carlton.gibson@noumenal.es',
     url='https://github.com/carltongibson/django-filter/tree/main',
     packages=find_packages(exclude=['tests*']),
+    project_urls={
+        "Documentation": "https://django-filter.readthedocs.io/en/main/",
+        "Changelog": "https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst",
+        "Bug Tracker": "https://github.com/carltongibson/django-filter/issues",
+        "Source Code": "https://github.com/carltongibson/django-filter",
+    },
     include_package_data=True,
     license='BSD',
     classifiers=[
