@@ -99,4 +99,4 @@ If you have questions about usage or development you can join the
 
 .. _`read the docs`: https://django-filter.readthedocs.io/en/main/
 .. _`mailing list`: http://groups.google.com/group/django-filter
-.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/master/guide/rest_framework.html
+.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html
