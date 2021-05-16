@@ -2,6 +2,7 @@ import contextlib
 import datetime
 import mock
 import unittest
+import warnings
 from operator import attrgetter
 
 from django import forms
@@ -1095,8 +1096,8 @@ class FilterMethodTests(TestCase):
                 model = User
                 fields = ['username']
 
-            def filter_username(self, queryset, name, value):
-                return queryset.filter(**{name: value})
+            def filter_username(self, f, qs, value):
+                return qs.filter(**{f.field_name: value})
 
         self.assertEqual(list(F().qs), list(User.objects.all()))
         self.assertEqual(list(F({'username': 'alex'}).qs),
@@ -1105,8 +1106,8 @@ class FilterMethodTests(TestCase):
                          list())
 
     def test_filtering_callable(self):
-        def filter_username(queryset, name, value):
-            return queryset.filter(**{name: value})
+        def filter_username(f, qs, value):
+            return qs.filter(**{f.field_name: value})
 
         class F(FilterSet):
             username = CharFilter(method=filter_username)
@@ -1120,6 +1121,19 @@ class FilterMethodTests(TestCase):
                          [User.objects.get(username='alex')])
         self.assertEqual(list(F({'username': 'jose'}).qs),
                          list())
+
+    def test_deprecated_signature(self):
+        class F(FilterSet):
+            username = CharFilter(method='filter_username')
+
+            def filter_username(self, qs, field_name, value):
+                return qs.filter(**{field_name: value})
+
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter('ignore')
+            qs = F({'username': 'alex'}, queryset=User.objects.all()).qs
+
+        self.assertEqual(list(qs), [User.objects.get(username='alex')])
 
 
 class O2ORelationshipTests(TestCase):

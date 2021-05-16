@@ -190,7 +190,6 @@ class BaseFilterSet:
     def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         if queryset is None:
             queryset = self._meta.model._default_manager.all()
-        model = queryset.model
 
         self.is_bound = data is not None
         self.data = data or {}
@@ -200,10 +199,8 @@ class BaseFilterSet:
 
         self.filters = copy.deepcopy(self.base_filters)
 
-        # propagate the model and filterset to the filters
-        for filter_ in self.filters.values():
-            filter_.model = model
-            filter_.parent = self
+        for filter_name, f in self.filters.items():
+            f.bind(filter_name, self)
 
     def is_valid(self):
         """

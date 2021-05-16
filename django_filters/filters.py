@@ -27,7 +27,7 @@ from .fields import (
     RangeField,
     TimeRangeField
 )
-from .utils import get_model_field, label_for_filter
+from .utils import deprecate, get_model_field, label_for_filter
 
 __all__ = [
     'AllValuesFilter',
@@ -83,6 +83,16 @@ class Filter:
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
+
+    def bind(self, attr, parent):
+        """Bind the filter to its parent filterset.
+
+        Provides both the filter's attribute name on the filterset and the
+        parent filterset instance. Called when the parent is initialized.
+        """
+        self.attr = attr
+        self.parent = parent
+        self.model = parent.queryset.model
 
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
@@ -769,6 +779,7 @@ class FilterMethod:
     This helper is used to override Filter.filter() when a 'method' argument
     is passed. It proxies the call to the actual method on the filter's parent.
     """
+
     def __init__(self, filter_instance):
         self.f = filter_instance
 
@@ -776,7 +787,25 @@ class FilterMethod:
         if value in EMPTY_VALUES:
             return qs
 
-        return self.method(qs, self.f.field_name, value)
+        try:
+            return self.method(self.f, qs, value)
+        except Exception as e:
+            # TODO: remove in version ????
+            try:
+                # Attempt fallback with old signature
+                result = self.method(qs, self.f.field_name, value)
+            except Exception:
+                # Raise original exception if fallback fails
+                raise e
+            else:
+                # Fallback succeeded, warn about deprecation
+                if callable(self.f.method):
+                    name = self.f.method.__name__
+                else:
+                    cls = self.f.parent.__class__
+                    name = '%s.%s.%s' % (cls.__module__, cls.__name__, self.f.method)
+                deprecate('Please update the signature for `%s`.' % name)
+                return result
 
     @property
     def method(self):
@@ -791,7 +820,7 @@ class FilterMethod:
 
         # otherwise, method is the name of a method on the parent FilterSet.
         assert hasattr(instance, 'parent'), \
-            "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
+            "Filter '%s' must have a parent FilterSet to find '.%s()'." %  \
             (instance.field_name, instance.method)
 
         parent = instance.parent

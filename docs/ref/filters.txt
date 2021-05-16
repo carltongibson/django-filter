@@ -56,8 +56,8 @@ on the field ``field_name`` and the parts of the ``lookup_expr``
 
 An optional argument that tells the filter how to handle the queryset. It can
 accept either a callable or the name of a method on the ``FilterSet``. The
-callable receives a ``QuerySet``, the name of the model field to filter on, and
-the value to filter with. It should return a filtered ``Queryset``.
+callable receives the ``Filter`` instance, a ``QuerySet``, and the value to
+filter with. It should return a filtered ``Queryset``.
 
 Note that the value is validated by the ``Filter.field``, so raw value
 transformation and empty value checking should be unnecessary.
@@ -68,13 +68,13 @@ transformation and empty value checking should be unnecessary.
         """Filter for Books by if books are published or not"""
         published = BooleanFilter(field_name='published_on', method='filter_published')
 
-        def filter_published(self, queryset, name, value):
+        def filter_published(self, f, qs, value):
             # construct the full lookup expression.
-            lookup = '__'.join([name, 'isnull'])
-            return queryset.filter(**{lookup: False})
+            lookup = '__'.join([f.field_name, 'isnull'])
+            return qs.filter(**{lookup: not value})
 
             # alternatively, you could opt to hardcode the lookup. e.g.,
-            # return queryset.filter(published_on__isnull=False)
+            return qs.filter(published_on__isnull=not value)
 
         class Meta:
             model = Book
@@ -82,9 +82,9 @@ transformation and empty value checking should be unnecessary.
 
 
     # Callables may also be defined out of the class scope.
-    def filter_not_empty(queryset, name, value):
-        lookup = '__'.join([name, 'isnull'])
-        return queryset.filter(**{lookup: False})
+    def filter_not_empty(f, qs, value):
+        lookup = '__'.join([f.field_name, 'isnull'])
+        return qs.filter(**{lookup: not value})
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""

@@ -161,8 +161,9 @@ class FilterTests(TestCase):
         qs = mock.NonCallableMock(spec=[])
         method = mock.Mock()
         f = Filter(method=method)
+        f.bind('name', mock.Mock())
         result = f.filter(qs, 'value')
-        method.assert_called_once_with(qs, None, 'value')
+        method.assert_called_once_with(f, qs, 'value')
         self.assertNotEqual(qs, result)
 
     def test_filtering_uses_distinct(self):

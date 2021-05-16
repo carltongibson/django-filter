@@ -113,7 +113,7 @@ class GenericClassBasedViewTests(GenericViewTestCase):
 
     def test_filter_fields_removed(self):
         expected = "`View.filter_fields` attribute should be renamed `filterset_fields`. " \
-                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+                   "See: https://django-filter.readthedocs.io/en/stable/guide/migration.html"
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
