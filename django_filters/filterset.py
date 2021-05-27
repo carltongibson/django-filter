@@ -74,7 +74,7 @@ class FilterSetMetaclass(type):
         assert not hasattr(new_class, 'filter_for_reverse_field'), (
             "`%(cls)s.filter_for_reverse_field` has been removed. "
             "`%(cls)s.filter_for_field` now generates filters for reverse fields. "
-            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+            "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
             % {'cls': new_class.__name__}
         )
 
@@ -382,7 +382,7 @@ class BaseFilterSet:
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/master/ref/filterset.html"
+            "https://django-filter.readthedocs.io/en/main/ref/filterset.html"
             "#customise-filter-generation-with-filter-overrides"
         ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
 

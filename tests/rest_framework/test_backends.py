@@ -377,7 +377,7 @@ class ValidationErrorTests(TestCase):
 class RenamedBackendAttributesTests(TestCase):
     def test_get_filter_class(self):
         expected = "`Backend.get_filter_class` method should be renamed `get_filterset_class`. " \
-                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+                   "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
@@ -391,7 +391,7 @@ class RenamedBackendAttributesTests(TestCase):
 
     def test_default_filter_set(self):
         expected = "`Backend.default_filter_set` attribute should be renamed `filterset_base`. " \
-                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+                   "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
@@ -407,7 +407,7 @@ class RenamedViewSetAttributesTests(TestCase):
 
     def test_filter_class(self):
         expected = "`View.filter_class` attribute should be renamed `filterset_class`. " \
-                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+                   "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
@@ -424,7 +424,7 @@ class RenamedViewSetAttributesTests(TestCase):
 
     def test_filter_fields(self):
         expected = "`View.filter_fields` attribute should be renamed `filterset_fields`. " \
-                   "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+                   "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
         with warnings.catch_warnings(record=True) as recorded:
             warnings.simplefilter('always')
 
