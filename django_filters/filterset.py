@@ -192,7 +192,7 @@ class BaseFilterSet:
             queryset = self._meta.model._default_manager.all()
         model = queryset.model
 
-        self.is_bound = data is not None
+        self.is_bound = True if data else False
         self.data = data or {}
         self.queryset = queryset
         self.request = request
