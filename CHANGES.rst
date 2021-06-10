@@ -66,7 +66,7 @@ Version 2.0 (2018-7-13)
 2.0 introduced a number of small changes and tidy-ups.
 Please see the migration guide:
 
-https://django-filter.readthedocs.io/en/master/guide/migration.html#migrating-to-2-0
+https://django-filter.readthedocs.io/en/main/guide/migration.html#migrating-to-2-0
 
 * Added testing for Python 3.7 (#944)
 * Improve exception message for invalid filter result (#943)

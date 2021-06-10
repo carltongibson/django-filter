@@ -462,7 +462,7 @@ class DateRangeFilter(ChoiceFilter):
         # TODO: remove assertion in 2.1
         assert not hasattr(self, 'options'), \
             "The 'options' attribute has been replaced by 'choices' and 'filters'. " \
-            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+            "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
 
         # null choice not relevant
         kwargs.setdefault('null_label', None)

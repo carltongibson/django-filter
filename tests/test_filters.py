@@ -1008,7 +1008,7 @@ class DateRangeFilterTests(TestCase):
 
     def test_options_removed(self):
         msg = "The 'options' attribute has been replaced by 'choices' and 'filters'. " \
-              "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
+              "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
 
         class F(DateRangeFilter):
             options = None
