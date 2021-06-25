@@ -154,7 +154,7 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
             return []
 
         parameters = []
-        for field_name, field in filterset_class().base_filters.items():
+        for field_name, field in filterset_class().filters.items():
             parameter = {
                 'name': field_name,
                 'required': field.extra['required'],

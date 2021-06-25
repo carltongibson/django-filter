@@ -260,7 +260,7 @@ class GetSchemaOperationParametersTests(TestCase):
                 'name': 'category',
                 'required': False,
                 'in': 'query',
-                'description': 'category',
+                'description': 'Item category',
                 'schema': {
                     'type': 'string',
                     'enum': ['home', 'office']

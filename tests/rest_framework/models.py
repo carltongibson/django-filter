@@ -29,4 +29,4 @@ class DjangoFilterOrderingModel(models.Model):
 
 
 class CategoryItem(BaseFilterableItem):
-    category = models.CharField(max_length=10, choices=(("home", "Home"), ("office", "Office")))
+    category = models.CharField('item category', max_length=10, choices=(("home", "Home"), ("office", "Office")))
