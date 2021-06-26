@@ -57,6 +57,7 @@ class FilterSetOptions:
         self.fields = getattr(options, 'fields', None)
         self.exclude = getattr(options, 'exclude', None)
 
+        self.extra_kwargs = getattr(options, 'extra_kwargs', {})
         self.filter_overrides = getattr(options, 'filter_overrides', {})
 
         self.form = getattr(options, 'form', forms.Form)
@@ -378,6 +379,13 @@ class BaseFilterSet:
 
         filter_class, params = cls.filter_for_lookup(field, lookup_type)
         default.update(params)
+
+        try:
+            extra_kwargs = cls._meta.extra_kwargs[field_name]
+        except KeyError:
+            pass
+        else:
+            default.update(extra_kwargs)
 
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "

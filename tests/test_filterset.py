@@ -34,6 +34,7 @@ from .models import (
     NetworkSetting,
     Node,
     Profile,
+    REGULAR,
     Restaurant,
     SubnetMaskField,
     User,
@@ -190,6 +191,17 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, 'date', 'year__gte')
         self.assertIsInstance(result, NumberFilter)
         self.assertEqual(result.field_name, 'date')
+
+    def test_filter_extra_kwargs(self):
+        class F(FilterSet):
+            class Meta:
+                extra_kwargs = {
+                    'favorite_books__title': {'distinct': True}
+                }
+        f = Book._meta.get_field('title')
+        result = F.filter_for_field(f, 'favorite_books__title')
+        self.assertIsInstance(result, CharFilter)
+        self.assertTrue(result.distinct)
 
     @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR='icontains')
     def test_modified_default_lookup(self):
@@ -719,6 +731,23 @@ class FilterSetClassCreationTests(TestCase):
             'f4': CharFilter,
             'f5': CharFilter,
         }
+
+    def test_model_derived_extra_kwargs(self):
+        custom_author_queryset = User.objects.filter(status=REGULAR)
+        class F(FilterSet):
+            class Meta:
+                model = Article
+                fields = ['name', 'author']
+                extra_kwargs = {
+                    'name': {'label': 'Article name'},
+                    'author': {'queryset': custom_author_queryset},
+                }
+
+        self.assertEqual(len(F.declared_filters), 0)
+        self.assertEqual(len(F.base_filters), 2)
+        self.assertEqual(list(F.base_filters), ['name', 'author'])
+        self.assertEqual(F.base_filters['name'].label, 'Article name')
+        self.assertIs(F.base_filters['author'].queryset, custom_author_queryset)
 
 
 class FilterSetInstantiationTests(TestCase):
