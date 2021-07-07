@@ -10,6 +10,7 @@ msgstr ""
 "Language-Team: Danni Randeris <danni@danniranderis.dk>\n"
 "POT-Creation-Date: 2017-10-28\n"
 "PO-Revision-Date: 2017-10-28\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: conf.py:17
 msgid "date"
