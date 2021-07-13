@@ -26,8 +26,8 @@ DEFAULTS = {
         'second': _('second'),
 
         # standard lookups
-        'exact': _('exact match'),
-        'iexact': _('case-insensitive exact match'),
+        'exact': '',
+        'iexact': '',
         'contains': _('contains'),
         'icontains': _('contains'),
         'in': _('is in'),
