@@ -9,7 +9,7 @@ our users filter which products they see on a list page.
 .. note::
 
     If you're using django-filter with Django Rest Framework, it's
-    recommended that you read the integration docs after this guide.
+    recommended that you read the :doc:`/guide/rest_framework` after this guide.
 
 The model
 ---------
