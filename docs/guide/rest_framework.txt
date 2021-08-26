@@ -1,3 +1,5 @@
+.. _drf integration:
+
 ====================
 Integration with DRF
 ====================
@@ -6,7 +8,6 @@ Integration with `Django Rest Framework`__ is provided through a DRF-specific ``
 
 __ http://www.django-rest-framework.org/
 __ http://www.django-rest-framework.org/api-guide/filtering/
-
 
 Quickstart
 ----------
