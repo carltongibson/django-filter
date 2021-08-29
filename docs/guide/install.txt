@@ -21,14 +21,9 @@ Then add ``'django_filters'`` to your ``INSTALLED_APPS``.
 Requirements
 ------------
 
-Django-filter is tested against all supported versions of Python and `Django`__,
-as well as the latest version of Django REST Framework (`DRF`__).
+Django-filter requires a current version of `Django`__ and is tested against
+all supported versions of Python, as well as the latest version of Django REST
+Framework (`DRF`__).
 
-__ https://www.djangoproject.com/download/
+__ https://www.djangoproject.com/download/#supported-versions
 __ http://www.django-rest-framework.org/
-
-
-
-* **Python**: 3.6, 3.7, 3.8
-* **Django**: 2.2, 3.1, 3.2
-* **DRF**: 3.10+
