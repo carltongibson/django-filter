@@ -40,7 +40,7 @@ DEFAULTS = {
         'endswith': _('ends with'),
         'iendswith': _('ends with'),
         'range': _('is in range'),
-        'isnull': _('is null or not'),
+        'isnull': _('is null'),
         'regex': _('matches regex'),
         'iregex': _('matches regex'),
         'search': _('search'),
