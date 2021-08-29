@@ -10,7 +10,7 @@ if pkgutil.find_loader('rest_framework') is not None:
     from . import rest_framework
 del pkgutil
 
-__version__ = '2.4.0'
+__version__ = '21.1'
 
 
 def parse_version(version):
