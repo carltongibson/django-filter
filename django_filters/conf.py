@@ -26,8 +26,8 @@ DEFAULTS = {
         'second': _('second'),
 
         # standard lookups
-        'exact': _(''),
-        'iexact': _(''),
+        'exact': '',
+        'iexact': '',
         'contains': _('contains'),
         'icontains': _('contains'),
         'in': _('is in'),
@@ -40,7 +40,7 @@ DEFAULTS = {
         'endswith': _('ends with'),
         'iendswith': _('ends with'),
         'range': _('is in range'),
-        'isnull': _(''),
+        'isnull': _('is null'),
         'regex': _('matches regex'),
         'iregex': _('matches regex'),
         'search': _('search'),
