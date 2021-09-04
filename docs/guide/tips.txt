@@ -28,7 +28,7 @@ lookup type. Under the hood, this will incorrectly be resolved as:
 
 .. code-block:: python
 
-    Produce.objects.filter(price__gt__exact=value)
+    Product.objects.filter(price__gt__exact=value)
 
 The above will most likely generate a ``FieldError``. The correct configuration
 would be:
