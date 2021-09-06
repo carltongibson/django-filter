@@ -5,6 +5,7 @@ import unittest
 from operator import attrgetter
 
 from django import forms
+from django.db.models import expressions
 from django.http import QueryDict
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -1871,9 +1872,10 @@ class CSVRangeFilterTests(TestCase):
 class OrderingFilterTests(TestCase):
 
     def setUp(self):
-        User.objects.create(username='alex', status=1)
-        User.objects.create(username='jacob', status=2)
-        User.objects.create(username='aaron', status=2)
+        tz = timezone.utc
+        User.objects.create(username='alex', status=1, last_login=datetime.datetime(2020, 1, 1, tzinfo=tz))
+        User.objects.create(username='jacob', status=2, last_login=datetime.datetime(2020, 2, 1, tzinfo=tz))
+        User.objects.create(username='aaron', status=2, last_login=datetime.datetime(2020, 3, 1, tzinfo=tz))
         User.objects.create(username='carl', status=0)
 
     def test_ordering(self):
@@ -1906,6 +1908,134 @@ class OrderingFilterTests(TestCase):
         f = F({'o': 'username'}, queryset=qs)
         names = f.qs.values_list('username', flat=True)
         self.assertEqual(list(names), ['aaron', 'alex', 'carl', 'jacob'])
+
+    def test_ordering_with_null(self):
+        tz = timezone.utc
+
+        class F(FilterSet):
+            o = OrderingFilter(
+                fields=('last_login',)
+            )
+
+            class Meta:
+                model = User
+                fields = ['last_login']
+
+        qs = User.objects.all()
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+        ])
+
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('carl', None),
+        ])
+
+    def test_ordering_with_params_and_null(self):
+        tz = timezone.utc
+
+        class F(FilterSet):
+            o = OrderingFilter(
+                params=('last_login',)
+            )
+
+            class Meta:
+                model = User
+                fields = ['last_login']
+
+        qs = User.objects.all()
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+        ])
+
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('carl', None),
+        ])
+
+    def test_ordering_with_params_and_nulls_last(self):
+        tz = timezone.utc
+
+        class F(FilterSet):
+            o = OrderingFilter(
+                params={
+                    'last_login': {'expr': expressions.F('last_login').asc(nulls_last=True)},
+                }
+            )
+
+            class Meta:
+                model = User
+                fields = ['last_login']
+
+        qs = User.objects.all()
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('carl', None),
+        ])
+
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+        ])
+
+    def test_ordering_with_params_and_desc_nulls_last(self):
+        tz = timezone.utc
+
+        class F(FilterSet):
+            o = OrderingFilter(
+                params={
+                    'last_login': {'expr': expressions.F('last_login').desc(nulls_last=True)},
+                }
+            )
+
+            class Meta:
+                model = User
+                fields = ['last_login']
+
+        qs = User.objects.all()
+        f = F({'o': 'last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('carl', None),
+        ])
+
+        f = F({'o': '-last_login'}, queryset=qs)
+        results = f.qs.values_list('username', 'last_login')
+        self.assertEqual(list(results), [
+            ('carl', None),
+            ('alex', datetime.datetime(2020, 1, 1, tzinfo=tz)),
+            ('jacob', datetime.datetime(2020, 2, 1, tzinfo=tz)),
+            ('aaron', datetime.datetime(2020, 3, 1, tzinfo=tz)),
+        ])
 
 
 class MiscFilterSetTests(TestCase):

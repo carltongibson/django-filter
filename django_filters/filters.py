@@ -1,10 +1,13 @@
-from collections import OrderedDict
+import collections
+import copy
+import itertools
 from datetime import timedelta
 
 from django import forms
 from django.core.validators import MaxValueValidator
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.expressions import F, OrderBy
 from django.forms.utils import pretty_name
 from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
@@ -27,7 +30,7 @@ from .fields import (
     RangeField,
     TimeRangeField
 )
-from .utils import get_model_field, label_for_filter
+from .utils import deprecate, get_model_field, label_for_filter
 
 __all__ = [
     'AllValuesFilter',
@@ -307,8 +310,8 @@ class QuerySetRequestMixin:
             company = request.user.company
             return company.department_set.all()
 
-        class EmployeeFilter(filters.FilterSet):
-            department = filters.ModelChoiceFilter(queryset=departments)
+        class EmployeeFilter(FilterSet):
+            department = ModelChoiceFilter(queryset=departments)
             ...
 
     The above example restricts the set of departments to those in the logged-in
@@ -585,7 +588,7 @@ class LookupChoiceFilter(Filter):
 
     ex::
 
-        price = django_filters.LookupChoiceFilter(
+        price = django_LookupChoiceFilter(
             field_class=forms.DecimalField,
             lookup_choices=[
                 ('exact', 'Equals'),
@@ -669,99 +672,247 @@ class LookupChoiceFilter(Filter):
 class OrderingFilter(BaseCSVFilter, ChoiceFilter):
     """
     Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
-    two additional arguments that are used to build the ordering choices.
+    additional arguments that are used to build the ordering choices.
 
-    * ``fields`` is a mapping of {model field name: parameter name}. The
-      parameter names are exposed in the choices and mask/alias the field
-      names used in the ``order_by()`` call. Similar to field ``choices``,
-      ``fields`` accepts the 'list of two-tuples' syntax that retains order.
-      ``fields`` may also just be an iterable of strings. In this case, the
-      field names simply double as the exposed parameter names.
+    * ``params`` is a mapping of {param name: ordering descriptor}.
+      param name is exposed in the choices.  Ordering descriptor is
+      an object containing the following fields:
+
+      ** ``expr`` - model field name or a Django expression
+         (see https://docs.djangoproject.com/en/latest/ref/models/expressions/).
+         If neither ``expr`` nor ``exprs`` is specified, ``AssertionError`` is raised.
+
+      ** ``exprs`` - an iterable of model field names or Django expressions
+         (see https://docs.djangoproject.com/en/latest/ref/models/expressions/).
+         If neither ``expr`` nor ``exprs`` are specified, ``AssertionError`` is raised.
+
+      ** ``label`` - (optional) customized display label for the corresponding
+         parameter.  If this field is omitted, the label will be derived
+         from param name.
+
+      ** ``desc_label`` - (optional) customized display label for the
+         corresponding parameter used for descending search.  If this field
+         is omitted, ``desc_label`` will be derived from ``label``.
+
+      Instead of a complete object, you can provide a simplified ordering
+      descriptor which can be one of the following:
+
+      ** model field name or a Django expression
+
+      ** an iterable of model field names or Django expressions
+
+      Instead of a mapping, ``params`` also accepts:
+
+      ** the 'list of two-tuples' syntax that retains order
+
+      ** an iterable of strings.  In this case model field names are derived
+         from the corresponding param names.
+
+    * ``fields`` is a mapping of {model field name: param name}, which
+      can also be expressed in the 'list of two-tuples' syntax, or an iterable
+      of strings.  It is basically an inverted version of ``params`` where
+      model field name and param name are swapped, which does not allow
+      exposing several model fields as a single parameter and ordering by
+      Django expressions.
+
+      This argument is DEPRECATED.  You should always use the ``params`` argument.
+      Using both ``fields`` and ``params`` arguments will result in ``AssertionError``.
 
     * ``field_labels`` is an optional argument that allows you to customize
-      the display label for the corresponding parameter. It accepts a mapping
-      of {field name: human readable label}. Keep in mind that the key is the
-      field name, and not the exposed parameter name.
+      display labels for ``fields``.  It accepts a mapping of
+      {model field name: human readable label}. Keep in mind that the key is the
+      model field name, and not the exposed param name.
 
-    Additionally, you can just provide your own ``choices`` if you require
-    explicit control over the exposed options. For example, when you might
-    want to disable descending sort options.
+      Similar to the ``fields`` argument, ``field_labels`` is DEPRECATED.
+      You should always use the ``params`` argument where a customized
+      display label can be put into ``label`` field of the corresponding
+      ordering descriptors.  Using both ``field_labels`` and ``params``
+      arguments will result in ``AssertionError``
+
+    * ``choices`` is an optional argument that allows for explicit control
+      over the exposed options.  For example, you can use this argument
+      to disable descending sort options.
 
     This filter is also CSV-based, and accepts multiple ordering params. The
     default select widget does not enable the use of this, but it is useful
     for APIs.
-
     """
     descending_fmt = _('%s (descending)')
 
     def __init__(self, *args, **kwargs):
-        """
-        ``fields`` may be either a mapping or an iterable.
-        ``field_labels`` must be a map of field names to display labels
-        """
-        fields = kwargs.pop('fields', {})
-        fields = self.normalize_fields(fields)
-        field_labels = kwargs.pop('field_labels', {})
+        if 'params' in kwargs:
+            assert 'fields' not in kwargs, "'params' and 'fields' cannot be passed simultaneously"
+            assert 'field_labels' not in kwargs, "'params' and 'field_labels' cannot be passed simultaneously"
 
-        self.param_map = {v: k for k, v in fields.items()}
+        if 'fields' in kwargs:
+            deprecate("`fields` argument of OrderingFilter constructor is deprecated in favor of `params`")
+        if 'field_labels' in kwargs:
+            deprecate("`field_labels` argument of OrderingFilter constructor is deprecated in favor of `params`")
+
+        if 'params' not in kwargs:
+            fields = kwargs.get('fields', {})
+            fields = self.normalize_fields(fields)
+            field_labels = kwargs.get('field_labels', {})
+            params = self.fields_to_params(fields, field_labels)
+        else:
+            params = self.normalize_params(kwargs['params'])
+
+        self.params = params
 
         if 'choices' not in kwargs:
-            kwargs['choices'] = self.build_choices(fields, field_labels)
+            kwargs['choices'] = self.build_choices(params)
 
+        kwargs.pop('fields', None)
+        kwargs.pop('field_labels', None)
+        kwargs.pop('params', None)
         kwargs.setdefault('label', _('Ordering'))
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null_label', None)
         super().__init__(*args, **kwargs)
-
-    def get_ordering_value(self, param):
-        descending = param.startswith('-')
-        param = param[1:] if descending else param
-        field_name = self.param_map.get(param, param)
-
-        return "-%s" % field_name if descending else field_name
-
-    def filter(self, qs, value):
-        if value in EMPTY_VALUES:
-            return qs
-
-        ordering = [self.get_ordering_value(param) for param in value]
-        return qs.order_by(*ordering)
 
     @classmethod
     def normalize_fields(cls, fields):
         """
         Normalize the fields into an ordered map of {field name: param name}
         """
-        # fields is a mapping, copy into new OrderedDict
+        # fields is a mapping, copy into new collections.OrderedDict
         if isinstance(fields, dict):
-            return OrderedDict(fields)
+            fields = collections.OrderedDict(fields)
+        else:
 
-        # convert iterable of values => iterable of pairs (field name, param name)
-        assert is_iterable(fields), \
-            "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
+            # convert iterable of values => iterable of pairs (field name, param name)
+            assert is_iterable(fields), \
+                "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
-        # fields is an iterable of field names
-        assert all(isinstance(field, str) or
-                   is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
-                   for field in fields), \
-            "'fields' must contain strings or (field name, param name) pairs."
+            # fields is an iterable of field names
+            assert all(isinstance(field, str) or
+                       is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
+                       for field in fields), \
+                "'fields' must contain strings or (field name, param name) pairs."
 
-        return OrderedDict([
-            (f, f) if isinstance(f, str) else f for f in fields
-        ])
+            fields = collections.OrderedDict((f, f) if isinstance(f, str) else f for f in fields)
+        return fields
 
-    def build_choices(self, fields, labels):
+    @classmethod
+    def fields_to_params(cls, fields, field_labels):
+        """
+        Convert normalized fields of and field labels into normalized params
+
+        Args:
+            fields: Normalized fields of {model field name: param name}
+            field_labels: Field labels of {model field name: label}
+        Returns:
+            Normalized params of {model field name: ordering descriptor}
+        """
+        lst = []
+        for model_field_name, param_name in fields.items():
+            descriptor = {"exprs": (F(model_field_name),)}
+            if model_field_name in field_labels:
+                descriptor["label"] = field_labels[model_field_name]
+            if "-%s" % model_field_name in field_labels:
+                descriptor["desc_label"] = field_labels["-%s" % model_field_name]
+            lst.append((param_name, descriptor))
+        return collections.OrderedDict(lst)
+
+    @classmethod
+    def normalize_params(cls, params):
+        """
+        Normalize the params into an ordered map of {model field name: ordering descriptor}
+        """
+        # params is a mapping, copy into new collections.OrderedDict
+        if isinstance(params, dict):
+            params = collections.OrderedDict(params)
+        else:
+
+            # convert iterable of values => iterable of pairs (param name, model field name)
+            assert is_iterable(params), \
+                "'params' must be an iterable (e.g., a list, tuple, or mapping)."
+
+            # params is an iterable of field names
+            assert all(isinstance(param, str) or
+                       is_iterable(param) and len(param) == 2
+                       for param in params), \
+                "'params' must contain strings or (param name, model field name or object descriptor) pairs."
+
+            params = collections.OrderedDict((f, f) if isinstance(f, str) else f for f in params)
+
+        for param_name, descriptor in params.items():
+            params[param_name] = cls.normalize_ordering_descriptor(descriptor)
+        return params
+
+    @classmethod
+    def normalize_ordering_descriptor(cls, descriptor):
+        if isinstance(descriptor, str):
+            # Model field name
+            return {
+                "exprs": [F(descriptor)]
+            }
+
+        if isinstance(descriptor, collections.Mapping):
+            # An ordering descriptor.  Let's normalize it.
+            descriptor = copy.copy(descriptor)
+            if 'expr' in descriptor:
+                assert 'exprs' not in descriptor, \
+                    "'expr' and 'exprs' cannot be specified simultaneously"
+                descriptor['exprs'] = (descriptor['expr'],)
+                del descriptor['expr']
+            assert 'exprs' in descriptor, \
+                "'expr' or 'exprs' must be specified in the ordering descriptor"
+            descriptor["exprs"] = [F(field) if isinstance(field, str) else field for field in descriptor["exprs"]]
+            return descriptor
+
+        if isinstance(descriptor, collections.Sequence):
+            # A sequence of model field names or Django expressions
+            return {
+                "exprs": [F(field) if isinstance(field, str) else field for field in descriptor]
+            }
+
+        # Assume a Django expression
+        return {
+            "exprs": [descriptor]
+        }
+
+    def build_choices(self, params):
+        """
+        Build choices from params
+
+        Args:
+            params: Normalized params of {model_field_name: ordering desciptor}
+        Returns:
+            List of choices
+        """
         ascending = [
-            (param, labels.get(field, _(pretty_name(param))))
-            for field, param in fields.items()
+            (param_name, descriptor.get('label', _(pretty_name(param_name))))
+            for param_name, descriptor in params.items()
         ]
         descending = [
-            ('-%s' % param, labels.get('-%s' % param, self.descending_fmt % label))
-            for param, label in ascending
+            ('-%s' % param_name, descriptor.get('desc_label', self.descending_fmt % label))
+            for (param_name, descriptor), (param_name, label) in zip(params.items(), ascending)
         ]
 
         # interleave the ascending and descending choices
         return [val for pair in zip(ascending, descending) for val in pair]
+
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+        return qs.order_by(*itertools.chain(*(self.get_ordering_exprs(param) for param in value)))
+
+    def get_ordering_exprs(self, param_name):
+        descending = param_name.startswith('-')
+        param_name = param_name[1:] if descending else param_name
+        descriptor = self.params.get(param_name)
+        # For backward compatibility order by param_name if descriptor is not found
+        exprs = descriptor['exprs'] if descriptor is not None else (F(param_name),)
+        if descending:
+            return map(self.reverse_ordering, exprs)
+        return exprs
+
+    @classmethod
+    def reverse_ordering(cls, expr):
+        if isinstance(expr, OrderBy):
+            return expr.reverse_ordering()
+        return expr.desc()
 
 
 class FilterMethod:

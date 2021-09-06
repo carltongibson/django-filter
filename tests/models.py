@@ -51,6 +51,8 @@ class User(models.Model):
 
     favorite_books = models.ManyToManyField('Book', related_name='lovers')
 
+    last_login = models.DateTimeField(null=True)
+
     def __str__(self):
         return self.username
 
