@@ -66,7 +66,7 @@ transformation and empty value checking should be unnecessary.
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
-        published = BooleanFilter(field_name='published', method='filter_published')
+        published = BooleanFilter(field_name='published_on', method='filter_published')
 
         def filter_published(self, queryset, name, value):
             # construct the full lookup expression.
@@ -74,11 +74,11 @@ transformation and empty value checking should be unnecessary.
             return queryset.filter(**{lookup: False})
 
             # alternatively, you could opt to hardcode the lookup. e.g.,
-            # return queryset.filter(published__isnull=False)
+            # return queryset.filter(published_on__isnull=False)
 
         class Meta:
             model = Book
-            fields = ['published']
+            fields = ['published_on']
 
 
     # Callables may also be defined out of the class scope.
@@ -88,11 +88,11 @@ transformation and empty value checking should be unnecessary.
 
     class F(FilterSet):
         """Filter for Books by if books are published or not"""
-        published = BooleanFilter(field_name='published', method=filter_not_empty)
+        published = BooleanFilter(field_name='published_on', method=filter_not_empty)
 
         class Meta:
             model = Book
-            fields = ['published']
+            fields = ['published_on']
 
 
 ``distinct``
