@@ -1,5 +1,5 @@
-import mock
 import unittest
+from unittest import mock
 
 from django.db import models
 from django.test import TestCase, override_settings
