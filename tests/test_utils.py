@@ -6,7 +6,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
 from django.test import TestCase, override_settings
 from django.utils.functional import Promise
-from django.utils.timezone import get_default_timezone
+from django.utils.timezone import get_default_timezone, make_aware
 
 from django_filters import FilterSet
 from django_filters.exceptions import FieldLookupError
@@ -512,13 +512,19 @@ class HandleTimezone(TestCase):
     def test_handle_dst_ending(self):
         dst_ending_date = datetime.datetime(2017, 2, 18, 23, 59, 59, 999999)
         handled = handle_timezone(dst_ending_date, False)
-        self.assertEqual(handled, get_default_timezone().localize(dst_ending_date, False))
+        self.assertEqual(
+            handled,
+            make_aware(dst_ending_date, get_default_timezone(), False),
+        )
 
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_handle_dst_starting(self):
         dst_starting_date = datetime.datetime(2017, 10, 15, 0, 0, 0, 0)
         handled = handle_timezone(dst_starting_date, True)
-        self.assertEqual(handled, get_default_timezone().localize(dst_starting_date, True))
+        self.assertEqual(
+            handled,
+            make_aware(dst_starting_date, get_default_timezone(), True),
+        )
 
 
 class TranslateValidationDataTests(TestCase):
