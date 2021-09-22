@@ -872,10 +872,10 @@ class DateFromToRangeFilterTests(TestCase):
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_filtering_dst_start_midnight(self):
         tz = timezone.get_default_timezone()
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 14, 23, 59)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 15, 0, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 15, 1, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 16, 0, 0)))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 14, 23, 59), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 15, 0, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 15, 1, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 16, 0, 0), tz, False))
 
         class F(FilterSet):
             published = DateFromToRangeFilter()
@@ -892,10 +892,10 @@ class DateFromToRangeFilterTests(TestCase):
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_filtering_dst_ends_midnight(self):
         tz = timezone.get_default_timezone()
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 19, 0, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 18, 23, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 18, 0, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 2, 17, 15, 0)))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 2, 19, 0, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 2, 18, 23, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 2, 18, 0, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 2, 17, 15, 0), tz, False))
 
         class F(FilterSet):
             published = DateFromToRangeFilter()
@@ -912,11 +912,11 @@ class DateFromToRangeFilterTests(TestCase):
     @override_settings(TIME_ZONE='Europe/Paris')
     def test_filtering_dst_start(self):
         tz = timezone.get_default_timezone()
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 25, 23, 59)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 26, 0, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 26, 2, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 26, 3, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 3, 27, 0, 0)))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 3, 25, 23, 59), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 3, 26, 0, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 3, 26, 2, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 3, 26, 3, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 3, 27, 0, 0), tz, False))
 
         class F(FilterSet):
             published = DateFromToRangeFilter()
@@ -933,11 +933,11 @@ class DateFromToRangeFilterTests(TestCase):
     @override_settings(TIME_ZONE='Europe/Paris')
     def test_filtering_dst_end(self):
         tz = timezone.get_default_timezone()
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 28, 23, 59)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 29, 0, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 29, 2, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 29, 3, 0)))
-        Article.objects.create(published=tz.localize(datetime.datetime(2017, 10, 30, 0, 0)))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 28, 23, 59), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 29, 0, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 29, 2, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 29, 3, 0), tz, False))
+        Article.objects.create(published=make_aware(datetime.datetime(2017, 10, 30, 0, 0), tz, False))
 
         class F(FilterSet):
             published = DateFromToRangeFilter()
