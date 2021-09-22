@@ -3,6 +3,5 @@ coreapi
 django-crispy-forms
 
 coverage
-mock
 pytz
 unittest-xml-reporting
