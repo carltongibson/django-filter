@@ -1,10 +1,35 @@
-Unreleased
-----------
+Version 21.1 (2021-9-24)
+------------------------
 
-* Added testing against Django 3.2.
-* Dropped support for Django 3.0.
-* Dropped support for Python 3.5.
-* Added project_urls to setup.py.
+This is a maintenance release updating CI testing for the latest
+non-end-of-life versions of Python and Django, and updating package metadata
+accordingly.
+
+With this release ``django-filter`` is switching to a two-part CalVer
+versioning scheme, such as ``21.1``. The first number is the year. The second
+is the release number within that year.
+
+On an on-going basis, Django-Filter aims to support all current Django
+versions, the matching current Python versions, and the latest version of
+Django REST Framework.
+
+Please see:
+
+* `Status of supported Python branches <https://devguide.python.org/#status-of-python-branches>`_
+* `List of supported Django versions <https://www.djangoproject.com/download/#support-versions>`_
+
+Support for Python and Django versions will be dropped when they reach
+end-of-life. Support for Python versions will dropped when they reach
+end-of-life, even when still supported by a current version of Django.
+
+Other breaking changes are rare. Where required, every effort will be made to
+apply a "Year plus two" deprecation period. For example, a change initially
+introduced in ``23.x`` would offer a fallback where feasible and finally be
+removed in ``25.1``. Where fallbacks are not feasible, breaking changes without
+deprecation will be called out in the release notes.
+
+Beyond that change, there are few changes. Some small bugfixes, improvements to
+localisation, and documentation tweaks. Thanks to all who were involved.
 
 
 Version 2.4.0 (2020-9-27)
