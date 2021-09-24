@@ -37,7 +37,7 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertEqual(result.extra["widget"], BooleanWidget)
 
 
-@skipIf(is_crispy(), "django_crispy_forms must be installed")
+@skipIf(not is_crispy(), "django_crispy_forms must be installed")
 @override_settings(INSTALLED_APPS=settings.INSTALLED_APPS + ("crispy_forms",))
 class CrispyFormsCompatTests(TestCase):
     def test_crispy_helper(self):
