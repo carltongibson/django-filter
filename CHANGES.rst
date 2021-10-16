@@ -1,3 +1,9 @@
+Version 21.2
+-----------------------
+
+* Remove assertions/warnings about code deprecated in version 2.1
+
+
 Version 21.1 (2021-9-24)
 ------------------------
 

@@ -299,19 +299,6 @@ class ReverseFilterSetFilterForFieldTests(TestCase):
         self.assertEqual(result.lookup_expr, 'isnull')
 
 
-class FilterSetFilterForReverseFieldTests(TestCase):
-
-    def test_method_raises_assertion(self):
-        msg = ("`F.filter_for_reverse_field` has been removed. "
-               "`F.filter_for_field` now generates filters for reverse fields.")
-
-        with self.assertRaisesMessage(AssertionError, msg):
-            class F(FilterSet):
-                @classmethod
-                def filter_for_reverse_field(cls, field, field_name):
-                    pass
-
-
 class FilterSetClassCreationTests(TestCase):
 
     def test_no_filters(self):

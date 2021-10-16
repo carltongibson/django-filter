@@ -1,23 +1,12 @@
 import warnings
 
 from django.template import loader
-from django.utils.deprecation import RenameMethodsBase
 
 from .. import compat, utils
 from . import filters, filterset
 
 
-# TODO: remove metaclass in 2.1
-class RenameAttributes(utils.RenameAttributesBase, RenameMethodsBase):
-    renamed_attributes = (
-        ('default_filter_set', 'filterset_base', utils.MigrationNotice),
-    )
-    renamed_methods = (
-        ('get_filter_class', 'get_filterset_class', utils.MigrationNotice),
-    )
-
-
-class DjangoFilterBackend(metaclass=RenameAttributes):
+class DjangoFilterBackend:
     filterset_base = filterset.FilterSet
     raise_exception = True
 
@@ -41,20 +30,6 @@ class DjangoFilterBackend(metaclass=RenameAttributes):
         """
         filterset_class = getattr(view, 'filterset_class', None)
         filterset_fields = getattr(view, 'filterset_fields', None)
-
-        # TODO: remove assertion in 2.1
-        if filterset_class is None and hasattr(view, 'filter_class'):
-            utils.deprecate(
-                "`%s.filter_class` attribute should be renamed `filterset_class`."
-                % view.__class__.__name__)
-            filterset_class = getattr(view, 'filter_class', None)
-
-        # TODO: remove assertion in 2.1
-        if filterset_fields is None and hasattr(view, 'filter_fields'):
-            utils.deprecate(
-                "`%s.filter_fields` attribute should be renamed `filterset_fields`."
-                % view.__class__.__name__)
-            filterset_fields = getattr(view, 'filter_fields', None)
 
         if filterset_class:
             filterset_model = filterset_class._meta.model

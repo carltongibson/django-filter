@@ -1006,16 +1006,6 @@ class DateRangeFilterTests(TestCase):
         with self.assertRaisesMessage(AssertionError, msg):
             DateRangeFilter(choices=[('a', 'a')], filters={'b': None})
 
-    def test_options_removed(self):
-        msg = "The 'options' attribute has been replaced by 'choices' and 'filters'. " \
-              "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
-
-        class F(DateRangeFilter):
-            options = None
-
-        with self.assertRaisesMessage(AssertionError, msg):
-            F()
-
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=['filter'])
         with mock.patch('django_filters.filters.now') as mock_now:
