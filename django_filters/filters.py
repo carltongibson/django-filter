@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
 from django.utils.itercompat import is_iterable
-from django.utils.timezone import now
+from django.utils.timezone import localtime
 from django.utils.translation import gettext_lazy as _
 
 from .conf import settings
@@ -426,25 +426,25 @@ class DateRangeFilter(ChoiceFilter):
 
     filters = {
         'today': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month,
-            '%s__day' % name: now().day
+            '%s__year' % name: localtime().year,
+            '%s__month' % name: localtime().month,
+            '%s__day' % name: localtime().day
         }),
         'yesterday': lambda qs, name: qs.filter(**{
-            '%s__year' % name: (now() - timedelta(days=1)).year,
-            '%s__month' % name: (now() - timedelta(days=1)).month,
-            '%s__day' % name: (now() - timedelta(days=1)).day,
+            '%s__year' % name: (localtime() - timedelta(days=1)).year,
+            '%s__month' % name: (localtime() - timedelta(days=1)).month,
+            '%s__day' % name: (localtime() - timedelta(days=1)).day,
         }),
         'week': lambda qs, name: qs.filter(**{
-            '%s__gte' % name: _truncate(now() - timedelta(days=7)),
-            '%s__lt' % name: _truncate(now() + timedelta(days=1)),
+            '%s__gte' % name: _truncate(localtime() - timedelta(days=7)),
+            '%s__lt' % name: _truncate(localtime() + timedelta(days=1)),
         }),
         'month': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month
+            '%s__year' % name: localtime().year,
+            '%s__month' % name: localtime().month
         }),
         'year': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
+            '%s__year' % name: localtime().year,
         }),
     }
 
