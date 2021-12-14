@@ -35,8 +35,8 @@ year part ``year__gt``.
 
 .. _keyword-only-arguments:
 
-Keyword-only Arguments:
------------------------
+Keyword-only Arguments
+----------------------
 
 The following are optional arguments that can be used to modify the behavior of
 all filters.
