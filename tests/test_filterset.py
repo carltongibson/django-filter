@@ -2,6 +2,8 @@ import unittest
 from unittest import mock
 
 from django.db import models
+from django.db.models import IntegerField
+from django.forms.widgets import Select
 from django.test import TestCase, override_settings
 
 from django_filters.exceptions import FieldLookupError
@@ -241,6 +243,25 @@ class FilterSetFilterForLookupTests(TestCase):
         result, params = OFilterSet.filter_for_lookup(f, 'isnull')
         self.assertEqual(result, BooleanFilter)
         self.assertEqual(params['widget'], BooleanWidget)
+
+    def test_filter_overrides_extra_when_field_has_choices(self):
+        select = Select(attrs={'class': 'form-select'})
+
+        class OFilterSet(FilterSet):
+            class Meta:
+                filter_overrides = {
+                    IntegerField: {
+                        'filter_class': ChoiceFilter,
+                        'extra': lambda f: {
+                            'widget': select
+                        },
+                    },
+                }
+
+        f = User._meta.get_field('status')
+        result, params = OFilterSet.filter_for_lookup(f, 'exact')
+        self.assertEqual(result, ChoiceFilter)
+        self.assertEqual(params['widget'], select)
 
 
 class ReverseFilterSetFilterForFieldTests(TestCase):
