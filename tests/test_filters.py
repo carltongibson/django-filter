@@ -45,6 +45,7 @@ from django_filters.filters import (
     TimeFilter,
     TimeRangeFilter,
     TypedMultipleChoiceFilter,
+    URLFilter,
     UUIDFilter
 )
 from tests.models import Book, User
@@ -179,6 +180,14 @@ class CharFilterTests(TestCase):
         f = CharFilter()
         field = f.field
         self.assertIsInstance(field, forms.CharField)
+
+
+class URLFilterTests(TestCase):
+
+    def test_default_field(self):
+        f = URLFilter()
+        field = f.field
+        self.assertIsInstance(field, forms.URLField)
 
 
 class UUIDFilterTests(TestCase):

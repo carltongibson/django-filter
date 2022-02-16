@@ -59,6 +59,7 @@ __all__ = [
     'TimeRangeFilter',
     'TypedChoiceFilter',
     'TypedMultipleChoiceFilter',
+    'URLFilter',
     'UUIDFilter',
 ]
 
@@ -149,6 +150,10 @@ class Filter:
 
 class CharFilter(Filter):
     field_class = forms.CharField
+
+
+class URLFilter(Filter):
+    field_class = forms.URLField
 
 
 class BooleanFilter(Filter):
