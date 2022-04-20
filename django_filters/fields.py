@@ -305,7 +305,7 @@ class ModelMultipleChoiceField(ChoiceIteratorMixin, forms.ModelMultipleChoiceFie
     def _check_values(self, value):
         formatted_value = []
         for i, v in enumerate(value):
-            if ',' in v:
+            if type(v) == str and ',' in v:
                 formatted_value += re.split(' *, *', v)
             else:
                 formatted_value.append(v)
