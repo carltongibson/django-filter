@@ -84,6 +84,16 @@ class Filter:
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
 
+    def bind(self, attr, parent):
+        """Bind the filter to its parent filterset.
+
+        Provides both the filter's attribute name on the filterset and the
+        parent filterset instance. Called when the parent is initialized.
+        """
+        self.attr = attr
+        self.parent = parent
+        self.model = parent.queryset.model
+
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
            or simply filtering.
