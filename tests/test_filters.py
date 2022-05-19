@@ -1495,17 +1495,28 @@ class OrderingFilterTests(TestCase):
 
     def test_field_labels_descending(self):
         f = OrderingFilter(
-            fields=['username'],
+            fields=(('a', 'b'), ('c', 'd'), ('e', 'f')),
             field_labels={
-                'username': 'BLABLA',
-                '-username': 'XYZXYZ',
+                'c': 'BLABLA',
+                'e': 'BLABLA',
+                '-e': 'XYZXYZ',
             }
         )
 
         self.assertEqual(list(f.field.choices), [
             ('', '---------'),
-            ('username', 'BLABLA'),
-            ('-username', 'XYZXYZ'),
+
+            # Generates from prettified asc param name
+            ('b', 'B'),
+            ('-b', 'B (descending)'),
+
+            # Generates from provided asc label
+            ('d', 'BLABLA'),
+            ('-d', 'BLABLA (descending)'),
+
+            # Given desc label supersedes generated label
+            ('f', 'BLABLA'),
+            ('-f', 'XYZXYZ'),
         ])
 
     def test_normalize_fields(self):

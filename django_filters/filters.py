@@ -755,9 +755,15 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             (param, labels.get(field, _(pretty_name(param))))
             for field, param in fields.items()
         ]
+
+        # Descending labels are more complicated:
+        # - Generated from parameter name
+        # - Generated from ascending label
+        # - Provided a descending label
+        asc = dict(ascending)
         descending = [
-            ('-%s' % param, labels.get('-%s' % param, self.descending_fmt % label))
-            for param, label in ascending
+            ('-%s' % param, labels.get('-%s' % field, self.descending_fmt % asc[param]))
+            for field, param in fields.items()
         ]
 
         # interleave the ascending and descending choices
