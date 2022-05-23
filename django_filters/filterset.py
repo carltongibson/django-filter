@@ -404,7 +404,7 @@ class BaseFilterSet:
 
         # perform lookup specific checks
         if lookup_type == 'exact' and getattr(field, 'choices', None):
-            return ChoiceFilter, {'choices': field.choices}
+            return ChoiceFilter, {'choices': field.choices, **params}
 
         if lookup_type == 'isnull':
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
