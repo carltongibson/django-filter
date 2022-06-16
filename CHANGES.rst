@@ -1,8 +1,10 @@
-Version 21.2
------------------------
+Version 22.1 (Unreleased)
+-------------------------
 
-* Remove assertions/warnings about code deprecated in version 2.1
+* Update supported Python and Django versions: minimal Python is now 3.7,
+  minimum Django is now 3.2.
 
+* Removed outdated deprecated warnings for code removed in version 2.1.
 
 Version 21.1 (2021-9-24)
 ------------------------
