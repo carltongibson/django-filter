@@ -70,14 +70,6 @@ class FilterSetMetaclass(type):
         new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
         new_class.base_filters = new_class.get_filters()
 
-        # TODO: remove assertion in 2.1
-        assert not hasattr(new_class, 'filter_for_reverse_field'), (
-            "`%(cls)s.filter_for_reverse_field` has been removed. "
-            "`%(cls)s.filter_for_field` now generates filters for reverse fields. "
-            "See: https://django-filter.readthedocs.io/en/main/guide/migration.html"
-            % {'cls': new_class.__name__}
-        )
-
         return new_class
 
     @classmethod
