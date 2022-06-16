@@ -1,3 +1,5 @@
+from decimal import FloatOperation, getcontext
+
 from django import forms
 from django.test import TestCase, override_settings
 
@@ -267,5 +269,26 @@ class FilterSetValidityTests(TestCase):
         self.assertFalse(f.is_valid())
         self.assertEqual(
             f.errors,
-            {'average_rating': ['Ensure this value is less than or equal to 1e+50.']}
+            {'average_rating': [
+                'Ensure this value is less than or equal to %d.' % int(1e50)
+                ]}
+        )
+
+
+    def test_number_filter_max_value_validation_no_float(self):
+        class F(FilterSet):
+            class Meta:
+                model = Book
+                fields = ['average_rating']
+
+        ctx = getcontext()
+        ctx.traps[FloatOperation] = True
+        f = F({'average_rating': '1E1001'})
+        self.assertTrue(f.is_bound)
+        self.assertFalse(f.is_valid())
+        self.assertEqual(
+            f.errors,
+            {'average_rating': [
+                'Ensure this value is less than or equal to %d.' % int(1e50)
+                ]}
         )

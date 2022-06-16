@@ -362,7 +362,7 @@ class NumberFilter(Filter):
         """
         Return a MaxValueValidator for the field, or None to disable.
         """
-        return MaxValueValidator(1e50)
+        return MaxValueValidator(int(1e50))
 
     @property
     def field(self):
