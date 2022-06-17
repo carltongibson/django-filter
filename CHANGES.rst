@@ -1,8 +1,10 @@
-Version 22.1 (Unreleased)
--------------------------
+Version 22.1 (2022-6-17)
+------------------------
 
 * Update supported Python and Django versions: minimal Python is now 3.7,
   minimum Django is now 3.2.
+
+* Added testing for Python 3.10 and Django 4.1.
 
 * Removed outdated deprecated warnings for code removed in version 2.1.
 
