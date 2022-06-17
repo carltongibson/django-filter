@@ -9,11 +9,13 @@ from .. import compat
 from .filters import BooleanFilter, IsoDateTimeFilter
 
 FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(filterset.FILTER_FOR_DBFIELD_DEFAULTS)
-FILTER_FOR_DBFIELD_DEFAULTS.update({
-    models.DateTimeField: {'filter_class': IsoDateTimeFilter},
-    models.BooleanField: {'filter_class': BooleanFilter},
-    models.NullBooleanField: {'filter_class': BooleanFilter},
-})
+FILTER_FOR_DBFIELD_DEFAULTS.update(
+    {
+        models.DateTimeField: {"filter_class": IsoDateTimeFilter},
+        models.BooleanField: {"filter_class": BooleanFilter},
+        models.NullBooleanField: {"filter_class": BooleanFilter},
+    }
+)
 
 
 class FilterSet(filterset.FilterSet):
@@ -28,11 +30,11 @@ class FilterSet(filterset.FilterSet):
             from crispy_forms.layout import Layout, Submit
 
             layout_components = list(form.fields.keys()) + [
-                Submit('', _('Submit'), css_class='btn-default'),
+                Submit("", _("Submit"), css_class="btn-default"),
             ]
             helper = FormHelper()
-            helper.form_method = 'GET'
-            helper.template_pack = 'bootstrap3'
+            helper.form_method = "GET"
+            helper.template_pack = "bootstrap3"
             helper.layout = Layout(*layout_components)
 
             form.helper = helper

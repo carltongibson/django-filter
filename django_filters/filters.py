@@ -25,41 +25,41 @@ from .fields import (
     ModelMultipleChoiceField,
     MultipleChoiceField,
     RangeField,
-    TimeRangeField
+    TimeRangeField,
 )
 from .utils import get_model_field, label_for_filter
 
 __all__ = [
-    'AllValuesFilter',
-    'AllValuesMultipleFilter',
-    'BaseCSVFilter',
-    'BaseInFilter',
-    'BaseRangeFilter',
-    'BooleanFilter',
-    'CharFilter',
-    'ChoiceFilter',
-    'DateFilter',
-    'DateFromToRangeFilter',
-    'DateRangeFilter',
-    'DateTimeFilter',
-    'DateTimeFromToRangeFilter',
-    'DurationFilter',
-    'Filter',
-    'IsoDateTimeFilter',
-    'IsoDateTimeFromToRangeFilter',
-    'LookupChoiceFilter',
-    'ModelChoiceFilter',
-    'ModelMultipleChoiceFilter',
-    'MultipleChoiceFilter',
-    'NumberFilter',
-    'NumericRangeFilter',
-    'OrderingFilter',
-    'RangeFilter',
-    'TimeFilter',
-    'TimeRangeFilter',
-    'TypedChoiceFilter',
-    'TypedMultipleChoiceFilter',
-    'UUIDFilter',
+    "AllValuesFilter",
+    "AllValuesMultipleFilter",
+    "BaseCSVFilter",
+    "BaseInFilter",
+    "BaseRangeFilter",
+    "BooleanFilter",
+    "CharFilter",
+    "ChoiceFilter",
+    "DateFilter",
+    "DateFromToRangeFilter",
+    "DateRangeFilter",
+    "DateTimeFilter",
+    "DateTimeFromToRangeFilter",
+    "DurationFilter",
+    "Filter",
+    "IsoDateTimeFilter",
+    "IsoDateTimeFromToRangeFilter",
+    "LookupChoiceFilter",
+    "ModelChoiceFilter",
+    "ModelMultipleChoiceFilter",
+    "MultipleChoiceFilter",
+    "NumberFilter",
+    "NumericRangeFilter",
+    "OrderingFilter",
+    "RangeFilter",
+    "TimeFilter",
+    "TimeRangeFilter",
+    "TypedChoiceFilter",
+    "TypedMultipleChoiceFilter",
+    "UUIDFilter",
 ]
 
 
@@ -67,8 +67,17 @@ class Filter:
     creation_counter = 0
     field_class = forms.Field
 
-    def __init__(self, field_name=None, lookup_expr=None, *, label=None,
-                 method=None, distinct=False, exclude=False, **kwargs):
+    def __init__(
+        self,
+        field_name=None,
+        lookup_expr=None,
+        *,
+        label=None,
+        method=None,
+        distinct=False,
+        exclude=False,
+        **kwargs
+    ):
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
         self.field_name = field_name
@@ -79,14 +88,14 @@ class Filter:
         self.exclude = exclude
 
         self.extra = kwargs
-        self.extra.setdefault('required', False)
+        self.extra.setdefault("required", False)
 
         self.creation_counter = Filter.creation_counter
         Filter.creation_counter += 1
 
     def get_method(self, qs):
         """Return filter method based on whether we're excluding
-           or simply filtering.
+        or simply filtering.
         """
         return qs.exclude if self.exclude else qs.filter
 
@@ -95,6 +104,7 @@ class Filter:
         Filter method needs to be lazily resolved, as it may be dependent on
         the 'parent' FilterSet.
         """
+
         def fget(self):
             return self._method
 
@@ -110,11 +120,12 @@ class Filter:
                 self.filter = FilterMethod(self)
 
         return locals()
+
     method = property(**method())
 
     def label():
         def fget(self):
-            if self._label is None and hasattr(self, 'model'):
+            if self._label is None and hasattr(self, "model"):
                 self._label = label_for_filter(
                     self.model, self.field_name, self.lookup_expr, self.exclude
                 )
@@ -124,15 +135,16 @@ class Filter:
             self._label = value
 
         return locals()
+
     label = property(**label())
 
     @property
     def field(self):
-        if not hasattr(self, '_field'):
+        if not hasattr(self, "_field"):
             field_kwargs = self.extra.copy()
 
             if settings.DISABLE_HELP_TEXT:
-                field_kwargs.pop('help_text', None)
+                field_kwargs.pop("help_text", None)
 
             self._field = self.field_class(label=self.label, **field_kwargs)
         return self._field
@@ -142,7 +154,7 @@ class Filter:
             return qs
         if self.distinct:
             qs = qs.distinct()
-        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
+        lookup = "%s__%s" % (self.field_name, self.lookup_expr)
         qs = self.get_method(qs)(**{lookup: value})
         return qs
 
@@ -159,14 +171,16 @@ class ChoiceFilter(Filter):
     field_class = ChoiceField
 
     def __init__(self, *args, **kwargs):
-        self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
+        self.null_value = kwargs.get("null_value", settings.NULL_CHOICE_VALUE)
         super().__init__(*args, **kwargs)
 
     def filter(self, qs, value):
         if value != self.null_value:
             return super().filter(qs, value)
 
-        qs = self.get_method(qs)(**{'%s__%s' % (self.field_name, self.lookup_expr): None})
+        qs = self.get_method(qs)(
+            **{"%s__%s" % (self.field_name, self.lookup_expr): None}
+        )
         return qs.distinct() if self.distinct else qs
 
 
@@ -201,14 +215,15 @@ class MultipleChoiceFilter(Filter):
     `distinct` defaults to `True` as to-many relationships will generally
     require this.
     """
+
     field_class = MultipleChoiceField
 
     always_filter = True
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('distinct', True)
-        self.conjoined = kwargs.pop('conjoined', False)
-        self.null_value = kwargs.get('null_value', settings.NULL_CHOICE_VALUE)
+        kwargs.setdefault("distinct", True)
+        self.conjoined = kwargs.pop("conjoined", False)
+        self.null_value = kwargs.get("null_value", settings.NULL_CHOICE_VALUE)
         super().__init__(*args, **kwargs)
 
     def is_noop(self, qs, value):
@@ -220,7 +235,7 @@ class MultipleChoiceFilter(Filter):
             return False
 
         # A reasonable default for being a noop...
-        if self.extra.get('required') and len(value) == len(self.field.choices):
+        if self.extra.get("required") and len(value) == len(self.field.choices):
             return True
 
         return False
@@ -281,6 +296,7 @@ class IsoDateTimeFilter(DateTimeFilter):
     * https://github.com/encode/django-rest-framework/issues/1338
     * https://github.com/carltongibson/django-filter/pull/264
     """
+
     field_class = IsoDateTimeField
 
 
@@ -315,8 +331,9 @@ class QuerySetRequestMixin:
     user's associated company.
 
     """
+
     def __init__(self, *args, **kwargs):
-        self.queryset = kwargs.get('queryset')
+        self.queryset = kwargs.get("queryset")
         super().__init__(*args, **kwargs)
 
     def get_request(self):
@@ -338,7 +355,7 @@ class QuerySetRequestMixin:
         queryset = self.get_queryset(request)
 
         if queryset is not None:
-            self.extra['queryset'] = queryset
+            self.extra["queryset"] = queryset
 
         return super().field
 
@@ -347,7 +364,7 @@ class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
     field_class = ModelChoiceField
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('empty_label', settings.EMPTY_CHOICE_LABEL)
+        kwargs.setdefault("empty_label", settings.EMPTY_CHOICE_LABEL)
         super().__init__(*args, **kwargs)
 
 
@@ -366,7 +383,7 @@ class NumberFilter(Filter):
 
     @property
     def field(self):
-        if not hasattr(self, '_field'):
+        if not hasattr(self, "_field"):
             field = super().field
             max_validator = self.get_max_validator()
             if max_validator:
@@ -384,10 +401,10 @@ class NumericRangeFilter(Filter):
             if value.start is not None and value.stop is not None:
                 value = (value.start, value.stop)
             elif value.start is not None:
-                self.lookup_expr = 'startswith'
+                self.lookup_expr = "startswith"
                 value = value.start
             elif value.stop is not None:
-                self.lookup_expr = 'endswith'
+                self.lookup_expr = "endswith"
                 value = value.stop
 
         return super().filter(qs, value)
@@ -399,13 +416,13 @@ class RangeFilter(Filter):
     def filter(self, qs, value):
         if value:
             if value.start is not None and value.stop is not None:
-                self.lookup_expr = 'range'
+                self.lookup_expr = "range"
                 value = (value.start, value.stop)
             elif value.start is not None:
-                self.lookup_expr = 'gte'
+                self.lookup_expr = "gte"
                 value = value.start
             elif value.stop is not None:
-                self.lookup_expr = 'lte'
+                self.lookup_expr = "lte"
                 value = value.stop
 
         return super().filter(qs, value)
@@ -417,35 +434,42 @@ def _truncate(dt):
 
 class DateRangeFilter(ChoiceFilter):
     choices = [
-        ('today', _('Today')),
-        ('yesterday', _('Yesterday')),
-        ('week', _('Past 7 days')),
-        ('month', _('This month')),
-        ('year', _('This year')),
+        ("today", _("Today")),
+        ("yesterday", _("Yesterday")),
+        ("week", _("Past 7 days")),
+        ("month", _("This month")),
+        ("year", _("This year")),
     ]
 
     filters = {
-        'today': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month,
-            '%s__day' % name: now().day
-        }),
-        'yesterday': lambda qs, name: qs.filter(**{
-            '%s__year' % name: (now() - timedelta(days=1)).year,
-            '%s__month' % name: (now() - timedelta(days=1)).month,
-            '%s__day' % name: (now() - timedelta(days=1)).day,
-        }),
-        'week': lambda qs, name: qs.filter(**{
-            '%s__gte' % name: _truncate(now() - timedelta(days=7)),
-            '%s__lt' % name: _truncate(now() + timedelta(days=1)),
-        }),
-        'month': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-            '%s__month' % name: now().month
-        }),
-        'year': lambda qs, name: qs.filter(**{
-            '%s__year' % name: now().year,
-        }),
+        "today": lambda qs, name: qs.filter(
+            **{
+                "%s__year" % name: now().year,
+                "%s__month" % name: now().month,
+                "%s__day" % name: now().day,
+            }
+        ),
+        "yesterday": lambda qs, name: qs.filter(
+            **{
+                "%s__year" % name: (now() - timedelta(days=1)).year,
+                "%s__month" % name: (now() - timedelta(days=1)).month,
+                "%s__day" % name: (now() - timedelta(days=1)).day,
+            }
+        ),
+        "week": lambda qs, name: qs.filter(
+            **{
+                "%s__gte" % name: _truncate(now() - timedelta(days=7)),
+                "%s__lt" % name: _truncate(now() + timedelta(days=1)),
+            }
+        ),
+        "month": lambda qs, name: qs.filter(
+            **{"%s__year" % name: now().year, "%s__month" % name: now().month}
+        ),
+        "year": lambda qs, name: qs.filter(
+            **{
+                "%s__year" % name: now().year,
+            }
+        ),
     }
 
     def __init__(self, choices=None, filters=None, *args, **kwargs):
@@ -455,12 +479,13 @@ class DateRangeFilter(ChoiceFilter):
             self.filters = filters
 
         unique = set([x[0] for x in self.choices]) ^ set(self.filters)
-        assert not unique, \
-            "Keys must be present in both 'choices' and 'filters'. Missing keys: " \
-            "'%s'" % ', '.join(sorted(unique))
+        assert not unique, (
+            "Keys must be present in both 'choices' and 'filters'. Missing keys: "
+            "'%s'" % ", ".join(sorted(unique))
+        )
 
         # null choice not relevant
-        kwargs.setdefault('null_label', None)
+        kwargs.setdefault("null_label", None)
         super().__init__(choices=self.choices, *args, **kwargs)
 
     def filter(self, qs, value):
@@ -494,7 +519,7 @@ class AllValuesFilter(ChoiceFilter):
     def field(self):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
-        self.extra['choices'] = [(o, o) for o in qs]
+        self.extra["choices"] = [(o, o) for o in qs]
         return super().field
 
 
@@ -503,7 +528,7 @@ class AllValuesMultipleFilter(MultipleChoiceFilter):
     def field(self):
         qs = self.model._default_manager.distinct()
         qs = qs.order_by(self.field_name).values_list(self.field_name, flat=True)
-        self.extra['choices'] = [(o, o) for o in qs]
+        self.extra["choices"] = [(o, o) for o in qs]
         return super().field
 
 
@@ -511,14 +536,16 @@ class BaseCSVFilter(Filter):
     """
     Base class for CSV type filters, such as IN and RANGE.
     """
+
     base_field_class = BaseCSVField
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('help_text', _('Multiple values may be separated by commas.'))
+        kwargs.setdefault("help_text", _("Multiple values may be separated by commas."))
         super().__init__(*args, **kwargs)
 
         class ConcreteCSVField(self.base_field_class, self.field_class):
             pass
+
         ConcreteCSVField.__name__ = self._field_class_name(
             self.field_class, self.lookup_expr
         )
@@ -541,21 +568,20 @@ class BaseCSVFilter(Filter):
         """
         # DateTimeField => DateTime
         type_name = field_class.__name__
-        if type_name.endswith('Field'):
+        if type_name.endswith("Field"):
             type_name = type_name[:-5]
 
         # year__in => YearIn
         parts = lookup_expr.split(LOOKUP_SEP)
-        expression_name = ''.join(p.capitalize() for p in parts)
+        expression_name = "".join(p.capitalize() for p in parts)
 
         # DateTimeYearInField
-        return str('%s%sField' % (type_name, expression_name))
+        return str("%s%sField" % (type_name, expression_name))
 
 
 class BaseInFilter(BaseCSVFilter):
-
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('lookup_expr', 'in')
+        kwargs.setdefault("lookup_expr", "in")
         super().__init__(*args, **kwargs)
 
 
@@ -563,7 +589,7 @@ class BaseRangeFilter(BaseCSVFilter):
     base_field_class = BaseRangeField
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('lookup_expr', 'range')
+        kwargs.setdefault("lookup_expr", "range")
         super().__init__(*args, **kwargs)
 
 
@@ -590,11 +616,14 @@ class LookupChoiceFilter(Filter):
         )
 
     """
+
     field_class = forms.CharField
     outer_class = LookupChoiceField
 
-    def __init__(self, field_name=None, lookup_choices=None, field_class=None, **kwargs):
-        self.empty_label = kwargs.pop('empty_label', settings.EMPTY_CHOICE_LABEL)
+    def __init__(
+        self, field_name=None, lookup_choices=None, field_class=None, **kwargs
+    ):
+        self.empty_label = kwargs.pop("empty_label", settings.EMPTY_CHOICE_LABEL)
 
         super(LookupChoiceFilter, self).__init__(field_name=field_name, **kwargs)
 
@@ -640,15 +669,16 @@ class LookupChoiceFilter(Filter):
 
     @property
     def field(self):
-        if not hasattr(self, '_field'):
+        if not hasattr(self, "_field"):
             inner_field = super().field
             lookups = self.get_lookup_choices()
 
             self._field = self.outer_class(
-                inner_field, lookups,
+                inner_field,
+                lookups,
                 label=self.label,
                 empty_label=self.empty_label,
-                required=self.extra['required'],
+                required=self.extra["required"],
             )
 
         return self._field
@@ -687,29 +717,30 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
     for APIs.
 
     """
-    descending_fmt = _('%s (descending)')
+
+    descending_fmt = _("%s (descending)")
 
     def __init__(self, *args, **kwargs):
         """
         ``fields`` may be either a mapping or an iterable.
         ``field_labels`` must be a map of field names to display labels
         """
-        fields = kwargs.pop('fields', {})
+        fields = kwargs.pop("fields", {})
         fields = self.normalize_fields(fields)
-        field_labels = kwargs.pop('field_labels', {})
+        field_labels = kwargs.pop("field_labels", {})
 
         self.param_map = {v: k for k, v in fields.items()}
 
-        if 'choices' not in kwargs:
-            kwargs['choices'] = self.build_choices(fields, field_labels)
+        if "choices" not in kwargs:
+            kwargs["choices"] = self.build_choices(fields, field_labels)
 
-        kwargs.setdefault('label', _('Ordering'))
-        kwargs.setdefault('help_text', '')
-        kwargs.setdefault('null_label', None)
+        kwargs.setdefault("label", _("Ordering"))
+        kwargs.setdefault("help_text", "")
+        kwargs.setdefault("null_label", None)
         super().__init__(*args, **kwargs)
 
     def get_ordering_value(self, param):
-        descending = param.startswith('-')
+        descending = param.startswith("-")
         param = param[1:] if descending else param
         field_name = self.param_map.get(param, param)
 
@@ -732,18 +763,19 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             return OrderedDict(fields)
 
         # convert iterable of values => iterable of pairs (field name, param name)
-        assert is_iterable(fields), \
-            "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
+        assert is_iterable(
+            fields
+        ), "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
         # fields is an iterable of field names
-        assert all(isinstance(field, str) or
-                   is_iterable(field) and len(field) == 2  # may need to be wrapped in parens
-                   for field in fields), \
-            "'fields' must contain strings or (field name, param name) pairs."
+        assert all(
+            isinstance(field, str)
+            or is_iterable(field)
+            and len(field) == 2  # may need to be wrapped in parens
+            for field in fields
+        ), "'fields' must contain strings or (field name, param name) pairs."
 
-        return OrderedDict([
-            (f, f) if isinstance(f, str) else f for f in fields
-        ])
+        return OrderedDict([(f, f) if isinstance(f, str) else f for f in fields])
 
     def build_choices(self, fields, labels):
         ascending = [
@@ -751,7 +783,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             for field, param in fields.items()
         ]
         descending = [
-            ('-%s' % param, labels.get('-%s' % param, self.descending_fmt % label))
+            ("-%s" % param, labels.get("-%s" % param, self.descending_fmt % label))
             for param, label in ascending
         ]
 
@@ -764,6 +796,7 @@ class FilterMethod:
     This helper is used to override Filter.filter() when a 'method' argument
     is passed. It proxies the call to the actual method on the filter's parent.
     """
+
     def __init__(self, filter_instance):
         self.f = filter_instance
 
@@ -785,15 +818,22 @@ class FilterMethod:
             return instance.method
 
         # otherwise, method is the name of a method on the parent FilterSet.
-        assert hasattr(instance, 'parent'), \
-            "Filter '%s' must have a parent FilterSet to find '.%s()'" %  \
-            (instance.field_name, instance.method)
+        assert hasattr(
+            instance, "parent"
+        ), "Filter '%s' must have a parent FilterSet to find '.%s()'" % (
+            instance.field_name,
+            instance.method,
+        )
 
         parent = instance.parent
         method = getattr(parent, instance.method, None)
 
-        assert callable(method), \
-            "Expected parent FilterSet '%s.%s' to have a '.%s()' method." % \
-            (parent.__class__.__module__, parent.__class__.__name__, instance.method)
+        assert callable(
+            method
+        ), "Expected parent FilterSet '%s.%s' to have a '.%s()' method." % (
+            parent.__class__.__module__,
+            parent.__class__.__name__,
+            instance.method,
+        )
 
         return method

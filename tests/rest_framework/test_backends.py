@@ -8,11 +8,7 @@ from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
 
 from django_filters import compat, filters
-from django_filters.rest_framework import (
-    DjangoFilterBackend,
-    FilterSet,
-    backends
-)
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, backends
 
 from ..models import Article
 from .models import CategoryItem, FilterableItem
@@ -23,24 +19,24 @@ factory = APIRequestFactory()
 class FilterableItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterableItem
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CategoryItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryItem
-        fields = '__all__'
+        fields = "__all__"
 
 
 # These class are used to test a filter class.
 class SeveralFieldsFilter(FilterSet):
-    text = filters.CharFilter(lookup_expr='icontains')
-    decimal = filters.NumberFilter(lookup_expr='lt')
-    date = filters.DateFilter(lookup_expr='gt')
+    text = filters.CharFilter(lookup_expr="icontains")
+    decimal = filters.NumberFilter(lookup_expr="lt")
+    date = filters.DateFilter(lookup_expr="gt")
 
     class Meta:
         model = FilterableItem
-        fields = ['text', 'decimal', 'date']
+        fields = ["text", "decimal", "date"]
 
 
 # Basic filter on a list view.
@@ -51,7 +47,7 @@ class FilterableItemView(generics.ListCreateAPIView):
 
 
 class FilterFieldsRootView(FilterableItemView):
-    filterset_fields = ['decimal', 'date']
+    filterset_fields = ["decimal", "date"]
 
 
 class FilterClassRootView(FilterableItemView):
@@ -66,12 +62,11 @@ class CategoryItemView(generics.ListCreateAPIView):
 
 
 class GetFilterClassTests(TestCase):
-
     def test_filterset_class(self):
         class Filter(FilterSet):
             class Meta:
                 model = FilterableItem
-                fields = '__all__'
+                fields = "__all__"
 
         backend = DjangoFilterBackend()
         view = FilterableItemView()
@@ -97,7 +92,7 @@ class GetFilterClassTests(TestCase):
         class Filter(FilterSet):
             class Meta:
                 model = FilterableItem
-                fields = '__all__'
+                fields = "__all__"
 
         backend = DjangoFilterBackend()
         view = FilterableItemView()
@@ -109,7 +104,7 @@ class GetFilterClassTests(TestCase):
     def test_filterset_fields(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filterset_fields = ['text', 'decimal', 'date']
+        view.filterset_fields = ["text", "decimal", "date"]
         queryset = FilterableItem.objects.all()
 
         filterset_class = backend.get_filterset_class(view, queryset)
@@ -118,7 +113,7 @@ class GetFilterClassTests(TestCase):
     def test_filterset_fields_malformed(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filterset_fields = ['non_existent']
+        view.filterset_fields = ["non_existent"]
         queryset = FilterableItem.objects.all()
 
         msg = "'Meta.fields' must not contain non-model field names: non_existent"
@@ -128,28 +123,29 @@ class GetFilterClassTests(TestCase):
     def test_filterset_fields_no_queryset(self):
         backend = DjangoFilterBackend()
         view = FilterableItemView()
-        view.filterset_fields = ['text', 'decimal', 'date']
+        view.filterset_fields = ["text", "decimal", "date"]
 
         filterset_class = backend.get_filterset_class(view, None)
         self.assertIsNone(filterset_class)
 
 
-@skipIf(compat.coreapi is None, 'coreapi must be installed')
+@skipIf(compat.coreapi is None, "coreapi must be installed")
 class GetSchemaFieldsTests(TestCase):
     def test_fields_with_filterset_fields_list(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(FilterFieldsRootView())
         fields = [f.name for f in fields]
 
-        self.assertEqual(fields, ['decimal', 'date'])
+        self.assertEqual(fields, ["decimal", "date"])
 
     def test_filterset_fields_list_with_bad_get_queryset(self):
         """
         See:
           * https://github.com/carltongibson/django-filter/issues/551
         """
+
         class BadGetQuerySetView(FilterFieldsRootView):
-            filterset_fields = ['decimal', 'date']
+            filterset_fields = ["decimal", "date"]
 
             def get_queryset(self):
                 raise AttributeError("I don't have that")
@@ -160,16 +156,20 @@ class GetSchemaFieldsTests(TestCase):
             warnings.simplefilter("always")
 
             fields = backend.get_schema_fields(BadGetQuerySetView())
-            self.assertEqual(fields, [], "get_schema_fields should handle AttributeError")
+            self.assertEqual(
+                fields, [], "get_schema_fields should handle AttributeError"
+            )
 
-            warning = "{} is not compatible with schema generation".format(BadGetQuerySetView)
+            warning = "{} is not compatible with schema generation".format(
+                BadGetQuerySetView
+            )
             self.assertEqual(len(w), 1)
             self.assertEqual(str(w[0].message), warning)
 
     def test_malformed_filterset_fields(self):
         # Malformed filter fields should raise an exception
         class View(FilterFieldsRootView):
-            filterset_fields = ['non_existent']
+            filterset_fields = ["non_existent"]
 
         backend = DjangoFilterBackend()
 
@@ -180,14 +180,14 @@ class GetSchemaFieldsTests(TestCase):
     def test_fields_with_filterset_fields_dict(self):
         class DictFilterFieldsRootView(FilterFieldsRootView):
             filterset_fields = {
-                'decimal': ['exact', 'lt', 'gt'],
+                "decimal": ["exact", "lt", "gt"],
             }
 
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(DictFilterFieldsRootView())
         fields = [f.name for f in fields]
 
-        self.assertEqual(fields, ['decimal', 'decimal__lt', 'decimal__gt'])
+        self.assertEqual(fields, ["decimal", "decimal__lt", "decimal__gt"])
 
     def test_fields_with_filterset_class(self):
         backend = DjangoFilterBackend()
@@ -195,7 +195,7 @@ class GetSchemaFieldsTests(TestCase):
         schemas = [f.schema for f in fields]
         fields = [f.name for f in fields]
 
-        self.assertEqual(fields, ['text', 'decimal', 'date'])
+        self.assertEqual(fields, ["text", "decimal", "date"])
         self.assertIsInstance(schemas[0], compat.coreschema.String)
         self.assertIsInstance(schemas[1], compat.coreschema.Number)
         self.assertIsInstance(schemas[2], compat.coreschema.String)
@@ -205,7 +205,7 @@ class GetSchemaFieldsTests(TestCase):
             required_text = filters.CharFilter(required=True)
 
             class Meta(SeveralFieldsFilter.Meta):
-                fields = SeveralFieldsFilter.Meta.fields + ['required_text']
+                fields = SeveralFieldsFilter.Meta.fields + ["required_text"]
 
         class FilterClassWithRequiredFieldsView(FilterClassRootView):
             filterset_class = RequiredFieldsFilter
@@ -215,7 +215,7 @@ class GetSchemaFieldsTests(TestCase):
         required = [f.required for f in fields]
         fields = [f.name for f in fields]
 
-        self.assertEqual(fields, ['text', 'decimal', 'date', 'required_text'])
+        self.assertEqual(fields, ["text", "decimal", "date", "required_text"])
         self.assertFalse(required[0])
         self.assertFalse(required[1])
         self.assertFalse(required[2])
@@ -225,7 +225,9 @@ class GetSchemaFieldsTests(TestCase):
         def qs(request):
             # users expect a valid request object to be provided which cannot
             # be guaranteed during schema generation.
-            self.fail("callable queryset should not be invoked during schema generation")
+            self.fail(
+                "callable queryset should not be invoked during schema generation"
+            )
 
         class F(SeveralFieldsFilter):
             f = filters.ModelChoiceFilter(queryset=qs)
@@ -234,21 +236,21 @@ class GetSchemaFieldsTests(TestCase):
             filterset_class = F
 
         view = View()
-        view.request = factory.get('/')
+        view.request = factory.get("/")
         backend = DjangoFilterBackend()
         fields = backend.get_schema_fields(view)
         fields = [f.name for f in fields]
 
-        self.assertEqual(fields, ['text', 'decimal', 'date', 'f'])
+        self.assertEqual(fields, ["text", "decimal", "date", "f"])
 
 
 class GetSchemaOperationParametersTests(TestCase):
     def test_get_operation_parameters_with_filterset_fields_list(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_operation_parameters(FilterFieldsRootView())
-        fields = [f['name'] for f in fields]
+        fields = [f["name"] for f in fields]
 
-        self.assertEqual(fields, ['decimal', 'date'])
+        self.assertEqual(fields, ["decimal", "date"])
 
     def test_get_operation_parameters_with_filterset_fields_list_with_choices(self):
         backend = DjangoFilterBackend()
@@ -256,17 +258,15 @@ class GetSchemaOperationParametersTests(TestCase):
 
         self.assertEqual(
             fields,
-            [{
-                'name': 'category',
-                'required': False,
-                'in': 'query',
-                'description': 'category',
-                'schema': {
-                    'type': 'string',
-                    'enum': ['home', 'office']
-                },
-
-            }]
+            [
+                {
+                    "name": "category",
+                    "required": False,
+                    "in": "query",
+                    "description": "category",
+                    "schema": {"type": "string", "enum": ["home", "office"]},
+                }
+            ],
         )
 
 
@@ -277,10 +277,12 @@ class TemplateTests(TestCase):
         """
         view = FilterFieldsRootView()
         backend = view.filter_backends[0]
-        request = view.initialize_request(factory.get('/'))
+        request = view.initialize_request(factory.get("/"))
         html = backend().to_html(request, view.get_queryset(), view)
 
-        self.assertHTMLEqual(html, """
+        self.assertHTMLEqual(
+            html,
+            """
         <h2>Field filters</h2>
         <form class="form" action="" method="get">
             <p>
@@ -293,15 +295,16 @@ class TemplateTests(TestCase):
             </p>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
-        """)
+        """,
+        )
 
     def test_template_path(self):
         view = FilterFieldsRootView()
 
         class Backend(view.filter_backends[0]):
-            template = 'filter_template.html'
+            template = "filter_template.html"
 
-        request = view.initialize_request(factory.get('/'))
+        request = view.initialize_request(factory.get("/"))
         html = Backend().to_html(request, view.get_queryset(), view)
 
         self.assertHTMLEqual(html, "Test")
@@ -319,8 +322,15 @@ class TemplateTests(TestCase):
 
     def test_multiple_engines(self):
         # See: https://github.com/carltongibson/django-filter/issues/578
-        DTL = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True}
-        ALT = {'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True, 'NAME': 'alt'}
+        DTL = {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+        }
+        ALT = {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+            "NAME": "alt",
+        }
 
         # multiple DTL backends
         with override_settings(TEMPLATES=[DTL, ALT]):
@@ -350,16 +360,15 @@ class AutoFilterSetTests(TestCase):
 
 
 class ValidationErrorTests(TestCase):
-
     def test_errors(self):
         class F(FilterSet):
             class Meta:
                 model = Article
-                fields = ['id', 'author', 'name']
+                fields = ["id", "author", "name"]
 
         view = FilterFieldsRootView()
         backend = DjangoFilterBackend()
-        request = factory.get('/?id=foo&author=bar&name=baz')
+        request = factory.get("/?id=foo&author=bar&name=baz")
         request = view.initialize_request(request)
         queryset = Article.objects.all()
         view.filterset_class = F
@@ -368,14 +377,18 @@ class ValidationErrorTests(TestCase):
             backend.filter_queryset(request, queryset, view)
 
         # test output, does not include error code
-        self.assertDictEqual(exc.exception.detail, {
-            'id': ['Enter a number.'],
-            'author': ['Select a valid choice. That choice is not one of the available choices.'],
-        })
+        self.assertDictEqual(
+            exc.exception.detail,
+            {
+                "id": ["Enter a number."],
+                "author": [
+                    "Select a valid choice. That choice is not one of the available choices."
+                ],
+            },
+        )
 
 
 class DjangoFilterBackendTestCase(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.backend = DjangoFilterBackend()
@@ -397,10 +410,12 @@ class DjangoFilterBackendTestCase(TestCase):
     def test_get_schema_operation_parameters_userwarning(self):
         with self.assertWarns(UserWarning):
             view = mock.Mock()
-            view.__class__.return_value = 'Test'
+            view.__class__.return_value = "Test"
             view.get_queryset.side_effect = Exception
             self.backend.get_schema_operation_parameters(view)
 
-    @mock.patch('django_filters.compat.is_crispy', return_value=True)
+    @mock.patch("django_filters.compat.is_crispy", return_value=True)
     def test_template_crispy(self, _):
-        self.assertEqual(self.backend.template, 'django_filters/rest_framework/crispy_form.html')
+        self.assertEqual(
+            self.backend.template, "django_filters/rest_framework/crispy_form.html"
+        )

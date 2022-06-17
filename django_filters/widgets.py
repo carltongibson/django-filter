@@ -25,17 +25,17 @@ class LinkWidget(forms.Widget):
         return value
 
     def render(self, name, value, attrs=None, choices=(), renderer=None):
-        if not hasattr(self, 'data'):
+        if not hasattr(self, "data"):
             self.data = {}
         if value is None:
-            value = ''
+            value = ""
         final_attrs = self.build_attrs(self.attrs, extra_attrs=attrs)
-        output = ['<ul%s>' % flatatt(final_attrs)]
+        output = ["<ul%s>" % flatatt(final_attrs)]
         options = self.render_options(choices, [value], name)
         if options:
             output.append(options)
-        output.append('</ul>')
-        return mark_safe('\n'.join(output))
+        output.append("</ul>")
+        return mark_safe("\n".join(output))
 
     def render_options(self, choices, selected_choices, name):
         selected_choices = set(force_str(v) for v in selected_choices)
@@ -43,16 +43,16 @@ class LinkWidget(forms.Widget):
         for option_value, option_label in chain(self.choices, choices):
             if isinstance(option_label, (list, tuple)):
                 for option in option_label:
-                    output.append(
-                        self.render_option(name, selected_choices, *option))
+                    output.append(self.render_option(name, selected_choices, *option))
             else:
                 output.append(
-                    self.render_option(name, selected_choices,
-                                       option_value, option_label))
-        return '\n'.join(output)
+                    self.render_option(
+                        name, selected_choices, option_value, option_label
+                    )
+                )
+        return "\n".join(output)
 
-    def render_option(self, name, selected_choices,
-                      option_value, option_label):
+    def render_option(self, name, selected_choices, option_value, option_label):
         option_value = force_str(option_value)
         if option_label == BLANK_CHOICE_DASH[0][1]:
             option_label = _("All")
@@ -64,9 +64,9 @@ class LinkWidget(forms.Widget):
         except AttributeError:
             url = urlencode(data)
         return self.option_string() % {
-            'attrs': selected and ' class="selected"' or '',
-            'query_string': url,
-            'label': force_str(option_label)
+            "attrs": selected and ' class="selected"' or "",
+            "query_string": url,
+            "label": force_str(option_label),
         }
 
     def option_string(self):
@@ -80,6 +80,7 @@ class SuffixedMultiWidget(forms.MultiWidget):
     - Suffixes must be unique.
     - There must be the same number of suffixes as fields.
     """
+
     suffixes = []
 
     def __init__(self, *args, **kwargs):
@@ -89,12 +90,12 @@ class SuffixedMultiWidget(forms.MultiWidget):
         assert len(self.suffixes) == len(set(self.suffixes))
 
     def suffixed(self, name, suffix):
-        return '_'.join([name, suffix]) if suffix else name
+        return "_".join([name, suffix]) if suffix else name
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        for subcontext, suffix in zip(context['widget']['subwidgets'], self.suffixes):
-            subcontext['name'] = self.suffixed(name, suffix)
+        for subcontext, suffix in zip(context["widget"]["subwidgets"], self.suffixes):
+            subcontext["name"] = self.suffixed(name, suffix)
 
         return context
 
@@ -112,7 +113,7 @@ class SuffixedMultiWidget(forms.MultiWidget):
 
     def replace_name(self, output, index):
         result = search(r'name="(?P<name>.*)_%d"' % index, output)
-        name = result.group('name')
+        name = result.group("name")
         name = self.suffixed(name, self.suffixes[index])
         name = 'name="%s"' % name
 
@@ -125,8 +126,8 @@ class SuffixedMultiWidget(forms.MultiWidget):
 
 
 class RangeWidget(SuffixedMultiWidget):
-    template_name = 'django_filters/widgets/multiwidget.html'
-    suffixes = ['min', 'max']
+    template_name = "django_filters/widgets/multiwidget.html"
+    suffixes = ["min", "max"]
 
     def __init__(self, attrs=None):
         widgets = (forms.TextInput, forms.TextInput)
@@ -139,11 +140,11 @@ class RangeWidget(SuffixedMultiWidget):
 
 
 class DateRangeWidget(RangeWidget):
-    suffixes = ['after', 'before']
+    suffixes = ["after", "before"]
 
 
 class LookupChoiceWidget(SuffixedMultiWidget):
-    suffixes = [None, 'lookup']
+    suffixes = [None, "lookup"]
 
     def decompress(self, value):
         if value is None:
@@ -156,22 +157,16 @@ class BooleanWidget(forms.Select):
     This can be used for AJAX queries that pass true/false from JavaScript's
     internal types through.
     """
+
     def __init__(self, attrs=None):
-        choices = (('', _('Unknown')),
-                   ('true', _('Yes')),
-                   ('false', _('No')))
+        choices = (("", _("Unknown")), ("true", _("Yes")), ("false", _("No")))
         super().__init__(attrs, choices)
 
     def render(self, name, value, attrs=None, renderer=None):
         try:
-            value = {
-                True: 'true',
-                False: 'false',
-                '1': 'true',
-                '0': 'false'
-            }[value]
+            value = {True: "true", False: "false", "1": "true", "0": "false"}[value]
         except KeyError:
-            value = ''
+            value = ""
         return super().render(name, value, attrs, renderer=renderer)
 
     def value_from_datadict(self, data, files, name):
@@ -180,10 +175,10 @@ class BooleanWidget(forms.Select):
             value = value.lower()
 
         return {
-            '1': True,
-            '0': False,
-            'true': True,
-            'false': False,
+            "1": True,
+            "0": False,
+            "true": True,
+            "false": False,
             True: True,
             False: False,
         }.get(value, None)
@@ -208,9 +203,9 @@ class BaseCSVWidget(forms.Widget):
         value = super().value_from_datadict(data, files, name)
 
         if value is not None:
-            if value == '':  # empty value should parse as an empty list
+            if value == "":  # empty value should parse as an empty list
                 return []
-            return value.split(',')
+            return value.split(",")
         return None
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -219,13 +214,13 @@ class BaseCSVWidget(forms.Widget):
 
         if len(value) <= 1:
             # delegate to main widget (Select, etc...) if not multiple values
-            value = value[0] if value else ''
+            value = value[0] if value else ""
             return super().render(name, value, attrs, renderer=renderer)
 
         # if we have multiple values, we need to force render as a text input
         # (otherwise, the additional values are lost)
         value = [force_str(self.surrogate.format_value(v)) for v in value]
-        value = ','.join(list(value))
+        value = ",".join(list(value))
 
         return self.surrogate.render(name, value, attrs, renderer=renderer)
 
@@ -254,10 +249,10 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
             for key, value in data.items():
                 # treat value as csv string: ?foo=1,2
                 if isinstance(value, str):
-                    data[key] = [x.strip() for x in value.rstrip(',').split(',') if x]
+                    data[key] = [x.strip() for x in value.rstrip(",").split(",") if x]
             data = MultiValueDict(data)
 
-        values_list = data.getlist(name, data.getlist('%s[]' % name)) or []
+        values_list = data.getlist(name, data.getlist("%s[]" % name)) or []
 
         # apparently its an array, so no need to process it's values as csv
         # ?foo=1&foo=2 -> data.getlist(foo) -> foo = [1, 2]
