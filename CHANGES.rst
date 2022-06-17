@@ -8,6 +8,8 @@ Version 22.1 (2022-6-17)
 
 * Removed outdated deprecated warnings for code removed in version 2.1.
 
+* The code base is now formatted with Black.
+
 Version 21.1 (2021-9-24)
 ------------------------
 
