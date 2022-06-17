@@ -1,6 +1,7 @@
 import os
 import sys
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 # FIXME: Main module requires django to be present, so cannot run setup.py in
 # clean environment.
