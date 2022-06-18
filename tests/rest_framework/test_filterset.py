@@ -4,7 +4,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from django_filters.compat import is_crispy
+from django_filters.compat import crispy_forms
 from django_filters.rest_framework import FilterSet, filters
 from django_filters.widgets import BooleanWidget
 
@@ -37,7 +37,7 @@ class FilterSetFilterForFieldTests(TestCase):
         self.assertEqual(result.extra["widget"], BooleanWidget)
 
 
-@skipIf(is_crispy(), "django_crispy_forms must be installed")
+@skipIf(crispy_forms is None, "django_crispy_forms must be installed")
 @override_settings(INSTALLED_APPS=settings.INSTALLED_APPS + ("crispy_forms",))
 class CrispyFormsCompatTests(TestCase):
     def test_crispy_helper(self):
