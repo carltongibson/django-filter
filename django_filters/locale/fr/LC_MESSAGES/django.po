@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-05 19:24+0200\n"
+"POT-Creation-Date: 2022-07-06 15:54+0200\n"
 "PO-Revision-Date: 2013-07-05 19:24+0200\n"
 "Last-Translator: Axel Haustant <noirbizarre@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,30 +18,176 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: filters.py:51
-msgid "This is an exclusion filter"
-msgstr "Ceci est un filtre d'exclusion"
+#: conf.py:19
+msgid "date"
+msgstr "date"
 
-#: filters.py:158
-msgid "Any date"
-msgstr "Toutes les dates"
+#: conf.py:20
+msgid "year"
+msgstr "année"
 
-#: filters.py:159
+#: conf.py:21
+msgid "month"
+msgstr "mois"
+
+#: conf.py:22
+msgid "day"
+msgstr "jour"
+
+#: conf.py:23
+msgid "week day"
+msgstr "jour de la semaine"
+
+#: conf.py:24
+msgid "hour"
+msgstr "heure"
+
+#: conf.py:25
+msgid "minute"
+msgstr "minute"
+
+#: conf.py:26
+msgid "second"
+msgstr "seconde"
+
+#: conf.py:31 conf.py:32
+msgid "contains"
+msgstr "contient"
+
+#: conf.py:33
+msgid "is in"
+msgstr "est inclus dans"
+
+#: conf.py:34
+msgid "is greater than"
+msgstr "supérieur à"
+
+#: conf.py:35
+msgid "is greater than or equal to"
+msgstr "supérieur ou égal à"
+
+#: conf.py:36
+msgid "is less than"
+msgstr "inférieur à"
+
+#: conf.py:37
+msgid "is less than or equal to"
+msgstr "inférieur ou égale à"
+
+#: conf.py:38 conf.py:39
+msgid "starts with"
+msgstr "commence par"
+
+#: conf.py:40 conf.py:41
+msgid "ends with"
+msgstr "se termine par"
+
+#: conf.py:42
+msgid "is in range"
+msgstr "entre"
+
+#: conf.py:43
+msgid "is null"
+msgstr "est nul"
+
+#: conf.py:44 conf.py:45
+msgid "matches regex"
+msgstr "correspond à l'expression régulière"
+
+#: conf.py:46 conf.py:54
+msgid "search"
+msgstr "recherche"
+
+#: conf.py:49
+msgid "is contained by"
+msgstr "est contenu dans"
+
+#: conf.py:50
+msgid "overlaps"
+msgstr "chevauche"
+
+#: conf.py:51
+msgid "has key"
+msgstr "contient la clé"
+
+#: conf.py:52
+msgid "has keys"
+msgstr "contient les clés"
+
+#: conf.py:53
+msgid "has any keys"
+msgstr "a une des clés"
+
+#: fields.py:106
+msgid "Select a lookup."
+msgstr "Sélectionner un lookup"
+
+#: fields.py:201
+msgid "Range query expects two values."
+msgstr "La fouchette doit avoir 2 valeurs"
+
+#: filters.py:420
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: filters.py:164
+#: filters.py:421
+msgid "Yesterday"
+msgstr "Hier"
+
+#: filters.py:422
 msgid "Past 7 days"
 msgstr "7 derniers jours"
 
-#: filters.py:168
+#: filters.py:423
 msgid "This month"
 msgstr "Ce mois-ci"
 
-#: filters.py:172
+#: filters.py:424
 msgid "This year"
 msgstr "Cette année"
 
-#: widgets.py:63
+#: filters.py:522
+msgid "Multiple values may be separated by commas."
+msgstr "Les valeurs multiples doivent être séparées par des virgules."
+
+#: filters.py:695
+#, python-format
+msgid "%s (descending)"
+msgstr "%s (décroisssant)"
+
+#: filters.py:711
+msgid "Ordering"
+msgstr "Tri"
+
+#: rest_framework/filterset.py:31
+#: templates/django_filters/rest_framework/form.html:5
+msgid "Submit"
+msgstr "Envoyer"
+
+#: templates/django_filters/rest_framework/crispy_form.html:4
+#: templates/django_filters/rest_framework/form.html:2
+msgid "Field filters"
+msgstr "Filtres de champ"
+
+#: utils.py:302
+msgid "exclude"
+msgstr "Exclut"
+
+#: widgets.py:58
 msgid "All"
 msgstr "Tous"
+
+#: widgets.py:160
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: widgets.py:161
+msgid "Yes"
+msgstr "Oui"
+
+#: widgets.py:162
+msgid "No"
+msgstr "Non"
+
+#~ msgid "This is an exclusion filter"
+#~ msgstr "Ceci est un filtre d'exclusion"
