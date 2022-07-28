@@ -41,8 +41,16 @@ class FilterMixin:
         """
         Returns the keyword arguments for instantiating the filterset.
         """
+        # Check if the querystrings contain filter fields and
+        # creates a data dictionary of filter fields and values
+        filter_fields = set(filterset_class.get_filters().keys())
+        query_strings = set(self.request.GET.keys())
+        data = {
+            filter_field: self.request.GET.get(filter_field)
+            for filter_field in filter_fields.intersection(query_strings)
+        }
         kwargs = {
-            "data": self.request.GET or None,
+            "data": data or None,
             "request": self.request,
         }
         try:
