@@ -1,4 +1,6 @@
+from types import FunctionType
 import warnings
+from django.forms.fields import CallableChoiceIterator
 
 from django.template import loader
 
@@ -150,6 +152,9 @@ class DjangoFilterBackend:
                 },
             }
             if field.extra and "choices" in field.extra:
-                parameter["schema"]["enum"] = [c[0] for c in field.extra["choices"]]
+                choices = field.extra['choices']
+                if callable(choices):
+                    choices = CallableChoiceIterator(choices)
+                parameter['schema']['enum'] = [c[0] for c in choices]
             parameters.append(parameter)
         return parameters
