@@ -1,4 +1,3 @@
-from types import FunctionType
 import warnings
 
 from django.forms.fields import CallableChoiceIterator
