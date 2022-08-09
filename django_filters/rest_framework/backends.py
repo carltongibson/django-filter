@@ -1,7 +1,7 @@
 from types import FunctionType
 import warnings
-from django.forms.fields import CallableChoiceIterator
 
+from django.forms.fields import CallableChoiceIterator
 from django.template import loader
 
 from .. import compat, utils
