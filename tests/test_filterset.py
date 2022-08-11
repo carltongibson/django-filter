@@ -2,6 +2,7 @@ import unittest
 from unittest import mock
 
 from django.db import models
+from django.http import HttpRequest
 from django.test import TestCase, override_settings
 
 from django_filters.exceptions import FieldLookupError
@@ -30,7 +31,9 @@ from .models import (
     Book,
     Business,
     Comment,
+    Company,
     DirectedNode,
+    Location,
     NetworkSetting,
     Node,
     Profile,
@@ -949,3 +952,26 @@ class MiscFilterSetTests(TestCase):
         # The FilterSet should not proxy .qs methods - just access .qs directly
         self.assertFalse(hasattr(FilterSet, "__len__"))
         self.assertFalse(hasattr(FilterSet, "__iter__"))
+
+    def test_modelchoicefilter_queryset(self):
+        kfc = Company.objects.create(name="KFC")
+
+        class LocationFilterSet(FilterSet):
+            company = ModelChoiceFilter(
+                queryset=lambda request: Company.objects.all()
+                if request
+                else Company.objects.none()
+            )
+
+            class Meta:
+                model = Location
+                fields = ["company"]
+
+        request = HttpRequest()
+        # comment the following line to make this test pass
+        LocationFilterSet.base_filters["company"].field
+        filterset = LocationFilterSet(
+            data=request.GET, request=request, queryset=Location.objects.all()
+        )
+
+        self.assertEqual(filterset.form.fields["company"].queryset[0], kfc)
