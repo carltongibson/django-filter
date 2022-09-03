@@ -510,7 +510,7 @@ class FilterSetClassCreationTests(TestCase):
 
     def test_meta_fields_invalid_lookup(self):
         # We want to ensure that non existent lookups (or just simple misspellings)
-        # throw a useful exception containg the field and lookup expr.
+        # throw a useful exception containing the field and lookup expr.
         msg = "Unsupported lookup 'flub' for field 'tests.User.username'."
 
         with self.assertRaisesMessage(FieldLookupError, msg):
