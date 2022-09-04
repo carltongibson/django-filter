@@ -213,7 +213,7 @@ class GetFieldPartsTests(TestCase):
         """
         This simulates trying to create a FilterSet before the app registry has
         been populated. Lazy relationships have not yet been resolved from their
-        strings into their remote model referencess.
+        strings into their remote model references.
         """
 
         class TestModel(models.Model):
@@ -248,7 +248,7 @@ class ResolveFieldTests(TestCase):
         model_field = User._meta.get_field("username")
         lookups = model_field.class_lookups.keys()
 
-        # This is simple - the final ouput of an untransformed field is itself.
+        # This is simple - the final output of an untransformed field is itself.
         # The lookups are the default lookups registered to the class.
         for term in lookups:
             field, lookup = resolve_field(model_field, term)

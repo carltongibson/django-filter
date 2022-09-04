@@ -1087,7 +1087,7 @@ class DateRangeFilterTests(TestCase):
         self.assertEqual(qs, result)
 
     def test_filtering_skipped_with_out_of_range_value(self):
-        # Field validation should prevent this from occuring
+        # Field validation should prevent this from occurring
         qs = mock.Mock(spec=[])
         f = DateRangeFilter()
         with self.assertRaises(AssertionError):

@@ -598,7 +598,7 @@ class LookupChoiceFilter(Filter):
     A combined filter that allows users to select the lookup expression from a dropdown.
 
     * ``lookup_choices`` is an optional argument that accepts multiple input
-      formats, and is ultimately normlized as the choices used in the lookup
+      formats, and is ultimately normalized as the choices used in the lookup
       dropdown. See ``.get_lookup_choices()`` for more information.
 
     * ``field_class`` is an optional argument that allows you to set the inner
