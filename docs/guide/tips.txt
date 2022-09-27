@@ -270,7 +270,7 @@ If defaults are necessary though, the following should mimic the pre-1.0 behavio
                     initial = f.extra.get('initial')
 
                     # filter param is either missing or empty, use initial as default
-                    if not data.get(name) and initial:
+                    if not data.get(name) and initial is not None:
                         data[name] = initial
 
             super().__init__(data, *args, **kwargs)
