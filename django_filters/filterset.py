@@ -347,8 +347,8 @@ class BaseFilterSet:
 
         if undefined:
             raise TypeError(
-                "'Meta.fields' must not contain non-model field names: %s"
-                % ", ".join(undefined)
+                "'Meta.fields' must not contain non-model field names: %s of %s"
+                % (', '.join(undefined), cls._meta.model)
             )
 
         # Add in declared filters. This is necessary since we don't enforce adding
