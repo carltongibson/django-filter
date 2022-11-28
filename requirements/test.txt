@@ -1,3 +1,4 @@
 -r test-ci.txt
 django
 djangorestframework
+Bootstrap
