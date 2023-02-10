@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-filter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-24 11:03+0500\n"
+"POT-Creation-Date: 2023-02-10 11:07+0000\n"
 "PO-Revision-Date: 2016-09-29 11:47+0300\n"
 "Last-Translator: Eugena Mikhaylikova <eugena.mihailikova@gmail.com>\n"
 "Language-Team: TextTempearture\n"
@@ -17,143 +17,148 @@ msgstr ""
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: conf.py:17
+#: conf.py:16
 msgid "date"
 msgstr "дата"
 
-#: conf.py:18
+#: conf.py:17
 msgid "year"
 msgstr "рік"
 
-#: conf.py:19
+#: conf.py:18
 msgid "month"
 msgstr "місяць"
 
-#: conf.py:20
+#: conf.py:19
 msgid "day"
 msgstr "день"
 
-#: conf.py:21
+#: conf.py:20
 msgid "week day"
 msgstr "день тижня"
 
-#: conf.py:22
+#: conf.py:21
 msgid "hour"
 msgstr "година"
 
-#: conf.py:23
+#: conf.py:22
 msgid "minute"
 msgstr "хвилина"
 
-#: conf.py:24
+#: conf.py:23
 msgid "second"
 msgstr "секунда"
 
-#: conf.py:29 conf.py:30
+#: conf.py:27 conf.py:28
 msgid "contains"
 msgstr "містить"
 
-#: conf.py:31
+#: conf.py:29
 msgid "is in"
 msgstr "в"
 
-#: conf.py:32
+#: conf.py:30
 msgid "is greater than"
 msgstr "більше ніж"
 
-#: conf.py:33
+#: conf.py:31
 msgid "is greater than or equal to"
 msgstr "більше або дорівнює"
 
-#: conf.py:34
+#: conf.py:32
 msgid "is less than"
 msgstr "менше ніж"
 
-#: conf.py:35
+#: conf.py:33
 msgid "is less than or equal to"
 msgstr "менше або дорівнює"
 
-#: conf.py:36 conf.py:37
+#: conf.py:34 conf.py:35
 msgid "starts with"
 msgstr "починається"
 
-#: conf.py:38 conf.py:39
+#: conf.py:36 conf.py:37
 msgid "ends with"
 msgstr "закінчується"
 
-#: conf.py:40
+#: conf.py:38
 msgid "is in range"
 msgstr "в діапазоні"
 
-#: conf.py:42 conf.py:43
+#: conf.py:39
+msgid "is null"
+msgstr ""
+
+#: conf.py:40 conf.py:41
 msgid "matches regex"
 msgstr "відповідає регулярному виразу"
 
-#: conf.py:44 conf.py:52
+#: conf.py:42 conf.py:49
 msgid "search"
 msgstr "пошук"
 
-#: conf.py:47
+#: conf.py:44
 msgid "is contained by"
 msgstr "міститься в"
 
-#: conf.py:48
+#: conf.py:45
 msgid "overlaps"
 msgstr "перекривається"
 
-#: conf.py:49
+#: conf.py:46
 msgid "has key"
 msgstr "має ключ"
 
-#: conf.py:50
+#: conf.py:47
 msgid "has keys"
 msgstr "має ключі"
 
-#: conf.py:51
+#: conf.py:48
 msgid "has any keys"
 msgstr "має будь-які ключі"
 
-#: fields.py:178
+#: fields.py:94
+msgid "Select a lookup."
+msgstr ""
+
+#: fields.py:198
 msgid "Range query expects two values."
 msgstr "Запит діапазону очікує два значення."
 
-#: filters.py:429
-msgid "Any date"
-msgstr "Будь-яка дата"
-
-#: filters.py:430
+#: filters.py:437
 msgid "Today"
 msgstr "Сьогодні"
 
-#: filters.py:435
-msgid "Past 7 days"
-msgstr "Минулі 7 днів"
-
-#: filters.py:439
-msgid "This month"
-msgstr "За цей місяць"
-
-#: filters.py:443
-msgid "This year"
-msgstr "В цьому році"
-
-#: filters.py:446
+#: filters.py:438
 msgid "Yesterday"
 msgstr "Вчора"
 
-#: filters.py:512
+#: filters.py:439
+msgid "Past 7 days"
+msgstr "Минулі 7 днів"
+
+#: filters.py:440
+msgid "This month"
+msgstr "За цей місяць"
+
+#: filters.py:441
+msgid "This year"
+msgstr "В цьому році"
+
+#: filters.py:543
 msgid "Multiple values may be separated by commas."
 msgstr "Кілька значень можуть бути розділені комами."
 
-#: filters.py:591
+#: filters.py:721
+#, python-format
 msgid "%s (descending)"
 msgstr "%s (по спадаючій)"
 
-#: filters.py:607
+#: filters.py:737
 msgid "Ordering"
 msgstr "Порядок"
 
-#: rest_framework/filterset.py:30
+#: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
 msgstr "Відправити"
@@ -163,22 +168,25 @@ msgstr "Відправити"
 msgid "Field filters"
 msgstr "Фільтри по полях"
 
-#: utils.py:224
+#: utils.py:308
 msgid "exclude"
 msgstr "виключаючи"
 
-#: widgets.py:57
+#: widgets.py:58
 msgid "All"
 msgstr "Усе"
 
-#: widgets.py:159
+#: widgets.py:162
 msgid "Unknown"
 msgstr "Не задано"
 
-#: widgets.py:160
+#: widgets.py:162
 msgid "Yes"
 msgstr "Так"
 
-#: widgets.py:161
+#: widgets.py:162
 msgid "No"
 msgstr "Немає"
+
+#~ msgid "Any date"
+#~ msgstr "Будь-яка дата"

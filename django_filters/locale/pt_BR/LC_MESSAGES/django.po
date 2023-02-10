@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-11 22:04+0100\n"
+"POT-Creation-Date: 2023-02-10 11:07+0000\n"
 "PO-Revision-Date: 2017-12-11 22:07-0200\n"
 "Last-Translator: Anderson Scouto da Silva\n"
 "Language-Team: \n"
@@ -18,164 +18,148 @@ msgstr ""
 "X-Generator: Poedit 1.8.13\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: conf.py:26
+#: conf.py:16
 msgid "date"
 msgstr "data"
 
-#: conf.py:27
+#: conf.py:17
 msgid "year"
 msgstr "ano"
 
-#: conf.py:28
+#: conf.py:18
 msgid "month"
 msgstr "mês"
 
-#: conf.py:29
+#: conf.py:19
 msgid "day"
 msgstr "dia"
 
-#: conf.py:30
+#: conf.py:20
 msgid "week day"
 msgstr "dia da semana"
 
-#: conf.py:31
+#: conf.py:21
 msgid "hour"
 msgstr "hora"
 
-#: conf.py:32
+#: conf.py:22
 msgid "minute"
 msgstr "minuto"
 
-#: conf.py:33
+#: conf.py:23
 msgid "second"
 msgstr "segundo"
 
-#: conf.py:38 conf.py:39
+#: conf.py:27 conf.py:28
 msgid "contains"
 msgstr "contém"
 
-#: conf.py:40
+#: conf.py:29
 msgid "is in"
 msgstr "presente em"
 
-#: conf.py:41
+#: conf.py:30
 msgid "is greater than"
 msgstr "é maior que"
 
-#: conf.py:42
+#: conf.py:31
 msgid "is greater than or equal to"
 msgstr "é maior ou igual que"
 
-#: conf.py:43
+#: conf.py:32
 msgid "is less than"
 msgstr "é menor que"
 
-#: conf.py:44
+#: conf.py:33
 msgid "is less than or equal to"
 msgstr "é menor ou igual que"
 
-#: conf.py:45 conf.py:46
+#: conf.py:34 conf.py:35
 msgid "starts with"
 msgstr "começa com"
 
-#: conf.py:47 conf.py:48
+#: conf.py:36 conf.py:37
 msgid "ends with"
 msgstr "termina com"
 
-#: conf.py:49
+#: conf.py:38
 msgid "is in range"
 msgstr "está no range"
 
-#: conf.py:51 conf.py:52
+#: conf.py:39
+msgid "is null"
+msgstr ""
+
+#: conf.py:40 conf.py:41
 msgid "matches regex"
 msgstr "coincide com a expressão regular"
 
-#: conf.py:53 conf.py:61
+#: conf.py:42 conf.py:49
 msgid "search"
 msgstr "buscar"
 
-#: conf.py:56
+#: conf.py:44
 msgid "is contained by"
 msgstr "está contido por"
 
-#: conf.py:57
+#: conf.py:45
 msgid "overlaps"
 msgstr "sobrepõe"
 
-#: conf.py:58
+#: conf.py:46
 msgid "has key"
 msgstr "contém a chave"
 
-#: conf.py:59
+#: conf.py:47
 msgid "has keys"
 msgstr "contém as chaves"
 
-#: conf.py:60
+#: conf.py:48
 msgid "has any keys"
 msgstr "contém uma das chaves"
 
-#: fields.py:167
+#: fields.py:94
+msgid "Select a lookup."
+msgstr ""
+
+#: fields.py:198
 msgid "Range query expects two values."
 msgstr "Consulta por range requer dois valores."
 
-#: filters.py:443
-msgid "Any date"
-msgstr "Qualquer data"
-
-#: filters.py:444
+#: filters.py:437
 msgid "Today"
 msgstr "Hoje"
 
-#: filters.py:449
-msgid "Past 7 days"
-msgstr "Últimos 7 dias"
-
-#: filters.py:453
-msgid "This month"
-msgstr "Este mês"
-
-#: filters.py:457
-msgid "This year"
-msgstr "Este ano"
-
-#: filters.py:460
+#: filters.py:438
 msgid "Yesterday"
 msgstr "Ontem"
 
-#: filters.py:526
+#: filters.py:439
+msgid "Past 7 days"
+msgstr "Últimos 7 dias"
+
+#: filters.py:440
+msgid "This month"
+msgstr "Este mês"
+
+#: filters.py:441
+msgid "This year"
+msgstr "Este ano"
+
+#: filters.py:543
 msgid "Multiple values may be separated by commas."
 msgstr "Valores múltiplos podem ser separados por vírgulas."
 
-#: filters.py:605
+#: filters.py:721
 #, python-format
 msgid "%s (descending)"
 msgstr "%s (decrescente)"
 
-#: filters.py:621
+#: filters.py:737
 msgid "Ordering"
 msgstr "Ordenado"
 
-#: utils.py:220
-msgid "exclude"
-msgstr "excluir"
-
-#: widgets.py:71
-msgid "All"
-msgstr "Tudo"
-
-#: widgets.py:119
-msgid "Unknown"
-msgstr "Desconhecido"
-
-#: widgets.py:120
-msgid "Yes"
-msgstr "Sim"
-
-#: widgets.py:121
-msgid "No"
-msgstr "Não"
-
-#: rest_framework/filterset.py:31
+#: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
 msgstr "Enviar"
@@ -184,3 +168,26 @@ msgstr "Enviar"
 #: templates/django_filters/rest_framework/form.html:2
 msgid "Field filters"
 msgstr "Filtros de campo"
+
+#: utils.py:308
+msgid "exclude"
+msgstr "excluir"
+
+#: widgets.py:58
+msgid "All"
+msgstr "Tudo"
+
+#: widgets.py:162
+msgid "Unknown"
+msgstr "Desconhecido"
+
+#: widgets.py:162
+msgid "Yes"
+msgstr "Sim"
+
+#: widgets.py:162
+msgid "No"
+msgstr "Não"
+
+#~ msgid "Any date"
+#~ msgstr "Qualquer data"

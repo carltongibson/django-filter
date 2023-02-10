@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: conf.py:27 conf.py:28 conf.py:41
 msgid ""
 msgstr ""
 "Project-Id-Version: django-filter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-24 11:03+0500\n"
+"POT-Creation-Date: 2023-02-10 11:07+0000\n"
 "PO-Revision-Date: 2016-09-29 11:47+0300\n"
 "Last-Translator: Mikhail Mitrofanov <mm@elec.ru>\n"
 "Language-Team: \n"
@@ -21,144 +20,148 @@ msgstr ""
 "%100>=11 && n%100<=14)? 2 : 3);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: conf.py:17
+#: conf.py:16
 msgid "date"
 msgstr "дата"
 
-#: conf.py:18
+#: conf.py:17
 msgid "year"
 msgstr "год"
 
-#: conf.py:19
+#: conf.py:18
 msgid "month"
 msgstr "месяц"
 
-#: conf.py:20
+#: conf.py:19
 msgid "day"
 msgstr "день"
 
-#: conf.py:21
+#: conf.py:20
 msgid "week day"
 msgstr "день недели"
 
-#: conf.py:22
+#: conf.py:21
 msgid "hour"
 msgstr "час"
 
-#: conf.py:23
+#: conf.py:22
 msgid "minute"
 msgstr "минута"
 
-#: conf.py:24
+#: conf.py:23
 msgid "second"
 msgstr "секунда"
 
-#: conf.py:29 conf.py:30
+#: conf.py:27 conf.py:28
 msgid "contains"
 msgstr "содержит"
 
-#: conf.py:31
+#: conf.py:29
 msgid "is in"
 msgstr "в"
 
-#: conf.py:32
+#: conf.py:30
 msgid "is greater than"
 msgstr "больше чем"
 
-#: conf.py:33
+#: conf.py:31
 msgid "is greater than or equal to"
 msgstr "больше или равно"
 
-#: conf.py:34
+#: conf.py:32
 msgid "is less than"
 msgstr "меньше чем"
 
-#: conf.py:35
+#: conf.py:33
 msgid "is less than or equal to"
 msgstr "меньше или равно"
 
-#: conf.py:36 conf.py:37
+#: conf.py:34 conf.py:35
 msgid "starts with"
 msgstr "начинается"
 
-#: conf.py:38 conf.py:39
+#: conf.py:36 conf.py:37
 msgid "ends with"
 msgstr "заканчивается"
 
-#: conf.py:40
+#: conf.py:38
 msgid "is in range"
 msgstr "в диапазоне"
 
-#: conf.py:42 conf.py:43
+#: conf.py:39
+msgid "is null"
+msgstr ""
+
+#: conf.py:40 conf.py:41
 msgid "matches regex"
 msgstr "соответствует регулярному выражению"
 
-#: conf.py:44 conf.py:52
+#: conf.py:42 conf.py:49
 msgid "search"
 msgstr "поиск"
 
-#: conf.py:47
+#: conf.py:44
 msgid "is contained by"
 msgstr "содержится в"
 
-#: conf.py:48
+#: conf.py:45
 msgid "overlaps"
 msgstr "перекрывается"
 
-#: conf.py:49
+#: conf.py:46
 msgid "has key"
 msgstr "имеет ключ"
 
-#: conf.py:50
+#: conf.py:47
 msgid "has keys"
 msgstr "имеет ключи"
 
-#: conf.py:51
+#: conf.py:48
 msgid "has any keys"
 msgstr "имеет любые ключи"
 
-#: fields.py:178
+#: fields.py:94
+msgid "Select a lookup."
+msgstr ""
+
+#: fields.py:198
 msgid "Range query expects two values."
 msgstr "Запрос диапазона ожидает два значения."
 
-#: filters.py:429
-msgid "Any date"
-msgstr "Любая дата"
-
-#: filters.py:430
+#: filters.py:437
 msgid "Today"
 msgstr "Сегодня"
 
-#: filters.py:435
-msgid "Past 7 days"
-msgstr "Прошедшие 7 дней"
-
-#: filters.py:439
-msgid "This month"
-msgstr "За этот месяц"
-
-#: filters.py:443
-msgid "This year"
-msgstr "В этом году"
-
-#: filters.py:446
+#: filters.py:438
 msgid "Yesterday"
 msgstr "Вчера"
 
-#: filters.py:512
+#: filters.py:439
+msgid "Past 7 days"
+msgstr "Прошедшие 7 дней"
+
+#: filters.py:440
+msgid "This month"
+msgstr "За этот месяц"
+
+#: filters.py:441
+msgid "This year"
+msgstr "В этом году"
+
+#: filters.py:543
 msgid "Multiple values may be separated by commas."
 msgstr "Несколько значений могут быть разделены запятыми."
 
-#: filters.py:591
+#: filters.py:721
 #, python-format
 msgid "%s (descending)"
 msgstr "%s (по убыванию)"
 
-#: filters.py:607
+#: filters.py:737
 msgid "Ordering"
 msgstr "Порядок"
 
-#: rest_framework/filterset.py:30
+#: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
 msgstr "Отправить"
@@ -168,22 +171,25 @@ msgstr "Отправить"
 msgid "Field filters"
 msgstr "Фильтры по полям"
 
-#: utils.py:224
+#: utils.py:308
 msgid "exclude"
 msgstr "исключая"
 
-#: widgets.py:57
+#: widgets.py:58
 msgid "All"
 msgstr "Все"
 
-#: widgets.py:159
+#: widgets.py:162
 msgid "Unknown"
 msgstr "Не задано"
 
-#: widgets.py:160
+#: widgets.py:162
 msgid "Yes"
 msgstr "Да"
 
-#: widgets.py:161
+#: widgets.py:162
 msgid "No"
 msgstr "Нет"
+
+#~ msgid "Any date"
+#~ msgstr "Любая дата"
