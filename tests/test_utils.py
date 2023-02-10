@@ -1,6 +1,8 @@
 import datetime
+import unittest
 import warnings
 
+import django
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ForeignObjectRel
@@ -513,6 +515,7 @@ class LabelForFilterTests(TestCase):
         self.assertEqual(label, "Exclude CIDR contains")
 
 
+@unittest.skipUnless(django.VERSION < (5, 0), "is_dst removed in Django 5.0")
 class HandleTimezone(TestCase):
     @override_settings(TIME_ZONE="America/Sao_Paulo")
     def test_handle_dst_ending(self):

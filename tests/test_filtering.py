@@ -4,6 +4,7 @@ import unittest
 from operator import attrgetter
 from unittest import mock
 
+import django
 from django import forms
 from django.http import QueryDict
 from django.test import TestCase, override_settings
@@ -847,6 +848,7 @@ class DateFromToRangeFilterTests(TestCase):
         )
         self.assertEqual(len(results.qs), 3)
 
+    @unittest.skipUnless(django.VERSION < (5, 0), "is_dst removed in Django 5.0")
     @override_settings(TIME_ZONE="America/Sao_Paulo")
     def test_filtering_dst_start_midnight(self):
         tz = timezone.get_default_timezone()
@@ -875,6 +877,7 @@ class DateFromToRangeFilterTests(TestCase):
         )
         self.assertEqual(len(results.qs), 2)
 
+    @unittest.skipUnless(django.VERSION < (5, 0), "is_dst removed in Django 5.0")
     @override_settings(TIME_ZONE="America/Sao_Paulo")
     def test_filtering_dst_ends_midnight(self):
         tz = timezone.get_default_timezone()
@@ -903,6 +906,7 @@ class DateFromToRangeFilterTests(TestCase):
         )
         self.assertEqual(len(results.qs), 2)
 
+    @unittest.skipUnless(django.VERSION < (5, 0), "is_dst removed in Django 5.0")
     @override_settings(TIME_ZONE="Europe/Paris")
     def test_filtering_dst_start(self):
         tz = timezone.get_default_timezone()
@@ -934,6 +938,7 @@ class DateFromToRangeFilterTests(TestCase):
         )
         self.assertEqual(len(results.qs), 3)
 
+    @unittest.skipUnless(django.VERSION < (5, 0), "is_dst removed in Django 5.0")
     @override_settings(TIME_ZONE="Europe/Paris")
     def test_filtering_dst_end(self):
         tz = timezone.get_default_timezone()
