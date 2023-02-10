@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # Hristo Gatsinski <gatsinski@gmail.com>, 2019.
 #
-#: conf.py:27 conf.py:28 conf.py:41
 msgid ""
 msgstr ""
 "Project-Id-Version: django-filter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-22 19:45+0200\n"
+"POT-Creation-Date: 2023-02-10 11:07+0000\n"
 "PO-Revision-Date: 2019-12-21 19:36+0200\n"
 "Last-Translator: Hristo Gatsinski <gatsinski@gmail.com>\n"
 "Language-Team: \n"
@@ -19,103 +18,107 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: conf.py:17
+#: conf.py:16
 msgid "date"
 msgstr "дата"
 
-#: conf.py:18
+#: conf.py:17
 msgid "year"
 msgstr "година"
 
-#: conf.py:19
+#: conf.py:18
 msgid "month"
 msgstr "месец"
 
-#: conf.py:20
+#: conf.py:19
 msgid "day"
 msgstr "ден"
 
-#: conf.py:21
+#: conf.py:20
 msgid "week day"
 msgstr "ден от седмицата"
 
-#: conf.py:22
+#: conf.py:21
 msgid "hour"
 msgstr "час"
 
-#: conf.py:23
+#: conf.py:22
 msgid "minute"
 msgstr "минута"
 
-#: conf.py:24
+#: conf.py:23
 msgid "second"
 msgstr "секунда"
 
-#: conf.py:29 conf.py:30
+#: conf.py:27 conf.py:28
 msgid "contains"
 msgstr "съдържа"
 
-#: conf.py:31
+#: conf.py:29
 msgid "is in"
 msgstr "в"
 
-#: conf.py:32
+#: conf.py:30
 msgid "is greater than"
 msgstr "е по-голям от"
 
-#: conf.py:33
+#: conf.py:31
 msgid "is greater than or equal to"
 msgstr "е по-голям или равен на"
 
-#: conf.py:34
+#: conf.py:32
 msgid "is less than"
 msgstr "е по-малък от"
 
-#: conf.py:35
+#: conf.py:33
 msgid "is less than or equal to"
 msgstr "е по-малък или равен на"
 
-#: conf.py:36 conf.py:37
+#: conf.py:34 conf.py:35
 msgid "starts with"
 msgstr "започва с"
 
-#: conf.py:38 conf.py:39
+#: conf.py:36 conf.py:37
 msgid "ends with"
 msgstr "завършва с"
 
-#: conf.py:40
+#: conf.py:38
 msgid "is in range"
 msgstr "е в диапазона"
 
-#: conf.py:42 conf.py:43
+#: conf.py:39
+msgid "is null"
+msgstr ""
+
+#: conf.py:40 conf.py:41
 msgid "matches regex"
 msgstr "съвпада с регуларен израз"
 
-#: conf.py:44 conf.py:52
+#: conf.py:42 conf.py:49
 msgid "search"
 msgstr "търсене"
 
-#: conf.py:47
+#: conf.py:44
 msgid "is contained by"
 msgstr "се съдържа от"
 
-#: conf.py:48
+#: conf.py:45
 msgid "overlaps"
 msgstr "припокрива"
 
-#: conf.py:49
+#: conf.py:46
 msgid "has key"
 msgstr "има ключ"
 
-#: conf.py:50
+#: conf.py:47
 msgid "has keys"
 msgstr "има ключове"
 
-#: conf.py:51
+#: conf.py:48
 msgid "has any keys"
 msgstr "има който и да е ключ"
 
-#: fields.py:106
+#: fields.py:94
 msgid "Select a lookup."
 msgstr "Изберете справка"
 
@@ -123,40 +126,40 @@ msgstr "Изберете справка"
 msgid "Range query expects two values."
 msgstr "Търсенето по диапазон изисква две стойности"
 
-#: filters.py:406
+#: filters.py:437
 msgid "Today"
 msgstr "Днес"
 
-#: filters.py:407
+#: filters.py:438
 msgid "Yesterday"
 msgstr "Вчера"
 
-#: filters.py:408
+#: filters.py:439
 msgid "Past 7 days"
 msgstr "Последните 7 дни"
 
-#: filters.py:409
+#: filters.py:440
 msgid "This month"
 msgstr "Този месец"
 
-#: filters.py:410
+#: filters.py:441
 msgid "This year"
 msgstr "Тази година"
 
-#: filters.py:508
+#: filters.py:543
 msgid "Multiple values may be separated by commas."
 msgstr "Множество стойности може да се разделят със запетая"
 
-#: filters.py:681
+#: filters.py:721
 #, python-format
 msgid "%s (descending)"
 msgstr "%s (намалавящ)"
 
-#: filters.py:697
+#: filters.py:737
 msgid "Ordering"
 msgstr "Подредба"
 
-#: rest_framework/filterset.py:31
+#: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
 msgstr "Изпращане"
@@ -166,22 +169,22 @@ msgstr "Изпращане"
 msgid "Field filters"
 msgstr "Филтри на полетата"
 
-#: utils.py:298
+#: utils.py:308
 msgid "exclude"
 msgstr "изключва"
 
-#: widgets.py:57
+#: widgets.py:58
 msgid "All"
 msgstr "Всичко"
 
-#: widgets.py:159
+#: widgets.py:162
 msgid "Unknown"
 msgstr "Неизвестен"
 
-#: widgets.py:160
+#: widgets.py:162
 msgid "Yes"
 msgstr "Да"
 
-#: widgets.py:161
+#: widgets.py:162
 msgid "No"
 msgstr "Не"

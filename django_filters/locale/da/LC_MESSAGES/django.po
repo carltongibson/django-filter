@@ -1,154 +1,160 @@
 msgid ""
 msgstr ""
+"Project-Id-Version: django-filter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-10 11:07+0000\n"
+"PO-Revision-Date: 2017-10-28\n"
+"Last-Translator: Danni Randeris <danni@danniranderis.dk>\n"
+"Language-Team: Danni Randeris <danni@danniranderis.dk>\n"
+"Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.0.1\n"
-"Project-Id-Version: django-filter\n"
-"Language: da\n"
-"Last-Translator: Danni Randeris <danni@danniranderis.dk>\n"
-"Language-Team: Danni Randeris <danni@danniranderis.dk>\n"
-"POT-Creation-Date: 2017-10-28\n"
-"PO-Revision-Date: 2017-10-28\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: conf.py:17
+#: conf.py:16
 msgid "date"
 msgstr "dato"
 
-#: conf.py:18
+#: conf.py:17
 msgid "year"
 msgstr "år"
 
-#: conf.py:19
+#: conf.py:18
 msgid "month"
 msgstr "måned"
 
-#: conf.py:20
+#: conf.py:19
 msgid "day"
 msgstr "dag"
 
-#: conf.py:21
+#: conf.py:20
 msgid "week day"
 msgstr "ugedag"
 
-#: conf.py:22
+#: conf.py:21
 msgid "hour"
 msgstr "time"
 
-#: conf.py:23
+#: conf.py:22
 msgid "minute"
 msgstr "minut"
 
-#: conf.py:24
+#: conf.py:23
 msgid "second"
 msgstr "sekund"
 
-#: conf.py:29 conf.py:30
+#: conf.py:27 conf.py:28
 msgid "contains"
 msgstr "indeholder"
 
-#: conf.py:31
+#: conf.py:29
 msgid "is in"
 msgstr "er i"
 
-#: conf.py:32
+#: conf.py:30
 msgid "is greater than"
 msgstr "er større end"
 
-#: conf.py:33
+#: conf.py:31
 msgid "is greater than or equal to"
 msgstr "er større end eller lig med"
 
-#: conf.py:34
+#: conf.py:32
 msgid "is less than"
 msgstr "er mindre end"
 
-#: conf.py:35
+#: conf.py:33
 msgid "is less than or equal to"
 msgstr "er mindre end eller lig med"
 
-#: conf.py:36 conf.py:37
+#: conf.py:34 conf.py:35
 msgid "starts with"
 msgstr "starter med"
 
-#: conf.py:38 conf.py:39
+#: conf.py:36 conf.py:37
 msgid "ends with"
 msgstr "slutter med"
 
-#: conf.py:40
+#: conf.py:38
 msgid "is in range"
 msgstr "er i intervallet"
 
-#: conf.py:42 conf.py:43
+#: conf.py:39
+msgid "is null"
+msgstr ""
+
+#: conf.py:40 conf.py:41
 msgid "matches regex"
 msgstr "matcher regex"
 
-#: conf.py:44 conf.py:52
+#: conf.py:42 conf.py:49
 msgid "search"
 msgstr "søg"
 
-#: conf.py:47
+#: conf.py:44
 msgid "is contained by"
 msgstr "er indeholdt af"
 
-#: conf.py:48
+#: conf.py:45
 msgid "overlaps"
 msgstr "overlapper"
 
-#: conf.py:49
+#: conf.py:46
 msgid "has key"
 msgstr "har string"
 
-#: conf.py:50
+#: conf.py:47
 msgid "has keys"
 msgstr "har stringe"
 
-#: conf.py:51
+#: conf.py:48
 msgid "has any keys"
 msgstr "har hvilken som helst string"
 
-#: fields.py:178
+#: fields.py:94
+msgid "Select a lookup."
+msgstr ""
+
+#: fields.py:198
 msgid "Range query expects two values."
 msgstr "Interval forespørgslen forventer to værdier."
 
-#: filters.py:429
-msgid "Any date"
-msgstr "Hvilken som helst dag"
-
-#: filters.py:430
+#: filters.py:437
 msgid "Today"
 msgstr "I dag"
 
-#: filters.py:435
-msgid "Past 7 days"
-msgstr "Sidste 7 dage"
-
-#: filters.py:439
-msgid "This month"
-msgstr "Denne måned"
-
-#: filters.py:443
-msgid "This year"
-msgstr "Dette år"
-
-#: filters.py:446
+#: filters.py:438
 msgid "Yesterday"
 msgstr "I går"
 
-#: filters.py:512
+#: filters.py:439
+msgid "Past 7 days"
+msgstr "Sidste 7 dage"
+
+#: filters.py:440
+msgid "This month"
+msgstr "Denne måned"
+
+#: filters.py:441
+msgid "This year"
+msgstr "Dette år"
+
+#: filters.py:543
 msgid "Multiple values may be separated by commas."
 msgstr "Flere værdier kan adskilles via komma."
 
-#: filters.py:591
+#: filters.py:721
+#, python-format
 msgid "%s (descending)"
 msgstr "%s (aftagende)"
 
-#: filters.py:607
+#: filters.py:737
 msgid "Ordering"
 msgstr "Sortering"
 
-#: rest_framework/filterset.py:30
+#: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 #, fuzzy
 msgid "Submit"
@@ -160,22 +166,25 @@ msgstr "Indsend"
 msgid "Field filters"
 msgstr "Felt filtre"
 
-#: utils.py:224
+#: utils.py:308
 msgid "exclude"
 msgstr "udelad"
 
-#: widgets.py:57
+#: widgets.py:58
 msgid "All"
 msgstr "Alle"
 
-#: widgets.py:159
+#: widgets.py:162
 msgid "Unknown"
 msgstr "Ukendt"
 
-#: widgets.py:160
+#: widgets.py:162
 msgid "Yes"
 msgstr "Ja"
 
-#: widgets.py:161
+#: widgets.py:162
 msgid "No"
 msgstr "Nej"
+
+#~ msgid "Any date"
+#~ msgstr "Hvilken som helst dag"
