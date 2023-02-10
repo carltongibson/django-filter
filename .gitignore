@@ -10,3 +10,4 @@ docs/_build
 .xmlcoverage/
 .venv/
 .idea
+.env
