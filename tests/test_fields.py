@@ -1,6 +1,9 @@
+import datetime as dt
 import decimal
+import unittest
 from datetime import datetime, time, timedelta, tzinfo
 
+import django
 import pytz
 from django import forms
 from django.test import TestCase, override_settings
@@ -97,8 +100,8 @@ class IsoDateTimeRangeFieldTests(TestCase):
         w = RangeWidget()
         f = IsoDateTimeRangeField(widget=w)
         expected = slice(
-            datetime(2015, 1, 1, 9, 30, 1, 123000, tzinfo=timezone.utc),
-            datetime(2015, 1, 10, 7, 45, 2, 345000, tzinfo=timezone.utc),
+            datetime(2015, 1, 1, 9, 30, 1, 123000, tzinfo=dt.timezone.utc),
+            datetime(2015, 1, 10, 7, 45, 2, 345000, tzinfo=dt.timezone.utc),
         )
         actual = f.clean(
             ["2015-01-01T10:30:01.123000+01:00", "2015-01-10T08:45:02.345000+01:00"]
@@ -178,6 +181,7 @@ class IsoDateTimeFieldTests(TestCase):
         d = self.parse_input(self.reference_str + "Z")
         self.assertTrue(isinstance(d, datetime))
 
+    @unittest.skipUnless(django.VERSION < (5, 0), "pytz support removed in Django 5.0")
     @override_settings(TIME_ZONE="UTC")
     def test_datetime_timezone_awareness(self):
         utc, tokyo = pytz.timezone("UTC"), pytz.timezone("Asia/Tokyo")

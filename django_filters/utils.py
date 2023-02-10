@@ -1,6 +1,8 @@
+import datetime
 import warnings
 from collections import OrderedDict
 
+import django
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, FieldError
 from django.db import models
@@ -229,9 +231,11 @@ def resolve_field(model_field, lookup_expr):
 
 def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
+        if django.VERSION < (5, 0):
+            return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
+        return timezone.make_aware(value, timezone.get_current_timezone())
     elif not settings.USE_TZ and timezone.is_aware(value):
-        return timezone.make_naive(value, timezone.utc)
+        return timezone.make_naive(value, datetime.timezone.utc)
     return value
 
 
