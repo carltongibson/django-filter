@@ -331,7 +331,7 @@ to it as the class based view::
     from myapp.models import Product
 
     urlpatterns = [
-        path("list/', object_filter, {'model': Product}, name="product-list"),
+        path("list/", object_filter, {'model': Product}, name="product-list"),
     ]
 
 The needed template and its context variables will also be the same as the
