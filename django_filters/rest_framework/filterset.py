@@ -34,7 +34,6 @@ class FilterSet(filterset.FilterSet):
             ]
             helper = FormHelper()
             helper.form_method = "GET"
-            helper.template_pack = "bootstrap3"
             helper.layout = Layout(*layout_components)
 
             form.helper = helper
