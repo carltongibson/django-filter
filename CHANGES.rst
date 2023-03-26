@@ -1,3 +1,13 @@
+Version 23.1 (2023-3-26)
+------------------------
+
+* Declared support for Django 4.2.
+
+* Various updated and new translations. Thanks to all who contributed, and
+  Weblate for hosting.
+
+* Fixed QueryArrayWidget.value_from_datadict() to not mutate input data. (#1540)
+
 Version 22.1 (2022-6-17)
 ------------------------
 
