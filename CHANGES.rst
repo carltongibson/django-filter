@@ -8,6 +8,10 @@ Version 22.1 (2022-6-17)
 
 * Removed outdated deprecated warnings for code removed in version 2.1.
 
+* Removed `filter_class` (use `filterset_class`) and `filter_fields`
+  (`filterset_fields`) that were deprecated in [version 2.0
+  (2018)](https://django-filter.readthedocs.io/en/main/guide/migration.html#view-attributes-renamed-867).
+
 * The code base is now formatted with Black.
 
 Version 21.1 (2021-9-24)
