@@ -14,6 +14,7 @@ from django.utils.timezone import make_aware, now
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
+    BaseInFilter,
     CharFilter,
     ChoiceFilter,
     DateFromToRangeFilter,
@@ -31,6 +32,7 @@ from django_filters.filters import (
     TypedMultipleChoiceFilter,
 )
 from django_filters.filterset import FilterSet
+from django_filters.widgets import QueryArrayWidget
 
 from .models import (
     STATUS_CHOICES,
@@ -1977,10 +1979,10 @@ class OrderingFilterTests(TestCase):
 
 class MiscFilterSetTests(TestCase):
     def setUp(self):
-        User.objects.create(username="alex", status=1)
-        User.objects.create(username="jacob", status=2)
-        User.objects.create(username="aaron", status=2)
-        User.objects.create(username="carl", status=0)
+        User.objects.create(username="alex", last_name="johnson", status=1)
+        User.objects.create(username="jacob", last_name="johnson", status=2)
+        User.objects.create(username="aaron", last_name="white", status=2)
+        User.objects.create(username="carl", last_name="black", status=0)
 
     def test_filtering_with_declared_filters(self):
         class F(FilterSet):
@@ -2056,3 +2058,36 @@ class MiscFilterSetTests(TestCase):
         f = F({"status": "2"}, queryset=qs)
         self.assertEqual(len(f.qs), 2)
         self.assertEqual(f.qs.count(), 2)
+
+    def test_filtering_with_widgets(self):
+        class CharInFilter(BaseInFilter, CharFilter):
+            pass
+
+        class F(FilterSet):
+            last_name = CharInFilter(widget=QueryArrayWidget)
+            username = CharInFilter()
+
+            class Meta:
+                model = User
+                fields = ["last_name", "username"]
+
+        qs = User.objects.all()
+
+        f = F({"last_name": ["johnson"]}, queryset=qs)
+        self.assertQuerysetEqual(
+            f.qs, ["alex", "jacob"], lambda o: o.username, ordered=False
+        )
+
+        f = F({"last_name": ["johnson"], "username": "carl"}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, [], lambda o: o.username, ordered=False)
+
+        f = F({"last_name": ["johnson"], "username": "jacob"}, queryset=qs)
+        self.assertQuerysetEqual(f.qs, ["jacob"], lambda o: o.username, ordered=False)
+
+        f = F(
+            {"last_name": ["johnson", "white"], "username": "jacob, carl, aaron"},
+            queryset=qs,
+        )
+        self.assertQuerysetEqual(
+            f.qs, ["jacob", "aaron"], lambda o: o.username, ordered=False
+        )
