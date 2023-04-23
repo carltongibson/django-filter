@@ -93,6 +93,11 @@ class DjangoFilterBackend:
         # This is not compatible with widgets where the query param differs from the
         # filter's attribute name. Notably, this includes `MultiWidget`, where query
         # params will be of the format `<name>_0`, `<name>_1`, etc...
+        from django_filters import RemovedInDjangoFilter25Warning
+        warnings.warn(
+            "Built-in schema generation is deprecated. Use drf-spectacular.",
+            category=RemovedInDjangoFilter25Warning,
+        )
         assert (
             compat.coreapi is not None
         ), "coreapi must be installed to use `get_schema_fields()`"
@@ -125,6 +130,11 @@ class DjangoFilterBackend:
         )
 
     def get_schema_operation_parameters(self, view):
+        from django_filters import RemovedInDjangoFilter25Warning
+        warnings.warn(
+            "Built-in schema generation is deprecated. Use drf-spectacular.",
+            category=RemovedInDjangoFilter25Warning,
+        )
         try:
             queryset = view.get_queryset()
         except Exception:

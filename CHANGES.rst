@@ -1,3 +1,17 @@
+Version 23.2 (UNRELEASED)
+-------------------------
+
+* Deprecated the schema generation methods of the DRF related ``DjangoFilterBackend``.
+  These will be removed in version 25.1.
+
+  You should use `drf-spectacular <https://drf-spectacular.readthedocs.io/en/latest/>`_
+  for generating OpenAPI schemas with DRF.
+
+* In addition, stopped testing against the (very old now) ``coreapi`` schema generation.
+  These methods should continue to work if you're using them until v25.1, but
+  ``coreapi`` is no longer maintained, and is raising warnings against the current
+  versions of Python. To workaround this is not worth the effort at this point.
+
 Version 23.1 (2023-3-26)
 ------------------------
 

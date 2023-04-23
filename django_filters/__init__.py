@@ -29,3 +29,11 @@ def parse_version(version):
 
 
 VERSION = parse_version(__version__)
+
+
+
+assert VERSION < (25,0), "Remove deprecated code"
+
+
+class RemovedInDjangoFilter25Warning(DeprecationWarning):
+    pass
