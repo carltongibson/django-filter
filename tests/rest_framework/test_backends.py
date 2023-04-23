@@ -3,11 +3,11 @@ from unittest import mock, skipIf
 
 from django.db.models import BooleanField
 from django.test import TestCase
-from django.test.utils import override_settings
+from django.test.utils import ignore_warnings, override_settings
 from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
 
-from django_filters import compat, filters
+from django_filters import RemovedInDjangoFilter25Warning, compat, filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, backends
 
 from ..models import Article
@@ -245,6 +245,7 @@ class GetSchemaFieldsTests(TestCase):
 
 
 class GetSchemaOperationParametersTests(TestCase):
+    @ignore_warnings(category=RemovedInDjangoFilter25Warning)
     def test_get_operation_parameters_with_filterset_fields_list(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_operation_parameters(FilterFieldsRootView())
@@ -252,6 +253,7 @@ class GetSchemaOperationParametersTests(TestCase):
 
         self.assertEqual(fields, ["decimal", "date"])
 
+    @ignore_warnings(category=RemovedInDjangoFilter25Warning)
     def test_get_operation_parameters_with_filterset_fields_list_with_choices(self):
         backend = DjangoFilterBackend()
         fields = backend.get_schema_operation_parameters(CategoryItemView())
@@ -268,6 +270,12 @@ class GetSchemaOperationParametersTests(TestCase):
                 }
             ],
         )
+
+    def test_deprecation_warning(self):
+        backend = DjangoFilterBackend()
+        msg = "Built-in schema generation is deprecated. Use drf-spectacular."
+        with self.assertWarnsMessage(RemovedInDjangoFilter25Warning, msg):
+            backend.get_schema_operation_parameters(FilterFieldsRootView())
 
 
 class TemplateTests(TestCase):
@@ -407,6 +415,7 @@ class DjangoFilterBackendTestCase(TestCase):
         html = self.backend.to_html(mock.Mock(), mock.Mock(), mock.Mock())
         self.assertIsNone(html)
 
+    @ignore_warnings(category=RemovedInDjangoFilter25Warning)
     def test_get_schema_operation_parameters_userwarning(self):
         with self.assertWarns(UserWarning):
             view = mock.Mock()
