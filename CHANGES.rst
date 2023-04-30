@@ -1,5 +1,5 @@
-Version 23.2 (UNRELEASED)
--------------------------
+Version 23.2 (2023-4-30)
+------------------------
 
 * Deprecated the schema generation methods of the DRF related ``DjangoFilterBackend``.
   These will be removed in version 25.1.
@@ -11,6 +11,8 @@ Version 23.2 (UNRELEASED)
   These methods should continue to work if you're using them until v25.1, but
   ``coreapi`` is no longer maintained, and is raising warnings against the current
   versions of Python. To workaround this is not worth the effort at this point.
+
+* Updated Polish translations.
 
 Version 23.1 (2023-3-26)
 ------------------------

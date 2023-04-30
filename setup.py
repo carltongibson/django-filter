@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 # FIXME: Main module requires django to be present, so cannot run setup.py in
 # clean environment.
 # from django_filters import __version__
-__version__ = "23.1"
+__version__ = "23.2"
 
 f = open("README.rst")
 readme = f.read()
