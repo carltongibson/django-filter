@@ -8,9 +8,8 @@ from setuptools import find_packages, setup
 # from django_filters import __version__
 __version__ = "23.2"
 
-f = open("README.rst")
-readme = f.read()
-f.close()
+with open('README.rst', 'r', encoding='utf-8') as file:
+    readme = file.read()
 
 if sys.argv[-1] == "publish":
     if os.system("pip freeze | grep wheel"):
