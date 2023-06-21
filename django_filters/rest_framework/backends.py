@@ -1,9 +1,21 @@
+from __future__ import annotations
+
 import warnings
+from typing import TYPE_CHECKING, Any, Dict, Optional, TypeVar, Union
 
 from django.template import loader
 
 from .. import compat, utils
 from . import filters, filterset
+
+if TYPE_CHECKING:
+    from django.db.models.query import QuerySet
+    from django.http.request import QueryDict
+    from django.utils.safestring import SafeString
+    from rest_framework.generics import GenericAPIView
+    from rest_framework.request import Request
+
+    Q = TypeVar("Q", bound=QuerySet[Any])
 
 
 class DjangoFilterBackend:
@@ -11,12 +23,12 @@ class DjangoFilterBackend:
     raise_exception = True
 
     @property
-    def template(self):
+    def template(self) -> str:
         if compat.is_crispy():
             return "django_filters/rest_framework/crispy_form.html"
         return "django_filters/rest_framework/form.html"
 
-    def get_filterset(self, request, queryset, view):
+    def get_filterset(self, request: Request, queryset: Q, view: Any) -> Optional[filterset.FilterSet]:
         filterset_class = self.get_filterset_class(view, queryset)
         if filterset_class is None:
             return None
@@ -24,7 +36,7 @@ class DjangoFilterBackend:
         kwargs = self.get_filterset_kwargs(request, queryset, view)
         return filterset_class(**kwargs)
 
-    def get_filterset_class(self, view, queryset=None):
+    def get_filterset_class(self, view: GenericAPIView, queryset: Optional[QuerySet]=None) -> Optional[type[filterset.FilterSet]]:
         """
         Return the `FilterSet` class used to filter the queryset.
         """
@@ -57,14 +69,14 @@ class DjangoFilterBackend:
 
         return None
 
-    def get_filterset_kwargs(self, request, queryset, view):
+    def get_filterset_kwargs(self, request: Request, queryset: QuerySet, view: GenericAPIView) -> Dict[str, Union[QueryDict, QuerySet, Request]]:
         return {
             "data": request.query_params,
             "queryset": queryset,
             "request": request,
         }
 
-    def filter_queryset(self, request, queryset, view):
+    def filter_queryset(self, request: Request, queryset: Q, view: Any) -> Q:
         filterset = self.get_filterset(request, queryset, view)
         if filterset is None:
             return queryset
@@ -73,7 +85,7 @@ class DjangoFilterBackend:
             raise utils.translate_validation(filterset.errors)
         return filterset.qs
 
-    def to_html(self, request, queryset, view):
+    def to_html(self, request: Request, queryset: QuerySet, view: GenericAPIView) -> Optional[SafeString]:
         filterset = self.get_filterset(request, queryset, view)
         if filterset is None:
             return None
@@ -129,7 +141,7 @@ class DjangoFilterBackend:
             ]
         )
 
-    def get_schema_operation_parameters(self, view):
+    def get_schema_operation_parameters(self, view: GenericAPIView) -> Any:
         from django_filters import RemovedInDjangoFilter25Warning
         warnings.warn(
             "Built-in schema generation is deprecated. Use drf-spectacular.",
