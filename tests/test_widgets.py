@@ -540,6 +540,10 @@ class QueryArrayWidgetTests(TestCase):
         result = w.value_from_datadict(data, {}, "price")
         self.assertEqual(sorted(result), ["1", "2"])
 
+        data = {"price": "1,2"}
+        result = w.value_from_datadict(data, {}, "price")
+        self.assertEqual(result, ["1", "2"])
+
         data = {"price": "1,,2"}
         result = w.value_from_datadict(data, {}, "price")
         self.assertEqual(sorted(result), ["1", "2"])
@@ -572,6 +576,10 @@ class QueryArrayWidgetTests(TestCase):
         data = {"price[]": ["1", "2"]}
         result = w.value_from_datadict(data, {}, "price")
         self.assertEqual(sorted(result), ["1", "2"])
+
+        data = {"price[]": ["1", "2"]}
+        result = w.value_from_datadict(data, {}, "price")
+        self.assertEqual(result, ["1", "2"])
 
         data = {"price[]": ["1", "", "2"]}
         result = w.value_from_datadict(data, {}, "price")
