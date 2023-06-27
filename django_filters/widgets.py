@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from collections import OrderedDict
 from copy import deepcopy
 from itertools import chain
 from re import search, sub
@@ -263,4 +264,5 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
         else:
             ret = []
 
-        return list(set(ret))
+        ordered_dict = OrderedDict.fromkeys(ret)
+        return list(ordered_dict.keys())
