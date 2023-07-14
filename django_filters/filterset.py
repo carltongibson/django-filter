@@ -47,6 +47,7 @@ class FilterSetOptions:
         self.model = getattr(options, "model", None)
         self.fields = getattr(options, "fields", None)
         self.exclude = getattr(options, "exclude", None)
+        self.extra_kwargs = getattr(options, "extra_kwargs", {})
 
         self.filter_overrides = getattr(options, "filter_overrides", {})
 
@@ -388,6 +389,9 @@ class BaseFilterSet:
         data = try_dbfield(DEFAULTS.get, field.__class__) or {}
         filter_class = data.get("filter_class")
         params = data.get("extra", lambda field: {})(field)
+
+        if hasattr(cls, "_meta"):
+            params.update(cls._meta.extra_kwargs.get(field.name, {}))
 
         # if there is no filter class, exit early
         if not filter_class:
