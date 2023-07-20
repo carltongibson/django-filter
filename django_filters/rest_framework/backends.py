@@ -34,7 +34,7 @@ class DjangoFilterBackend:
         kwargs = self.get_filterset_kwargs(request, queryset, view)
         return filterset_class(**kwargs)
 
-    def get_filterset_class(self, view: GenericAPIView, queryset: QuerySet[Any] | None=None) -> type[filterset.FilterSet] | None:
+    def get_filterset_class(self, view: GenericAPIView, queryset: QuerySet[Any] | None = None) -> type[filterset.FilterSet] | None:
         """
         Return the `FilterSet` class used to filter the queryset.
         """
