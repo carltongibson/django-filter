@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from django.template import loader
 
@@ -10,8 +10,6 @@ from . import filters, filterset
 
 if TYPE_CHECKING:
     from django.db.models.query import QuerySet
-    from django.http.request import QueryDict
-    from django.utils.safestring import SafeString
     from rest_framework.generics import GenericAPIView
     from rest_framework.request import Request
 
@@ -28,7 +26,7 @@ class DjangoFilterBackend:
             return "django_filters/rest_framework/crispy_form.html"
         return "django_filters/rest_framework/form.html"
 
-    def get_filterset(self, request: Request, queryset: Q, view: Any) -> Optional[filterset.FilterSet]:
+    def get_filterset(self, request: Request, queryset: QuerySet[Any], view: GenericAPIView) -> filterset.FilterSet | None:
         filterset_class = self.get_filterset_class(view, queryset)
         if filterset_class is None:
             return None
@@ -36,7 +34,7 @@ class DjangoFilterBackend:
         kwargs = self.get_filterset_kwargs(request, queryset, view)
         return filterset_class(**kwargs)
 
-    def get_filterset_class(self, view: GenericAPIView, queryset: Optional[QuerySet]=None) -> Optional[type[filterset.FilterSet]]:
+    def get_filterset_class(self, view: GenericAPIView, queryset: QuerySet[Any] | None=None) -> type[filterset.FilterSet] | None:
         """
         Return the `FilterSet` class used to filter the queryset.
         """
@@ -69,7 +67,7 @@ class DjangoFilterBackend:
 
         return None
 
-    def get_filterset_kwargs(self, request: Request, queryset: QuerySet, view: GenericAPIView) -> Dict[str, Union[QueryDict, QuerySet, Request]]:
+    def get_filterset_kwargs(self, request: Request, queryset: QuerySet[Any], view: GenericAPIView) -> dict[str, Any]:
         return {
             "data": request.query_params,
             "queryset": queryset,
@@ -85,7 +83,7 @@ class DjangoFilterBackend:
             raise utils.translate_validation(filterset.errors)
         return filterset.qs
 
-    def to_html(self, request: Request, queryset: QuerySet, view: GenericAPIView) -> Optional[SafeString]:
+    def to_html(self, request: Request, queryset: QuerySet, view: GenericAPIView) -> str | None:
         filterset = self.get_filterset(request, queryset, view)
         if filterset is None:
             return None
