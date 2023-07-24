@@ -1977,6 +1977,19 @@ class OrderingFilterTests(TestCase):
         names = f.qs.values_list("username", flat=True)
         self.assertEqual(list(names), ["aaron", "alex", "carl", "jacob"])
 
+    def test_csv_input(self):
+        class F(FilterSet):
+            o = OrderingFilter(widget=forms.Select, fields=("username",))
+
+            class Meta:
+                model = User
+                fields = ["username"]
+
+        qs = User.objects.all()
+        f = F({"o": ","}, queryset=qs)
+        f.qs
+        value = f.form.cleaned_data["o"]
+        self.assertEqual(value, [])
 
 class MiscFilterSetTests(TestCase):
     def setUp(self):
