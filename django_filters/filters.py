@@ -24,6 +24,7 @@ from .fields import (
     ModelChoiceField,
     ModelMultipleChoiceField,
     MultipleChoiceField,
+    BaseOrderingField,
     RangeField,
     TimeRangeField,
 )
@@ -718,6 +719,7 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
 
     """
 
+    base_field_class = BaseOrderingField
     descending_fmt = _("%s (descending)")
 
     def __init__(self, *args, **kwargs):

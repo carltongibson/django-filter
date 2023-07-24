@@ -190,6 +190,15 @@ class BaseCSVField(forms.Field):
         return [super(BaseCSVField, self).clean(v) for v in value]
 
 
+class BaseOrderingField(BaseCSVField):
+    # Remove empty strings from the value, as attempting to order
+    # by an empty string causes a FieldError.
+
+    def clean(self, value):
+        value = super().clean(value)
+        return [v for v in value if v != ""]
+
+
 class BaseRangeField(BaseCSVField):
     # Force use of text input, as range must always have two inputs. A date
     # input would only allow a user to input one value and would always fail.
