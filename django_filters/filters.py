@@ -14,6 +14,7 @@ from .conf import settings
 from .constants import EMPTY_VALUES
 from .fields import (
     BaseCSVField,
+    BaseOrderingField,
     BaseRangeField,
     ChoiceField,
     DateRangeField,
@@ -24,7 +25,6 @@ from .fields import (
     ModelChoiceField,
     ModelMultipleChoiceField,
     MultipleChoiceField,
-    BaseOrderingField,
     RangeField,
     TimeRangeField,
 )
