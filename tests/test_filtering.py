@@ -1459,6 +1459,7 @@ class M2MRelationshipTests(TestCase):
         f = F({"favorite_books__title": "Rainbow Six"}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["alex"], lambda o: o.username)
 
+        # No choices given, so filtering does nothing.
         class F(FilterSet):
             favorite_books__title = MultipleChoiceFilter()
 
@@ -1468,10 +1469,25 @@ class M2MRelationshipTests(TestCase):
 
         f = F()
         self.assertEqual(len(f.filters["favorite_books__title"].field.choices), 0)
-        # f = F({'favorite_books__title': ['1', '3']},
-        #     queryset=qs)
-        # self.assertQuerySetEqual(
-        #     f.qs, ['aaron', 'alex'], lambda o: o.username)
+
+        # Specifying choices allows filter to work. (See also AllValues variants.)
+        class F(FilterSet):
+            favorite_books__title = MultipleChoiceFilter(
+                choices=[
+                    (b.title, b.title) for b in Book.objects.all()
+                ]
+            )
+
+            class Meta:
+                model = User
+                fields = ["favorite_books__title"]
+
+        f = F({'favorite_books__title': ["Ender's Game", "Snowcrash"]}, queryset=qs)
+        self.assertIs(True, f.form.is_valid(), list(f.filters["favorite_books__title"].field.choices))
+        self.assertQuerySetEqual(
+            f.qs, ['aaron', 'alex'],
+            lambda o: o.username,
+        )
 
         class F(FilterSet):
             favorite_books__title = AllValuesFilter()
