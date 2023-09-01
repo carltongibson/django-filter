@@ -17,6 +17,14 @@ from .widgets import (
     RangeWidget,
 )
 
+# Compat for Django >= 5.0
+try:
+    from django.utils.choices import normalize_choices
+except ImportError:
+    normalize_choices = None
+
+DJANGO_50 = normalize_choices is not None
+
 
 class RangeField(forms.MultiValueField):
     widget = RangeWidget
@@ -257,21 +265,31 @@ class ChoiceIteratorMixin:
 
         super().__init__(*args, **kwargs)
 
-    def _get_choices(self):
-        return super()._get_choices()
+    if not DJANGO_50:
 
-    def _set_choices(self, value):
-        super()._set_choices(value)
-        value = self.iterator(self, self._choices)
+        def _get_choices(self):
+            return super()._get_choices()
 
-        self._choices = self.widget.choices = value
+        def _set_choices(self, value):
+            super()._set_choices(value)
+            value = self.iterator(self, self._choices)
 
-    choices = property(_get_choices, _set_choices)
+            self._choices = self.widget.choices = value
+
+        choices = property(_get_choices, _set_choices)
 
 
 # Unlike their Model* counterparts, forms.ChoiceField and forms.MultipleChoiceField do not set empty_label
 class ChoiceField(ChoiceIteratorMixin, forms.ChoiceField):
     iterator = ChoiceIterator
+
+    if DJANGO_50:
+
+        @forms.ChoiceField.choices.setter
+        def choices(self, value):
+            self._choices = self.widget.choices = self.iterator(
+                self, normalize_choices(value)
+            )
 
     def __init__(self, *args, **kwargs):
         self.empty_label = kwargs.pop("empty_label", settings.EMPTY_CHOICE_LABEL)
@@ -280,6 +298,14 @@ class ChoiceField(ChoiceIteratorMixin, forms.ChoiceField):
 
 class MultipleChoiceField(ChoiceIteratorMixin, forms.MultipleChoiceField):
     iterator = ChoiceIterator
+
+    if DJANGO_50:
+
+        @forms.MultipleChoiceField.choices.setter
+        def choices(self, value):
+            self._choices = self.widget.choices = self.iterator(
+                self, normalize_choices(value)
+            )
 
     def __init__(self, *args, **kwargs):
         self.empty_label = None
