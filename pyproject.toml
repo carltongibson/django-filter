@@ -4,7 +4,6 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "django-filter"
-version = "23.2"
 authors = [{name = "Alex Gaynor", email = "alex.gaynor@gmail.com"}]
 maintainers = [{name = "Carlton Gibson", email = "carlton.gibson@noumenal.es"}]
 license = {text = "BSD"}
@@ -31,6 +30,7 @@ classifiers = [
 ]
 requires-python = ">=3.7"
 dependencies = ["Django>=3.2"]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://github.com/carltongibson/django-filter/tree/main"
