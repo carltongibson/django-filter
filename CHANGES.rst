@@ -1,3 +1,10 @@
+Version 23.3 (2023-9-17)
+------------------------
+
+* Adds initial compatibility with Django 5.0, prior to Django 5.0a1.
+
+* Updates packaging to use pyproject.toml and Flit.
+
 Version 23.2 (2023-4-30)
 ------------------------
 
