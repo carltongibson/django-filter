@@ -153,7 +153,7 @@ msgstr "Les valeurs multiples doivent être séparées par des virgules."
 #: filters.py:721
 #, python-format
 msgid "%s (descending)"
-msgstr "%s (décroisssant)"
+msgstr "%s (décroissant)"
 
 #: filters.py:737
 msgid "Ordering"
