@@ -26,11 +26,11 @@ Django REST Framework.
 
 Please see:
 
-* `Status of supported Python branches <https://devguide.python.org/#status-of-python-branches>`_
-* `List of supported Django versions <https://www.djangoproject.com/download/#support-versions>`_
+* `Status of supported Python versions <https://devguide.python.org/versions/#supported-versions>`_
+* `List of supported Django versions <https://www.djangoproject.com/download/#supported-versions>`_
 
 Support for Python and Django versions will be dropped when they reach
-end-of-life. Support for Python versions will dropped when they reach
+end-of-life. Support for Python versions will be dropped when they reach
 end-of-life, even when still supported by a current version of Django.
 
 Other breaking changes are rare. Where required, every effort will be made to
