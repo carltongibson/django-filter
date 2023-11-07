@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from datetime import timedelta
+from itertools import chain
 
 from django import forms
 from django.core.validators import MaxValueValidator
@@ -478,7 +479,15 @@ class DateRangeFilter(ChoiceFilter):
         if filters is not None:
             self.filters = filters
 
-        unique = set([x[0] for x in self.choices]) ^ set(self.filters)
+        all_choices = list(
+            chain.from_iterable(
+                [subchoice[0] for subchoice in choice[1]]
+                if isinstance(choice[1], list | tuple)  # This is an optgroup
+                else [choice[0]]
+                for choice in self.choices
+            )
+        )
+        unique = set(all_choices) ^ set(self.filters)
         assert not unique, (
             "Keys must be present in both 'choices' and 'filters'. Missing keys: "
             "'%s'" % ", ".join(sorted(unique))
