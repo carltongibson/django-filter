@@ -482,7 +482,7 @@ class DateRangeFilter(ChoiceFilter):
         all_choices = list(
             chain.from_iterable(
                 [subchoice[0] for subchoice in choice[1]]
-                if isinstance(choice[1], list | tuple)  # This is an optgroup
+                if isinstance(choice[1], (list, tuple))  # This is an optgroup
                 else [choice[0]]
                 for choice in self.choices
             )
