@@ -215,7 +215,7 @@ Filtering by relative times
 
 Given a model with a timestamp field, it may be useful to filter based on relative times.
 For instance, perhaps we want to get data from the past *n* hours.
-This could be accomplished the with a ``NumberFilter`` that invokes a custom method.
+This could be accomplished with a ``NumberFilter`` that invokes a custom method.
 
 .. code-block:: python
 
