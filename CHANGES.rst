@@ -1,3 +1,14 @@
+Version 23.4 (2023-11-20)
+-------------------------
+
+* Official support for Django 5.0 and Python 3.12.
+
+* Fix DeprecationWarning for pkgutil.find_loader.
+
+  Thanks to `wmorrell`.
+
+* Adopted Furo theme for docs.
+
 Version 23.3 (2023-9-17)
 ------------------------
 
