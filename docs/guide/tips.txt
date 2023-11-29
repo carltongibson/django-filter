@@ -37,13 +37,14 @@ would be:
 
     class ProductFilter(django_filters.FilterSet):
         price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
-        
+
 When using ``filterset_fields``, you can also add the ``lookup_expr`` in the
-dict of fields like so: 
+dict of fields like so:
 
 .. code-block:: python
+
     # ... ModelViewSet with DjangoFilterBackend in filter_backends ...
-    
+
     filterset_fields = {
         "price": ["gt", "exact"],
     }
