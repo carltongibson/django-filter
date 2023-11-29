@@ -1100,6 +1100,11 @@ class DateRangeFilterTests(TestCase):
         with self.assertRaisesMessage(AssertionError, msg):
             DateRangeFilter(choices=[("a", "a")], filters={"b": None})
 
+    def test_choices_with_optgroups_dont_mistmatch(self):
+        DateRangeFilter(
+            choices=[("group", ("a", "a")), ("b", "b")], filters={"a": None, "b": None}
+        )
+
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=["filter"])
         with mock.patch("django_filters.filters.now") as mock_now:
