@@ -759,7 +759,11 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         if value in EMPTY_VALUES:
             return qs
 
-        ordering = [self.get_ordering_value(param) for param in value]
+        ordering = [
+            self.get_ordering_value(param)
+            for param in value
+            if param not in EMPTY_VALUES
+        ]
         return qs.order_by(*ordering)
 
     @classmethod
