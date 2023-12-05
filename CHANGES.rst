@@ -1,3 +1,10 @@
+Version 23.5 (2023-12-05)
+-------------------------
+
+* Fixed OrderingFilter handling of empty values. (#1628)
+
+  Thanks to Matt Munns.
+
 Version 23.4 (2023-11-20)
 -------------------------
 
