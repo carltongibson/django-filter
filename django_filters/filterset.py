@@ -458,9 +458,15 @@ class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
     pass
 
 
-def filterset_factory(model, fields=ALL_FIELDS):
-    meta = type(str("Meta"), (object,), {"model": model, "fields": fields})
-    filterset = type(
-        str("%sFilterSet" % model._meta.object_name), (FilterSet,), {"Meta": meta}
+def filterset_factory(model, filterset=FilterSet, fields=None):
+    attrs = {"model": model}
+    if fields is None:
+        if getattr(getattr(filterset, "Meta", {}), "fields", None) is None:
+            attrs["fields"] = ALL_FIELDS
+    else:
+        attrs["fields"] = fields
+    bases = (filterset.Meta,) if hasattr(filterset, "Meta") else ()
+    Meta = type("Meta", bases, attrs)
+    return type(filterset)(
+        str("%sFilterSet" % model._meta.object_name), (filterset,), {"Meta": Meta}
     )
-    return filterset
