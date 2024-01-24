@@ -199,3 +199,22 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
 
             # use default behavior otherwise
             return super().filter_for_lookup(f, lookup_type)
+
+
+.. _filterset_factory:
+
+Using ``filterset_factory``
+---------------------------
+
+A ``FilterSet`` for a ``model`` can also be created by the
+``filterset_factory``, which creats a ``FilterSet`` with the ``model`` set in
+the FilterSets Meta. You can pass a customized ``FilterSet`` class to the
+``filterset_factory``, which then uses this class a a base for the created
+``FilterSet``. Ex::
+
+    class CustomFilterSet(django_filters.FilterSet):
+        class Meta:
+            form = CustomFilterSetForm
+
+
+    filterset = filterset_factory(Product, filterset=CustomFilterSet)
