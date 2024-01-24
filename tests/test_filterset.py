@@ -19,7 +19,7 @@ from django_filters.filters import (
     NumberFilter,
     UUIDFilter,
 )
-from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet
+from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet, filterset_factory
 from django_filters.widgets import BooleanWidget
 
 from .models import (
@@ -50,10 +50,6 @@ class HelperMethodsTests(TestCase):
 
     @unittest.skip("todo")
     def test_filters_for_model(self):
-        pass
-
-    @unittest.skip("todo")
-    def test_filterset_factory(self):
         pass
 
 
@@ -714,6 +710,73 @@ class FilterSetClassCreationTests(TestCase):
             "f4": CharFilter,
             "f5": CharFilter,
         }
+
+    def test_filterset_factory(self):
+        filterset = filterset_factory(Article)
+        self.assertEqual(list(filterset.base_filters), ["name", "published", "author"])
+
+    def test_filterset_factory_fields(self):
+        filterset = filterset_factory(Article, fields=["name"])
+        self.assertEqual(list(filterset.base_filters), ["name"])
+
+    def test_filterset_factory_base_filter(self):
+        class FilterSetBase(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase)
+        self.assertEqual(list(filterset.base_filters), ["name", "published", "author", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_fields(self):
+        class FilterSetBase(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase, fields=["name"])
+        self.assertEqual(list(filterset.base_filters), ["name", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_meta_fields(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                fields = ["name"]
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase)
+        self.assertEqual(list(filterset.base_filters), ["name", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_fields_and_meta_fields(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                fields = ["name"]
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase, fields=["author"])
+        self.assertEqual(list(filterset.base_filters), ["author", "f1", "f2"])
+
+    def test_filtesret_factory_base_filter_meta_inheritance_filter_overrides(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                filter_overrides = {
+                    models.CharField: {
+                        "filter_class": BooleanFilter,
+                    },
+                }
+
+        filterset = filterset_factory(Article, FilterSetBase)
+
+        f = Article._meta.get_field("author")
+        result, params = filterset.filter_for_lookup(f, "isnull")
+        self.assertEqual(result, BooleanFilter)
+
+    def test_filtesret_factory_base_filter_meta_inheritance_exclude(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                exclude = ["published"]
+
+        filterset = filterset_factory(Article, FilterSetBase)
+        self.assertEqual(list(filterset.base_filters), ["name", "author"])
 
 
 class FilterSetInstantiationTests(TestCase):
