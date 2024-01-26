@@ -1,3 +1,5 @@
+.. _drf integration:
+
 ====================
 Integration with DRF
 ====================
@@ -6,7 +8,6 @@ Integration with `Django Rest Framework`__ is provided through a DRF-specific ``
 
 __ http://www.django-rest-framework.org/
 __ http://www.django-rest-framework.org/api-guide/filtering/
-
 
 Quickstart
 ----------
@@ -69,7 +70,7 @@ To enable filtering with a ``FilterSet``, add it to the ``filterset_class`` para
 
         class Meta:
             model = Product
-            fields = ['category', 'in_stock', 'min_price', 'max_price']
+            fields = ['category', 'in_stock']
 
 
     class ProductList(generics.ListAPIView):

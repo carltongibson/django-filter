@@ -1,5 +1,4 @@
+ALL_FIELDS = "__all__"
 
-ALL_FIELDS = '__all__'
 
-
-EMPTY_VALUES = ([], (), {}, '', None)
+EMPTY_VALUES = ([], (), {}, "", None)

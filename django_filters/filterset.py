@@ -4,11 +4,7 @@ from collections import OrderedDict
 from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.fields.related import (
-    ManyToManyRel,
-    ManyToOneRel,
-    OneToOneRel
-)
+from django.db.models.fields.related import ManyToManyRel, ManyToOneRel, OneToOneRel
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -26,14 +22,9 @@ from .filters import (
     ModelMultipleChoiceFilter,
     NumberFilter,
     TimeFilter,
-    UUIDFilter
+    UUIDFilter,
 )
-from .utils import (
-    get_all_model_fields,
-    get_model_field,
-    resolve_field,
-    try_dbfield
-)
+from .utils import get_all_model_fields, get_model_field, resolve_field, try_dbfield
 
 
 def remote_queryset(field):
@@ -44,7 +35,7 @@ def remote_queryset(field):
     model = field.related_model
 
     # Reverse relationships do not have choice limits
-    if not hasattr(field, 'get_limit_choices_to'):
+    if not hasattr(field, "get_limit_choices_to"):
         return model._default_manager.all()
 
     limit_choices_to = field.get_limit_choices_to()
@@ -53,30 +44,22 @@ def remote_queryset(field):
 
 class FilterSetOptions:
     def __init__(self, options=None):
-        self.model = getattr(options, 'model', None)
-        self.fields = getattr(options, 'fields', None)
-        self.exclude = getattr(options, 'exclude', None)
+        self.model = getattr(options, "model", None)
+        self.fields = getattr(options, "fields", None)
+        self.exclude = getattr(options, "exclude", None)
 
-        self.filter_overrides = getattr(options, 'filter_overrides', {})
+        self.filter_overrides = getattr(options, "filter_overrides", {})
 
-        self.form = getattr(options, 'form', forms.Form)
+        self.form = getattr(options, "form", forms.Form)
 
 
 class FilterSetMetaclass(type):
     def __new__(cls, name, bases, attrs):
-        attrs['declared_filters'] = cls.get_declared_filters(bases, attrs)
+        attrs["declared_filters"] = cls.get_declared_filters(bases, attrs)
 
         new_class = super().__new__(cls, name, bases, attrs)
-        new_class._meta = FilterSetOptions(getattr(new_class, 'Meta', None))
+        new_class._meta = FilterSetOptions(getattr(new_class, "Meta", None))
         new_class.base_filters = new_class.get_filters()
-
-        # TODO: remove assertion in 2.1
-        assert not hasattr(new_class, 'filter_for_reverse_field'), (
-            "`%(cls)s.filter_for_reverse_field` has been removed. "
-            "`%(cls)s.filter_for_field` now generates filters for reverse fields. "
-            "See: https://django-filter.readthedocs.io/en/master/guide/migration.html"
-            % {'cls': new_class.__name__}
-        )
 
         return new_class
 
@@ -90,7 +73,7 @@ class FilterSetMetaclass(type):
 
         # Default the `filter.field_name` to the attribute name on the filterset
         for filter_name, f in filters:
-            if getattr(f, 'field_name', None) is None:
+            if getattr(f, "field_name", None) is None:
                 f.field_name = filter_name
 
         filters.sort(key=lambda x: x[1].creation_counter)
@@ -106,80 +89,80 @@ class FilterSetMetaclass(type):
 
         base_filters = [
             (visit(name), f)
-            for base in bases if hasattr(base, 'declared_filters')
-            for name, f in base.declared_filters.items() if name not in known
+            for base in bases
+            if hasattr(base, "declared_filters")
+            for name, f in base.declared_filters.items()
+            if name not in known
         ]
 
         return OrderedDict(base_filters + filters)
 
 
 FILTER_FOR_DBFIELD_DEFAULTS = {
-    models.AutoField:                   {'filter_class': NumberFilter},
-    models.CharField:                   {'filter_class': CharFilter},
-    models.TextField:                   {'filter_class': CharFilter},
-    models.BooleanField:                {'filter_class': BooleanFilter},
-    models.DateField:                   {'filter_class': DateFilter},
-    models.DateTimeField:               {'filter_class': DateTimeFilter},
-    models.TimeField:                   {'filter_class': TimeFilter},
-    models.DurationField:               {'filter_class': DurationFilter},
-    models.DecimalField:                {'filter_class': NumberFilter},
-    models.SmallIntegerField:           {'filter_class': NumberFilter},
-    models.IntegerField:                {'filter_class': NumberFilter},
-    models.PositiveIntegerField:        {'filter_class': NumberFilter},
-    models.PositiveSmallIntegerField:   {'filter_class': NumberFilter},
-    models.FloatField:                  {'filter_class': NumberFilter},
-    models.NullBooleanField:            {'filter_class': BooleanFilter},
-    models.SlugField:                   {'filter_class': CharFilter},
-    models.EmailField:                  {'filter_class': CharFilter},
-    models.FilePathField:               {'filter_class': CharFilter},
-    models.URLField:                    {'filter_class': CharFilter},
-    models.GenericIPAddressField:       {'filter_class': CharFilter},
-    models.CommaSeparatedIntegerField:  {'filter_class': CharFilter},
-    models.UUIDField:                   {'filter_class': UUIDFilter},
-
+    models.AutoField: {"filter_class": NumberFilter},
+    models.CharField: {"filter_class": CharFilter},
+    models.TextField: {"filter_class": CharFilter},
+    models.BooleanField: {"filter_class": BooleanFilter},
+    models.DateField: {"filter_class": DateFilter},
+    models.DateTimeField: {"filter_class": DateTimeFilter},
+    models.TimeField: {"filter_class": TimeFilter},
+    models.DurationField: {"filter_class": DurationFilter},
+    models.DecimalField: {"filter_class": NumberFilter},
+    models.SmallIntegerField: {"filter_class": NumberFilter},
+    models.IntegerField: {"filter_class": NumberFilter},
+    models.PositiveIntegerField: {"filter_class": NumberFilter},
+    models.PositiveSmallIntegerField: {"filter_class": NumberFilter},
+    models.FloatField: {"filter_class": NumberFilter},
+    models.NullBooleanField: {"filter_class": BooleanFilter},
+    models.SlugField: {"filter_class": CharFilter},
+    models.EmailField: {"filter_class": CharFilter},
+    models.FilePathField: {"filter_class": CharFilter},
+    models.URLField: {"filter_class": CharFilter},
+    models.GenericIPAddressField: {"filter_class": CharFilter},
+    models.CommaSeparatedIntegerField: {"filter_class": CharFilter},
+    models.UUIDField: {"filter_class": UUIDFilter},
     # Forward relationships
     models.OneToOneField: {
-        'filter_class': ModelChoiceFilter,
-        'extra': lambda f: {
-            'queryset': remote_queryset(f),
-            'to_field_name': f.remote_field.field_name,
-            'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
-        }
+        "filter_class": ModelChoiceFilter,
+        "extra": lambda f: {
+            "queryset": remote_queryset(f),
+            "to_field_name": f.remote_field.field_name,
+            "null_label": settings.NULL_CHOICE_LABEL if f.null else None,
+        },
     },
     models.ForeignKey: {
-        'filter_class': ModelChoiceFilter,
-        'extra': lambda f: {
-            'queryset': remote_queryset(f),
-            'to_field_name': f.remote_field.field_name,
-            'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
-        }
+        "filter_class": ModelChoiceFilter,
+        "extra": lambda f: {
+            "queryset": remote_queryset(f),
+            "to_field_name": f.remote_field.field_name,
+            "null_label": settings.NULL_CHOICE_LABEL if f.null else None,
+        },
     },
     models.ManyToManyField: {
-        'filter_class': ModelMultipleChoiceFilter,
-        'extra': lambda f: {
-            'queryset': remote_queryset(f),
-        }
+        "filter_class": ModelMultipleChoiceFilter,
+        "extra": lambda f: {
+            "queryset": remote_queryset(f),
+        },
     },
-
     # Reverse relationships
     OneToOneRel: {
-        'filter_class': ModelChoiceFilter,
-        'extra': lambda f: {
-            'queryset': remote_queryset(f),
-            'null_label': settings.NULL_CHOICE_LABEL if f.null else None,
-        }
+        "filter_class": ModelChoiceFilter,
+        "extra": lambda f: {
+            "queryset": remote_queryset(f),
+            "null_label": settings.NULL_CHOICE_LABEL if f.null else None,
+        },
     },
     ManyToOneRel: {
-        'filter_class': ModelMultipleChoiceFilter,
-        'extra': lambda f: {
-            'queryset': remote_queryset(f),
-        }
+        "filter_class": ModelMultipleChoiceFilter,
+        "extra": lambda f: {
+            "queryset": remote_queryset(f),
+        },
     },
     ManyToManyRel: {
-        'filter_class': ModelMultipleChoiceFilter,
-        'extra': lambda f: {
-            'queryset': remote_queryset(f),
-        }
+        "filter_class": ModelMultipleChoiceFilter,
+        "extra": lambda f: {
+            "queryset": remote_queryset(f),
+        },
     },
 }
 
@@ -228,14 +211,18 @@ class BaseFilterSet:
         """
         for name, value in self.form.cleaned_data.items():
             queryset = self.filters[name].filter(queryset, value)
-            assert isinstance(queryset, models.QuerySet), \
-                "Expected '%s.%s' to return a QuerySet, but got a %s instead." \
-                % (type(self).__name__, name, type(queryset).__name__)
+            assert isinstance(
+                queryset, models.QuerySet
+            ), "Expected '%s.%s' to return a QuerySet, but got a %s instead." % (
+                type(self).__name__,
+                name,
+                type(queryset).__name__,
+            )
         return queryset
 
     @property
     def qs(self):
-        if not hasattr(self, '_qs'):
+        if not hasattr(self, "_qs"):
             qs = self.queryset.all()
             if self.is_bound:
                 # ensure form validation before filtering
@@ -251,16 +238,15 @@ class BaseFilterSet:
         This method should be overridden if the form class needs to be
         customized relative to the filterset instance.
         """
-        fields = OrderedDict([
-            (name, filter_.field)
-            for name, filter_ in self.filters.items()])
+        fields = OrderedDict(
+            [(name, filter_.field) for name, filter_ in self.filters.items()]
+        )
 
-        return type(str('%sForm' % self.__class__.__name__),
-                    (self._meta.form,), fields)
+        return type(str("%sForm" % self.__class__.__name__), (self._meta.form,), fields)
 
     @property
     def form(self):
-        if not hasattr(self, '_form'):
+        if not hasattr(self, "_form"):
             Form = self.get_form_class()
             if self.is_bound:
                 self._form = Form(self.data, prefix=self.form_prefix)
@@ -278,10 +264,11 @@ class BaseFilterSet:
         fields = cls._meta.fields
         exclude = cls._meta.exclude
 
-        assert not (fields is None and exclude is None), \
-            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude' " \
-            "has been deprecated since 0.15.0 and is now disallowed. Add an explicit " \
+        assert not (fields is None and exclude is None), (
+            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude' "
+            "has been deprecated since 0.15.0 and is now disallowed. Add an explicit "
             "'Meta.fields' or 'Meta.exclude' to the %s class." % cls.__name__
+        )
 
         # Setting exclude with no fields implies all other fields.
         if exclude is not None and fields is None:
@@ -294,7 +281,9 @@ class BaseFilterSet:
         # Remove excluded fields
         exclude = exclude or []
         if not isinstance(fields, dict):
-            fields = [(f, [settings.DEFAULT_LOOKUP_EXPR]) for f in fields if f not in exclude]
+            fields = [
+                (f, [settings.DEFAULT_LOOKUP_EXPR]) for f in fields if f not in exclude
+            ]
         else:
             fields = [(f, lookups) for f, lookups in fields.items() if f not in exclude]
 
@@ -312,7 +301,7 @@ class BaseFilterSet:
         # This also works with transformed exact lookups, such as 'date__exact'
         _default_expr = LOOKUP_SEP + settings.DEFAULT_LOOKUP_EXPR
         if filter_name.endswith(_default_expr):
-            filter_name = filter_name[:-len(_default_expr)]
+            filter_name = filter_name[: -len(_default_expr)]
 
         return filter_name
 
@@ -348,7 +337,9 @@ class BaseFilterSet:
                     continue
 
                 if field is not None:
-                    filters[filter_name] = cls.filter_for_field(field, field_name, lookup_expr)
+                    filters[filter_name] = cls.filter_for_field(
+                        field, field_name, lookup_expr
+                    )
 
         # Allow Meta.fields to contain declared filters *only* when a list/tuple
         if isinstance(cls._meta.fields, (list, tuple)):
@@ -357,7 +348,7 @@ class BaseFilterSet:
         if undefined:
             raise TypeError(
                 "'Meta.fields' must not contain non-model field names: %s"
-                % ', '.join(undefined)
+                % ", ".join(undefined)
             )
 
         # Add in declared filters. This is necessary since we don't enforce adding
@@ -372,8 +363,8 @@ class BaseFilterSet:
         field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {
-            'field_name': field_name,
-            'lookup_expr': lookup_expr,
+            "field_name": field_name,
+            "lookup_expr": lookup_expr,
         }
 
         filter_class, params = cls.filter_for_lookup(field, lookup_type)
@@ -382,7 +373,7 @@ class BaseFilterSet:
         assert filter_class is not None, (
             "%s resolved field '%s' with '%s' lookup to an unrecognized field "
             "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/master/ref/filterset.html"
+            "https://django-filter.readthedocs.io/en/main/ref/filterset.html"
             "#customise-filter-generation-with-filter-overrides"
         ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
 
@@ -391,40 +382,44 @@ class BaseFilterSet:
     @classmethod
     def filter_for_lookup(cls, field, lookup_type):
         DEFAULTS = dict(cls.FILTER_DEFAULTS)
-        if hasattr(cls, '_meta'):
+        if hasattr(cls, "_meta"):
             DEFAULTS.update(cls._meta.filter_overrides)
 
         data = try_dbfield(DEFAULTS.get, field.__class__) or {}
-        filter_class = data.get('filter_class')
-        params = data.get('extra', lambda field: {})(field)
+        filter_class = data.get("filter_class")
+        params = data.get("extra", lambda field: {})(field)
 
         # if there is no filter class, exit early
         if not filter_class:
             return None, {}
 
         # perform lookup specific checks
-        if lookup_type == 'exact' and getattr(field, 'choices', None):
-            return ChoiceFilter, {'choices': field.choices}
+        if lookup_type == "exact" and getattr(field, "choices", None):
+            return ChoiceFilter, {"choices": field.choices}
 
-        if lookup_type == 'isnull':
+        if lookup_type == "isnull":
             data = try_dbfield(DEFAULTS.get, models.BooleanField)
 
-            filter_class = data.get('filter_class')
-            params = data.get('extra', lambda field: {})(field)
+            filter_class = data.get("filter_class")
+            params = data.get("extra", lambda field: {})(field)
             return filter_class, params
 
-        if lookup_type == 'in':
+        if lookup_type == "in":
+
             class ConcreteInFilter(BaseInFilter, filter_class):
                 pass
+
             ConcreteInFilter.__name__ = cls._csv_filter_class_name(
                 filter_class, lookup_type
             )
 
             return ConcreteInFilter, params
 
-        if lookup_type == 'range':
+        if lookup_type == "range":
+
             class ConcreteRangeFilter(BaseRangeFilter, filter_class):
                 pass
+
             ConcreteRangeFilter.__name__ = cls._csv_filter_class_name(
                 filter_class, lookup_type
             )
@@ -449,14 +444,14 @@ class BaseFilterSet:
         """
         # DateTimeFilter => DateTime
         type_name = filter_class.__name__
-        if type_name.endswith('Filter'):
+        if type_name.endswith("Filter"):
             type_name = type_name[:-6]
 
         # in => In
         lookup_name = lookup_type.capitalize()
 
         # DateTimeInFilter
-        return str('%s%sFilter' % (type_name, lookup_name))
+        return str("%s%sFilter" % (type_name, lookup_name))
 
 
 class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
@@ -464,7 +459,8 @@ class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
 
 
 def filterset_factory(model, fields=ALL_FIELDS):
-    meta = type(str('Meta'), (object,), {'model': model, 'fields': fields})
-    filterset = type(str('%sFilterSet' % model._meta.object_name),
-                     (FilterSet,), {'Meta': meta})
+    meta = type(str("Meta"), (object,), {"model": model, "fields": fields})
+    filterset = type(
+        str("%sFilterSet" % model._meta.object_name), (FilterSet,), {"Meta": meta}
+    )
     return filterset

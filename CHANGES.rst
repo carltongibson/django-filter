@@ -1,3 +1,104 @@
+Version 23.5 (2023-12-05)
+-------------------------
+
+* Fixed OrderingFilter handling of empty values. (#1628)
+
+  Thanks to Matt Munns.
+
+Version 23.4 (2023-11-20)
+-------------------------
+
+* Official support for Django 5.0 and Python 3.12.
+
+* Fix DeprecationWarning for pkgutil.find_loader.
+
+  Thanks to `wmorrell`.
+
+* Adopted Furo theme for docs.
+
+Version 23.3 (2023-9-17)
+------------------------
+
+* Adds initial compatibility with Django 5.0, prior to Django 5.0a1.
+
+* Updates packaging to use pyproject.toml and Flit.
+
+Version 23.2 (2023-4-30)
+------------------------
+
+* Deprecated the schema generation methods of the DRF related ``DjangoFilterBackend``.
+  These will be removed in version 25.1.
+
+  You should use `drf-spectacular <https://drf-spectacular.readthedocs.io/en/latest/>`_
+  for generating OpenAPI schemas with DRF.
+
+* In addition, stopped testing against the (very old now) ``coreapi`` schema generation.
+  These methods should continue to work if you're using them until v25.1, but
+  ``coreapi`` is no longer maintained, and is raising warnings against the current
+  versions of Python. To workaround this is not worth the effort at this point.
+
+* Updated Polish translations.
+
+Version 23.1 (2023-3-26)
+------------------------
+
+* Declared support for Django 4.2.
+
+* Various updated and new translations. Thanks to all who contributed, and
+  Weblate for hosting.
+
+* Fixed QueryArrayWidget.value_from_datadict() to not mutate input data. (#1540)
+
+Version 22.1 (2022-6-17)
+------------------------
+
+* Update supported Python and Django versions: minimal Python is now 3.7,
+  minimum Django is now 3.2.
+
+* Added testing for Python 3.10 and Django 4.1.
+
+* Removed outdated deprecated warnings for code removed in version 2.1.
+
+* Removed `filter_class` (use `filterset_class`) and `filter_fields`
+  (`filterset_fields`) that were deprecated in [version 2.0
+  (2018)](https://django-filter.readthedocs.io/en/main/guide/migration.html#view-attributes-renamed-867).
+
+* The code base is now formatted with Black.
+
+Version 21.1 (2021-9-24)
+------------------------
+
+This is a maintenance release updating CI testing for the latest
+non-end-of-life versions of Python and Django, and updating package metadata
+accordingly.
+
+With this release ``django-filter`` is switching to a two-part CalVer
+versioning scheme, such as ``21.1``. The first number is the year. The second
+is the release number within that year.
+
+On an on-going basis, Django-Filter aims to support all current Django
+versions, the matching current Python versions, and the latest version of
+Django REST Framework.
+
+Please see:
+
+* `Status of supported Python branches <https://devguide.python.org/#status-of-python-branches>`_
+* `List of supported Django versions <https://www.djangoproject.com/download/#support-versions>`_
+
+Support for Python and Django versions will be dropped when they reach
+end-of-life. Support for Python versions will dropped when they reach
+end-of-life, even when still supported by a current version of Django.
+
+Other breaking changes are rare. Where required, every effort will be made to
+apply a "Year plus two" deprecation period. For example, a change initially
+introduced in ``23.x`` would offer a fallback where feasible and finally be
+removed in ``25.1``. Where fallbacks are not feasible, breaking changes without
+deprecation will be called out in the release notes.
+
+Beyond that change, there are few changes. Some small bugfixes, improvements to
+localisation, and documentation tweaks. Thanks to all who were involved.
+
+
 Version 2.4.0 (2020-9-27)
 --------------------------
 
@@ -15,6 +116,7 @@ Version 2.4.0 (2020-9-27)
   In addition tests against Django main development branch are now required to
   pass.
 
+
 Version 2.3.0 (2020-6-5)
 ------------------------
 
@@ -26,6 +128,7 @@ Version 2.3.0 (2020-6-5)
 * Drop Django 2.1 and below (#1180)
 * Fixed IsoDateTimeRangeFieldTests for Django 3.1
 * Require tests to pass against Django `master`.
+
 
 Version 2.2 (2019-7-16)
 -----------------------
@@ -56,7 +159,7 @@ Version 2.0 (2018-7-13)
 2.0 introduced a number of small changes and tidy-ups.
 Please see the migration guide:
 
-https://django-filter.readthedocs.io/en/master/guide/migration.html#migrating-to-2-0
+https://django-filter.readthedocs.io/en/main/guide/migration.html#migrating-to-2-0
 
 * Added testing for Python 3.7 (#944)
 * Improve exception message for invalid filter result (#943)

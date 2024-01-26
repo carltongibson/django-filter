@@ -72,7 +72,7 @@ include both transforms and lookups, as detailed in the `lookup reference`__.
 __ https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
 
 Note that it is **not** necessary to include declared filters in a ``fields``
-list - doing so will have no effect - and including declarative aliases in a
+list - doing so will only affect the order in which fields appear on a FilterSet's form.  Including declarative aliases in a
 ``fields`` dict will raise an error.
 
 .. code-block:: python

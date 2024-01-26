@@ -8,8 +8,8 @@ our users filter which products they see on a list page.
 
 .. note::
 
-    If you're using django-filter with Django Rest Framework, it's
-    recommended that you read the integration docs after this guide.
+    If you're using django-filter with Django Rest Framework, it's recommended
+    that you read the :ref:`drf integration` docs after this guide.
 
 The model
 ---------
@@ -20,10 +20,10 @@ Let's start with our model::
 
     class Product(models.Model):
         name = models.CharField(max_length=255)
-        price = models.DecimalField()
+        price = models.DecimalField(max_digits=5, decimal_places=2)
         description = models.TextField()
         release_date = models.DateField()
-        manufacturer = models.ForeignKey(Manufacturer)
+        manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE)
 
 The filter
 ----------
@@ -331,7 +331,7 @@ to it as the class based view::
     from myapp.models import Product
 
     urlpatterns = [
-        path("list/', object_filter, {'model': Product}, name="product-list),
+        path("list/", object_filter, {'model': Product}, name="product-list"),
     ]
 
 The needed template and its context variables will also be the same as the

@@ -12,15 +12,32 @@ Full documentation on `read the docs`_.
 .. image:: https://badge.fury.io/py/django-filter.svg
     :target: http://badge.fury.io/py/django-filter
 
-Requirements
-------------
 
-* **Python**: 3.5, 3.6, 3.7, 3.8, 3.9
-* **Django**: 2.2, 3.0, 3.1
-* **DRF**: 3.10+
+Versioning and stability policy
+-------------------------------
 
-From Version 2.0 Django Filter is Python 3 only.
-If you need to support Python 2.7 use the version 1.1 release.
+Django-Filter is a mature and stable package. It uses a two-part CalVer
+versioning scheme, such as ``21.1``. The first number is the year. The second
+is the release number within that year.
+
+On an on-going basis, Django-Filter aims to support all current Django
+versions, the matching current Python versions, and the latest version of
+Django REST Framework.
+
+Please see:
+
+* `Status of supported Python versions <https://devguide.python.org/versions/#supported-versions>`_
+* `List of supported Django versions <https://www.djangoproject.com/download/#supported-versions>`_
+
+Support for Python and Django versions will be dropped when they reach
+end-of-life. Support for Python versions will be dropped when they reach
+end-of-life, even when still supported by a current version of Django.
+
+Other breaking changes are rare. Where required, every effort will be made to
+apply a "Year plus two" deprecation period. For example, a change initially
+introduced in ``23.x`` would offer a fallback where feasible and finally be
+removed in ``25.1``. Where fallbacks are not feasible, breaking changes without
+deprecation will be called out in the release notes.
 
 
 Installation
@@ -94,9 +111,9 @@ For more details see the `DRF integration docs`_.
 Support
 -------
 
-If you have questions about usage or development you can join the
-`mailing list`_.
+If you need help you can start a `discussion`_. For commercial support, please
+`contact Carlton Gibson via his website <https://noumenal.es/>`_.
 
-.. _`read the docs`: https://django-filter.readthedocs.io/en/master/
-.. _`mailing list`: http://groups.google.com/group/django-filter
-.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/master/guide/rest_framework.html
+.. _`discussion`: https://github.com/carltongibson/django-filter/discussions
+.. _`read the docs`: https://django-filter.readthedocs.io/en/main/
+.. _`DRF integration docs`: https://django-filter.readthedocs.io/en/stable/guide/rest_framework.html

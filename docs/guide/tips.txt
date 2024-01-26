@@ -28,7 +28,7 @@ lookup type. Under the hood, this will incorrectly be resolved as:
 
 .. code-block:: python
 
-    Produce.objects.filter(price__gt__exact=value)
+    Product.objects.filter(price__gt__exact=value)
 
 The above will most likely generate a ``FieldError``. The correct configuration
 would be:
@@ -37,6 +37,17 @@ would be:
 
     class ProductFilter(django_filters.FilterSet):
         price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
+
+When using ``filterset_fields``, you can also add the ``lookup_expr`` in the
+dict of fields like so:
+
+.. code-block:: python
+
+    # ... ModelViewSet with DjangoFilterBackend in filter_backends ...
+
+    filterset_fields = {
+        "price": ["gt", "exact"],
+    }
 
 
 Missing ``lookup_expr`` for text search filters
@@ -215,7 +226,7 @@ Filtering by relative times
 
 Given a model with a timestamp field, it may be useful to filter based on relative times.
 For instance, perhaps we want to get data from the past *n* hours.
-This could be accomplished the with a ``NumberFilter`` that invokes a custom method.
+This could be accomplished with a ``NumberFilter`` that invokes a custom method.
 
 .. code-block:: python
 

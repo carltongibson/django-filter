@@ -4,7 +4,6 @@ from django.db import models
 
 
 class QuerySet(models.QuerySet):
-
     def __bool__(self):
         return True
 

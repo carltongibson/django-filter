@@ -3,199 +3,197 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: conf.py:35 conf.py:36 conf.py:49
 msgid ""
 msgstr ""
 "Project-Id-Version: django_filters 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-01 17:21+0000\n"
-"PO-Revision-Date: 2015-07-25 01:27+0100\n"
-"Last-Translator: Adam Dobrawy <naczelnik@jawnosc.tk>\n"
-"Language-Team: Adam Dobrawy <naczelnik@jawnosc.tk>\n"
-"Language: pl_PL\n"
+"POT-Creation-Date: 2023-02-10 11:07+0000\n"
+"PO-Revision-Date: 2023-04-10 20:47+0000\n"
+"Last-Translator: Quadric <quadmachine@wp.pl>\n"
+"Language-Team: Polish <https://hosted.weblate.org/projects/django-filter/"
+"django-filter/pl/>\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 1.5.4\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n"
+"%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n"
+"%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"X-Generator: Weblate 4.17-dev\n"
 
-#: conf.py:25
-#, fuzzy
-#| msgid "Any date"
+#: conf.py:16
 msgid "date"
-msgstr "Dowolna data"
+msgstr "data"
 
-#: conf.py:26
-#, fuzzy
-#| msgid "This year"
+#: conf.py:17
 msgid "year"
-msgstr "Ten rok"
+msgstr "rok"
 
-#: conf.py:27
-#, fuzzy
-#| msgid "This month"
+#: conf.py:18
 msgid "month"
-msgstr "Ten miesiąc"
+msgstr "miesiąc"
 
-#: conf.py:28
-#, fuzzy
-#| msgid "Today"
+#: conf.py:19
 msgid "day"
-msgstr "Dziś"
+msgstr "dzień"
 
-#: conf.py:29
+#: conf.py:20
 msgid "week day"
 msgstr "dzień tygodnia"
 
-#: conf.py:30
+#: conf.py:21
 msgid "hour"
 msgstr "godzina"
 
-#: conf.py:31
+#: conf.py:22
 msgid "minute"
 msgstr "minuta"
 
-#: conf.py:32
+#: conf.py:23
 msgid "second"
-msgstr ""
+msgstr "sekunda"
 
-#: conf.py:37 conf.py:38
+#: conf.py:27 conf.py:28
 msgid "contains"
 msgstr "zawiera"
 
-#: conf.py:39
+#: conf.py:29
 msgid "is in"
 msgstr "zawiera się w"
 
-#: conf.py:40
+#: conf.py:30
 msgid "is greater than"
 msgstr "powyżej"
 
-#: conf.py:41
+#: conf.py:31
 msgid "is greater than or equal to"
 msgstr "powyżej lub równe"
 
-#: conf.py:42
+#: conf.py:32
 msgid "is less than"
 msgstr "poniżej"
 
-#: conf.py:43
+#: conf.py:33
 msgid "is less than or equal to"
 msgstr "poniżej lub równe"
 
-#: conf.py:44 conf.py:45
+#: conf.py:34 conf.py:35
 msgid "starts with"
 msgstr "zaczyna się od"
 
-#: conf.py:46 conf.py:47
+#: conf.py:36 conf.py:37
 msgid "ends with"
 msgstr "kończy się na"
 
-#: conf.py:48
+#: conf.py:38
 msgid "is in range"
 msgstr "zawiera się w zakresie"
 
-#: conf.py:50 conf.py:51
+#: conf.py:39
+msgid "is null"
+msgstr "jest wartością null"
+
+#: conf.py:40 conf.py:41
 msgid "matches regex"
 msgstr "pasuje do wyrażenia regularnego"
 
-#: conf.py:52 conf.py:60
+#: conf.py:42 conf.py:49
 msgid "search"
 msgstr "szukaj"
 
-#: conf.py:55
+#: conf.py:44
 msgid "is contained by"
 msgstr "zawiera się w"
 
-#: conf.py:56
+#: conf.py:45
 msgid "overlaps"
-msgstr ""
+msgstr "nakłada się"
 
-#: conf.py:57
+#: conf.py:46
 msgid "has key"
-msgstr ""
+msgstr "posiada klucz"
 
-#: conf.py:58
+#: conf.py:47
 msgid "has keys"
-msgstr ""
+msgstr "posiada klucze"
 
-#: conf.py:59
+#: conf.py:48
 msgid "has any keys"
-msgstr ""
+msgstr "posiada jakiekolwiek klucze"
 
-#: fields.py:172
+#: fields.py:94
+msgid "Select a lookup."
+msgstr "Wybierz wyszukiwanie."
+
+#: fields.py:198
 msgid "Range query expects two values."
-msgstr ""
+msgstr "Zapytanie o zakres oczekuje dwóch wartości."
 
-#: filters.py:452
-msgid "Any date"
-msgstr "Dowolna data"
-
-#: filters.py:453
+#: filters.py:437
 msgid "Today"
 msgstr "Dziś"
 
-#: filters.py:458
-msgid "Past 7 days"
-msgstr "Ostatnie 7 dni"
-
-#: filters.py:462
-msgid "This month"
-msgstr "Ten miesiąc"
-
-#: filters.py:466
-msgid "This year"
-msgstr "Ten rok"
-
-#: filters.py:469
+#: filters.py:438
 msgid "Yesterday"
 msgstr "Wczoraj"
 
-#: filters.py:535
-msgid "Multiple values may be separated by commas."
-msgstr "Wiele wartości można rozdzielić przecinkami"
+#: filters.py:439
+msgid "Past 7 days"
+msgstr "Ostatnie 7 dni"
 
-#: filters.py:614
+#: filters.py:440
+msgid "This month"
+msgstr "Ten miesiąc"
+
+#: filters.py:441
+msgid "This year"
+msgstr "Ten rok"
+
+#: filters.py:543
+msgid "Multiple values may be separated by commas."
+msgstr "Wiele wartości można rozdzielić przecinkami."
+
+#: filters.py:721
 #, python-format
 msgid "%s (descending)"
 msgstr "%s (malejąco)"
 
-#: filters.py:630
+#: filters.py:737
 msgid "Ordering"
 msgstr "Sortowanie"
 
-#: rest_framework/filterset.py:34
+#: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
-msgstr ""
+msgstr "Wyślij"
 
 #: templates/django_filters/rest_framework/crispy_form.html:4
 #: templates/django_filters/rest_framework/form.html:2
-#, fuzzy
-#| msgid "Filter"
 msgid "Field filters"
-msgstr "Filter"
+msgstr "Filtry pola"
 
-#: utils.py:225
+#: utils.py:308
 msgid "exclude"
-msgstr ""
+msgstr "wyklucz"
 
-#: widgets.py:66
+#: widgets.py:58
 msgid "All"
 msgstr "Wszystko"
 
-#: widgets.py:173
+#: widgets.py:162
 msgid "Unknown"
-msgstr ""
+msgstr "Nieznane"
 
-#: widgets.py:174
+#: widgets.py:162
 msgid "Yes"
 msgstr "Tak"
 
-#: widgets.py:175
+#: widgets.py:162
 msgid "No"
 msgstr "Nie"
+
+#~ msgid "Any date"
+#~ msgstr "Dowolna data"
 
 #~ msgid "This is an exclusion filter"
 #~ msgstr "Jest to filtr wykluczający"

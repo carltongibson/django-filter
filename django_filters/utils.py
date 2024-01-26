@@ -1,6 +1,8 @@
+import datetime
 import warnings
 from collections import OrderedDict
 
+import django
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, FieldError
 from django.db import models
@@ -20,10 +22,10 @@ def deprecate(msg, level_modifier=0):
 
 
 class MigrationNotice(DeprecationWarning):
-    url = 'https://django-filter.readthedocs.io/en/master/guide/migration.html'
+    url = "https://django-filter.readthedocs.io/en/main/guide/migration.html"
 
     def __init__(self, message):
-        super().__init__('%s See: %s' % (message, self.url))
+        super().__init__("%s See: %s" % (message, self.url))
 
 
 class RenameAttributesBase(type):
@@ -36,6 +38,7 @@ class RenameAttributesBase(type):
 
     This is conceptually based on `django.utils.deprecation.RenameMethodsBase`.
     """
+
     renamed_attributes = ()
 
     def __new__(metacls, name, bases, attrs):
@@ -45,8 +48,8 @@ class RenameAttributesBase(type):
         old_attrs = {name: attrs.pop(name) for name in old_names}
 
         # get a handle to any accessors defined on the class
-        cls_getattr = attrs.pop('__getattr__', None)
-        cls_setattr = attrs.pop('__setattr__', None)
+        cls_getattr = attrs.pop("__getattr__", None)
+        cls_setattr = attrs.pop("__setattr__", None)
 
         new_class = super().__new__(metacls, name, bases, attrs)
 
@@ -54,7 +57,7 @@ class RenameAttributesBase(type):
             name = type(self).get_name(name)
             if cls_getattr is not None:
                 return cls_getattr(self, name)
-            elif hasattr(super(new_class, self), '__getattr__'):
+            elif hasattr(super(new_class, self), "__getattr__"):
                 return super(new_class, self).__getattr__(name)
             return self.__getattribute__(name)
 
@@ -82,9 +85,12 @@ class RenameAttributesBase(type):
             old_name, new_name, deprecation_warning = renamed_attribute
 
             if old_name == name:
-                warnings.warn("`%s.%s` attribute should be renamed `%s`."
-                              % (metacls.__name__, old_name, new_name),
-                              deprecation_warning, 3)
+                warnings.warn(
+                    "`%s.%s` attribute should be renamed `%s`."
+                    % (metacls.__name__, old_name, new_name),
+                    deprecation_warning,
+                    3,
+                )
                 return new_name
 
         return name
@@ -120,9 +126,10 @@ def get_all_model_fields(model):
     opts = model._meta
 
     return [
-        f.name for f in sorted(opts.fields + opts.many_to_many)
-        if not isinstance(f, models.AutoField) and
-        not (getattr(f.remote_field, 'parent_link', False))
+        f.name
+        for f in sorted(opts.fields + opts.many_to_many)
+        if not isinstance(f, models.AutoField)
+        and not (getattr(f.remote_field, "parent_link", False))
     ]
 
 
@@ -164,10 +171,19 @@ def get_field_parts(model, field_name):
             return None
 
         fields.append(field)
-        if isinstance(field, RelatedField):
-            opts = field.remote_field.model._meta
-        elif isinstance(field, ForeignObjectRel):
-            opts = field.related_model._meta
+        try:
+            if isinstance(field, RelatedField):
+                opts = field.remote_field.model._meta
+            elif isinstance(field, ForeignObjectRel):
+                opts = field.related_model._meta
+        except AttributeError:
+            # Lazy relationships are not resolved until registry is populated.
+            raise RuntimeError(
+                "Unable to resolve relationship `%s` for `%s`. Django is most "
+                "likely not initialized, and its apps registry not populated. "
+                "Ensure Django has finished setup before loading `FilterSet`s."
+                % (field_name, model._meta.label)
+            )
 
     return fields
 
@@ -205,7 +221,7 @@ def resolve_field(model_field, lookup_expr):
                     # the name as transform, and do an Exact lookup against
                     # it.
                     lhs = query.try_transform(*args)
-                    final_lookup = lhs.get_lookup('exact')
+                    final_lookup = lhs.get_lookup("exact")
                 return lhs.output_field, final_lookup.lookup_name
             lhs = query.try_transform(*args)
             lookups = lookups[1:]
@@ -215,9 +231,22 @@ def resolve_field(model_field, lookup_expr):
 
 def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
+        # Pre-4.x versions of Django have is_dst. Later Django versions have
+        # zoneinfo where the is_dst argument has no meaning. is_dst will be
+        # removed in the 5.x series.
+        #
+        # On intermediate versions, the default is to use zoneinfo, but pytz
+        # is still available under USE_DEPRECATED_PYTZ, and is_dst is
+        # meaningful there. Under those versions we should only use is_dst
+        # if USE_DEPRECATED_PYTZ is present and True; otherwise, we will cause
+        # deprecation warnings, and we should not. See #1580.
+        #
+        # This can be removed once 3.2 is no longer supported upstream.
+        if django.VERSION < (4, 0) or (django.VERSION < (5, 0) and settings.USE_DEPRECATED_PYTZ):
+            return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
+        return timezone.make_aware(value, timezone.get_current_timezone())
     elif not settings.USE_TZ and timezone.is_aware(value):
-        return timezone.make_naive(value, timezone.utc)
+        return timezone.make_naive(value, datetime.timezone.utc)
     return value
 
 
@@ -234,23 +263,23 @@ def verbose_field_name(model, field_name):
 
     """
     if field_name is None:
-        return '[invalid name]'
+        return "[invalid name]"
 
     parts = get_field_parts(model, field_name)
     if not parts:
-        return '[invalid name]'
+        return "[invalid name]"
 
     names = []
     for part in parts:
         if isinstance(part, ForeignObjectRel):
             if part.related_name:
-                names.append(part.related_name.replace('_', ' '))
+                names.append(part.related_name.replace("_", " "))
             else:
-                return '[invalid name]'
+                return "[invalid name]"
         else:
             names.append(force_str(part.verbose_name))
 
-    return ' '.join(names)
+    return " ".join(names)
 
 
 def verbose_lookup_expr(lookup_expr):
@@ -277,7 +306,7 @@ def verbose_lookup_expr(lookup_expr):
         for lookup in lookup_expr.split(LOOKUP_SEP)
     ]
 
-    return ' '.join(lookups)
+    return " ".join(lookups)
 
 
 def label_for_filter(model, field_name, lookup_expr, exclude=False):
@@ -291,14 +320,14 @@ def label_for_filter(model, field_name, lookup_expr, exclude=False):
 
     """
     name = verbose_field_name(model, field_name)
-    verbose_expression = [_('exclude'), name] if exclude else [name]
+    verbose_expression = [_("exclude"), name] if exclude else [name]
 
     # iterable lookups indicate a LookupTypeField, which should not be verbose
     if isinstance(lookup_expr, str):
         verbose_expression += [verbose_lookup_expr(lookup_expr)]
 
     verbose_expression = [force_str(part) for part in verbose_expression if part]
-    verbose_expression = capfirst(' '.join(verbose_expression))
+    verbose_expression = capfirst(" ".join(verbose_expression))
 
     return verbose_expression
 
@@ -312,8 +341,13 @@ def translate_validation(error_dict):
     from rest_framework.exceptions import ErrorDetail, ValidationError
 
     exc = OrderedDict(
-        (key, [ErrorDetail(e.message % (e.params or ()), code=e.code)
-               for e in error_list])
+        (
+            key,
+            [
+                ErrorDetail(e.message % (e.params or ()), code=e.code)
+                for e in error_list
+            ],
+        )
         for key, error_list in error_dict.as_data().items()
     )
 
