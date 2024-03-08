@@ -20,7 +20,11 @@ from django_filters.filters import (
     NumberFilter,
     UUIDFilter,
 )
-from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet, filterset_factory
+from django_filters.filterset import (
+    FILTER_FOR_DBFIELD_DEFAULTS,
+    FilterSet,
+    filterset_factory,
+)
 from django_filters.widgets import BooleanWidget
 
 from .models import (
