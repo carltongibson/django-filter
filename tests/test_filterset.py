@@ -3,6 +3,7 @@ from unittest import mock
 
 from django.db import models
 from django.test import TestCase, override_settings
+from django.utils.datastructures import MultiValueDict
 
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
@@ -745,6 +746,10 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = self.F(request=m)
         self.assertEqual(f.request, m)
+    
+    def test_creating_with_no_data_default(self):
+        f = self.F()
+        self.assertIsInstance(f.data, MultiValueDict)
 
 
 class FilterSetQuerysetTests(TestCase):
