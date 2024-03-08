@@ -1,3 +1,30 @@
+Version 24.1 (2024-03-08)
+-------------------------
+
+* Updated supported Python and Django versions, and resolved upcoming Django
+  deprecations.
+
+  Required versions are now at least Python 3.8 and Django 4.2.
+
+  Thanks to Michael Manganiello.
+
+* Allowed passing a FilterSet class to the filterset_factory().
+
+  Thanks to Birger Schacht.
+
+* Set empty default value of filterset data to MultiValueDict.
+
+  Thanks to Shlomo Gordon.
+
+* Preserve list values passed to the data dict in CSV widgets.
+
+  Thanks to Bryan Brancotte.
+
+* Updates French and Ukrainian localisations.
+
+  Thanks to Weblate.
+
+
 Version 23.5 (2023-12-05)
 -------------------------
 

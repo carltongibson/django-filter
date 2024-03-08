@@ -10,7 +10,7 @@ if importlib_util.find_spec("rest_framework"):
     from . import rest_framework
 del importlib_util
 
-__version__ = "23.5"
+__version__ = "24.1"
 
 
 def parse_version(version):
