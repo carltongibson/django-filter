@@ -517,7 +517,7 @@ class FilterSetClassCreationTests(TestCase):
                     model = User
                     fields = {"username": ["flub"]}
 
-    def test_meta_exlude_with_declared_and_declared_wins(self):
+    def test_meta_exclude_with_declared_and_declared_wins(self):
         class F(FilterSet):
             username = CharFilter()
 
@@ -531,7 +531,7 @@ class FilterSetClassCreationTests(TestCase):
             list(F.base_filters), ["title", "average_rating", "username"]
         )
 
-    def test_meta_fields_and_exlude_and_exclude_wins(self):
+    def test_meta_fields_and_exclude_and_exclude_wins(self):
         class F(FilterSet):
             username = CharFilter()
 
@@ -544,7 +544,7 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 2)
         self.assertListEqual(list(F.base_filters), ["username", "price"])
 
-    def test_meta_exlude_with_no_fields(self):
+    def test_meta_exclude_with_no_fields(self):
         class F(FilterSet):
             class Meta:
                 model = Book
@@ -756,7 +756,7 @@ class FilterSetClassCreationTests(TestCase):
         filterset = filterset_factory(Article, filterset=FilterSetBase, fields=["author"])
         self.assertEqual(list(filterset.base_filters), ["author", "f1", "f2"])
 
-    def test_filtesret_factory_base_filter_meta_inheritance_filter_overrides(self):
+    def test_filterset_factory_base_filter_meta_inheritance_filter_overrides(self):
         class FilterSetBase(FilterSet):
             class Meta:
                 filter_overrides = {
@@ -771,7 +771,7 @@ class FilterSetClassCreationTests(TestCase):
         result, params = filterset.filter_for_lookup(f, "isnull")
         self.assertEqual(result, BooleanFilter)
 
-    def test_filtesret_factory_base_filter_meta_inheritance_exclude(self):
+    def test_filterset_factory_base_filter_meta_inheritance_exclude(self):
         class FilterSetBase(FilterSet):
             class Meta:
                 exclude = ["published"]
