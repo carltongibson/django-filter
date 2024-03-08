@@ -746,7 +746,7 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = self.F(request=m)
         self.assertEqual(f.request, m)
-    
+
     def test_creating_with_no_data_default(self):
         f = self.F()
         self.assertIsInstance(f.data, MultiValueDict)
