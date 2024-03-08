@@ -7,11 +7,10 @@ from unittest import mock
 import django
 from django import forms
 from django.http import QueryDict
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
 
-from django_filters.compat import TestCase
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,

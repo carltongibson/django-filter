@@ -231,18 +231,14 @@ def resolve_field(model_field, lookup_expr):
 
 def handle_timezone(value, is_dst=None):
     if settings.USE_TZ and timezone.is_naive(value):
-        # Pre-4.x versions of Django have is_dst. Later Django versions have
-        # zoneinfo where the is_dst argument has no meaning. is_dst will be
-        # removed in the 5.x series.
-        #
-        # On intermediate versions, the default is to use zoneinfo, but pytz
+        # On pre-5.x versions, the default is to use zoneinfo, but pytz
         # is still available under USE_DEPRECATED_PYTZ, and is_dst is
         # meaningful there. Under those versions we should only use is_dst
         # if USE_DEPRECATED_PYTZ is present and True; otherwise, we will cause
         # deprecation warnings, and we should not. See #1580.
         #
-        # This can be removed once 3.2 is no longer supported upstream.
-        if django.VERSION < (4, 0) or (django.VERSION < (5, 0) and settings.USE_DEPRECATED_PYTZ):
+        # This can be removed once 4.2 is no longer supported upstream.
+        if django.VERSION < (5, 0) and settings.USE_DEPRECATED_PYTZ:
             return timezone.make_aware(value, timezone.get_current_timezone(), is_dst)
         return timezone.make_aware(value, timezone.get_current_timezone())
     elif not settings.USE_TZ and timezone.is_aware(value):
