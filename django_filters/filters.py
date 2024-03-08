@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from collections.abc import Iterable
 from datetime import timedelta
 from itertools import chain
 
@@ -7,7 +8,6 @@ from django.core.validators import MaxValueValidator
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
-from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
@@ -776,14 +776,14 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             return OrderedDict(fields)
 
         # convert iterable of values => iterable of pairs (field name, param name)
-        assert is_iterable(
-            fields
+        assert isinstance(
+            fields, Iterable
         ), "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
         # fields is an iterable of field names
         assert all(
             isinstance(field, str)
-            or is_iterable(field)
+            or isinstance(field, Iterable)
             and len(field) == 2  # may need to be wrapped in parens
             for field in fields
         ), "'fields' must contain strings or (field name, param name) pairs."
