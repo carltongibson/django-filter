@@ -11,7 +11,6 @@ from django.test import override_settings
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
 
-from django_filters.compat import TestCase
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
@@ -50,7 +49,7 @@ from .models import (
     SpacewalkRecord,
     User,
 )
-from .utils import MockQuerySet
+from .utils import MockQuerySet, TestCase
 
 
 class CharFilterTests(TestCase):

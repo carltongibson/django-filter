@@ -1,11 +1,4 @@
-import django
 from django.conf import settings
-from django.test import TestCase
-
-if django.VERSION < (4, 2):
-    class TestCase(TestCase):
-        assertQuerySetEqual = TestCase.assertQuerysetEqual
-
 
 # django-crispy-forms is optional
 try:

@@ -1,6 +1,12 @@
 from unittest import mock
 
+import django
 from django.db import models
+from django.test import TestCase
+
+if django.VERSION < (4, 2):
+    class TestCase(TestCase):
+        assertQuerySetEqual = TestCase.assertQuerysetEqual
 
 
 class QuerySet(models.QuerySet):
