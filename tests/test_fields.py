@@ -12,6 +12,7 @@ from django.utils import timezone
 from django_filters.fields import (
     BaseCSVField,
     BaseRangeField,
+    ChoiceField,
     DateRangeField,
     DateTimeRangeField,
     IsoDateTimeField,
@@ -56,6 +57,14 @@ class RangeFieldTests(TestCase):
 
         self.assertEqual(f.clean(["12.34", "55"]), slice(to_d(12.34), to_d(55)))
         self.assertIsNone(f.clean([]))
+
+
+class ChoiceFieldTests(TestCase):
+    def test_callable_choices_is_lazy(self):
+        def choices():
+            self.fail("choices should not be called during initialization")
+
+        ChoiceField(choices=choices)
 
 
 class DateRangeFieldTests(TestCase):
