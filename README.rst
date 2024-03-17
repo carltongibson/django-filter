@@ -6,8 +6,8 @@ add dynamic ``QuerySet`` filtering from URL parameters.
 
 Full documentation on `read the docs`_.
 
-.. image:: https://codecov.io/gh/carltongibson/django-filter/branch/develop/graph/badge.svg
-    :target: https://codecov.io/gh/carltongibson/django-filter
+.. image:: https://raw.githubusercontent.com/carltongibson/django-filter/python-coverage-comment-action-data/badge.svg
+    :target: https://github.com/carltongibson/django-filter/tree/python-coverage-comment-action-data
 
 .. image:: https://badge.fury.io/py/django-filter.svg
     :target: http://badge.fury.io/py/django-filter
