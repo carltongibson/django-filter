@@ -1,6 +1,6 @@
 markdown
 django-crispy-forms
 
-coverage
+coverage[toml]
 pytz
 unittest-xml-reporting

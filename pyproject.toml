@@ -54,3 +54,6 @@ known_first_party = ["django_filters"]
 
 [tool.flit.module]
 name = "django_filters"
+
+[tool.coverage.run]
+relative_files = true
