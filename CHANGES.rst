@@ -1,3 +1,11 @@
+Version 24.2 (2024-03-27)
+-------------------------
+
+* Fixed a regression in v23.4 where callable choices were incorrectly evaluated
+  at filter instantiation, on Django versions prior to 5.0.
+
+  Thanks to Craig de Stigter for the report and reproduce.
+
 Version 24.1 (2024-03-08)
 -------------------------
 
