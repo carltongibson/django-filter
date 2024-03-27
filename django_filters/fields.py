@@ -275,13 +275,13 @@ class ChoiceIteratorMixin:
     def choices(self, value):
         if DJANGO_50:
             value = self.iterator(self, value)
+            # Simple `super()` syntax for calling a parent property setter is
+            # unsupported. See https://github.com/python/cpython/issues/59170
+            super(ChoiceIteratorMixin, self.__class__).choices.__set__(self, value)
         else:
             super()._set_choices(value)
             value = self.iterator(self, self._choices)
-
-        # Simple `super()` syntax for calling a parent property setter is
-        # unsupported. See https://github.com/python/cpython/issues/59170
-        super(ChoiceIteratorMixin, self.__class__).choices.__set__(self, value)
+            self._choices = self.widget.choices = value
 
 
 # Unlike their Model* counterparts, forms.ChoiceField and forms.MultipleChoiceField do not set empty_label
