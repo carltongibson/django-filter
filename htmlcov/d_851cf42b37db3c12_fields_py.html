@@ -54,8 +54,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">181 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">181<span class="text"> run</span></button>
+            <span class="text">182 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">182<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="d_851cf42b37db3c12_filters_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.4.4">coverage.py v7.4.4</a>,
-            created at 2024-03-26 17:40 +0000
+            created at 2024-03-27 09:48 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"/>
@@ -357,13 +357,13 @@
     <p class="run"><span class="n"><a id="t275" href="#t275">275</a></span><span class="t">    <span class="key">def</span> <span class="nam">choices</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">value</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t276" href="#t276">276</a></span><span class="t">        <span class="key">if</span> <span class="nam">DJANGO_50</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t277" href="#t277">277</a></span><span class="t">            <span class="nam">value</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">iterator</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">value</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t278" href="#t278">278</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">            <span class="nam">super</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">_set_choices</span><span class="op">(</span><span class="nam">value</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">            <span class="nam">value</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">iterator</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_choices</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">        <span class="com"># Simple `super()` syntax for calling a parent property setter is</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">        <span class="com"># unsupported. See https://github.com/python/cpython/issues/59170</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">        <span class="nam">super</span><span class="op">(</span><span class="nam">ChoiceIteratorMixin</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">__class__</span><span class="op">)</span><span class="op">.</span><span class="nam">choices</span><span class="op">.</span><span class="nam">__set__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">value</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t278" href="#t278">278</a></span><span class="t">            <span class="com"># Simple `super()` syntax for calling a parent property setter is</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">            <span class="com"># unsupported. See https://github.com/python/cpython/issues/59170</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">            <span class="nam">super</span><span class="op">(</span><span class="nam">ChoiceIteratorMixin</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">__class__</span><span class="op">)</span><span class="op">.</span><span class="nam">choices</span><span class="op">.</span><span class="nam">__set__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">value</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">            <span class="nam">super</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">_set_choices</span><span class="op">(</span><span class="nam">value</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">            <span class="nam">value</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">iterator</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_choices</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_choices</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">widget</span><span class="op">.</span><span class="nam">choices</span> <span class="op">=</span> <span class="nam">value</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t287" href="#t287">287</a></span><span class="t"><span class="com"># Unlike their Model* counterparts, forms.ChoiceField and forms.MultipleChoiceField do not set empty_label</span>&nbsp;</span><span class="r"></span></p>
@@ -413,7 +413,7 @@
             <a id="nextFileLink" class="nav" href="d_851cf42b37db3c12_filters_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.4.4">coverage.py v7.4.4</a>,
-            created at 2024-03-26 17:40 +0000
+            created at 2024-03-27 09:48 +0000
         </p>
     </div>
 </footer>
