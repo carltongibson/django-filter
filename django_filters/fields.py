@@ -40,17 +40,13 @@ class RangeField(forms.MultiValueField):
 
 
 class DateRangeField(RangeField):
-    """A DateRangeField."""
-
     widget = DateRangeWidget
 
     def __init__(self, *args, **kwargs):
-        """Initialize the DateRangeField."""
         fields = (forms.DateField(), forms.DateField())
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
-        """Compress the data_list."""
         if data_list:
             start_date, stop_date = data_list
             return slice(start_date, stop_date)
