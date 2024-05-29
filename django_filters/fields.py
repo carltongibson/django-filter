@@ -1,5 +1,5 @@
 from collections import namedtuple
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from django import forms
 from django.utils.dateparse import parse_datetime
@@ -49,7 +49,7 @@ class DateRangeField(RangeField):
     def compress(self, data_list):
         if data_list:
             start_date, stop_date = data_list
-            return slice(start_date, stop_date)
+            return slice(start_date, stop_date + timedelta(days=1))
         return None
 
 
