@@ -22,7 +22,7 @@ td { vertical-align: top; }
 
 table tr.hidden { display: none !important; }
 
-p#no_rows { display: none; font-size: 1.2em; }
+p#no_rows { display: none; font-size: 1.15em; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }
 
 a.nav { text-decoration: none; color: inherit; }
 
@@ -39,6 +39,18 @@ header { background: #f8f8f8; width: 100%; z-index: 2; border-bottom: 1px solid 
 header .content { padding: 1rem 3.5rem; }
 
 header h2 { margin-top: .5em; font-size: 1em; }
+
+header h2 a.button { font-family: inherit; font-size: inherit; border: 1px solid; border-radius: .2em; background: #eee; color: inherit; text-decoration: none; padding: .1em .5em; margin: 1px calc(.1em + 1px); cursor: pointer; border-color: #ccc; }
+
+@media (prefers-color-scheme: dark) { header h2 a.button { background: #333; } }
+
+@media (prefers-color-scheme: dark) { header h2 a.button { border-color: #444; } }
+
+header h2 a.button.current { border: 2px solid; background: #fff; border-color: #999; cursor: default; }
+
+@media (prefers-color-scheme: dark) { header h2 a.button.current { background: #1e1e1e; } }
+
+@media (prefers-color-scheme: dark) { header h2 a.button.current { border-color: #777; } }
 
 header p.text { margin: .5em 0 -.5em; color: #666; font-style: italic; }
 
@@ -68,19 +80,29 @@ footer .content { padding: 0; color: #666; font-style: italic; }
 
 h1 { font-size: 1.25em; display: inline-block; }
 
-#filter_container { float: right; margin: 0 2em 0 0; }
+#filter_container { float: right; margin: 0 2em 0 0; line-height: 1.66em; }
 
-#filter_container input { width: 10em; padding: 0.2em 0.5em; border: 2px solid #ccc; background: #fff; color: #000; }
+#filter_container #filter { width: 10em; padding: 0.2em 0.5em; border: 2px solid #ccc; background: #fff; color: #000; }
 
-@media (prefers-color-scheme: dark) { #filter_container input { border-color: #444; } }
+@media (prefers-color-scheme: dark) { #filter_container #filter { border-color: #444; } }
 
-@media (prefers-color-scheme: dark) { #filter_container input { background: #1e1e1e; } }
+@media (prefers-color-scheme: dark) { #filter_container #filter { background: #1e1e1e; } }
 
-@media (prefers-color-scheme: dark) { #filter_container input { color: #eee; } }
+@media (prefers-color-scheme: dark) { #filter_container #filter { color: #eee; } }
 
-#filter_container input:focus { border-color: #007acc; }
+#filter_container #filter:focus { border-color: #007acc; }
 
-header button { font-family: inherit; font-size: inherit; border: 1px solid; border-radius: .2em; color: inherit; padding: .1em .5em; margin: 1px calc(.1em + 1px); cursor: pointer; border-color: #ccc; }
+#filter_container :disabled ~ label { color: #ccc; }
+
+@media (prefers-color-scheme: dark) { #filter_container :disabled ~ label { color: #444; } }
+
+#filter_container label { font-size: .875em; color: #666; }
+
+@media (prefers-color-scheme: dark) { #filter_container label { color: #aaa; } }
+
+header button { font-family: inherit; font-size: inherit; border: 1px solid; border-radius: .2em; background: #eee; color: inherit; text-decoration: none; padding: .1em .5em; margin: 1px calc(.1em + 1px); cursor: pointer; border-color: #ccc; }
+
+@media (prefers-color-scheme: dark) { header button { background: #333; } }
 
 @media (prefers-color-scheme: dark) { header button { border-color: #444; } }
 
@@ -266,13 +288,13 @@ kbd { border: 1px solid black; border-color: #888 #333 #333 #888; padding: .1em 
 
 #index table.index { margin-left: -.5em; }
 
-#index td, #index th { text-align: right; width: 5em; padding: .25em .5em; border-bottom: 1px solid #eee; }
+#index td, #index th { text-align: right; padding: .25em .5em; border-bottom: 1px solid #eee; }
 
 @media (prefers-color-scheme: dark) { #index td, #index th { border-color: #333; } }
 
-#index td.name, #index th.name { text-align: left; width: auto; }
+#index td.name, #index th.name { text-align: left; width: auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; min-width: 15em; }
 
-#index th { font-style: italic; color: #333; cursor: pointer; }
+#index th { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; font-style: italic; color: #333; cursor: pointer; }
 
 @media (prefers-color-scheme: dark) { #index th { color: #ddd; } }
 
@@ -280,23 +302,29 @@ kbd { border: 1px solid black; border-color: #888 #333 #333 #888; padding: .1em 
 
 @media (prefers-color-scheme: dark) { #index th:hover { background: #333; } }
 
+#index th .arrows { color: #666; font-size: 85%; font-family: sans-serif; font-style: normal; pointer-events: none; }
+
 #index th[aria-sort="ascending"], #index th[aria-sort="descending"] { white-space: nowrap; background: #eee; padding-left: .5em; }
 
 @media (prefers-color-scheme: dark) { #index th[aria-sort="ascending"], #index th[aria-sort="descending"] { background: #333; } }
 
-#index th[aria-sort="ascending"]::after { font-family: sans-serif; content: " ↑"; }
+#index th[aria-sort="ascending"] .arrows::after { content: " ▲"; }
 
-#index th[aria-sort="descending"]::after { font-family: sans-serif; content: " ↓"; }
+#index th[aria-sort="descending"] .arrows::after { content: " ▼"; }
+
+#index td.name { font-size: 1.15em; }
 
 #index td.name a { text-decoration: none; color: inherit; }
 
+#index td.name .no-noun { font-style: italic; }
+
 #index tr.total td, #index tr.total_dynamic td { font-weight: bold; border-top: 1px solid #ccc; border-bottom: none; }
 
-#index tr.file:hover { background: #eee; }
+#index tr.region:hover { background: #eee; }
 
-@media (prefers-color-scheme: dark) { #index tr.file:hover { background: #333; } }
+@media (prefers-color-scheme: dark) { #index tr.region:hover { background: #333; } }
 
-#index tr.file:hover td.name { text-decoration: underline; color: inherit; }
+#index tr.region:hover td.name { text-decoration: underline; color: inherit; }
 
 #scroll_marker { position: fixed; z-index: 3; right: 0; top: 0; width: 16px; height: 100%; background: #fff; border-left: 1px solid #eee; will-change: transform; }
 
