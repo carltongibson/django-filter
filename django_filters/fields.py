@@ -47,7 +47,6 @@ class DateRangeField(RangeField):
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
-        """Compress the data_list."""
         if data_list:
             start_date, stop_date = data_list
             if start_date:
