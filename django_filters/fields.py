@@ -49,7 +49,6 @@ class DateRangeField(RangeField):
     def compress(self, data_list):
         """Compress the data_list."""
         if data_list:
-            logger.warning(data_list)
             start_date, stop_date = data_list
             if start_date:
                 start_date = datetime.combine(start_date, time.min)
