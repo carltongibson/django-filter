@@ -1,4 +1,5 @@
 import copy
+import warnings
 from collections import OrderedDict
 
 from django import forms
@@ -52,6 +53,8 @@ class FilterSetOptions:
         self.filter_overrides = getattr(options, "filter_overrides", {})
 
         self.form = getattr(options, "form", forms.Form)
+
+        self.unknown_field_behavior = getattr(options, "unknown_field_behavior", "raise")
 
 
 class FilterSetMetaclass(type):
@@ -338,9 +341,11 @@ class BaseFilterSet:
                     continue
 
                 if field is not None:
-                    filters[filter_name] = cls.filter_for_field(
+                    filter_instance = cls.filter_for_field(
                         field, field_name, lookup_expr
                     )
+                    if filter_instance is not None:
+                        filters[filter_name] = filter_instance
 
         # Allow Meta.fields to contain declared filters *only* when a list/tuple
         if isinstance(cls._meta.fields, (list, tuple)):
@@ -358,6 +363,18 @@ class BaseFilterSet:
         return filters
 
     @classmethod
+    def handle_unrecognized_field(cls, field_name, message):
+        behavior = cls._meta.unknown_field_behavior
+        if behavior == "raise":
+            raise AssertionError(message)
+        elif behavior == "warn":
+            warnings.warn(f"Unrecognized field type for '{field_name}'. Field will be ignored.")
+        elif behavior == "ignore":
+            pass
+        else:
+            raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
+
+    @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr=None):
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
@@ -371,12 +388,14 @@ class BaseFilterSet:
         filter_class, params = cls.filter_for_lookup(field, lookup_type)
         default.update(params)
 
-        assert filter_class is not None, (
-            "%s resolved field '%s' with '%s' lookup to an unrecognized field "
-            "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/main/ref/filterset.html"
-            "#customise-filter-generation-with-filter-overrides"
-        ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
+        if filter_class is None:
+            cls.handle_unrecognized_field(field_name, (
+                "%s resolved field '%s' with '%s' lookup to an unrecognized field "
+                "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
+                "https://django-filter.readthedocs.io/en/main/ref/filterset.html"
+                "#customise-filter-generation-with-filter-overrides"
+            ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__))
+            return None
 
         return filter_class(**default)
 
