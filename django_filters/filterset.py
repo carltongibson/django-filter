@@ -383,6 +383,8 @@ class BaseFilterSet:
             warnings.warn(f"Unrecognized field type for '{field_name}'. Field will be ignored.")
         elif behavior == UnknownFieldBehavior.IGNORE:
             pass
+        else:
+            raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
 
     @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr=None):

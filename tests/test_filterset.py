@@ -22,9 +22,9 @@ from django_filters.filters import (
     UUIDFilter,
 )
 from django_filters.filterset import (
-    UnknownFieldBehavior,
     FILTER_FOR_DBFIELD_DEFAULTS,
     FilterSet,
+    UnknownFieldBehavior,
     filterset_factory,
 )
 from django_filters.widgets import BooleanWidget
@@ -163,7 +163,7 @@ class FilterSetFilterForFieldTests(TestCase):
     def test_return_none(self):
         f = NetworkSetting._meta.get_field("mask")
         # Set unknown_field_behavior to 'ignore' to avoid raising exceptions
-        FilterSet._meta.unknown_field_behavior = "ignore"
+        FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
         result = FilterSet.filter_for_field(f, "mask")
 
         self.assertIsNone(result)
@@ -212,6 +212,7 @@ class FilterSetFilterForFieldTests(TestCase):
     def test_filter_overrides(self):
         pass
 
+
 class HandleUnknownFieldTests(TestCase):
     def setUp(self):
         class NetworkSettingFilterSet(FilterSet):
@@ -226,8 +227,13 @@ class HandleUnknownFieldTests(TestCase):
     def test_raise_unknown_field_behavior(self):
         self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(AssertionError) as excinfo:
             self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "test_message",
+            excinfo.exception.args[0],
+        )
 
     def test_unknown_field_warn_behavior(self):
         self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.WARN
@@ -236,18 +242,18 @@ class HandleUnknownFieldTests(TestCase):
             warnings.simplefilter("always")
             self.FilterSet.handle_unrecognized_field("mask", "test_message")
 
-            self.assertIn(
-                "Unrecognized field type for 'mask'. "
-                "Field will be ignored.",
-                str(w[-1].message),
-            )
+        self.assertIn(
+            "Unrecognized field type for 'mask'. "
+            "Field will be ignored.",
+            str(w[-1].message),
+        )
 
     def test_unknown_field_ignore_behavior(self):
         # No exception or warning should be raised
         self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
         self.FilterSet.handle_unrecognized_field("mask", "test_message")
 
-    def test_unknown_field_invalid_behavior(self):
+    def test_unknown_field_invalid_initial_behavior(self):
         # Creation of new custom FilterSet to set initial field behavior
         with self.assertRaises(ValueError) as excinfo:
 
@@ -256,6 +262,17 @@ class HandleUnknownFieldTests(TestCase):
                     model = NetworkSetting
                     fields = ["ip", "mask"]
                     unknown_field_behavior = "invalid"
+
+        self.assertIn(
+            "Invalid unknown_field_behavior: invalid",
+            str(excinfo.exception),
+        )
+
+    def test_unknown_field_invalid_changed_option_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = "invalid"
+
+        with self.assertRaises(ValueError) as excinfo:
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
 
         self.assertIn(
             "Invalid unknown_field_behavior: invalid",
