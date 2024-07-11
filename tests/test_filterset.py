@@ -22,6 +22,7 @@ from django_filters.filters import (
     UUIDFilter,
 )
 from django_filters.filterset import (
+    UnknownFieldBehavior,
     FILTER_FOR_DBFIELD_DEFAULTS,
     FilterSet,
     filterset_factory,
@@ -148,7 +149,7 @@ class FilterSetFilterForFieldTests(TestCase):
 
     def test_unknown_field_type_error(self):
         f = NetworkSetting._meta.get_field("mask")
-        FilterSet._meta.unknown_field_behavior = "raise"
+        FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
 
         with self.assertRaises(AssertionError) as excinfo:
             FilterSet.filter_for_field(f, "mask")
@@ -211,26 +212,25 @@ class FilterSetFilterForFieldTests(TestCase):
     def test_filter_overrides(self):
         pass
 
-
-class TestHandleUnknownField(TestCase):
+class HandleUnknownFieldTests(TestCase):
     def setUp(self):
         class NetworkSettingFilterSet(FilterSet):
             class Meta:
                 model = NetworkSetting
                 fields = ["ip", "mask"]
                 # Initial field behavior set to 'ignore' to avoid crashing in setUp
-                unknown_field_behavior = "ignore"
+                unknown_field_behavior = UnknownFieldBehavior.IGNORE
 
         self.FilterSet = NetworkSettingFilterSet
 
     def test_raise_unknown_field_behavior(self):
-        self.FilterSet._meta.unknown_field_behavior = "raise"
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
 
         with self.assertRaises(AssertionError):
             self.FilterSet.handle_unrecognized_field("mask", "test_message")
 
     def test_unknown_field_warn_behavior(self):
-        self.FilterSet._meta.unknown_field_behavior = "warn"
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.WARN
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -244,14 +244,23 @@ class TestHandleUnknownField(TestCase):
 
     def test_unknown_field_ignore_behavior(self):
         # No exception or warning should be raised
-        self.FilterSet._meta.unknown_field_behavior = "ignore"
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
         self.FilterSet.handle_unrecognized_field("mask", "test_message")
 
     def test_unknown_field_invalid_behavior(self):
-        self.FilterSet._meta.unknown_field_behavior = "invalid"
+        # Creation of new custom FilterSet to set initial field behavior
+        with self.assertRaises(ValueError) as excinfo:
 
-        with self.assertRaises(ValueError):
-            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+            class InvalidBehaviorFilterSet(FilterSet):
+                class Meta:
+                    model = NetworkSetting
+                    fields = ["ip", "mask"]
+                    unknown_field_behavior = "invalid"
+
+        self.assertIn(
+            "Invalid unknown_field_behavior: invalid",
+            str(excinfo.exception),
+        )
 
 
 class FilterSetFilterForLookupTests(TestCase):

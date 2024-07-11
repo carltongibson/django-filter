@@ -1,6 +1,7 @@
 import copy
 import warnings
 from collections import OrderedDict
+from enum import Enum
 
 from django import forms
 from django.db import models
@@ -44,6 +45,12 @@ def remote_queryset(field):
     return model._default_manager.complex_filter(limit_choices_to)
 
 
+class UnknownFieldBehavior(Enum):
+    RAISE = "raise"
+    WARN = "warn"
+    IGNORE = "ignore"
+
+
 class FilterSetOptions:
     def __init__(self, options=None):
         self.model = getattr(options, "model", None)
@@ -54,7 +61,12 @@ class FilterSetOptions:
 
         self.form = getattr(options, "form", forms.Form)
 
-        self.unknown_field_behavior = getattr(options, "unknown_field_behavior", "raise")
+        behavior = getattr(options, "unknown_field_behavior", UnknownFieldBehavior.RAISE)
+
+        if not isinstance(behavior, UnknownFieldBehavior):
+            raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
+
+        self.unknown_field_behavior = behavior
 
 
 class FilterSetMetaclass(type):
@@ -365,14 +377,12 @@ class BaseFilterSet:
     @classmethod
     def handle_unrecognized_field(cls, field_name, message):
         behavior = cls._meta.unknown_field_behavior
-        if behavior == "raise":
+        if behavior == UnknownFieldBehavior.RAISE:
             raise AssertionError(message)
-        elif behavior == "warn":
+        elif behavior == UnknownFieldBehavior.WARN:
             warnings.warn(f"Unrecognized field type for '{field_name}'. Field will be ignored.")
-        elif behavior == "ignore":
+        elif behavior == UnknownFieldBehavior.IGNORE:
             pass
-        else:
-            raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
 
     @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr=None):
