@@ -12,6 +12,7 @@ Meta options
 - :ref:`exclude <exclude>`
 - :ref:`form <form>`
 - :ref:`filter_overrides <filter_overrides>`
+- :ref:`unknown_field_behavior <unknown_field_behavior>`
 
 
 .. _model:
@@ -145,6 +146,34 @@ This is a map of model fields to filter classes with options::
                     },
                 },
             }
+
+
+.. _unknown_field_behavior:
+
+Handling unknown fields with ``unknown_field_behavior``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``unknown_field_behavior`` option specifies how unknown fields are handled 
+in a ``FilterSet``. You can set this option using the values of the 
+``UnknownFieldBehavior`` enum:
+
+- ``UnknownFieldBehavior.RAISE``: Raise an assertion error (default)
+- ``UnknownFieldBehavior.WARN``: Issue a warning and ignore the field
+- ``UnknownFieldBehavior.IGNORE``: Silently ignore the field
+
+Note that both the ``WARN`` and ``IGNORE`` options do not include the unknown 
+field(s) in the list of filters.
+
+.. code-block:: python
+
+    from django_filters import UnknownFieldBehavior
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'last_login']
+            unknown_field_behavior = UnknownFieldBehavior.WARN
+
 
 Overriding ``FilterSet`` methods
 --------------------------------
