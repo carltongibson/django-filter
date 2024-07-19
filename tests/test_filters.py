@@ -1,8 +1,10 @@
 import inspect
+import unittest
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 from unittest import mock
 
+import django
 from django import forms
 from django.test import TestCase, override_settings
 from django.utils import translation
@@ -1105,6 +1107,7 @@ class DateRangeFilterTests(TestCase):
             choices=[("group", ("a", "a")), ("b", "b")], filters={"a": None, "b": None}
         )
 
+    @unittest.skipUnless(django.VERSION >= (5, 0), "Django 5.0 introduced new dictionary choices option")
     def test_grouped_choices_as_dictionary(self):
         DateRangeFilter(
             choices={"group": {"a": "a", "b": "b"}}, filters={"a": None, "b": None}
