@@ -31,7 +31,7 @@ from .fields import (
 from .utils import get_model_field, label_for_filter
 
 try:
-    from django.utils.choices import BaseChoiceIterator, normalize_choices
+    from django.utils.choices import normalize_choices
 except ImportError:
     DJANGO_50 = False
 else:
