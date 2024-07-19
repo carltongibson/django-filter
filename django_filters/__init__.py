@@ -2,7 +2,7 @@
 from importlib import util as importlib_util
 
 from .filters import *
-from .filterset import FilterSet
+from .filterset import FilterSet, UnknownFieldBehavior
 
 # We make the `rest_framework` module available without an additional import.
 #   If DRF is not installed, no-op.

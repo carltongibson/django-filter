@@ -1,4 +1,5 @@
 import unittest
+import warnings
 from unittest import mock
 
 from django.db import models
@@ -23,6 +24,7 @@ from django_filters.filters import (
 from django_filters.filterset import (
     FILTER_FOR_DBFIELD_DEFAULTS,
     FilterSet,
+    UnknownFieldBehavior,
     filterset_factory,
 )
 from django_filters.widgets import BooleanWidget
@@ -147,6 +149,7 @@ class FilterSetFilterForFieldTests(TestCase):
 
     def test_unknown_field_type_error(self):
         f = NetworkSetting._meta.get_field("mask")
+        FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
 
         with self.assertRaises(AssertionError) as excinfo:
             FilterSet.filter_for_field(f, "mask")
@@ -156,6 +159,14 @@ class FilterSetFilterForFieldTests(TestCase):
             "to an unrecognized field type SubnetMaskField",
             excinfo.exception.args[0],
         )
+
+    def test_return_none(self):
+        f = NetworkSetting._meta.get_field("mask")
+        # Set unknown_field_behavior to 'ignore' to avoid raising exceptions
+        FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
+        result = FilterSet.filter_for_field(f, "mask")
+
+        self.assertIsNone(result)
 
     def test_symmetrical_selfref_m2m_field(self):
         f = Node._meta.get_field("adjacents")
@@ -200,6 +211,73 @@ class FilterSetFilterForFieldTests(TestCase):
     @unittest.skip("todo")
     def test_filter_overrides(self):
         pass
+
+
+class HandleUnknownFieldTests(TestCase):
+    def setUp(self):
+        class NetworkSettingFilterSet(FilterSet):
+            class Meta:
+                model = NetworkSetting
+                fields = ["ip", "mask"]
+                # Initial field behavior set to 'ignore' to avoid crashing in setUp
+                unknown_field_behavior = UnknownFieldBehavior.IGNORE
+
+        self.FilterSet = NetworkSettingFilterSet
+
+    def test_raise_unknown_field_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
+
+        with self.assertRaises(AssertionError) as excinfo:
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "test_message",
+            excinfo.exception.args[0],
+        )
+
+    def test_unknown_field_warn_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.WARN
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "Unrecognized field type for 'mask'. "
+            "Field will be ignored.",
+            str(w[-1].message),
+        )
+
+    def test_unknown_field_ignore_behavior(self):
+        # No exception or warning should be raised
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
+        self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+    def test_unknown_field_invalid_initial_behavior(self):
+        # Creation of new custom FilterSet to set initial field behavior
+        with self.assertRaises(ValueError) as excinfo:
+
+            class InvalidBehaviorFilterSet(FilterSet):
+                class Meta:
+                    model = NetworkSetting
+                    fields = ["ip", "mask"]
+                    unknown_field_behavior = "invalid"
+
+        self.assertIn(
+            "Invalid unknown_field_behavior: invalid",
+            str(excinfo.exception),
+        )
+
+    def test_unknown_field_invalid_changed_option_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = "invalid"
+
+        with self.assertRaises(ValueError) as excinfo:
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "Invalid unknown_field_behavior: invalid",
+            str(excinfo.exception),
+        )
 
 
 class FilterSetFilterForLookupTests(TestCase):
