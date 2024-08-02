@@ -30,6 +30,14 @@ from .fields import (
 )
 from .utils import get_model_field, label_for_filter
 
+try:
+    from django.utils.choices import normalize_choices
+except ImportError:
+    DJANGO_50 = False
+else:
+    DJANGO_50 = True
+
+
 __all__ = [
     "AllValuesFilter",
     "AllValuesMultipleFilter",
@@ -478,6 +486,12 @@ class DateRangeFilter(ChoiceFilter):
             self.choices = choices
         if filters is not None:
             self.filters = filters
+
+        if isinstance(self.choices, dict):
+            if DJANGO_50:
+                self.choices = normalize_choices(self.choices)
+            else:
+                raise ValueError("Django 5.0 or later is required for dict choices")
 
         all_choices = list(
             chain.from_iterable(
