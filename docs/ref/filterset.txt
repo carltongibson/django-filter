@@ -148,6 +148,27 @@ This is a map of model fields to filter classes with options::
             }
 
 
+
+A possible usecase would be creating a custom filter to be able to filter on ``FileFields``
+(``FileField`` filtering is hard to define in a generalised way, which is why there is no ``FileFilter``).
+
+This example shows an override used to filter on a ``FileField``::
+
+    class Questionnaire(models.Model):
+        file = models.FileField(upload_to=questionnaire_path)
+
+    class QuestionnaireFilter(FilterSet):
+        class Meta:
+            model = Questionnaire
+            fields = ['file']
+            filter_overrides = {
+                models.FileField: {
+                    'filter_class': CharFilter,
+                    'extra': lambda f: {'lookup_expr': 'exact'},
+                },
+            }
+
+
 .. _unknown_field_behavior:
 
 Handling unknown fields with ``unknown_field_behavior``
