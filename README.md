@@ -10,7 +10,7 @@
 | django\_filters/constants.py                    |        2 |        0 |    100% |           |
 | django\_filters/exceptions.py                   |        4 |        0 |    100% |           |
 | django\_filters/fields.py                       |      182 |        0 |    100% |           |
-| django\_filters/filters.py                      |      359 |        0 |    100% |           |
+| django\_filters/filters.py                      |      368 |        1 |     99% |       494 |
 | django\_filters/filterset.py                    |      216 |        0 |    100% |           |
 | django\_filters/rest\_framework/\_\_init\_\_.py |        3 |        0 |    100% |           |
 | django\_filters/rest\_framework/backends.py     |       85 |       15 |     82% |86-90, 96-118 |
@@ -19,7 +19,7 @@
 | django\_filters/utils.py                        |      147 |        1 |     99% |       242 |
 | django\_filters/views.py                        |       55 |        0 |    100% |           |
 | django\_filters/widgets.py                      |      160 |        0 |    100% |           |
-|                                       **TOTAL** | **1311** |   **19** | **99%** |           |
+|                                       **TOTAL** | **1320** |   **20** | **98%** |           |
 
 
 ## Setup coverage badge
