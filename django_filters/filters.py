@@ -491,7 +491,7 @@ class DateRangeFilter(ChoiceFilter):
             if DJANGO_50:
                 self.choices = normalize_choices(self.choices)
             else:
-                assert not DJANGO_50, "Django 5.0 or later is required for dict choices"
+                raise ValueError("Django 5.0 or later is required for dict choices")
 
         all_choices = list(
             chain.from_iterable(

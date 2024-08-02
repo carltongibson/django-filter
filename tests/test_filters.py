@@ -1113,6 +1113,16 @@ class DateRangeFilterTests(TestCase):
             choices={"group": {"a": "a", "b": "b"}}, filters={"a": None, "b": None}
         )
 
+    @unittest.skipUnless(django.VERSION <= (4, 2), "Django 5.0 introduced new dictionary choices option")
+    def test_grouped_choices_error(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "Django 5.0 or later is required for dict choices"
+        ):
+            DateRangeFilter(
+                choices={"group": {"a": "a", "b": "b"}}, filters={"a": None, "b": None}
+            )
+
     def test_filtering_for_this_year(self):
         qs = mock.Mock(spec=["filter"])
         with mock.patch("django_filters.filters.now") as mock_now:
