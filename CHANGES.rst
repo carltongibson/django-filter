@@ -1,3 +1,17 @@
+Version 24.3 (2024-08-02)
+-------------------------
+
+* Adds official support for Django 5.1.
+
+* Allow using dictionaries for grouped choices on Django 5.0+.
+
+  Thanks to Sævar Öfjörð Magnússon.
+
+* Adds ``unknown_field_behavior`` FilterSet option to allowing warning and
+  ignore behaviours for unknown field types during FilterSet generation.
+
+  Thanks to Loes.
+
 Version 24.2 (2024-03-27)
 -------------------------
 
