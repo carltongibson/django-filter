@@ -62,6 +62,14 @@ class FilterMixin:
                 )
                 args = (filterset_class.__name__, self.__class__.__name__)
                 raise ImproperlyConfigured(msg % args)
+            else:
+                self.model = filterset_class._meta.model
+                kwargs.update(
+                {
+                    "queryset": self.get_queryset(),
+                }
+            )
+                
         return kwargs
 
     def get_strict(self):
