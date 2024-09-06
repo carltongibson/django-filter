@@ -1,5 +1,6 @@
 from django.forms import NumberInput, Select, TextInput
 from django.test import TestCase
+from django.http import QueryDict
 
 from django_filters.widgets import (
     BaseCSVWidget,
@@ -526,10 +527,13 @@ class CSVSelectTests(TestCase):
             <input type="text" name="price" value="1,2" />""",
         )
 
+import django.http
 
 class QueryArrayWidgetTests(TestCase):
     def test_widget_value_from_datadict(self):
+
         w = QueryArrayWidget()
+
 
         # Values can be provided as csv string: ?foo=bar,baz
         data = {"price": None}
@@ -595,3 +599,7 @@ class QueryArrayWidgetTests(TestCase):
 
         result = w.value_from_datadict({}, {}, "price")
         self.assertEqual(result, [])
+
+        data = QueryDict("price=1,2")
+        result = w.value_from_datadict(data, {}, "price")
+        self.assertEqual(result, ["1", "2"])
