@@ -40,6 +40,7 @@ jobs:
       - name: Store coverage file
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true
           name: coverage-${{ matrix.python-version }}
           path: .coverage.${{ matrix.python-version }}
 
