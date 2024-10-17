@@ -1,6 +1,6 @@
 from django.forms import NumberInput, Select, TextInput
 from django.test import TestCase
-
+from django.utils.datastructures import MultiValueDict
 from django_filters.widgets import (
     BaseCSVWidget,
     BooleanWidget,
@@ -133,6 +133,25 @@ class LinkWidgetTests(TestCase):
         )
 
         w = LinkWidget(choices=choices)
+        self.assertHTMLEqual(
+            w.render("price", ""),
+            """
+            <ul>
+                <li><a class="selected" href="?price=">All</a></li>
+                <li><a href="?price=test-val1">test-label1</a></li>
+                <li><a href="?price=test-val2">test-label2</a></li>
+            </ul>""",
+        )
+
+    def test_widget_multivaluedict(self):
+        choices = (
+            ("", "---------"),
+            ("test-val1", "test-label1"),
+            ("test-val2", "test-label2"),
+        )
+
+        w = LinkWidget(choices=choices)
+        w.value_from_datadict(MultiValueDict(), {}, "price")
         self.assertHTMLEqual(
             w.render("price", ""),
             """
