@@ -6,9 +6,9 @@ from re import search, sub
 from django import forms
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.utils import flatatt
+from django.http import QueryDict
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_str
-from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
@@ -56,13 +56,13 @@ class LinkWidget(forms.Widget):
         option_value = force_str(option_value)
         if option_label == BLANK_CHOICE_DASH[0][1]:
             option_label = _("All")
-        data = self.data.copy()
+
+        data = QueryDict(mutable=True)
+        data.update(self.data)
         data[name] = option_value
+
         selected = data == self.data or option_value in selected_choices
-        try:
-            url = data.urlencode()
-        except AttributeError:
-            url = urlencode(data)
+        url = data.urlencode()
         return self.option_string() % {
             "attrs": selected and ' class="selected"' or "",
             "query_string": url,
