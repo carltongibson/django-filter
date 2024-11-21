@@ -527,8 +527,6 @@ class CSVSelectTests(TestCase):
             <input type="text" name="price" value="1,2" />""",
         )
 
-import django.http
-
 class QueryArrayWidgetTests(TestCase):
     def test_widget_value_from_datadict(self):
 
