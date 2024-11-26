@@ -257,7 +257,7 @@ Using ``filterset_factory``
 ---------------------------
 
 A ``FilterSet`` for a ``model`` can also be created by the
-``filterset_factory``, which creats a ``FilterSet`` with the ``model`` set in
+``filterset_factory``, which creates a ``FilterSet`` with the ``model`` set in
 the FilterSets Meta. You can pass a customized ``FilterSet`` class to the
 ``filterset_factory``, which then uses this class a a base for the created
 ``FilterSet``. Ex::
