@@ -1,13 +1,12 @@
-import warnings
-from unittest import mock, skipIf
+from unittest import mock
 
 from django.db.models import BooleanField
 from django.test import TestCase
-from django.test.utils import ignore_warnings, override_settings
+from django.test.utils import override_settings
 from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
 
-from django_filters import compat, filters
+from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, backends
 
 from ..models import Article
@@ -241,7 +240,8 @@ class ValidationErrorTests(TestCase):
             {
                 "id": ["Enter a number."],
                 "author": [
-                    "Select a valid choice. That choice is not one of the available choices."
+                    "Select a valid choice. "
+                    "That choice is not one of the available choices."
                 ],
             },
         )
