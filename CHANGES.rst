@@ -7,6 +7,8 @@ Version 25.1 (Unreleased)
   You should use `drf-spectacular <https://drf-spectacular.readthedocs.io/en/latest/>`_
   for generating OpenAPI schemas with DRF.
 
+* Dropped support for EOL Python 3.8.
+
 Version 24.3 (2024-08-02)
 -------------------------
 
