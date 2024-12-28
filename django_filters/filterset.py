@@ -7,7 +7,7 @@ from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ManyToManyRel, ManyToOneRel, OneToOneRel
-from django.utils.datastructures import MultiValueDict
+from django.http import QueryDict
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -192,7 +192,7 @@ class BaseFilterSet:
         model = queryset.model
 
         self.is_bound = data is not None
-        self.data = data or MultiValueDict()
+        self.data = data or QueryDict()
         self.queryset = queryset
         self.request = request
         self.form_prefix = prefix

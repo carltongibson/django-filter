@@ -1,6 +1,6 @@
 from django.forms import NumberInput, Select, TextInput
 from django.test import TestCase
-from django.utils.datastructures import MultiValueDict
+from django.http import QueryDict
 from django_filters.widgets import (
     BaseCSVWidget,
     BooleanWidget,
@@ -143,7 +143,7 @@ class LinkWidgetTests(TestCase):
             </ul>""",
         )
 
-    def test_widget_multivaluedict(self):
+    def test_widget_with_empty_querydict(self):
         choices = (
             ("", "---------"),
             ("test-val1", "test-label1"),
@@ -151,7 +151,7 @@ class LinkWidgetTests(TestCase):
         )
 
         w = LinkWidget(choices=choices)
-        w.value_from_datadict(MultiValueDict(), {}, "price")
+        w.value_from_datadict(QueryDict(), {}, "price")
         self.assertHTMLEqual(
             w.render("price", ""),
             """
