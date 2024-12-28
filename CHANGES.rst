@@ -9,6 +9,8 @@ Version 25.1 (Unreleased)
 
 * Dropped support for EOL Python 3.8.
 
+* Added testing against Python 3.13.
+
 Version 24.3 (2024-08-02)
 -------------------------
 
