@@ -4,8 +4,8 @@
 
 | Name                                            |    Stmts |     Miss |   Cover |   Missing |
 |------------------------------------------------ | -------: | -------: | ------: | --------: |
-| django\_filters/\_\_init\_\_.py                 |       19 |        1 |     95% |        27 |
-| django\_filters/compat.py                       |       15 |        2 |     87% |       6-7 |
+| django\_filters/\_\_init\_\_.py                 |       16 |        1 |     94% |        27 |
+| django\_filters/compat.py                       |        7 |        2 |     71% |       6-7 |
 | django\_filters/conf.py                         |       34 |        0 |    100% |           |
 | django\_filters/constants.py                    |        2 |        0 |    100% |           |
 | django\_filters/exceptions.py                   |        4 |        0 |    100% |           |
@@ -13,13 +13,13 @@
 | django\_filters/filters.py                      |      368 |        1 |     99% |       494 |
 | django\_filters/filterset.py                    |      216 |        0 |    100% |           |
 | django\_filters/rest\_framework/\_\_init\_\_.py |        3 |        0 |    100% |           |
-| django\_filters/rest\_framework/backends.py     |       85 |       15 |     82% |86-90, 96-118 |
+| django\_filters/rest\_framework/backends.py     |       49 |        0 |    100% |           |
 | django\_filters/rest\_framework/filters.py      |        8 |        0 |    100% |           |
 | django\_filters/rest\_framework/filterset.py    |       22 |        0 |    100% |           |
 | django\_filters/utils.py                        |      147 |        1 |     99% |       242 |
 | django\_filters/views.py                        |       55 |        0 |    100% |           |
 | django\_filters/widgets.py                      |      160 |        0 |    100% |           |
-|                                       **TOTAL** | **1320** |   **20** | **98%** |           |
+|                                       **TOTAL** | **1273** |    **5** | **99%** |           |
 
 
 ## Setup coverage badge
