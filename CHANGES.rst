@@ -1,3 +1,12 @@
+Version 25.1 (Unreleased)
+-------------------------
+
+* Removed the in-built API schema generation methods, which have been
+  deprecated since v23.2.
+
+  You should use `drf-spectacular <https://drf-spectacular.readthedocs.io/en/latest/>`_
+  for generating OpenAPI schemas with DRF.
+
 Version 24.3 (2024-08-02)
 -------------------------
 
