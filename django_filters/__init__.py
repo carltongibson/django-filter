@@ -10,7 +10,7 @@ if importlib_util.find_spec("rest_framework"):
     from . import rest_framework
 del importlib_util
 
-__version__ = "24.3"
+__version__ = "25.1"
 
 
 def parse_version(version):
@@ -29,11 +29,3 @@ def parse_version(version):
 
 
 VERSION = parse_version(__version__)
-
-
-
-assert VERSION < (25,0), "Remove deprecated code"
-
-
-class RemovedInDjangoFilter25Warning(DeprecationWarning):
-    pass

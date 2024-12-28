@@ -7,7 +7,7 @@ from django.test.utils import ignore_warnings, override_settings
 from rest_framework import generics, serializers
 from rest_framework.test import APIRequestFactory
 
-from django_filters import RemovedInDjangoFilter25Warning, compat, filters
+from django_filters import compat, filters
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, backends
 
 from ..models import Article
@@ -127,155 +127,6 @@ class GetFilterClassTests(TestCase):
 
         filterset_class = backend.get_filterset_class(view, None)
         self.assertIsNone(filterset_class)
-
-
-@skipIf(compat.coreapi is None, "coreapi must be installed")
-class GetSchemaFieldsTests(TestCase):
-    def test_fields_with_filterset_fields_list(self):
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_fields(FilterFieldsRootView())
-        fields = [f.name for f in fields]
-
-        self.assertEqual(fields, ["decimal", "date"])
-
-    def test_filterset_fields_list_with_bad_get_queryset(self):
-        """
-        See:
-          * https://github.com/carltongibson/django-filter/issues/551
-        """
-
-        class BadGetQuerySetView(FilterFieldsRootView):
-            filterset_fields = ["decimal", "date"]
-
-            def get_queryset(self):
-                raise AttributeError("I don't have that")
-
-        backend = DjangoFilterBackend()
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-
-            fields = backend.get_schema_fields(BadGetQuerySetView())
-            self.assertEqual(
-                fields, [], "get_schema_fields should handle AttributeError"
-            )
-
-            warning = "{} is not compatible with schema generation".format(
-                BadGetQuerySetView
-            )
-            self.assertEqual(len(w), 1)
-            self.assertEqual(str(w[0].message), warning)
-
-    def test_malformed_filterset_fields(self):
-        # Malformed filter fields should raise an exception
-        class View(FilterFieldsRootView):
-            filterset_fields = ["non_existent"]
-
-        backend = DjangoFilterBackend()
-
-        msg = "'Meta.fields' must not contain non-model field names: non_existent"
-        with self.assertRaisesMessage(TypeError, msg):
-            backend.get_schema_fields(View())
-
-    def test_fields_with_filterset_fields_dict(self):
-        class DictFilterFieldsRootView(FilterFieldsRootView):
-            filterset_fields = {
-                "decimal": ["exact", "lt", "gt"],
-            }
-
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_fields(DictFilterFieldsRootView())
-        fields = [f.name for f in fields]
-
-        self.assertEqual(fields, ["decimal", "decimal__lt", "decimal__gt"])
-
-    def test_fields_with_filterset_class(self):
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_fields(FilterClassRootView())
-        schemas = [f.schema for f in fields]
-        fields = [f.name for f in fields]
-
-        self.assertEqual(fields, ["text", "decimal", "date"])
-        self.assertIsInstance(schemas[0], compat.coreschema.String)
-        self.assertIsInstance(schemas[1], compat.coreschema.Number)
-        self.assertIsInstance(schemas[2], compat.coreschema.String)
-
-    def test_field_required(self):
-        class RequiredFieldsFilter(SeveralFieldsFilter):
-            required_text = filters.CharFilter(required=True)
-
-            class Meta(SeveralFieldsFilter.Meta):
-                fields = SeveralFieldsFilter.Meta.fields + ["required_text"]
-
-        class FilterClassWithRequiredFieldsView(FilterClassRootView):
-            filterset_class = RequiredFieldsFilter
-
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_fields(FilterClassWithRequiredFieldsView())
-        required = [f.required for f in fields]
-        fields = [f.name for f in fields]
-
-        self.assertEqual(fields, ["text", "decimal", "date", "required_text"])
-        self.assertFalse(required[0])
-        self.assertFalse(required[1])
-        self.assertFalse(required[2])
-        self.assertTrue(required[3])
-
-    def tests_field_with_request_callable(self):
-        def qs(request):
-            # users expect a valid request object to be provided which cannot
-            # be guaranteed during schema generation.
-            self.fail(
-                "callable queryset should not be invoked during schema generation"
-            )
-
-        class F(SeveralFieldsFilter):
-            f = filters.ModelChoiceFilter(queryset=qs)
-
-        class View(FilterClassRootView):
-            filterset_class = F
-
-        view = View()
-        view.request = factory.get("/")
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_fields(view)
-        fields = [f.name for f in fields]
-
-        self.assertEqual(fields, ["text", "decimal", "date", "f"])
-
-
-class GetSchemaOperationParametersTests(TestCase):
-    @ignore_warnings(category=RemovedInDjangoFilter25Warning)
-    def test_get_operation_parameters_with_filterset_fields_list(self):
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_operation_parameters(FilterFieldsRootView())
-        fields = [f["name"] for f in fields]
-
-        self.assertEqual(fields, ["decimal", "date"])
-
-    @ignore_warnings(category=RemovedInDjangoFilter25Warning)
-    def test_get_operation_parameters_with_filterset_fields_list_with_choices(self):
-        backend = DjangoFilterBackend()
-        fields = backend.get_schema_operation_parameters(CategoryItemView())
-
-        self.assertEqual(
-            fields,
-            [
-                {
-                    "name": "category",
-                    "required": False,
-                    "in": "query",
-                    "description": "category",
-                    "schema": {"type": "string", "enum": ["home", "office"]},
-                }
-            ],
-        )
-
-    def test_deprecation_warning(self):
-        backend = DjangoFilterBackend()
-        msg = "Built-in schema generation is deprecated. Use drf-spectacular."
-        with self.assertWarnsMessage(RemovedInDjangoFilter25Warning, msg):
-            backend.get_schema_operation_parameters(FilterFieldsRootView())
 
 
 class TemplateTests(TestCase):
@@ -414,14 +265,6 @@ class DjangoFilterBackendTestCase(TestCase):
     def test_to_html_none_filter_class(self):
         html = self.backend.to_html(mock.Mock(), mock.Mock(), mock.Mock())
         self.assertIsNone(html)
-
-    @ignore_warnings(category=RemovedInDjangoFilter25Warning)
-    def test_get_schema_operation_parameters_userwarning(self):
-        with self.assertWarns(UserWarning):
-            view = mock.Mock()
-            view.__class__.return_value = "Test"
-            view.get_queryset.side_effect = Exception
-            self.backend.get_schema_operation_parameters(view)
 
     @mock.patch("django_filters.compat.is_crispy", return_value=True)
     def test_template_crispy(self, _):
