@@ -1,6 +1,7 @@
 from django.forms import NumberInput, Select, TextInput
-from django.test import TestCase
 from django.http import QueryDict
+from django.test import TestCase
+
 from django_filters.widgets import (
     BaseCSVWidget,
     BooleanWidget,

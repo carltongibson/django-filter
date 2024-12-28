@@ -61,7 +61,11 @@ class FilterSetOptions:
 
         self.form = getattr(options, "form", forms.Form)
 
-        behavior = getattr(options, "unknown_field_behavior", UnknownFieldBehavior.RAISE)
+        behavior = getattr(
+            options,
+            "unknown_field_behavior",
+            UnknownFieldBehavior.RAISE,
+        )
 
         if not isinstance(behavior, UnknownFieldBehavior):
             raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
@@ -380,7 +384,9 @@ class BaseFilterSet:
         if behavior == UnknownFieldBehavior.RAISE:
             raise AssertionError(message)
         elif behavior == UnknownFieldBehavior.WARN:
-            warnings.warn(f"Unrecognized field type for '{field_name}'. Field will be ignored.")
+            warnings.warn(
+                f"Unrecognized field type for '{field_name}'. Field will be ignored."
+            )
         elif behavior == UnknownFieldBehavior.IGNORE:
             pass
         else:
