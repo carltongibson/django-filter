@@ -7,7 +7,7 @@ from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ManyToManyRel, ManyToOneRel, OneToOneRel
-from django.utils.datastructures import MultiValueDict
+from django.http import QueryDict
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -61,7 +61,11 @@ class FilterSetOptions:
 
         self.form = getattr(options, "form", forms.Form)
 
-        behavior = getattr(options, "unknown_field_behavior", UnknownFieldBehavior.RAISE)
+        behavior = getattr(
+            options,
+            "unknown_field_behavior",
+            UnknownFieldBehavior.RAISE,
+        )
 
         if not isinstance(behavior, UnknownFieldBehavior):
             raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
@@ -192,7 +196,7 @@ class BaseFilterSet:
         model = queryset.model
 
         self.is_bound = data is not None
-        self.data = data or MultiValueDict()
+        self.data = data or QueryDict()
         self.queryset = queryset
         self.request = request
         self.form_prefix = prefix
@@ -380,7 +384,9 @@ class BaseFilterSet:
         if behavior == UnknownFieldBehavior.RAISE:
             raise AssertionError(message)
         elif behavior == UnknownFieldBehavior.WARN:
-            warnings.warn(f"Unrecognized field type for '{field_name}'. Field will be ignored.")
+            warnings.warn(
+                f"Unrecognized field type for '{field_name}'. Field will be ignored."
+            )
         elif behavior == UnknownFieldBehavior.IGNORE:
             pass
         else:
