@@ -1158,7 +1158,7 @@ class O2ORelationshipTests(TestCase):
         a2 = Account.objects.create(
             name="account2", in_good_standing=True, friendly=True
         )
-        a3 = Account.objects.create(
+        self.a3 = Account.objects.create(
             name="account3", in_good_standing=True, friendly=False
         )
         a4 = Account.objects.create(
@@ -1166,7 +1166,7 @@ class O2ORelationshipTests(TestCase):
         )
         Profile.objects.create(account=a1, likes_coffee=True, likes_tea=False)
         Profile.objects.create(account=a2, likes_coffee=False, likes_tea=True)
-        Profile.objects.create(account=a3, likes_coffee=True, likes_tea=True)
+        Profile.objects.create(account=self.a3, likes_coffee=True, likes_tea=True)
         Profile.objects.create(account=a4, likes_coffee=False, likes_tea=False)
 
     def test_o2o_relation(self):
@@ -1263,7 +1263,8 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"profile__likes_coffee": "2", "profile__likes_tea": "2"})
         self.assertEqual(f.qs.count(), 1)
-        self.assertQuerySetEqual(f.qs, [3], lambda o: o.pk)
+        expected_results = [self.a3.pk]
+        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk)
 
 
 class FKRelationshipTests(TestCase):
