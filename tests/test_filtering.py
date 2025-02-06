@@ -1751,10 +1751,10 @@ class CSVFilterTests(TestCase):
         after_5pm = now_dt.replace(hour=18)
         before_5pm = now_dt.replace(hour=16)
 
-        Article.objects.create(author=u1, published=after_5pm)
-        Article.objects.create(author=u2, published=after_5pm)
-        Article.objects.create(author=u1, published=before_5pm)
-        Article.objects.create(author=u2, published=before_5pm)
+        self.a1 = Article.objects.create(author=u1, published=after_5pm)
+        self.a2 = Article.objects.create(author=u2, published=after_5pm)
+        self.a3 = Article.objects.create(author=u1, published=before_5pm)
+        self.a4 = Article.objects.create(author=u2, published=before_5pm)
 
         class UserFilter(FilterSet):
             class Meta:
@@ -1828,11 +1828,11 @@ class CSVFilterTests(TestCase):
         before = self.before_5pm
 
         cases = [
-            (None, [1, 2, 3, 4]),
-            (QueryDict("published__in=%s&published__in=%s" % (after, before)), [3, 4]),
-            ({"published__in": ""}, [1, 2, 3, 4]),
+            (None, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
+            (QueryDict("published__in=%s&published__in=%s" % (after, before)), [self.a3.pk, self.a4.pk]),
+            ({"published__in": ""}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
             ({"published__in": ","}, []),
-            ({"published__in": "%s" % (after,)}, [1, 2]),
+            ({"published__in": "%s" % (after,)}, [self.a1.pk, self.a2.pk]),
             (
                 {
                     "published__in": "%s,%s"
@@ -1841,7 +1841,7 @@ class CSVFilterTests(TestCase):
                         before,
                     )
                 },
-                [1, 2, 3, 4],
+                [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk],
             ),
             (
                 {
@@ -1851,9 +1851,9 @@ class CSVFilterTests(TestCase):
                         before,
                     )
                 },
-                [1, 2, 3, 4],
+                [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk],
             ),
-            ({"published__in": "%s," % (after,)}, [1, 2]),
+            ({"published__in": "%s," % (after,)}, [self.a1.pk, self.a2.pk]),
         ]
 
         for params, expected in cases:
