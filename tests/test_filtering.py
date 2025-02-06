@@ -1744,19 +1744,19 @@ class LookupChoiceFilterTests(TestCase):
 @override_settings(TIME_ZONE="UTC")
 class CSVFilterTests(TestCase):
     def setUp(self):
-        u1 = User.objects.create(username="alex", status=1)
-        u2 = User.objects.create(username="jacob", status=2)
-        User.objects.create(username="aaron", status=2)
-        User.objects.create(username="carl", status=0)
+        self.u1 = User.objects.create(username="alex", status=1)
+        self.u2 = User.objects.create(username="jacob", status=2)
+        self.u3 = User.objects.create(username="aaron", status=2)
+        self.u4 = User.objects.create(username="carl", status=0)
 
         now_dt = now()
         after_5pm = now_dt.replace(hour=18)
         before_5pm = now_dt.replace(hour=16)
 
-        self.a1 = Article.objects.create(author=u1, published=after_5pm)
-        self.a2 = Article.objects.create(author=u2, published=after_5pm)
-        self.a3 = Article.objects.create(author=u1, published=before_5pm)
-        self.a4 = Article.objects.create(author=u2, published=before_5pm)
+        self.a1 = Article.objects.create(author=self.u1, published=after_5pm)
+        self.a2 = Article.objects.create(author=self.u2, published=after_5pm)
+        self.a3 = Article.objects.create(author=self.u1, published=before_5pm)
+        self.a4 = Article.objects.create(author=self.u2, published=before_5pm)
 
         class UserFilter(FilterSet):
             class Meta:
@@ -1785,14 +1785,14 @@ class CSVFilterTests(TestCase):
         qs = User.objects.order_by("pk")
 
         cases = [
-            (None, [1, 2, 3, 4]),
-            (QueryDict("status__in=1&status__in=2"), [2, 3]),
-            ({"status__in": ""}, [1, 2, 3, 4]),
+            (None, [self.u1.pk, self.u2.pk, self.u3.pk, self.u4.pk]),
+            (QueryDict("status__in=1&status__in=2"), [self.u2.pk, self.u3.pk]),
+            ({"status__in": ""}, [self.u1.pk, self.u2.pk, self.u3.pk, self.u4.pk]),
             ({"status__in": ","}, []),
-            ({"status__in": "0"}, [4]),
-            ({"status__in": "0,2"}, [2, 3, 4]),
-            ({"status__in": "0,,1"}, [1, 4]),
-            ({"status__in": "2"}, [2, 3]),
+            ({"status__in": "0"}, [self.u4.pk]),
+            ({"status__in": "0,2"}, [self.u2.pk, self.u3.pk, self.u4.pk]),
+            ({"status__in": "0,,1"}, [self.u1.pk, self.u4.pk]),
+            ({"status__in": "2"}, [self.u2.pk, self.u3.pk]),
         ]
 
         for params, expected in cases:
