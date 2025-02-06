@@ -350,11 +350,11 @@ class TimeFilterTests(TestCase):
         fixed_time = ten_min_ago.time().replace(microsecond=0)
         check_time = str(fixed_time)
         u = User.objects.create(username="alex")
-        comment_one = Comment.objects.create(author=u, time=now_time, date=today)
-        comment_two = Comment.objects.create(author=u, time=fixed_time, date=today)
-        comment_three = Comment.objects.create(author=u, time=now_time, date=today)
-        comment_four = Comment.objects.create(author=u, time=fixed_time, date=today)
-        expected_results = [comment_two.pk, comment_four.pk]
+        Comment.objects.create(author=u, time=now_time, date=today)
+        c2 = Comment.objects.create(author=u, time=fixed_time, date=today)
+        Comment.objects.create(author=u, time=now_time, date=today)
+        c4 = Comment.objects.create(author=u, time=fixed_time, date=today)
+        expected_results = [c2.pk, c4.pk]
 
         class F(FilterSet):
             class Meta:
