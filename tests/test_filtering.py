@@ -354,7 +354,6 @@ class TimeFilterTests(TestCase):
         c2 = Comment.objects.create(author=u, time=fixed_time, date=today)
         Comment.objects.create(author=u, time=now_time, date=today)
         c4 = Comment.objects.create(author=u, time=fixed_time, date=today)
-        expected_results = [c2.pk, c4.pk]
 
         class F(FilterSet):
             class Meta:
@@ -363,7 +362,7 @@ class TimeFilterTests(TestCase):
 
         f = F({"time": check_time}, queryset=Comment.objects.all())
         self.assertEqual(len(f.qs), 2)
-        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.qs, [c2.pk, c4.pk], lambda o: o.pk, False)
 
 
 class DateTimeFilterTests(TestCase):
@@ -1221,8 +1220,7 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"account__in_good_standing": "2"})
         self.assertEqual(f.qs.count(), 2)
-        expected_results = [self.p2.pk, self.p3.pk]
-        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.qs, [self.p2.pk, self.p3.pk], lambda o: o.pk, False)
 
     def test_o2o_relation_attribute2(self):
         class F(FilterSet):
@@ -1238,8 +1236,7 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"account__in_good_standing": "2", "account__friendly": "2"})
         self.assertEqual(f.qs.count(), 1)
-        expected_results = [self.p2.pk]
-        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk)
+        self.assertQuerySetEqual(f.qs, [self.p2.pk], lambda o: o.pk)
 
     def test_reverse_o2o_relation_attribute(self):
         class F(FilterSet):
@@ -1252,8 +1249,7 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"profile__likes_coffee": "2"})
         self.assertEqual(f.qs.count(), 2)
-        expected_results = [self.a1.pk, self.a3.pk]
-        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.qs, [self.a1.pk, self.a3.pk], lambda o: o.pk, False)
 
     def test_reverse_o2o_relation_attribute2(self):
         class F(FilterSet):
@@ -1266,8 +1262,7 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"profile__likes_coffee": "2", "profile__likes_tea": "2"})
         self.assertEqual(f.qs.count(), 1)
-        expected_results = [self.a3.pk]
-        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk)
+        self.assertQuerySetEqual(f.qs, [self.a3.pk], lambda o: o.pk)
 
 
 class FKRelationshipTests(TestCase):
