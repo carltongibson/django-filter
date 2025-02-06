@@ -350,10 +350,11 @@ class TimeFilterTests(TestCase):
         fixed_time = ten_min_ago.time().replace(microsecond=0)
         check_time = str(fixed_time)
         u = User.objects.create(username="alex")
-        Comment.objects.create(author=u, time=now_time, date=today)
-        Comment.objects.create(author=u, time=fixed_time, date=today)
-        Comment.objects.create(author=u, time=now_time, date=today)
-        Comment.objects.create(author=u, time=fixed_time, date=today)
+        comment_one = Comment.objects.create(author=u, time=now_time, date=today)
+        comment_two = Comment.objects.create(author=u, time=fixed_time, date=today)
+        comment_three = Comment.objects.create(author=u, time=now_time, date=today)
+        comment_four = Comment.objects.create(author=u, time=fixed_time, date=today)
+        expected_results = [comment_two.pk, comment_four.pk]
 
         class F(FilterSet):
             class Meta:
@@ -362,7 +363,7 @@ class TimeFilterTests(TestCase):
 
         f = F({"time": check_time}, queryset=Comment.objects.all())
         self.assertEqual(len(f.qs), 2)
-        self.assertQuerySetEqual(f.qs, [2, 4], lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk, False)
 
 
 class DateTimeFilterTests(TestCase):
