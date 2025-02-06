@@ -499,9 +499,9 @@ class ModelChoiceFilterTests(TestCase):
         jacob = User.objects.create(username="jacob")
         date = now().date()
         time = now().time()
-        Comment.objects.create(author=jacob, time=time, date=date)
+        c1 = Comment.objects.create(author=jacob, time=time, date=date)
         Comment.objects.create(author=alex, time=time, date=date)
-        Comment.objects.create(author=jacob, time=time, date=date)
+        c3 = Comment.objects.create(author=jacob, time=time, date=date)
 
         class F(FilterSet):
             class Meta:
@@ -510,7 +510,9 @@ class ModelChoiceFilterTests(TestCase):
 
         qs = Comment.objects.all()
         f = F({"author": jacob.pk}, queryset=qs)
-        self.assertQuerySetEqual(f.qs, [1, 3], lambda o: o.pk, False)
+
+
+        self.assertQuerySetEqual(f.qs, [c1.pk, c3.pk], lambda o: o.pk, False)
 
     @override_settings(FILTERS_NULL_CHOICE_LABEL="No Author")
     def test_filtering_null(self):
@@ -530,7 +532,7 @@ class ModelChoiceFilterTests(TestCase):
     def test_callable_queryset(self):
         # Sanity check for callable queryset arguments.
         # Ensure that nothing is improperly cached
-        User.objects.create(username="alex")
+        alex = User.objects.create(username="alex")
         jacob = User.objects.create(username="jacob")
         aaron = User.objects.create(username="aaron")
 
@@ -549,11 +551,11 @@ class ModelChoiceFilterTests(TestCase):
 
         request.user = jacob
         f = F(queryset=qs, request=request).filters["author"].field
-        self.assertQuerySetEqual(f.queryset, [1], lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.queryset, [alex.pk], lambda o: o.pk, False)
 
         request.user = aaron
         f = F(queryset=qs, request=request).filters["author"].field
-        self.assertQuerySetEqual(f.queryset, [1, 2], lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.queryset, [alex.pk, jacob.pk], lambda o: o.pk, False)
 
 
 class ModelMultipleChoiceFilterTests(TestCase):
