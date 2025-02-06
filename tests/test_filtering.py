@@ -1166,7 +1166,7 @@ class O2ORelationshipTests(TestCase):
         )
         Profile.objects.create(account=self.a1, likes_coffee=True, likes_tea=False)
         self.p2 = Profile.objects.create(account=a2, likes_coffee=False, likes_tea=True)
-        Profile.objects.create(account=self.a3, likes_coffee=True, likes_tea=True)
+        self.p3 = Profile.objects.create(account=self.a3, likes_coffee=True, likes_tea=True)
         Profile.objects.create(account=a4, likes_coffee=False, likes_tea=False)
 
     def test_o2o_relation(self):
@@ -1221,7 +1221,8 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"account__in_good_standing": "2"})
         self.assertEqual(f.qs.count(), 2)
-        self.assertQuerySetEqual(f.qs, [2, 3], lambda o: o.pk, False)
+        expected_results = [self.p2.pk, self.p3.pk]
+        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk, False)
 
     def test_o2o_relation_attribute2(self):
         class F(FilterSet):
