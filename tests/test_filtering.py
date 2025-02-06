@@ -328,9 +328,9 @@ class DateFilterTests(TestCase):
         check_date = str(last_week)
         u = User.objects.create(username="alex")
         Comment.objects.create(author=u, time=timestamp, date=today)
-        Comment.objects.create(author=u, time=timestamp, date=last_week)
+        c2 = Comment.objects.create(author=u, time=timestamp, date=last_week)
         Comment.objects.create(author=u, time=timestamp, date=today)
-        Comment.objects.create(author=u, time=timestamp, date=last_week)
+        c4 = Comment.objects.create(author=u, time=timestamp, date=last_week)
 
         class F(FilterSet):
             class Meta:
@@ -339,7 +339,7 @@ class DateFilterTests(TestCase):
 
         f = F({"date": check_date}, queryset=Comment.objects.all())
         self.assertEqual(len(f.qs), 2)
-        self.assertQuerySetEqual(f.qs, [2, 4], lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.qs, [c2.pk, c4.pk], lambda o: o.pk, False)
 
 
 class TimeFilterTests(TestCase):
@@ -786,12 +786,12 @@ class DateRangeFilterTests(TestCase):
     def test_filtering_for_month(self):
         f = self.CommentFilter({"date": "month"})
         with self.relative_to(datetime.datetime(now().year, 4, 21)):
-            self.assertQuerySetEqual(f.qs, [1, 3, 4, 5], lambda o: o.pk, False)
+            self.assertQuerySetEqual(f.qs, [self.c1.pk, self.c3.pk, self.c4.pk, self.c5.pk], lambda o: o.pk, False)
 
     def test_filtering_for_week(self):
         f = self.CommentFilter({"date": "week"})
         with self.relative_to(datetime.datetime(now().year, 1, 1)):
-            self.assertQuerySetEqual(f.qs, [3, 4, 5], lambda o: o.pk, False)
+            self.assertQuerySetEqual(f.qs, [self.c3.pk, self.c4.pk, self.c5.pk], lambda o: o.pk, False)
 
     def test_filtering_for_yesterday(self):
         f = self.CommentFilter({"date": "yesterday"})
@@ -801,7 +801,7 @@ class DateRangeFilterTests(TestCase):
     def test_filtering_for_today(self):
         f = self.CommentFilter({"date": "today"})
         with self.relative_to(datetime.datetime(now().year, 1, 1)):
-            self.assertQuerySetEqual(f.qs, [4], lambda o: o.pk, False)
+            self.assertQuerySetEqual(f.qs, [self.c4.pk], lambda o: o.pk, False)
 
 
 class DateFromToRangeFilterTests(TestCase):
@@ -1156,19 +1156,19 @@ class O2ORelationshipTests(TestCase):
         self.a1 = Account.objects.create(
             name="account1", in_good_standing=False, friendly=False
         )
-        a2 = Account.objects.create(
+        self.a2 = Account.objects.create(
             name="account2", in_good_standing=True, friendly=True
         )
         self.a3 = Account.objects.create(
             name="account3", in_good_standing=True, friendly=False
         )
-        a4 = Account.objects.create(
+        self.a4 = Account.objects.create(
             name="account4", in_good_standing=False, friendly=True
         )
         Profile.objects.create(account=self.a1, likes_coffee=True, likes_tea=False)
-        self.p2 = Profile.objects.create(account=a2, likes_coffee=False, likes_tea=True)
+        self.p2 = Profile.objects.create(account=self.a2, likes_coffee=False, likes_tea=True)
         self.p3 = Profile.objects.create(account=self.a3, likes_coffee=True, likes_tea=True)
-        Profile.objects.create(account=a4, likes_coffee=False, likes_tea=False)
+        Profile.objects.create(account=self.a4, likes_coffee=False, likes_tea=False)
 
     def test_o2o_relation(self):
         class F(FilterSet):
@@ -1262,7 +1262,7 @@ class O2ORelationshipTests(TestCase):
         f = F()
         self.assertEqual(f.qs.count(), self.a4.pk)
 
-        f = F({"profile__likes_coffee": "2", "profile__likes_tea": "2"})
+        f = F({"profile__likes_coffee": self.a2.pk, "profile__likes_tea": self.a2.pk})
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerySetEqual(f.qs, [self.a3.pk], lambda o: o.pk)
 
@@ -1806,14 +1806,14 @@ class CSVFilterTests(TestCase):
         qs = User.objects.order_by("pk")
 
         cases = [
-            (None, [1, 2, 3, 4]),
-            (QueryDict("username__in=alex&username__in=aaron"), [3]),
-            ({"username__in": ""}, [1, 2, 3, 4]),
+            (None, [self.u1.pk, self.u2.pk, self.u3.pk, self.u4.pk]),
+            (QueryDict("username__in=alex&username__in=aaron"), [self.u3.pk]),
+            ({"username__in": ""}, [self.u1.pk, self.u2.pk, self.u3.pk, self.u4.pk]),
             ({"username__in": ","}, []),
-            ({"username__in": "alex"}, [1]),
-            ({"username__in": "alex,aaron"}, [1, 3]),
-            ({"username__in": "alex,,aaron"}, [1, 3]),
-            ({"username__in": "alex,"}, [1]),
+            ({"username__in": "alex"}, [self.u1.pk]),
+            ({"username__in": "alex,aaron"}, [self.u1.pk, self.u3.pk]),
+            ({"username__in": "alex,,aaron"}, [self.u1.pk, self.u3.pk]),
+            ({"username__in": "alex,"}, [self.u1.pk]),
         ]
 
         for params, expected in cases:
