@@ -771,7 +771,7 @@ class DateRangeFilterTests(TestCase):
         Comment.objects.create(date=two_years_ago, author=alex, time=time)
         Comment.objects.create(date=five_days_ago, author=alex, time=time)
         Comment.objects.create(date=today, author=alex, time=time)
-        Comment.objects.create(date=yesterday, author=alex, time=time)
+        self.c5 = Comment.objects.create(date=yesterday, author=alex, time=time)
         Comment.objects.create(date=two_months_ago, author=alex, time=time)
 
         with mock.patch("django_filters.filters.now") as mock_now:
@@ -796,7 +796,7 @@ class DateRangeFilterTests(TestCase):
     def test_filtering_for_yesterday(self):
         f = self.CommentFilter({"date": "yesterday"})
         with self.relative_to(datetime.datetime(now().year, 1, 1)):
-            self.assertQuerySetEqual(f.qs, [5], lambda o: o.pk, False)
+            self.assertQuerySetEqual(f.qs, [self.c5.pk], lambda o: o.pk, False)
 
     def test_filtering_for_today(self):
         f = self.CommentFilter({"date": "today"})
