@@ -767,12 +767,12 @@ class DateRangeFilterTests(TestCase):
 
         alex = User.objects.create(username="alex")
         time = now().time()
-        Comment.objects.create(date=two_weeks_ago, author=alex, time=time)
+        self.c1 = Comment.objects.create(date=two_weeks_ago, author=alex, time=time)
         Comment.objects.create(date=two_years_ago, author=alex, time=time)
-        Comment.objects.create(date=five_days_ago, author=alex, time=time)
-        Comment.objects.create(date=today, author=alex, time=time)
+        self.c3 = Comment.objects.create(date=five_days_ago, author=alex, time=time)
+        self.c4 = Comment.objects.create(date=today, author=alex, time=time)
         self.c5 = Comment.objects.create(date=yesterday, author=alex, time=time)
-        Comment.objects.create(date=two_months_ago, author=alex, time=time)
+        self.c6 = Comment.objects.create(date=two_months_ago, author=alex, time=time)
 
         with mock.patch("django_filters.filters.now") as mock_now:
             mock_now.return_value = today
@@ -781,7 +781,7 @@ class DateRangeFilterTests(TestCase):
     def test_filtering_for_year(self):
         f = self.CommentFilter({"date": "year"})
         with self.relative_to(datetime.datetime(now().year, 4, 1)):
-            self.assertQuerySetEqual(f.qs, [1, 3, 4, 5, 6], lambda o: o.pk, False)
+            self.assertQuerySetEqual(f.qs, [self.c1.pk, self.c3.pk, self.c4.pk, self.c5.pk, self.c6.pk], lambda o: o.pk, False)
 
     def test_filtering_for_month(self):
         f = self.CommentFilter({"date": "month"})
