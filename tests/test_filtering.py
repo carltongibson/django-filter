@@ -372,7 +372,7 @@ class DateTimeFilterTests(TestCase):
         one_day_ago = now_dt - datetime.timedelta(days=1)
         u = User.objects.create(username="alex")
         Article.objects.create(author=u, published=now_dt)
-        Article.objects.create(author=u, published=ten_min_ago)
+        a2 = Article.objects.create(author=u, published=ten_min_ago)
         Article.objects.create(author=u, published=one_day_ago)
 
         tz = timezone.get_current_timezone()
@@ -388,14 +388,14 @@ class DateTimeFilterTests(TestCase):
         qs = Article.objects.all()
         f = F({"published": ten_min_ago}, queryset=qs)
         self.assertEqual(len(f.qs), 1)
-        self.assertQuerySetEqual(f.qs, [2], lambda o: o.pk)
+        self.assertQuerySetEqual(f.qs, [a2.pk], lambda o: o.pk)
 
         # this is how it would come through a browser
         f = F({"published": check_dt}, queryset=qs)
         self.assertEqual(
             len(f.qs), 1, "%s isn't matching %s when cleaned" % (check_dt, ten_min_ago)
         )
-        self.assertQuerySetEqual(f.qs, [2], lambda o: o.pk)
+        self.assertQuerySetEqual(f.qs, [a2.pk], lambda o: o.pk)
 
 
 class DurationFilterTests(TestCase):
