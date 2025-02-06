@@ -1260,7 +1260,7 @@ class O2ORelationshipTests(TestCase):
                 fields = ("profile__likes_coffee", "profile__likes_tea")
 
         f = F()
-        self.assertEqual(f.qs.count(), 4)
+        self.assertEqual(f.qs.count(), self.a4.pk)
 
         f = F({"profile__likes_coffee": "2", "profile__likes_tea": "2"})
         self.assertEqual(f.qs.count(), 1)
@@ -1869,14 +1869,14 @@ class CSVFilterTests(TestCase):
         qs = Article.objects.order_by("pk")
 
         cases = [
-            (None, [1, 2, 3, 4]),
-            (QueryDict("author__in=1&author__in=2"), [2, 4]),
-            ({"author__in": ""}, [1, 2, 3, 4]),
+            (None, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
+            (QueryDict("author__in=1&author__in=2"), [self.a2.pk, self.a4.pk]),
+            ({"author__in": ""}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
             ({"author__in": ","}, []),
-            ({"author__in": "1"}, [1, 3]),
-            ({"author__in": "1,2"}, [1, 2, 3, 4]),
-            ({"author__in": "1,,2"}, [1, 2, 3, 4]),
-            ({"author__in": "1,"}, [1, 3]),
+            ({"author__in": "1"}, [self.a1.pk, self.a3.pk]),
+            ({"author__in": "1,2"}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
+            ({"author__in": "1,,2"}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
+            ({"author__in": "1,"}, [self.a1.pk, self.a3.pk]),
         ]
 
         for params, expected in cases:
