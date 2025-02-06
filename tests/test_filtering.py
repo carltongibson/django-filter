@@ -1152,7 +1152,7 @@ class FilterMethodTests(TestCase):
 
 class O2ORelationshipTests(TestCase):
     def setUp(self):
-        a1 = Account.objects.create(
+        self.a1 = Account.objects.create(
             name="account1", in_good_standing=False, friendly=False
         )
         a2 = Account.objects.create(
@@ -1164,7 +1164,7 @@ class O2ORelationshipTests(TestCase):
         a4 = Account.objects.create(
             name="account4", in_good_standing=False, friendly=True
         )
-        Profile.objects.create(account=a1, likes_coffee=True, likes_tea=False)
+        Profile.objects.create(account=self.a1, likes_coffee=True, likes_tea=False)
         self.p2 = Profile.objects.create(account=a2, likes_coffee=False, likes_tea=True)
         Profile.objects.create(account=self.a3, likes_coffee=True, likes_tea=True)
         Profile.objects.create(account=a4, likes_coffee=False, likes_tea=False)
@@ -1251,7 +1251,8 @@ class O2ORelationshipTests(TestCase):
 
         f = F({"profile__likes_coffee": "2"})
         self.assertEqual(f.qs.count(), 2)
-        self.assertQuerySetEqual(f.qs, [1, 3], lambda o: o.pk, False)
+        expected_results = [self.a1.pk, self.a3.pk]
+        self.assertQuerySetEqual(f.qs, expected_results, lambda o: o.pk, False)
 
     def test_reverse_o2o_relation_attribute2(self):
         class F(FilterSet):
