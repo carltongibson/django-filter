@@ -524,40 +524,40 @@ class MultipleChoiceFilterTests(TestCase):
         filter_list = (
             (
                 (books[0].pk, books[0].pk),  # values
-                [1, 2],
+                [user1.pk, user2.pk],
             ),  # list of user.pk that have `value` books
-            ((books[1].pk, books[1].pk), [1, 2, 3]),
-            ((books[2].pk, books[2].pk), [2, 3, 4]),
+            ((books[1].pk, books[1].pk), [user1.pk, user2.pk, user3.pk]),
+            ((books[2].pk, books[2].pk), [user2.pk, user3.pk, user4.pk]),
             (
                 (books[3].pk, books[3].pk),
                 [
-                    4,
+                    user4.pk,
                 ],
             ),
             (
                 (books[4].pk, books[4].pk),
                 [
-                    5,
+                    user5.pk,
                 ],
             ),
-            ((books[0].pk, books[1].pk), [1, 2]),
+            ((books[0].pk, books[1].pk), [user1.pk, user2.pk]),
             (
                 (books[0].pk, books[2].pk),
                 [
-                    2,
+                    user2.pk,
                 ],
             ),
-            ((books[1].pk, books[2].pk), [2, 3]),
+            ((books[1].pk, books[2].pk), [user2.pk, user3.pk]),
             (
                 (books[2].pk, books[3].pk),
                 [
-                    4,
+                    user4.pk,
                 ],
             ),
             (
                 (books[4].pk, books[5].pk),
                 [
-                    5,
+                    user5.pk,
                 ],
             ),
             ((books[3].pk, books[4].pk), []),
