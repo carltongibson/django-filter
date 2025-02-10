@@ -1271,9 +1271,9 @@ class FKRelationshipTests(TestCase):
     def test_fk_relation(self):
         company1 = Company.objects.create(name="company1")
         company2 = Company.objects.create(name="company2")
-        Location.objects.create(company=company1, open_days="some", zip_code="90210")
-        Location.objects.create(company=company2, open_days="WEEKEND", zip_code="11111")
-        Location.objects.create(company=company1, open_days="monday", zip_code="12345")
+        loc1 = Location.objects.create(company=company1, open_days="some", zip_code="90210")
+        loc2 = Location.objects.create(company=company2, open_days="WEEKEND", zip_code="11111")
+        loc3 = Location.objects.create(company=company1, open_days="monday", zip_code="12345")
 
         class F(FilterSet):
             class Meta:
@@ -1283,9 +1283,9 @@ class FKRelationshipTests(TestCase):
         f = F()
         self.assertEqual(f.qs.count(), 3)
 
-        f = F({"company": 1})
+        f = F({"company": company1.pk})
         self.assertEqual(f.qs.count(), 2)
-        self.assertQuerySetEqual(f.qs, [1, 3], lambda o: o.pk, False)
+        self.assertQuerySetEqual(f.qs, [loc1.pk, loc3.pk], lambda o: o.pk, False)
 
     def test_reverse_fk_relation(self):
         alex = User.objects.create(username="alex")
