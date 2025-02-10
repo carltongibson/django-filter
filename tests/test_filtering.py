@@ -1610,14 +1610,14 @@ class SymmetricalSelfReferentialRelationshipTests(TestCase):
 
 class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
     def setUp(self):
-        n1 = DirectedNode.objects.create(name="one")
-        n2 = DirectedNode.objects.create(name="two")
+        self.n1 = DirectedNode.objects.create(name="one")
+        self.n2 = DirectedNode.objects.create(name="two")
         n3 = DirectedNode.objects.create(name="three")
         n4 = DirectedNode.objects.create(name="four")
-        n1.outbound_nodes.add(n2)
-        n2.outbound_nodes.add(n3)
-        n2.outbound_nodes.add(n4)
-        n4.outbound_nodes.add(n1)
+        self.n1.outbound_nodes.add(self.n2)
+        self.n2.outbound_nodes.add(n3)
+        self.n2.outbound_nodes.add(n4)
+        n4.outbound_nodes.add(self.n1)
 
     def test_forward_relation(self):
         class F(FilterSet):
@@ -1636,8 +1636,8 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
                 fields = ["inbound_nodes"]
 
         qs = DirectedNode.objects.all().order_by("pk")
-        f = F({"inbound_nodes": ["1"]}, queryset=qs)
-        self.assertQuerySetEqual(f.qs, [2], lambda o: o.pk)
+        f = F({"inbound_nodes": [self.n1.pk]}, queryset=qs)
+        self.assertQuerySetEqual(f.qs, [self.n2.pk], lambda o: o.pk)
 
 
 @override_settings(TIME_ZONE="UTC")
