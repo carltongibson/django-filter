@@ -1588,14 +1588,14 @@ class M2MRelationshipTests(TestCase):
 
 class SymmetricalSelfReferentialRelationshipTests(TestCase):
     def setUp(self):
-        n1 = Node.objects.create(name="one")
-        n2 = Node.objects.create(name="two")
+        self.n1 = Node.objects.create(name="one")
+        self.n2 = Node.objects.create(name="two")
         n3 = Node.objects.create(name="three")
-        n4 = Node.objects.create(name="four")
-        n1.adjacents.add(n2)
-        n2.adjacents.add(n3)
-        n2.adjacents.add(n4)
-        n4.adjacents.add(n1)
+        self.n4 = Node.objects.create(name="four")
+        self.n1.adjacents.add(self.n2)
+        self.n2.adjacents.add(n3)
+        self.n2.adjacents.add(self.n4)
+        self.n4.adjacents.add(self.n1)
 
     def test_relation(self):
         class F(FilterSet):
@@ -1604,8 +1604,8 @@ class SymmetricalSelfReferentialRelationshipTests(TestCase):
                 fields = ["adjacents"]
 
         qs = Node.objects.all().order_by("pk")
-        f = F({"adjacents": ["1"]}, queryset=qs)
-        self.assertQuerySetEqual(f.qs, [2, 4], lambda o: o.pk)
+        f = F({"adjacents": [self.n1.pk]}, queryset=qs)
+        self.assertQuerySetEqual(f.qs, [self.n2.pk, self.n4.pk], lambda o: o.pk)
 
 
 class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
