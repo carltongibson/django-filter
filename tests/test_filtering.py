@@ -1179,9 +1179,9 @@ class O2ORelationshipTests(TestCase):
         f = F()
         self.assertEqual(f.qs.count(), 4)
 
-        f = F({"account": 1})
+        f = F({"account": self.a1.pk})
         self.assertEqual(f.qs.count(), 1)
-        self.assertQuerySetEqual(f.qs, [1], lambda o: o.pk)
+        self.assertQuerySetEqual(f.qs, [self.p1.pk], lambda o: o.pk)
 
     def test_o2o_relation_dictionary(self):
         class F(FilterSet):
