@@ -1260,9 +1260,9 @@ class O2ORelationshipTests(TestCase):
                 fields = ("profile__likes_coffee", "profile__likes_tea")
 
         f = F()
-        self.assertEqual(f.qs.count(), self.a4.pk)
+        self.assertEqual(f.qs.count(), 4)
 
-        f = F({"profile__likes_coffee": self.a2.pk, "profile__likes_tea": self.a2.pk})
+        f = F({"profile__likes_coffee": "2", "profile__likes_tea": "2"})
         self.assertEqual(f.qs.count(), 1)
         self.assertQuerySetEqual(f.qs, [self.a3.pk], lambda o: o.pk)
 
