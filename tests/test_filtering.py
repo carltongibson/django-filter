@@ -1626,8 +1626,8 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
                 fields = ["outbound_nodes"]
 
         qs = DirectedNode.objects.all().order_by("pk")
-        f = F({"outbound_nodes": ["1"]}, queryset=qs)
-        self.assertQuerySetEqual(f.qs, [4], lambda o: o.pk)
+        f = F({"outbound_nodes": [self.n1.pk]}, queryset=qs)
+        self.assertQuerySetEqual(f.qs, [self.n4.pk], lambda o: o.pk)
 
     def test_reverse_relation(self):
         class F(FilterSet):
