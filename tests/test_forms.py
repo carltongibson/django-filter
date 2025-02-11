@@ -191,8 +191,8 @@ class FilterSetFormTests(TestCase):
 
     def test_limit_choices_to(self):
         User.objects.create(username="inactive", is_active=False, status=REGULAR)
-        User.objects.create(username="active", is_active=True, status=REGULAR)
-        User.objects.create(username="manager", is_active=False, status=MANAGER)
+        u2 = User.objects.create(username="active", is_active=True, status=REGULAR)
+        u3 = User.objects.create(username="manager", is_active=False, status=MANAGER)
 
         class F(FilterSet):
             class Meta:
@@ -200,9 +200,9 @@ class FilterSetFormTests(TestCase):
                 fields = ["users", "manager"]
 
         f = F().form
-        self.assertEqual(list(f.fields["users"].choices), [(2, "active")])
+        self.assertEqual(list(f.fields["users"].choices), [(u2.pk, "active")])
         self.assertEqual(
-            list(f.fields["manager"].choices), [("", "---------"), (3, "manager")]
+            list(f.fields["manager"].choices), [("", "---------"), (u3.pk, "manager")]
         )
 
     def test_disabled_help_text(self):
