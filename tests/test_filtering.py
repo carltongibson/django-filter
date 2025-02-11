@@ -1288,12 +1288,12 @@ class FKRelationshipTests(TestCase):
 
     def test_reverse_fk_relation(self):
         alex = User.objects.create(username="alex")
-        jacob = User.objects.create(username="jacob")
+        self.jacob = User.objects.create(username="jacob")
         date = now().date()
         time = now().time()
-        Comment.objects.create(text="comment 1", author=jacob, time=time, date=date)
-        Comment.objects.create(text="comment 2", author=alex, time=time, date=date)
-        Comment.objects.create(text="comment 3", author=jacob, time=time, date=date)
+        Comment.objects.create(text="comment 1", author=self.jacob, time=time, date=date)
+        self.comment = Comment.objects.create(text="comment 2", author=alex, time=time, date=date)
+        Comment.objects.create(text="comment 3", author=self.jacob, time=time, date=date)
 
         class F(FilterSet):
             class Meta:
@@ -1301,7 +1301,7 @@ class FKRelationshipTests(TestCase):
                 fields = ["comments"]
 
         qs = User.objects.all()
-        f = F({"comments": [2]}, queryset=qs)
+        f = F({"comments": [self.comment.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["alex"], lambda o: o.username)
 
         class F(FilterSet):
@@ -1311,7 +1311,7 @@ class FKRelationshipTests(TestCase):
                 model = User
                 fields = ["comments"]
 
-        f = F({"comments": 2}, queryset=qs)
+        f = F({"comments": self.comment.pk}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["alex"], lambda o: o.username)
 
     def test_fk_relation_attribute(self):
