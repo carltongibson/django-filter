@@ -1100,8 +1100,8 @@ class AllValuesMultipleFilterTests(TestCase):
             list(F({"username": ["alex"]}).qs), [User.objects.get(username="alex")]
         )
         self.assertEqual(
-            sorted(list(F({"username": ["alex", "jacob"]}).qs)),
-            sorted(list(User.objects.filter(username__in=["alex", "jacob"]))),
+            list(F({"username": ["alex", "jacob"]}).qs),
+            list(User.objects.filter(username__in=["alex", "jacob"])),
         )
 
         # invalid choice
