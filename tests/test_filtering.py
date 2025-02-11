@@ -560,7 +560,7 @@ class ModelChoiceFilterTests(TestCase):
 
 class ModelMultipleChoiceFilterTests(TestCase):
     def setUp(self):
-        alex = User.objects.create(username="alex")
+        self.alex = User.objects.create(username="alex")
         User.objects.create(username="jacob")
         aaron = User.objects.create(username="aaron")
         self.b1 = Book.objects.create(title="Ender's Game", price="1.00", average_rating=3.0)
@@ -569,10 +569,8 @@ class ModelMultipleChoiceFilterTests(TestCase):
         self.b4 = Book.objects.create(
             title="Stranger in a Strage Land", price="1.00", average_rating=3.0
         )
-        alex.favorite_books.add(self.b1, self.b2)
+        self.alex.favorite_books.add(self.b1, self.b2)
         aaron.favorite_books.add(self.b1, self.b3)
-
-        self.alex = alex
 
     def test_filtering(self):
         class F(FilterSet):
@@ -581,16 +579,16 @@ class ModelMultipleChoiceFilterTests(TestCase):
                 fields = ["favorite_books"]
 
         qs = User.objects.all().order_by("username")
-        f = F({"favorite_books": ["1"]}, queryset=qs)
+        f = F({"favorite_books": [self.b1.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["aaron", "alex"], lambda o: o.username)
 
-        f = F({"favorite_books": ["1", "3"]}, queryset=qs)
+        f = F({"favorite_books": [self.b1.pk, self.b3.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["aaron", "alex"], lambda o: o.username)
 
-        f = F({"favorite_books": ["2"]}, queryset=qs)
+        f = F({"favorite_books": [self.b2.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["alex"], lambda o: o.username)
 
-        f = F({"favorite_books": ["4"]}, queryset=qs)
+        f = F({"favorite_books": [self.b4.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, [], lambda o: o.username)
 
     @override_settings(FILTERS_NULL_CHOICE_LABEL="No Favorites")
