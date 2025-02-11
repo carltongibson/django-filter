@@ -1099,7 +1099,7 @@ class AllValuesMultipleFilterTests(TestCase):
         self.assertEqual(
             list(F({"username": ["alex"]}).qs), [User.objects.get(username="alex")]
         )
-        self.assertEqual(
+        self.assertCountEqual(
             list(F({"username": ["alex", "jacob"]}).qs),
             list(User.objects.filter(username__in=["alex", "jacob"])),
         )
