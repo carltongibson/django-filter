@@ -1395,13 +1395,13 @@ class M2MRelationshipTests(TestCase):
         User.objects.create(username="jacob", status=1)
         aaron = User.objects.create(username="aaron", status=1)
         self.b1 = Book.objects.create(title="Ender's Game", price="1.00", average_rating=3.0)
-        b2 = Book.objects.create(title="Rainbow Six", price="2.00", average_rating=4.0)
-        b3 = Book.objects.create(title="Snowcrash", price="1.00", average_rating=4.0)
-        Book.objects.create(
+        self.b2 = Book.objects.create(title="Rainbow Six", price="2.00", average_rating=4.0)
+        self.b3 = Book.objects.create(title="Snowcrash", price="1.00", average_rating=4.0)
+        self.b4 = Book.objects.create(
             title="Stranger in a Strage Land", price="2.00", average_rating=3.0
         )
-        self.alex.favorite_books.add(self.b1, b2)
-        aaron.favorite_books.add(self.b1, b3)
+        self.alex.favorite_books.add(self.b1, self.b2)
+        aaron.favorite_books.add(self.b1, self.b3)
 
     def test_m2m_relation(self):
         class F(FilterSet):
@@ -1410,16 +1410,16 @@ class M2MRelationshipTests(TestCase):
                 fields = ["favorite_books"]
 
         qs = User.objects.all().order_by("username")
-        f = F({"favorite_books": ["1"]}, queryset=qs)
+        f = F({"favorite_books": [self.b1.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["aaron", "alex"], lambda o: o.username)
 
-        f = F({"favorite_books": ["1", "3"]}, queryset=qs)
+        f = F({"favorite_books": [self.b1.pk, self.b3.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["aaron", "alex"], lambda o: o.username)
 
-        f = F({"favorite_books": ["2"]}, queryset=qs)
+        f = F({"favorite_books": [self.b2.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, ["alex"], lambda o: o.username)
 
-        f = F({"favorite_books": ["4"]}, queryset=qs)
+        f = F({"favorite_books": [self.b4.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, [], lambda o: o.username)
 
     def test_reverse_m2m_relation(self):
