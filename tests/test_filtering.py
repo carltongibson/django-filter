@@ -1391,17 +1391,17 @@ class FKRelationshipTests(TestCase):
 
 class M2MRelationshipTests(TestCase):
     def setUp(self):
-        alex = User.objects.create(username="alex", status=1)
+        self.alex = User.objects.create(username="alex", status=1)
         User.objects.create(username="jacob", status=1)
         aaron = User.objects.create(username="aaron", status=1)
-        b1 = Book.objects.create(title="Ender's Game", price="1.00", average_rating=3.0)
+        self.b1 = Book.objects.create(title="Ender's Game", price="1.00", average_rating=3.0)
         b2 = Book.objects.create(title="Rainbow Six", price="2.00", average_rating=4.0)
         b3 = Book.objects.create(title="Snowcrash", price="1.00", average_rating=4.0)
         Book.objects.create(
             title="Stranger in a Strage Land", price="2.00", average_rating=3.0
         )
-        alex.favorite_books.add(b1, b2)
-        aaron.favorite_books.add(b1, b3)
+        self.alex.favorite_books.add(self.b1, b2)
+        aaron.favorite_books.add(self.b1, b3)
 
     def test_m2m_relation(self):
         class F(FilterSet):
@@ -1429,7 +1429,7 @@ class M2MRelationshipTests(TestCase):
                 fields = ["lovers"]
 
         qs = Book.objects.all().order_by("title")
-        f = F({"lovers": [1]}, queryset=qs)
+        f = F({"lovers": [self.alex.pk]}, queryset=qs)
         self.assertQuerySetEqual(
             f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title
         )
@@ -1441,7 +1441,7 @@ class M2MRelationshipTests(TestCase):
                 model = Book
                 fields = ["lovers"]
 
-        f = F({"lovers": 1}, queryset=qs)
+        f = F({"lovers": self.alex.pk}, queryset=qs)
         self.assertQuerySetEqual(
             f.qs, ["Ender's Game", "Rainbow Six"], lambda o: o.title
         )
