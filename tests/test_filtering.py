@@ -563,14 +563,14 @@ class ModelMultipleChoiceFilterTests(TestCase):
         alex = User.objects.create(username="alex")
         User.objects.create(username="jacob")
         aaron = User.objects.create(username="aaron")
-        b1 = Book.objects.create(title="Ender's Game", price="1.00", average_rating=3.0)
-        b2 = Book.objects.create(title="Rainbow Six", price="1.00", average_rating=3.0)
+        self.b1 = Book.objects.create(title="Ender's Game", price="1.00", average_rating=3.0)
+        self.b2 = Book.objects.create(title="Rainbow Six", price="1.00", average_rating=3.0)
         b3 = Book.objects.create(title="Snowcrash", price="1.00", average_rating=3.0)
         Book.objects.create(
             title="Stranger in a Strage Land", price="1.00", average_rating=3.0
         )
-        alex.favorite_books.add(b1, b2)
-        aaron.favorite_books.add(b1, b3)
+        alex.favorite_books.add(self.b1, self.b2)
+        aaron.favorite_books.add(self.b1, b3)
 
         self.alex = alex
 
@@ -625,6 +625,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
         self.assertQuerySetEqual(f.qs, [], lambda o: o.username)
 
     def test_filtering_on_all_of_subset_of_choices(self):
+        parent = self
         class F(FilterSet):
             class Meta:
                 model = User
@@ -634,7 +635,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
                 super().__init__(*args, **kwargs)
                 # This filter has a limited number of choices.
                 self.filters["favorite_books"].extra.update(
-                    {"queryset": Book.objects.filter(id__in=[1, 2])}
+                    {"queryset": Book.objects.filter(id__in=[parent.b1.pk, parent.b2.pk])}
                 )
 
                 self.filters["favorite_books"].extra["required"] = True
@@ -642,7 +643,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
         qs = User.objects.all().order_by("username")
 
         # Select all the given choices.
-        f = F({"favorite_books": ["1", "2"]}, queryset=qs)
+        f = F({"favorite_books": [self.b1.pk, self.b2.pk]}, queryset=qs)
 
         # The results should only include matching users - not Jacob.
         self.assertQuerySetEqual(f.qs, ["aaron", "alex"], lambda o: o.username)
