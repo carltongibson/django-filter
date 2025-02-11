@@ -1613,11 +1613,11 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
         self.n1 = DirectedNode.objects.create(name="one")
         self.n2 = DirectedNode.objects.create(name="two")
         n3 = DirectedNode.objects.create(name="three")
-        n4 = DirectedNode.objects.create(name="four")
+        self.n4 = DirectedNode.objects.create(name="four")
         self.n1.outbound_nodes.add(self.n2)
         self.n2.outbound_nodes.add(n3)
-        self.n2.outbound_nodes.add(n4)
-        n4.outbound_nodes.add(self.n1)
+        self.n2.outbound_nodes.add(self.n4)
+        self.n4.outbound_nodes.add(self.n1)
 
     def test_forward_relation(self):
         class F(FilterSet):
