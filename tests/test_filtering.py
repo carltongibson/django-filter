@@ -1869,13 +1869,13 @@ class CSVFilterTests(TestCase):
 
         cases = [
             (None, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
-            (QueryDict("author__in=1&author__in=2"), [self.a2.pk, self.a4.pk]),
+            (QueryDict(f"author__in={self.u1.pk}&author__in={self.u2.pk}"), [self.a2.pk, self.a4.pk]),
             ({"author__in": ""}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
             ({"author__in": ","}, []),
-            ({"author__in": "1"}, [self.a1.pk, self.a3.pk]),
-            ({"author__in": "1,2"}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
-            ({"author__in": "1,,2"}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
-            ({"author__in": "1,"}, [self.a1.pk, self.a3.pk]),
+            ({"author__in": f"{self.u1.pk}"}, [self.a1.pk, self.a3.pk]),
+            ({"author__in": f"{self.u1.pk},{self.u2.pk}"}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
+            ({"author__in": f"{self.u1.pk},,{self.u2.pk}"}, [self.a1.pk, self.a2.pk, self.a3.pk, self.a4.pk]),
+            ({"author__in": f"{self.u1.pk},"}, [self.a1.pk, self.a3.pk]),
         ]
 
         for params, expected in cases:
