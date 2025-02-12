@@ -568,8 +568,8 @@ class MultipleChoiceFilterTests(TestCase):
             f = MultipleChoiceFilter(field_name="favorite_books__pk", conjoined=True)
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list("pk")]
-            self.assertListEqual(
-                sorted(expected_pks),
+            self.assertCountEqual(
+                expected_pks,
                 item[1],
                 "Lists Differ: {0} != {1} for case {2}".format(
                     expected_pks, item[1], item[0]
@@ -730,8 +730,8 @@ class TypedMultipleChoiceFilterTests(TestCase):
             )
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list("pk")]
-            self.assertListEqual(
-                sorted(expected_pks),
+            self.assertCountEqual(
+                expected_pks,
                 item[1],
                 "Lists Differ: {0} != {1} for case {2}".format(
                     expected_pks, item[1], item[0]
