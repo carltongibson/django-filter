@@ -497,7 +497,7 @@ class MultipleChoiceFilterTests(TestCase):
     def test_filter_conjoined_true(self):
         """Tests that a filter with `conjoined=True` returns objects that
         have all the values included in `value`. For example filter
-        users that have all of this books.
+        users that have all of these books.
 
         """
         book_kwargs = {"price": 1, "average_rating": 1}
@@ -524,40 +524,40 @@ class MultipleChoiceFilterTests(TestCase):
         filter_list = (
             (
                 (books[0].pk, books[0].pk),  # values
-                [1, 2],
+                [user1.pk, user2.pk],
             ),  # list of user.pk that have `value` books
-            ((books[1].pk, books[1].pk), [1, 2, 3]),
-            ((books[2].pk, books[2].pk), [2, 3, 4]),
+            ((books[1].pk, books[1].pk), [user1.pk, user2.pk, user3.pk]),
+            ((books[2].pk, books[2].pk), [user2.pk, user3.pk, user4.pk]),
             (
                 (books[3].pk, books[3].pk),
                 [
-                    4,
+                    user4.pk,
                 ],
             ),
             (
                 (books[4].pk, books[4].pk),
                 [
-                    5,
+                    user5.pk,
                 ],
             ),
-            ((books[0].pk, books[1].pk), [1, 2]),
+            ((books[0].pk, books[1].pk), [user1.pk, user2.pk]),
             (
                 (books[0].pk, books[2].pk),
                 [
-                    2,
+                    user2.pk,
                 ],
             ),
-            ((books[1].pk, books[2].pk), [2, 3]),
+            ((books[1].pk, books[2].pk), [user2.pk, user3.pk]),
             (
                 (books[2].pk, books[3].pk),
                 [
-                    4,
+                    user4.pk,
                 ],
             ),
             (
                 (books[4].pk, books[5].pk),
                 [
-                    5,
+                    user5.pk,
                 ],
             ),
             ((books[3].pk, books[4].pk), []),
@@ -568,7 +568,7 @@ class MultipleChoiceFilterTests(TestCase):
             f = MultipleChoiceFilter(field_name="favorite_books__pk", conjoined=True)
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list("pk")]
-            self.assertListEqual(
+            self.assertCountEqual(
                 expected_pks,
                 item[1],
                 "Lists Differ: {0} != {1} for case {2}".format(
@@ -656,7 +656,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
     def test_filter_conjoined_true(self):
         """Tests that a filter with `conjoined=True` returns objects that
         have all the values included in `value`. For example filter
-        users that have all of this books.
+        users that have all of these books.
 
         """
         book_kwargs = {"price": 1, "average_rating": 1}
@@ -683,44 +683,45 @@ class TypedMultipleChoiceFilterTests(TestCase):
         filter_list = (
             (
                 (books[0].pk, books[0].pk),  # values
-                [1, 2],
+                [user1.pk, user2.pk],
             ),  # list of user.pk that have `value` books
-            ((books[1].pk, books[1].pk), [1, 2, 3]),
-            ((books[2].pk, books[2].pk), [2, 3, 4]),
+            ((books[1].pk, books[1].pk), [user1.pk, user2.pk, user3.pk]),
+            ((books[2].pk, books[2].pk), [user2.pk, user3.pk, user4.pk]),
             (
                 (books[3].pk, books[3].pk),
                 [
-                    4,
+                    user4.pk,
                 ],
             ),
             (
                 (books[4].pk, books[4].pk),
                 [
-                    5,
+                    user5.pk,
                 ],
             ),
-            ((books[0].pk, books[1].pk), [1, 2]),
+            ((books[0].pk, books[1].pk), [user1.pk, user2.pk]),
             (
                 (books[0].pk, books[2].pk),
                 [
-                    2,
+                    user2.pk,
                 ],
             ),
-            ((books[1].pk, books[2].pk), [2, 3]),
+            ((books[1].pk, books[2].pk), [user2.pk, user3.pk]),
             (
                 (books[2].pk, books[3].pk),
                 [
-                    4,
+                    user4.pk,
                 ],
             ),
             (
                 (books[4].pk, books[5].pk),
                 [
-                    5,
+                    user5.pk,
                 ],
             ),
             ((books[3].pk, books[4].pk), []),
         )
+
         users = User.objects.all()
 
         for item in filter_list:
@@ -729,7 +730,7 @@ class TypedMultipleChoiceFilterTests(TestCase):
             )
             queryset = f.filter(users, item[0])
             expected_pks = [c[0] for c in queryset.values_list("pk")]
-            self.assertListEqual(
+            self.assertCountEqual(
                 expected_pks,
                 item[1],
                 "Lists Differ: {0} != {1} for case {2}".format(
