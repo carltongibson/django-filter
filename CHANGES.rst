@@ -1,4 +1,4 @@
-Version 25.1 (Unreleased)
+Version 25.1 (2025-02-14)
 -------------------------
 
 * Removed the in-built API schema generation methods, which have been
@@ -10,6 +10,8 @@ Version 25.1 (Unreleased)
 * Dropped support for EOL Python 3.8.
 
 * Added testing against Python 3.13.
+
+* Added official support for Django 5.2.
 
 Version 24.3 (2024-08-02)
 -------------------------
