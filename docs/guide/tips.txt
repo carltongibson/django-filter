@@ -299,3 +299,61 @@ using a simple FilterSet base class::
           filter = super(HelpfulFilterSet, cls).filter_for_field(f, name, lookup_expr)
           filter.extra['help_text'] = f.help_text
           return filter
+
+Adding Postgres Native Full Text Search
+-------------------------------------------
+
+Django-Filter does not provide a built-in filter for PostgreSQL Full-Text Search. However, 
+you can enable full-text search functionality in two ways:
+
+1. By adding ``Filter.method``. This approach is useful for one-off instances where you need 
+a simple search filter.
+
+2. Writing a custom Filter. This approach is more reusable and works well when you can generalize 
+the query for multiple cases.
+
+Solution 1: Use the ``Filter.method`` feature.
+""""""""""""""""""""""""
+
+.. code-block:: python
+
+from django.contrib.postgres.search import SearchVector, SearchQuery
+
+class ProductFilter(django_filters.FilterSet):
+    # The model `field_name` is the field you want to search on and is passed to your `method`.
+    # The `method` argument is the name of the method to call to perform filtering.
+    search = django_filters.CharFilter(field_name="description", method="search_fulltext")
+
+    def search_fulltext(self, queryset, field_name, value):
+        if not value:
+            return queryset
+        return queryset.annotate(
+            search=SearchVector("name", "description")
+        ).filter(search=SearchQuery(value))
+
+    class Meta:
+        model = Product
+        fields = ["search", "price", "manufacturer"]
+
+
+Solution 2: Write a new filter class
+""""""""""""""""""""""""
+
+.. code-block:: python
+
+from django.contrib.postgres.search import SearchVector, SearchQuery
+
+class FullTextSearchFilter(django_filters.CharFilter):
+    def filter(self, queryset, value):
+        if not value:
+            return queryset
+        return queryset.annotate(
+            search=SearchVector("name", "description")
+        ).filter(search=SearchQuery(value))
+
+class ProductFilter(django_filters.FilterSet):
+    search = FullTextSearchFilter(field_name="description")
+
+    class Meta:
+        model = Product
+        fields = ["search", "price", "manufacturer"]
