@@ -49,6 +49,13 @@ from .models import (
 )
 from .utils import MockQuerySet
 
+try:
+    from .models import Rectangle
+except ImportError:
+    DJANGO_50 = False
+else:
+    DJANGO_50 = True
+
 
 class HelperMethodsTests(TestCase):
     @unittest.skip("todo")
@@ -118,6 +125,14 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, "uuid")
         self.assertIsInstance(result, UUIDFilter)
         self.assertEqual(result.field_name, "uuid")
+
+    def test_filter_found_for_generatedfield(self):
+        if not DJANGO_50:
+            return
+        f = Rectangle._meta.get_field("area")
+        result = FilterSet.filter_for_field(f, "area")
+        self.assertIsInstance(result, NumberFilter)
+        self.assertEqual(result.field_name, "area")
 
     def test_filter_found_for_autofield(self):
         f = User._meta.get_field("id")
@@ -256,7 +271,6 @@ class HandleUnknownFieldTests(TestCase):
     def test_unknown_field_invalid_initial_behavior(self):
         # Creation of new custom FilterSet to set initial field behavior
         with self.assertRaises(ValueError) as excinfo:
-
             class InvalidBehaviorFilterSet(FilterSet):
                 class Meta:
                     model = NetworkSetting
@@ -421,7 +435,6 @@ class FilterSetClassCreationTests(TestCase):
 
     def test_model_no_fields_or_exclude(self):
         with self.assertRaises(AssertionError) as excinfo:
-
             class F(FilterSet):
                 class Meta:
                     model = Book
@@ -548,7 +561,6 @@ class FilterSetClassCreationTests(TestCase):
         msg = "'Meta.fields' must not contain non-model field names: " "other, another"
 
         with self.assertRaisesMessage(TypeError, msg):
-
             class F(FilterSet):
                 username = CharFilter()
 
@@ -560,7 +572,6 @@ class FilterSetClassCreationTests(TestCase):
         msg = "'Meta.fields' must not contain non-model field names: other"
 
         with self.assertRaisesMessage(TypeError, msg):
-
             class F(FilterSet):
                 class Meta:
                     model = Book
@@ -575,7 +586,6 @@ class FilterSetClassCreationTests(TestCase):
         msg = "'Meta.fields' must not contain non-model field names: other"
 
         with self.assertRaisesMessage(TypeError, msg):
-
             class F(FilterSet):
                 other = CharFilter()
 
@@ -593,7 +603,6 @@ class FilterSetClassCreationTests(TestCase):
         msg = "Unsupported lookup 'flub' for field 'tests.User.username'."
 
         with self.assertRaisesMessage(FieldLookupError, msg):
-
             class F(FilterSet):
                 class Meta:
                     model = User
@@ -822,6 +831,7 @@ class FilterSetClassCreationTests(TestCase):
         class FilterSetBase(FilterSet):
             class Meta:
                 fields = ["name"]
+
             f1 = CharFilter()
             f2 = CharFilter()
 
@@ -832,6 +842,7 @@ class FilterSetClassCreationTests(TestCase):
         class FilterSetBase(FilterSet):
             class Meta:
                 fields = ["name"]
+
             f1 = CharFilter()
             f2 = CharFilter()
 
