@@ -12,3 +12,5 @@ docs/_build
 .idea
 .env
 .vscode
+_docs
+.DS_Store
