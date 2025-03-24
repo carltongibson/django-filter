@@ -33,7 +33,7 @@ placeholders:
 
 This widget converts its input into Python's True/False values. It will convert
 all case variations of ``True`` and ``False`` into the internal Python values.
-To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``:
+To use it, pass this into the ``widgets`` argument of the :class:`~django_filters.filters.BooleanFilter`:
 
 .. code-block:: python
 
@@ -51,11 +51,11 @@ well as type conversion.
 .. _range-widget:
 .. class:: RangeWidget
 
-This widget is used with ``RangeFilter`` and its subclasses. It generates two
-form input elements which generally act as start/end values in a range.
-Under the hood, it is Django's ``forms.TextInput`` widget and accepts
-the same arguments and values. To use it, pass it to ``widget`` argument of
-a ``RangeField``:
+This widget is used with :class:`~django_filters.filters.RangeFilter` and its
+subclasses. It generates two form input elements which generally act as start/end
+values in a range. Under the hood, it is Django's :class:`~django.forms.TextInput` widget and
+accepts the same arguments and values. To use it, pass it to ``widget`` argument of
+a :class:`~django_filters.filters.RangeFilter`:
 
 .. code-block:: python
 
@@ -64,8 +64,8 @@ a ``RangeField``:
 
 .. class:: SuffixedMultiWidget
 
-Extends Django's builtin ``MultiWidget`` to append custom suffixes instead of
-indices. For example, take a range widget that accepts minimum and maximum
+Extends Django's builtin :class:`~django.forms.MultiWidget` to append custom suffixes
+instead of indices. For example, take a range widget that accepts minimum and maximum
 bounds. By default, the resulting query params would look like the following:
 
 .. code-block:: http
