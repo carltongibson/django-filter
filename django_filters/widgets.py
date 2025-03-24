@@ -205,6 +205,10 @@ class BaseCSVWidget(forms.Widget):
         if value is not None:
             if value == "":  # empty value should parse as an empty list
                 return []
+            if isinstance(value, list):
+                # since django.forms.widgets.SelectMultiple tries to use getlist
+                # if available, we should return value if it's already an array
+                return value
             return value.split(",")
         return None
 
@@ -246,6 +250,7 @@ class QueryArrayWidget(BaseCSVWidget, forms.TextInput):
 
     def value_from_datadict(self, data, files, name):
         if not isinstance(data, MultiValueDict):
+            data = data.copy()
             for key, value in data.items():
                 # treat value as csv string: ?foo=1,2
                 if isinstance(value, str):

@@ -38,6 +38,17 @@ would be:
     class ProductFilter(django_filters.FilterSet):
         price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
 
+When using ``filterset_fields``, you can also add the ``lookup_expr`` in the
+dict of fields like so:
+
+.. code-block:: python
+
+    # ... ModelViewSet with DjangoFilterBackend in filter_backends ...
+
+    filterset_fields = {
+        "price": ["gt", "exact"],
+    }
+
 
 Missing ``lookup_expr`` for text search filters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,7 +226,7 @@ Filtering by relative times
 
 Given a model with a timestamp field, it may be useful to filter based on relative times.
 For instance, perhaps we want to get data from the past *n* hours.
-This could be accomplished the with a ``NumberFilter`` that invokes a custom method.
+This could be accomplished with a ``NumberFilter`` that invokes a custom method.
 
 .. code-block:: python
 
@@ -288,3 +299,60 @@ using a simple FilterSet base class::
           filter = super(HelpfulFilterSet, cls).filter_for_field(f, name, lookup_expr)
           filter.extra['help_text'] = f.help_text
           return filter
+
+Adding Postgres Native Full Text Search
+---------------------------------------
+
+Django-Filter does not provide a built-in filter for PostgreSQL Full-Text Search. However, 
+you can enable full-text search functionality in two ways:
+
+1. By adding ``Filter.method``. This approach is useful for one-off instances where you need 
+   a simple search filter.
+
+2. Writing a custom Filter. This approach is more reusable and works well when you can generalize 
+   the query for multiple cases.
+
+Solution 1: Use the ``Filter.method`` feature
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    from django.contrib.postgres.search import SearchVector, SearchQuery
+
+    class ProductFilter(django_filters.FilterSet):
+        # The model `field_name` is the field you want to search on and is passed to your `method`.
+        # The `method` argument is the name of the method to call to perform filtering.
+        search = django_filters.CharFilter(field_name="description", method="search_fulltext")
+
+        def search_fulltext(self, queryset, field_name, value):
+            if not value:
+                return queryset
+            return queryset.annotate(
+                search=SearchVector("name", "description")
+            ).filter(search=SearchQuery(value))
+
+        class Meta:
+            model = Product
+            fields = ["search", "price", "manufacturer"]
+
+Solution 2: Write a new filter class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    from django.contrib.postgres.search import SearchVector, SearchQuery
+
+    class FullTextSearchFilter(django_filters.CharFilter):
+        def filter(self, queryset, value):
+            if not value:
+                return queryset
+            return queryset.annotate(
+                search=SearchVector("name", "description")
+            ).filter(search=SearchQuery(value))
+
+    class ProductFilter(django_filters.FilterSet):
+        search = FullTextSearchFilter(field_name="description")
+
+        class Meta:
+            model = Product
+            fields = ["search", "price", "manufacturer"]

@@ -1,12 +1,13 @@
 from collections import OrderedDict
+from collections.abc import Iterable
 from datetime import timedelta
+from itertools import chain
 
 from django import forms
 from django.core.validators import MaxValueValidator
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
-from django.utils.itercompat import is_iterable
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
@@ -28,6 +29,14 @@ from .fields import (
     TimeRangeField,
 )
 from .utils import get_model_field, label_for_filter
+
+try:
+    from django.utils.choices import normalize_choices
+except ImportError:
+    DJANGO_50 = False
+else:
+    DJANGO_50 = True
+
 
 __all__ = [
     "AllValuesFilter",
@@ -478,7 +487,21 @@ class DateRangeFilter(ChoiceFilter):
         if filters is not None:
             self.filters = filters
 
-        unique = set([x[0] for x in self.choices]) ^ set(self.filters)
+        if isinstance(self.choices, dict):
+            if DJANGO_50:
+                self.choices = normalize_choices(self.choices)
+            else:
+                raise ValueError("Django 5.0 or later is required for dict choices")
+
+        all_choices = list(
+            chain.from_iterable(
+                [subchoice[0] for subchoice in choice[1]]
+                if isinstance(choice[1], (list, tuple))  # This is an optgroup
+                else [choice[0]]
+                for choice in self.choices
+            )
+        )
+        unique = set(all_choices) ^ set(self.filters)
         assert not unique, (
             "Keys must be present in both 'choices' and 'filters'. Missing keys: "
             "'%s'" % ", ".join(sorted(unique))
@@ -750,7 +773,11 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         if value in EMPTY_VALUES:
             return qs
 
-        ordering = [self.get_ordering_value(param) for param in value]
+        ordering = [
+            self.get_ordering_value(param)
+            for param in value
+            if param not in EMPTY_VALUES
+        ]
         return qs.order_by(*ordering)
 
     @classmethod
@@ -763,14 +790,14 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
             return OrderedDict(fields)
 
         # convert iterable of values => iterable of pairs (field name, param name)
-        assert is_iterable(
-            fields
+        assert isinstance(
+            fields, Iterable
         ), "'fields' must be an iterable (e.g., a list, tuple, or mapping)."
 
         # fields is an iterable of field names
         assert all(
             isinstance(field, str)
-            or is_iterable(field)
+            or isinstance(field, Iterable)
             and len(field) == 2  # may need to be wrapped in parens
             for field in fields
         ), "'fields' must contain strings or (field name, param name) pairs."

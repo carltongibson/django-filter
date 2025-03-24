@@ -17,6 +17,13 @@ from .widgets import (
     RangeWidget,
 )
 
+try:
+    from django.utils.choices import BaseChoiceIterator, normalize_choices
+except ImportError:
+    DJANGO_50 = False
+else:
+    DJANGO_50 = True
+
 
 class RangeField(forms.MultiValueField):
     widget = RangeWidget
@@ -210,7 +217,7 @@ class BaseRangeField(BaseCSVField):
         return value
 
 
-class ChoiceIterator:
+class ChoiceIterator(BaseChoiceIterator if DJANGO_50 else object):
     # Emulates the behavior of ModelChoiceIterator, but instead wraps
     # the field's _choices iterable.
 
@@ -223,7 +230,10 @@ class ChoiceIterator:
             yield ("", self.field.empty_label)
         if self.field.null_label is not None:
             yield (self.field.null_value, self.field.null_label)
-        yield from self.choices
+        if DJANGO_50:
+            yield from normalize_choices(self.choices)
+        else:
+            yield from self.choices
 
     def __len__(self):
         add = 1 if self.field.empty_label is not None else 0
@@ -257,16 +267,21 @@ class ChoiceIteratorMixin:
 
         super().__init__(*args, **kwargs)
 
-    def _get_choices(self):
-        return super()._get_choices()
+    @property
+    def choices(self):
+        return super().choices
 
-    def _set_choices(self, value):
-        super()._set_choices(value)
-        value = self.iterator(self, self._choices)
-
-        self._choices = self.widget.choices = value
-
-    choices = property(_get_choices, _set_choices)
+    @choices.setter
+    def choices(self, value):
+        if DJANGO_50:
+            value = self.iterator(self, value)
+            # Simple `super()` syntax for calling a parent property setter is
+            # unsupported. See https://github.com/python/cpython/issues/59170
+            super(ChoiceIteratorMixin, self.__class__).choices.__set__(self, value)
+        else:
+            super()._set_choices(value)
+            value = self.iterator(self, self._choices)
+            self._choices = self.widget.choices = value
 
 
 # Unlike their Model* counterparts, forms.ChoiceField and forms.MultipleChoiceField do not set empty_label

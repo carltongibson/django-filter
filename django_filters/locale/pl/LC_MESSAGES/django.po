@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: django_filters 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-10 11:07+0000\n"
-"PO-Revision-Date: 2023-02-12 14:36+0000\n"
+"PO-Revision-Date: 2023-04-10 20:47+0000\n"
 "Last-Translator: Quadric <quadmachine@wp.pl>\n"
 "Language-Team: Polish <https://hosted.weblate.org/projects/django-filter/"
 "django-filter/pl/>\n"
@@ -16,10 +16,10 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && ("
-"n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
-"n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 4.16-dev\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n"
+"%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n"
+"%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"X-Generator: Weblate 4.17-dev\n"
 
 #: conf.py:16
 msgid "date"
@@ -91,7 +91,7 @@ msgstr "zawiera się w zakresie"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "jest wartością null"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"
@@ -107,27 +107,27 @@ msgstr "zawiera się w"
 
 #: conf.py:45
 msgid "overlaps"
-msgstr ""
+msgstr "nakłada się"
 
 #: conf.py:46
 msgid "has key"
-msgstr ""
+msgstr "posiada klucz"
 
 #: conf.py:47
 msgid "has keys"
-msgstr ""
+msgstr "posiada klucze"
 
 #: conf.py:48
 msgid "has any keys"
-msgstr ""
+msgstr "posiada jakiekolwiek klucze"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Wybierz wyszukiwanie."
 
 #: fields.py:198
 msgid "Range query expects two values."
-msgstr ""
+msgstr "Zapytanie o zakres oczekuje dwóch wartości."
 
 #: filters.py:437
 msgid "Today"
@@ -174,7 +174,7 @@ msgstr "Filtry pola"
 
 #: utils.py:308
 msgid "exclude"
-msgstr ""
+msgstr "wyklucz"
 
 #: widgets.py:58
 msgid "All"
@@ -182,7 +182,7 @@ msgstr "Wszystko"
 
 #: widgets.py:162
 msgid "Unknown"
-msgstr ""
+msgstr "Nieznane"
 
 #: widgets.py:162
 msgid "Yes"

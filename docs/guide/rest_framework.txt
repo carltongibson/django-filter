@@ -39,7 +39,7 @@ If you want to use the django-filter backend by default, add it to the ``DEFAULT
 
     # settings.py
     INSTALLED_APPS = [
-        ...
+        # ...
         'rest_framework',
         'django_filters',
     ]
@@ -47,7 +47,7 @@ If you want to use the django-filter backend by default, add it to the ``DEFAULT
     REST_FRAMEWORK = {
         'DEFAULT_FILTER_BACKENDS': (
             'django_filters.rest_framework.DjangoFilterBackend',
-            ...
+            # ...
         ),
     }
 
@@ -148,64 +148,6 @@ You can override these methods on a case-by-case basis for each view, creating u
             return {
                 'author': self.get_author(),
             }
-
-Schema Generation with Core API and Open API
---------------------------------------------
-
-The backend class integrates with DRF's schema generation by implementing ``get_schema_fields()`` and ``get_schema_operation_parameters()``. ``get_schema_fields()`` is automatically enabled when Core API is installed. ``get_schema_operation_parameters()`` is always enabled for Open API (new since DRF 3.9). Schema generation usually functions seamlessly, however the implementation does expect to invoke the view's ``get_queryset()`` method. There is a caveat in that views are artificially constructed during schema generation, so the ``args`` and ``kwargs`` attributes will be empty. If you depend on arguments parsed from the URL, you will need to handle their absence in ``get_queryset()``.
-
-For example, your get queryset method may look like this:
-
-.. code-block:: python
-
-    class IssueViewSet(views.ModelViewSet):
-        queryset = models.Issue.objects.all()
-
-        def get_project(self):
-            return models.Project.objects.get(pk=self.kwargs['project_id'])
-
-        def get_queryset(self):
-            project = self.get_project()
-
-            return self.queryset \
-                .filter(project=project) \
-                .filter(author=self.request.user)
-
-This could be rewritten like so:
-
-.. code-block:: python
-
-    class IssueViewSet(views.ModelViewSet):
-        queryset = models.Issue.objects.all()
-
-        def get_project(self):
-            try:
-                return models.Project.objects.get(pk=self.kwargs['project_id'])
-            except models.Project.DoesNotExist:
-                return None
-
-        def get_queryset(self):
-            project = self.get_project()
-
-            if project is None:
-                return self.queryset.none()
-
-            return self.queryset \
-                .filter(project=project) \
-                .filter(author=self.request.user)
-
-Or more simply as:
-
-.. code-block:: python
-
-    class IssueViewSet(views.ModelViewSet):
-        queryset = models.Issue.objects.all()
-
-        def get_queryset(self):
-            # project_id may be None
-            return self.queryset \
-                .filter(project_id=self.kwargs.get('project_id')) \
-                .filter(author=self.request.user)
 
 
 Crispy Forms

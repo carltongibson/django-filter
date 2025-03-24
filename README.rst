@@ -6,8 +6,8 @@ add dynamic ``QuerySet`` filtering from URL parameters.
 
 Full documentation on `read the docs`_.
 
-.. image:: https://codecov.io/gh/carltongibson/django-filter/branch/develop/graph/badge.svg
-    :target: https://codecov.io/gh/carltongibson/django-filter
+.. image:: https://raw.githubusercontent.com/carltongibson/django-filter/python-coverage-comment-action-data/badge.svg
+    :target: https://github.com/carltongibson/django-filter/tree/python-coverage-comment-action-data
 
 .. image:: https://badge.fury.io/py/django-filter.svg
     :target: http://badge.fury.io/py/django-filter
@@ -26,11 +26,11 @@ Django REST Framework.
 
 Please see:
 
-* `Status of supported Python branches <https://devguide.python.org/#status-of-python-branches>`_
-* `List of supported Django versions <https://www.djangoproject.com/download/#support-versions>`_
+* `Status of supported Python versions <https://devguide.python.org/versions/#supported-versions>`_
+* `List of supported Django versions <https://www.djangoproject.com/download/#supported-versions>`_
 
 Support for Python and Django versions will be dropped when they reach
-end-of-life. Support for Python versions will dropped when they reach
+end-of-life. Support for Python versions will be dropped when they reach
 end-of-life, even when still supported by a current version of Django.
 
 Other breaking changes are rare. Where required, every effort will be made to

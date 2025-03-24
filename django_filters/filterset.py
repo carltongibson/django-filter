@@ -1,10 +1,13 @@
 import copy
+import warnings
 from collections import OrderedDict
+from enum import Enum
 
 from django import forms
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ManyToManyRel, ManyToOneRel, OneToOneRel
+from django.http import QueryDict
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -42,6 +45,12 @@ def remote_queryset(field):
     return model._default_manager.complex_filter(limit_choices_to)
 
 
+class UnknownFieldBehavior(Enum):
+    RAISE = "raise"
+    WARN = "warn"
+    IGNORE = "ignore"
+
+
 class FilterSetOptions:
     def __init__(self, options=None):
         self.model = getattr(options, "model", None)
@@ -51,6 +60,17 @@ class FilterSetOptions:
         self.filter_overrides = getattr(options, "filter_overrides", {})
 
         self.form = getattr(options, "form", forms.Form)
+
+        behavior = getattr(
+            options,
+            "unknown_field_behavior",
+            UnknownFieldBehavior.RAISE,
+        )
+
+        if not isinstance(behavior, UnknownFieldBehavior):
+            raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
+
+        self.unknown_field_behavior = behavior
 
 
 class FilterSetMetaclass(type):
@@ -176,7 +196,7 @@ class BaseFilterSet:
         model = queryset.model
 
         self.is_bound = data is not None
-        self.data = data or {}
+        self.data = data or QueryDict()
         self.queryset = queryset
         self.request = request
         self.form_prefix = prefix
@@ -337,9 +357,11 @@ class BaseFilterSet:
                     continue
 
                 if field is not None:
-                    filters[filter_name] = cls.filter_for_field(
+                    filter_instance = cls.filter_for_field(
                         field, field_name, lookup_expr
                     )
+                    if filter_instance is not None:
+                        filters[filter_name] = filter_instance
 
         # Allow Meta.fields to contain declared filters *only* when a list/tuple
         if isinstance(cls._meta.fields, (list, tuple)):
@@ -357,6 +379,20 @@ class BaseFilterSet:
         return filters
 
     @classmethod
+    def handle_unrecognized_field(cls, field_name, message):
+        behavior = cls._meta.unknown_field_behavior
+        if behavior == UnknownFieldBehavior.RAISE:
+            raise AssertionError(message)
+        elif behavior == UnknownFieldBehavior.WARN:
+            warnings.warn(
+                f"Unrecognized field type for '{field_name}'. Field will be ignored."
+            )
+        elif behavior == UnknownFieldBehavior.IGNORE:
+            pass
+        else:
+            raise ValueError(f"Invalid unknown_field_behavior: {behavior}")
+
+    @classmethod
     def filter_for_field(cls, field, field_name, lookup_expr=None):
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
@@ -370,12 +406,14 @@ class BaseFilterSet:
         filter_class, params = cls.filter_for_lookup(field, lookup_type)
         default.update(params)
 
-        assert filter_class is not None, (
-            "%s resolved field '%s' with '%s' lookup to an unrecognized field "
-            "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
-            "https://django-filter.readthedocs.io/en/main/ref/filterset.html"
-            "#customise-filter-generation-with-filter-overrides"
-        ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__)
+        if filter_class is None:
+            cls.handle_unrecognized_field(field_name, (
+                "%s resolved field '%s' with '%s' lookup to an unrecognized field "
+                "type %s. Try adding an override to 'Meta.filter_overrides'. See: "
+                "https://django-filter.readthedocs.io/en/main/ref/filterset.html"
+                "#customise-filter-generation-with-filter-overrides"
+            ) % (cls.__name__, field_name, lookup_expr, field.__class__.__name__))
+            return None
 
         return filter_class(**default)
 
@@ -458,9 +496,15 @@ class FilterSet(BaseFilterSet, metaclass=FilterSetMetaclass):
     pass
 
 
-def filterset_factory(model, fields=ALL_FIELDS):
-    meta = type(str("Meta"), (object,), {"model": model, "fields": fields})
-    filterset = type(
-        str("%sFilterSet" % model._meta.object_name), (FilterSet,), {"Meta": meta}
+def filterset_factory(model, filterset=FilterSet, fields=None):
+    attrs = {"model": model}
+    if fields is None:
+        if getattr(getattr(filterset, "Meta", {}), "fields", None) is None:
+            attrs["fields"] = ALL_FIELDS
+    else:
+        attrs["fields"] = fields
+    bases = (filterset.Meta,) if hasattr(filterset, "Meta") else ()
+    Meta = type("Meta", bases, attrs)
+    return type(filterset)(
+        str("%sFilterSet" % model._meta.object_name), (filterset,), {"Meta": Meta}
     )
-    return filterset

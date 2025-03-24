@@ -1,4 +1,5 @@
 from django.forms import NumberInput, Select, TextInput
+from django.http import QueryDict
 from django.test import TestCase
 
 from django_filters.widgets import (
@@ -133,6 +134,25 @@ class LinkWidgetTests(TestCase):
         )
 
         w = LinkWidget(choices=choices)
+        self.assertHTMLEqual(
+            w.render("price", ""),
+            """
+            <ul>
+                <li><a class="selected" href="?price=">All</a></li>
+                <li><a href="?price=test-val1">test-label1</a></li>
+                <li><a href="?price=test-val2">test-label2</a></li>
+            </ul>""",
+        )
+
+    def test_widget_with_empty_querydict(self):
+        choices = (
+            ("", "---------"),
+            ("test-val1", "test-label1"),
+            ("test-val2", "test-label2"),
+        )
+
+        w = LinkWidget(choices=choices)
+        w.value_from_datadict(QueryDict(), {}, "price")
         self.assertHTMLEqual(
             w.render("price", ""),
             """
@@ -380,6 +400,10 @@ class BaseCSVWidgetTests(TestCase):
         self.assertEqual(result, ["1"])
 
         data = {"price": "1,2"}
+        result = w.value_from_datadict(data, {}, "price")
+        self.assertEqual(result, ["1", "2"])
+
+        data = {"price": ["1", "2"]}
         result = w.value_from_datadict(data, {}, "price")
         self.assertEqual(result, ["1", "2"])
 

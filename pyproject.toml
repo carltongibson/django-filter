@@ -1,3 +1,60 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "django-filter"
+authors = [{name = "Alex Gaynor", email = "alex.gaynor@gmail.com"}]
+maintainers = [{name = "Carlton Gibson", email = "carlton.gibson@noumenal.es"}]
+license = {text = "BSD"}
+description = "Django-filter is a reusable Django application for allowing users to filter querysets dynamically."
+readme = "README.rst"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+dependencies = ["Django>=4.2"]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/carltongibson/django-filter/tree/main"
+Documentation = "https://django-filter.readthedocs.io/en/main/"
+Changelog = "https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst"
+"Bug Tracker" = "https://github.com/carltongibson/django-filter/issues"
+"Source Code" = "https://github.com/carltongibson/django-filter"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+namespaces = false
+
+[tool.isort]
+profile = "black"
+skip = [".tox"]
+known_third_party = ["django", "pytz", "rest_framework"]
+known_first_party = ["django_filters"]
+
+[tool.flit.module]
+name = "django_filters"
+
+[tool.coverage.run]
+relative_files = true

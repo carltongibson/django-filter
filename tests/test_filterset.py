@@ -1,8 +1,10 @@
 import unittest
+import warnings
 from unittest import mock
 
 from django.db import models
 from django.test import TestCase, override_settings
+from django.utils.datastructures import MultiValueDict
 
 from django_filters.exceptions import FieldLookupError
 from django_filters.filters import (
@@ -19,7 +21,12 @@ from django_filters.filters import (
     NumberFilter,
     UUIDFilter,
 )
-from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet
+from django_filters.filterset import (
+    FILTER_FOR_DBFIELD_DEFAULTS,
+    FilterSet,
+    UnknownFieldBehavior,
+    filterset_factory,
+)
 from django_filters.widgets import BooleanWidget
 
 from .models import (
@@ -50,10 +57,6 @@ class HelperMethodsTests(TestCase):
 
     @unittest.skip("todo")
     def test_filters_for_model(self):
-        pass
-
-    @unittest.skip("todo")
-    def test_filterset_factory(self):
         pass
 
 
@@ -146,6 +149,7 @@ class FilterSetFilterForFieldTests(TestCase):
 
     def test_unknown_field_type_error(self):
         f = NetworkSetting._meta.get_field("mask")
+        FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
 
         with self.assertRaises(AssertionError) as excinfo:
             FilterSet.filter_for_field(f, "mask")
@@ -155,6 +159,14 @@ class FilterSetFilterForFieldTests(TestCase):
             "to an unrecognized field type SubnetMaskField",
             excinfo.exception.args[0],
         )
+
+    def test_return_none(self):
+        f = NetworkSetting._meta.get_field("mask")
+        # Set unknown_field_behavior to 'ignore' to avoid raising exceptions
+        FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
+        result = FilterSet.filter_for_field(f, "mask")
+
+        self.assertIsNone(result)
 
     def test_symmetrical_selfref_m2m_field(self):
         f = Node._meta.get_field("adjacents")
@@ -199,6 +211,73 @@ class FilterSetFilterForFieldTests(TestCase):
     @unittest.skip("todo")
     def test_filter_overrides(self):
         pass
+
+
+class HandleUnknownFieldTests(TestCase):
+    def setUp(self):
+        class NetworkSettingFilterSet(FilterSet):
+            class Meta:
+                model = NetworkSetting
+                fields = ["ip", "mask"]
+                # Initial field behavior set to 'ignore' to avoid crashing in setUp
+                unknown_field_behavior = UnknownFieldBehavior.IGNORE
+
+        self.FilterSet = NetworkSettingFilterSet
+
+    def test_raise_unknown_field_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.RAISE
+
+        with self.assertRaises(AssertionError) as excinfo:
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "test_message",
+            excinfo.exception.args[0],
+        )
+
+    def test_unknown_field_warn_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.WARN
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "Unrecognized field type for 'mask'. "
+            "Field will be ignored.",
+            str(w[-1].message),
+        )
+
+    def test_unknown_field_ignore_behavior(self):
+        # No exception or warning should be raised
+        self.FilterSet._meta.unknown_field_behavior = UnknownFieldBehavior.IGNORE
+        self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+    def test_unknown_field_invalid_initial_behavior(self):
+        # Creation of new custom FilterSet to set initial field behavior
+        with self.assertRaises(ValueError) as excinfo:
+
+            class InvalidBehaviorFilterSet(FilterSet):
+                class Meta:
+                    model = NetworkSetting
+                    fields = ["ip", "mask"]
+                    unknown_field_behavior = "invalid"
+
+        self.assertIn(
+            "Invalid unknown_field_behavior: invalid",
+            str(excinfo.exception),
+        )
+
+    def test_unknown_field_invalid_changed_option_behavior(self):
+        self.FilterSet._meta.unknown_field_behavior = "invalid"
+
+        with self.assertRaises(ValueError) as excinfo:
+            self.FilterSet.handle_unrecognized_field("mask", "test_message")
+
+        self.assertIn(
+            "Invalid unknown_field_behavior: invalid",
+            str(excinfo.exception),
+        )
 
 
 class FilterSetFilterForLookupTests(TestCase):
@@ -520,7 +599,7 @@ class FilterSetClassCreationTests(TestCase):
                     model = User
                     fields = {"username": ["flub"]}
 
-    def test_meta_exlude_with_declared_and_declared_wins(self):
+    def test_meta_exclude_with_declared_and_declared_wins(self):
         class F(FilterSet):
             username = CharFilter()
 
@@ -534,7 +613,7 @@ class FilterSetClassCreationTests(TestCase):
             list(F.base_filters), ["title", "average_rating", "username"]
         )
 
-    def test_meta_fields_and_exlude_and_exclude_wins(self):
+    def test_meta_fields_and_exclude_and_exclude_wins(self):
         class F(FilterSet):
             username = CharFilter()
 
@@ -547,7 +626,7 @@ class FilterSetClassCreationTests(TestCase):
         self.assertEqual(len(F.base_filters), 2)
         self.assertListEqual(list(F.base_filters), ["username", "price"])
 
-    def test_meta_exlude_with_no_fields(self):
+    def test_meta_exclude_with_no_fields(self):
         class F(FilterSet):
             class Meta:
                 model = Book
@@ -715,6 +794,73 @@ class FilterSetClassCreationTests(TestCase):
             "f5": CharFilter,
         }
 
+    def test_filterset_factory(self):
+        filterset = filterset_factory(Article)
+        self.assertEqual(list(filterset.base_filters), ["name", "published", "author"])
+
+    def test_filterset_factory_fields(self):
+        filterset = filterset_factory(Article, fields=["name"])
+        self.assertEqual(list(filterset.base_filters), ["name"])
+
+    def test_filterset_factory_base_filter(self):
+        class FilterSetBase(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase)
+        self.assertEqual(list(filterset.base_filters), ["name", "published", "author", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_fields(self):
+        class FilterSetBase(FilterSet):
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase, fields=["name"])
+        self.assertEqual(list(filterset.base_filters), ["name", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_meta_fields(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                fields = ["name"]
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase)
+        self.assertEqual(list(filterset.base_filters), ["name", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_fields_and_meta_fields(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                fields = ["name"]
+            f1 = CharFilter()
+            f2 = CharFilter()
+
+        filterset = filterset_factory(Article, filterset=FilterSetBase, fields=["author"])
+        self.assertEqual(list(filterset.base_filters), ["author", "f1", "f2"])
+
+    def test_filterset_factory_base_filter_meta_inheritance_filter_overrides(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                filter_overrides = {
+                    models.CharField: {
+                        "filter_class": BooleanFilter,
+                    },
+                }
+
+        filterset = filterset_factory(Article, FilterSetBase)
+
+        f = Article._meta.get_field("author")
+        result, params = filterset.filter_for_lookup(f, "isnull")
+        self.assertEqual(result, BooleanFilter)
+
+    def test_filterset_factory_base_filter_meta_inheritance_exclude(self):
+        class FilterSetBase(FilterSet):
+            class Meta:
+                exclude = ["published"]
+
+        filterset = filterset_factory(Article, FilterSetBase)
+        self.assertEqual(list(filterset.base_filters), ["name", "author"])
+
 
 class FilterSetInstantiationTests(TestCase):
     class F(FilterSet):
@@ -745,6 +891,10 @@ class FilterSetInstantiationTests(TestCase):
         m = mock.Mock()
         f = self.F(request=m)
         self.assertEqual(f.request, m)
+
+    def test_creating_with_no_data_default(self):
+        f = self.F()
+        self.assertIsInstance(f.data, MultiValueDict)
 
 
 class FilterSetQuerysetTests(TestCase):

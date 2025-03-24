@@ -12,6 +12,7 @@ Meta options
 - :ref:`exclude <exclude>`
 - :ref:`form <form>`
 - :ref:`filter_overrides <filter_overrides>`
+- :ref:`unknown_field_behavior <unknown_field_behavior>`
 
 
 .. _model:
@@ -146,6 +147,55 @@ This is a map of model fields to filter classes with options::
                 },
             }
 
+
+
+A possible usecase would be creating a custom filter to be able to filter on ``FileFields``
+(``FileField`` filtering is hard to define in a generalised way, which is why there is no ``FileFilter``).
+
+This example shows an override used to filter on a ``FileField``::
+
+    class Questionnaire(models.Model):
+        file = models.FileField(upload_to=questionnaire_path)
+
+    class QuestionnaireFilter(FilterSet):
+        class Meta:
+            model = Questionnaire
+            fields = ['file']
+            filter_overrides = {
+                models.FileField: {
+                    'filter_class': CharFilter,
+                    'extra': lambda f: {'lookup_expr': 'exact'},
+                },
+            }
+
+
+.. _unknown_field_behavior:
+
+Handling unknown fields with ``unknown_field_behavior``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``unknown_field_behavior`` option specifies how unknown fields are handled 
+in a ``FilterSet``. You can set this option using the values of the 
+``UnknownFieldBehavior`` enum:
+
+- ``UnknownFieldBehavior.RAISE``: Raise an assertion error (default)
+- ``UnknownFieldBehavior.WARN``: Issue a warning and ignore the field
+- ``UnknownFieldBehavior.IGNORE``: Silently ignore the field
+
+Note that both the ``WARN`` and ``IGNORE`` options do not include the unknown 
+field(s) in the list of filters.
+
+.. code-block:: python
+
+    from django_filters import UnknownFieldBehavior
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'last_login']
+            unknown_field_behavior = UnknownFieldBehavior.WARN
+
+
 Overriding ``FilterSet`` methods
 --------------------------------
 
@@ -199,3 +249,22 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
 
             # use default behavior otherwise
             return super().filter_for_lookup(f, lookup_type)
+
+
+.. _filterset_factory:
+
+Using ``filterset_factory``
+---------------------------
+
+A ``FilterSet`` for a ``model`` can also be created by the
+``filterset_factory``, which creates a ``FilterSet`` with the ``model`` set in
+the FilterSets Meta. You can pass a customized ``FilterSet`` class to the
+``filterset_factory``, which then uses this class a a base for the created
+``FilterSet``. Ex::
+
+    class CustomFilterSet(django_filters.FilterSet):
+        class Meta:
+            form = CustomFilterSetForm
+
+
+    filterset = filterset_factory(Product, filterset=CustomFilterSet)

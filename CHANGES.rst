@@ -1,3 +1,118 @@
+Version 25.1 (2025-02-14)
+-------------------------
+
+* Removed the in-built API schema generation methods, which have been
+  deprecated since v23.2.
+
+  You should use `drf-spectacular <https://drf-spectacular.readthedocs.io/en/latest/>`_
+  for generating OpenAPI schemas with DRF.
+
+* Dropped support for EOL Python 3.8.
+
+* Added testing against Python 3.13.
+
+* Added official support for Django 5.2.
+
+Version 24.3 (2024-08-02)
+-------------------------
+
+* Adds official support for Django 5.1.
+
+* Allow using dictionaries for grouped choices on Django 5.0+.
+
+  Thanks to Sævar Öfjörð Magnússon.
+
+* Adds ``unknown_field_behavior`` FilterSet option to allowing warning and
+  ignore behaviours for unknown field types during FilterSet generation.
+
+  Thanks to Loes.
+
+Version 24.2 (2024-03-27)
+-------------------------
+
+* Fixed a regression in v23.4 where callable choices were incorrectly evaluated
+  at filter instantiation, on Django versions prior to 5.0.
+
+  Thanks to Craig de Stigter for the report and reproduce.
+
+Version 24.1 (2024-03-08)
+-------------------------
+
+* Updated supported Python and Django versions, and resolved upcoming Django
+  deprecations.
+
+  Required versions are now at least Python 3.8 and Django 4.2.
+
+  Thanks to Michael Manganiello.
+
+* Allowed passing a FilterSet class to the filterset_factory().
+
+  Thanks to Birger Schacht.
+
+* Set empty default value of filterset data to MultiValueDict.
+
+  Thanks to Shlomo Gordon.
+
+* Preserve list values passed to the data dict in CSV widgets.
+
+  Thanks to Bryan Brancotte.
+
+* Updates French and Ukrainian localisations.
+
+  Thanks to Weblate.
+
+
+Version 23.5 (2023-12-05)
+-------------------------
+
+* Fixed OrderingFilter handling of empty values. (#1628)
+
+  Thanks to Matt Munns.
+
+Version 23.4 (2023-11-20)
+-------------------------
+
+* Official support for Django 5.0 and Python 3.12.
+
+* Fix DeprecationWarning for pkgutil.find_loader.
+
+  Thanks to `wmorrell`.
+
+* Adopted Furo theme for docs.
+
+Version 23.3 (2023-9-17)
+------------------------
+
+* Adds initial compatibility with Django 5.0, prior to Django 5.0a1.
+
+* Updates packaging to use pyproject.toml and Flit.
+
+Version 23.2 (2023-4-30)
+------------------------
+
+* Deprecated the schema generation methods of the DRF related ``DjangoFilterBackend``.
+  These will be removed in version 25.1.
+
+  You should use `drf-spectacular <https://drf-spectacular.readthedocs.io/en/latest/>`_
+  for generating OpenAPI schemas with DRF.
+
+* In addition, stopped testing against the (very old now) ``coreapi`` schema generation.
+  These methods should continue to work if you're using them until v25.1, but
+  ``coreapi`` is no longer maintained, and is raising warnings against the current
+  versions of Python. To workaround this is not worth the effort at this point.
+
+* Updated Polish translations.
+
+Version 23.1 (2023-3-26)
+------------------------
+
+* Declared support for Django 4.2.
+
+* Various updated and new translations. Thanks to all who contributed, and
+  Weblate for hosting.
+
+* Fixed QueryArrayWidget.value_from_datadict() to not mutate input data. (#1540)
+
 Version 22.1 (2022-6-17)
 ------------------------
 
@@ -7,6 +122,10 @@ Version 22.1 (2022-6-17)
 * Added testing for Python 3.10 and Django 4.1.
 
 * Removed outdated deprecated warnings for code removed in version 2.1.
+
+* Removed `filter_class` (use `filterset_class`) and `filter_fields`
+  (`filterset_fields`) that were deprecated in [version 2.0
+  (2018)](https://django-filter.readthedocs.io/en/main/guide/migration.html#view-attributes-renamed-867).
 
 * The code base is now formatted with Black.
 

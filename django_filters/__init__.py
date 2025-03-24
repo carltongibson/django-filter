@@ -1,16 +1,16 @@
 # flake8: noqa
-import pkgutil
+from importlib import util as importlib_util
 
 from .filters import *
-from .filterset import FilterSet
+from .filterset import FilterSet, UnknownFieldBehavior
 
 # We make the `rest_framework` module available without an additional import.
 #   If DRF is not installed, no-op.
-if pkgutil.find_loader("rest_framework") is not None:
+if importlib_util.find_spec("rest_framework"):
     from . import rest_framework
-del pkgutil
+del importlib_util
 
-__version__ = "22.1"
+__version__ = "25.1"
 
 
 def parse_version(version):
