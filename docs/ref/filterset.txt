@@ -2,7 +2,15 @@
 FilterSet Options
 =================
 
+.. module:: django_filters.filterset
+   :synopsis: FilterSet features and options.
+
+.. currentmodule:: django_filters.filterset
+
 This document provides a guide on using additional FilterSet features.
+
+
+.. class:: FilterSet
 
 Meta options
 ------------

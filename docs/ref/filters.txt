@@ -2,6 +2,11 @@
 Filter Reference
 ================
 
+.. module:: django_filters.filters
+   :synopsis: Provided filters and their arguments.
+
+.. currentmodule:: django_filters.filters
+
 This is a reference document with a list of the filters and their arguments.
 
 .. _core-arguments:
@@ -164,33 +169,22 @@ as the model's attribute.
 Filters
 -------
 
-.. _char-filter:
-
-``CharFilter``
-~~~~~~~~~~~~~~
+.. class:: CharFilter
 
 This filter does simple character matches, used with ``CharField`` and
 ``TextField`` by default.
 
-.. _uuid-filter:
-
-``UUIDFilter``
-~~~~~~~~~~~~~~
+.. class:: UUIDFilter
 
 This filter matches UUID values, used with ``models.UUIDField`` by default.
 
-.. _boolean-filter:
-
-``BooleanFilter``
-~~~~~~~~~~~~~~~~~
+.. class:: BooleanFilter
 
 This filter matches a boolean, either ``True`` or ``False``, used with
 ``BooleanField`` and ``NullBooleanField`` by default.
 
 .. _choice-filter:
-
-``ChoiceFilter``
-~~~~~~~~~~~~~~~~
+.. class:: ChoiceFilter
 
 This filter matches values in its ``choices`` argument. The ``choices`` must be
 explicitly passed when the filter is declared on the ``FilterSet``. For example,
@@ -232,10 +226,7 @@ corresponding global setting (:doc:`/ref/settings`).
   a non-empty value (``''``, ``None``, ``[]``, ``()``, ``{}``).
 
 
-.. _typed-choice-filter:
-
-``TypedChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~
+.. class:: TypedChoiceFilter
 
 The same as ``ChoiceFilter`` with the added possibility to convert value to
 match against. This could be done by using `coerce` parameter.
@@ -253,10 +244,7 @@ some predefined strings could be used as input of a boolean filter::
                                                 coerce=strtobool)
 
 
-.. _multiple-choice-filter:
-
-``MultipleChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: MultipleChoiceFilter
 
 The same as ``ChoiceFilter`` except the user can select multiple choices
 and the filter will form the OR of these choices by default to match items.
@@ -278,43 +266,28 @@ test.
 Override `is_noop` if you require a different test for your application.
 
 
-.. _typed-multiple-choice-filter:
-
-``TypedMultipleChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: TypedMultipleChoiceFilter
 
 Like ``MultipleChoiceFilter``, but in addition accepts the ``coerce`` parameter, as
 in ``TypedChoiceFilter``.
 
 
-.. _date-filter:
-
-``DateFilter``
-~~~~~~~~~~~~~~
+.. class:: DateFilter
 
 Matches on a date.  Used with ``DateField`` by default.
 
 
-.. _time-filter:
-
-``TimeFilter``
-~~~~~~~~~~~~~~
+.. class:: TimeFilter
 
 Matches on a time.  Used with ``TimeField`` by default.
 
 
-.. _date-time-filter:
-
-``DateTimeFilter``
-~~~~~~~~~~~~~~~~~~
+.. class:: DateTimeFilter
 
 Matches on a date and time.  Used with ``DateTimeField`` by default.
 
 
-.. _iso-date-time-filter:
-
-``IsoDateTimeFilter``
-~~~~~~~~~~~~~~~~~~~~~
+.. class:: IsoDateTimeFilter
 
 Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often
 used in APIs, and are employed by default by Django REST Framework.
@@ -330,10 +303,7 @@ Example::
             fields = ['published']
 
 
-.. _duration-filter:
-
-``DurationFilter``
-~~~~~~~~~~~~~~~~~~
+.. class:: DurationFilter
 
 Matches on a duration.  Used with ``DurationField`` by default.
 
@@ -342,10 +312,7 @@ only the sections that are accepted by Python's timedelta, so no year, month,
 and week designators, e.g. 'P3DT10H22M').
 
 
-.. _model-choice-filter:
-
-``ModelChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~
+.. class:: ModelChoiceFilter
 
 Similar to a ``ChoiceFilter`` except it works with related models, used for
 ``ForeignKey`` by default.
@@ -387,10 +354,7 @@ having to override the ``FilterSet.__init__``.
         ...
 
 
-.. _model-multiple-choice-filter:
-
-``ModelMultipleChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: ModelMultipleChoiceFilter
 
 Similar to a ``MultipleChoiceFilter`` except it works with related models, used
 for ``ManyToManyField`` by default.
@@ -446,10 +410,7 @@ QuerySet, which then gets used as the model's manager::
         objects = CustomQuerySet.as_manager()
 
 
-.. _number-filter:
-
-``NumberFilter``
-~~~~~~~~~~~~~~~~
+.. class:: NumberFilter
 
 Filters based on a numerical value, used with ``IntegerField``, ``FloatField``,
 and ``DecimalField`` by default.
@@ -460,10 +421,7 @@ and ``DecimalField`` by default.
     ``field.validators``. By default uses a limit value of ``1e50``. Return
     ``None`` to disable maximum value validation.
 
-.. _numeric-range-filter:
-
-``NumericRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~
+.. class:: NumericRangeFilter
 
 Filters where a value is between two numerical values, or greater than a minimum or less
 than a maximum where only one limit value is provided. This filter is designed to work
@@ -479,10 +437,7 @@ __ https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#queryin
 If the lower limit value is provided, the filter automatically defaults to ``startswith``
 as the lookup and ``endswith`` if only the upper limit value is provided.
 
-.. _range-filter:
-
-``RangeFilter``
-~~~~~~~~~~~~~~~
+.. class:: RangeFilter
 
 Filters where a value is between two numerical values, or greater than a minimum or less than a maximum where only one limit value is provided. ::
 
@@ -506,19 +461,13 @@ Filters where a value is between two numerical values, or greater than a minimum
     f = F({'price_max': '19'}, queryset=qs)
 
 
-.. _date-range-filter:
-
-``DateRangeFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: DateRangeFilter
 
 Filter similar to the admin changelist date one, it has a number of common
 selections for working with date fields.
 
 
-.. _date-from-to-range-filter:
-
-``DateFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: DateFromToRangeFilter
 
 Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField``. It also works with ``DateTimeField``, but takes into consideration only the date.
 
@@ -580,10 +529,7 @@ Example of using the ``DateTimeField`` field::
     f = F({'published_before': '2016-02-01'})
     assert len(f.qs) == 2
 
-.. _date-time-from-to-range-filter:
-
-``DateTimeFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: DateTimeFromToRangeFilter
 
 Similar to a ``RangeFilter`` except it uses datetime format values instead of numerical values. It can be used with ``DateTimeField``.
 
@@ -615,10 +561,7 @@ Example::
     f = F({'published_before': '2016-01-01 10:00'})
     assert len(f.qs) == 2
 
-.. _iso-date-time-from-to-range-filter:
-
-``IsoDateTimeFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: IsoDateTimeFromToRangeFilter
 
 Similar to a ``RangeFilter`` except it uses ISO 8601 formatted values instead of numerical values. It can be used with ``IsoDateTimeField``.
 
@@ -650,10 +593,7 @@ Example::
     f = F({'published_before': '2016-01-01T10:00:00+0100'})
     assert len(f.qs) == 2
 
-.. _time-range-filter:
-
-``TimeRangeFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: TimeRangeFilter
 
 Similar to a ``RangeFilter`` except it uses time format values instead of numerical values. It can be used with ``TimeField``.
 
@@ -679,20 +619,14 @@ Example::
     # Max-Only: Comments added before 10:00
     f = F({'time_before': '10:00'})
 
-.. _all-values-filter:
-
-``AllValuesFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: AllValuesFilter
 
 This is a ``ChoiceFilter`` whose choices are the current values in the
 database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
-.. _all-values-multiple-filter:
-
-``AllValuesMultipleFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: AllValuesMultipleFilter
 
 This is a ``MultipleChoiceFilter`` whose choices are the current values in the
 database.  So if in the DB for the given field you have values of 5, 7, and 9
@@ -700,9 +634,7 @@ each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
 .. _lookup-choice-filter:
-
-``LookupChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~
+.. class:: LookupChoiceFilter
 
 A combined filter that allows users to select the lookup expression from a dropdown.
 
@@ -725,9 +657,7 @@ ex::
     )
 
 .. _base-in-filter:
-
-``BaseInFilter``
-~~~~~~~~~~~~~~~~
+.. class:: BaseInFilter
 
 This is a base class used for creating IN lookup filters. It is expected that
 this filter class is used in conjunction with another filter class, as this
@@ -754,10 +684,7 @@ Example::
     f = F({'id__in': '1,3'})
     assert len(f.qs) == 2
 
-.. _base-range-filter:
-
-``BaseRangeFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: BaseRangeFilter
 
 This is a base class used for creating RANGE lookup filters. It behaves
 identically to ``BaseInFilter`` with the exception that it expects only two
@@ -785,9 +712,7 @@ Example::
 
 
 .. _ordering-filter:
-
-``OrderingFilter``
-~~~~~~~~~~~~~~~~~~
+.. class:: OrderingFilter
 
 Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
 two additional arguments that are used to build the ordering choices.
@@ -863,7 +788,7 @@ for APIs. ``SelectMultiple`` widgets are not compatible, given that they
 are not able to retain selection order.
 
 Adding Custom filter choices
-""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you wish to sort by non-model fields, you'll need to add custom handling to an
 ``OrderingFilter`` subclass. For example, if you want to sort by a computed

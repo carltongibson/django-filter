@@ -2,14 +2,19 @@
 Widget Reference
 ================
 
+.. module:: django_filters.widgets
+   :synopsis: Provided form widgets and their arguments.
+
+.. currentmodule:: django_filters.widgets
+
+
 This is a reference document with a list of the provided widgets and their
 arguments.
 
 
 .. _link-widget:
 
-``LinkWidget``
-~~~~~~~~~~~~~~
+.. class:: LinkWidget
 
 This widget renders each option as a link, instead of an actual <input>.  It has
 one method that you can override for additional customizability.
@@ -24,9 +29,7 @@ placeholders:
 
 
 .. _boolean-widget:
-
-``BooleanWidget``
-~~~~~~~~~~~~~~~~~
+.. class:: BooleanWidget
 
 This widget converts its input into Python's True/False values. It will convert
 all case variations of ``True`` and ``False`` into the internal Python values.
@@ -38,9 +41,7 @@ To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``:
 
 
 .. _csv-widget:
-
-``CSVWidget``
-~~~~~~~~~~~~~
+.. class:: CSVWidget
 
 This widget expects a comma separated value and converts it into a list of
 string values. It is expected that the field class handle a list of values as
@@ -48,9 +49,7 @@ well as type conversion.
 
 
 .. _range-widget:
-
-``RangeWidget``
-~~~~~~~~~~~~~~~
+.. class:: RangeWidget
 
 This widget is used with ``RangeFilter`` and its subclasses. It generates two
 form input elements which generally act as start/end values in a range.
@@ -63,8 +62,7 @@ a ``RangeField``:
   date_range = DateFromToRangeFilter(widget=RangeWidget(attrs={'placeholder': 'YYYY/MM/DD'}))
 
 
-``SuffixedMultiWidget``
-~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: SuffixedMultiWidget
 
 Extends Django's builtin ``MultiWidget`` to append custom suffixes instead of
 indices. For example, take a range widget that accepts minimum and maximum

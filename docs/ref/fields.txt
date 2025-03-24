@@ -2,8 +2,12 @@
 Field Reference
 ===============
 
-``IsoDateTimeField``
-~~~~~~~~~~~~~~~~~~~~
+.. module:: django_filters.fields
+   :synopsis: Provided form fields and their arguments.
+
+.. currentmodule:: django_filters.fields
+
+.. class:: IsoDateTimeField
 
 Extends ``django.forms.DateTimeField`` to allow parsing ISO 8601 formated dates, in addition to existing formats
 
