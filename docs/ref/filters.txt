@@ -2,6 +2,11 @@
 Filter Reference
 ================
 
+.. module:: django_filters.filters
+   :synopsis: Provided filters and their arguments.
+
+.. currentmodule:: django_filters.filters
+
 This is a reference document with a list of the filters and their arguments.
 
 .. _core-arguments:
@@ -10,28 +15,25 @@ Core Arguments
 --------------
 
 The following are the core arguments that apply to all filters. Note that they
-are joined to construct the complete `lookup expression`_ that is the left hand
-side of the ORM ``.filter()`` call.
-
-.. _`lookup expression`: https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
+are joined to construct the complete :mod:`lookup expression <django.db.models.lookups>`
+that is the left hand side of the ORM :meth:`~django.db.models.query.QuerySet.filter` call.
 
 ``field_name``
 ~~~~~~~~~~~~~~
 
 The name of the model field that is filtered against. If this argument is not
-provided, it defaults the filter's attribute name on the ``FilterSet`` class.
-Field names can traverse relationships by joining the related parts with the ORM
-lookup separator (``__``). e.g., a product's ``manufacturer__name``.
+provided, it defaults the filter's attribute name on the
+:class:`~django_filters.filterset.FilterSet` class. Field names can traverse relationships
+by joining the related parts with the ORM lookup separator (``__``). e.g., a product's
+``manufacturer__name``.
 
 ``lookup_expr``
 ~~~~~~~~~~~~~~~
 
-The `field lookup`_ that should be performed in the filter call. Defaults to
-``exact``. The ``lookup_expr`` can contain transforms if the expression parts
+The :ref:`field lookup <django:field-lookups>` that should be performed in the filter call.
+Defaults to ``exact``. The ``lookup_expr`` can contain transforms if the expression parts
 are joined by the ORM lookup separator (``__``). e.g., filter a datetime by its
 year part ``year__gt``.
-
-.. _`Field lookup`: https://docs.djangoproject.com/en/stable/ref/models/querysets/#field-lookups
 
 .. _keyword-only-arguments:
 
@@ -55,9 +57,11 @@ on the field ``field_name`` and the parts of the ``lookup_expr``
 ~~~~~~~~~~
 
 An optional argument that tells the filter how to handle the queryset. It can
-accept either a callable or the name of a method on the ``FilterSet``. The
-callable receives a ``QuerySet``, the name of the model field to filter on, and
-the value to filter with. It should return a filtered ``Queryset``.
+accept either a callable or the name of a method on the
+:class:`~django_filters.filterset.FilterSet`. The callable receives a
+:class:`~django.db.models.query.QuerySet`, the name of the model field to filter
+on, and the value to filter with. It should return a filtered
+:class:`~django.db.models.query.QuerySet`.
 
 Note that the value is validated by the ``Filter.field``, so raw value
 transformation and empty value checking should be unnecessary.
@@ -118,8 +122,8 @@ A boolean that specifies whether the Filter is required or not. Defaults to ``Fa
 ~~~~~~~~~~~~
 
 Any additional keyword arguments are stored as the ``extra`` parameter on the
-filter. They are provided to the accompanying form ``Field`` and can be used to
-provide arguments like ``choices``. Some field-related arguments:
+filter. They are provided to the accompanying form :class:`~django.forms.Field` and can be used to
+provide arguments like :attr:`~django.forms.ChoiceField.choices`. Some field-related arguments:
 
 ``widget``
 """"""""""
@@ -128,29 +132,31 @@ The django.form Widget class which will represent the ``Filter``.  In addition
 to the widgets that are included with Django that you can use there are
 additional ones that django-filter provides which may be useful:
 
-    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
+    * :class:`~django_filters.widgets.LinkWidget` -- this displays the options in a manner
       similar to the way the Django Admin does, as a series of links. The link
       for the selected option will have ``class="selected"``.
-    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
+    * :class:`~django_filters.widgets.BooleanWidget` -- this widget converts its input
       into Python's True/False values. It will convert all case variations of
       ``True`` and ``False`` into the internal Python values.
-    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
+    * :class:`~django_filters.widgets.CSVWidget` -- this widget expects a comma separated
       value and converts it into a list of string values. It is expected that
       the field class handle a list of values as well as type conversion.
-    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
-      to generate two form input elements using a single field.
+    * :class:`~django_filters.widgets.RangeWidget` -- this widget is used with
+      :class:`~django_filters.filters.RangeFilter` to generate two form input elements
+      using a single field.
 
 
-ModelChoiceFilter and ModelMultipleChoiceFilter arguments
----------------------------------------------------------
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` arguments
+-----------------------------------------------------------------
 
-These arguments apply specifically to ModelChoiceFilter and
-ModelMultipleChoiceFilter only.
+These arguments apply specifically to :class:`~django_filters.filters.ModelChoiceFilter` and
+:class:`~django_filters.filters.ModelMultipleChoiceFilter` only.
 
-``queryset``
+``QuerySet``
 ~~~~~~~~~~~~
 
-``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to
+:class:`~django_filters.filters.ModelChoiceFilter` and
+:class:`~django_filters.filters.ModelMultipleChoiceFilter` require a queryset to
 operate on which must be passed as a kwarg.
 
 ``to_field_name``
@@ -164,30 +170,25 @@ as the model's attribute.
 Filters
 -------
 
-``CharFilter``
-~~~~~~~~~~~~~~
+.. class:: CharFilter
 
-This filter does simple character matches, used with ``CharField`` and
-``TextField`` by default.
+This filter does simple character matches, used with :class:`~django.db.models.CharField` and
+:class:`~django.db.models.TextField` by default.
 
-``UUIDFilter``
-~~~~~~~~~~~~~~
+.. class:: UUIDFilter
 
-This filter matches UUID values, used with ``models.UUIDField`` by default.
+This filter matches UUID values, used with :class:`~django.db.models.UUIDField` by default.
 
-``BooleanFilter``
-~~~~~~~~~~~~~~~~~
+.. class:: BooleanFilter
 
 This filter matches a boolean, either ``True`` or ``False``, used with
-``BooleanField`` and ``NullBooleanField`` by default.
+:class:`~django.db.models.BooleanField` and ``NullBooleanField`` by default.
 
 .. _choice-filter:
-
-``ChoiceFilter``
-~~~~~~~~~~~~~~~~
+.. class:: ChoiceFilter
 
 This filter matches values in its ``choices`` argument. The ``choices`` must be
-explicitly passed when the filter is declared on the ``FilterSet``. For example,
+explicitly passed when the filter is declared on the :class:`~django_filters.filterset.FilterSet`. For example,
 
 .. code-block:: python
 
@@ -211,9 +212,9 @@ explicitly passed when the filter is declared on the ``FilterSet``. For example,
             fields = ['status']
 
 
-``ChoiceFilter`` also has arguments that enable a choice for not filtering, as
-well as a choice for filtering by ``None`` values. Each of the arguments have a
-corresponding global setting (:doc:`/ref/settings`).
+:class:`~django_filters.filters.ChoiceFilter` also has arguments that enable a
+choice for not filtering, as well as a choice for filtering by ``None`` values.
+Each of the arguments have a corresponding global setting (:doc:`/ref/settings`).
 
 * ``empty_label``: The display label to use for the select choice to not filter.
   The choice may be disabled by setting this argument to ``None``. Defaults to
@@ -226,11 +227,10 @@ corresponding global setting (:doc:`/ref/settings`).
   a non-empty value (``''``, ``None``, ``[]``, ``()``, ``{}``).
 
 
-``TypedChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~
+.. class:: TypedChoiceFilter
 
-The same as ``ChoiceFilter`` with the added possibility to convert value to
-match against. This could be done by using `coerce` parameter.
+The same as :class:`~django_filters.filters.ChoiceFilter` with the added possibility
+to convert value to match against. This could be done by using `coerce` parameter.
 An example use-case is limiting boolean choices to match against so only
 some predefined strings could be used as input of a boolean filter::
 
@@ -245,11 +245,10 @@ some predefined strings could be used as input of a boolean filter::
                                                 coerce=strtobool)
 
 
-``MultipleChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: MultipleChoiceFilter
 
-The same as ``ChoiceFilter`` except the user can select multiple choices
-and the filter will form the OR of these choices by default to match items.
+The same as :class:`~django_filters.filters.ChoiceFilter` except the user can select
+multiple choices and the filter will form the OR of these choices by default to match items.
 The filter will form the AND of the selected choices when the ``conjoined=True``
 argument is passed to this class.
 
@@ -268,36 +267,31 @@ test.
 Override `is_noop` if you require a different test for your application.
 
 
-``TypedMultipleChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: TypedMultipleChoiceFilter
 
-Like ``MultipleChoiceFilter``, but in addition accepts the ``coerce`` parameter, as
-in ``TypedChoiceFilter``.
-
-
-``DateFilter``
-~~~~~~~~~~~~~~
-
-Matches on a date.  Used with ``DateField`` by default.
+Like :class:`~django_filters.filters.MultipleChoiceFilter`, but in addition accepts the
+``coerce`` parameter, as in :class:`~django_filters.filters.TypedChoiceFilter`.
 
 
-``TimeFilter``
-~~~~~~~~~~~~~~
+.. class:: DateFilter
 
-Matches on a time.  Used with ``TimeField`` by default.
-
-
-``DateTimeFilter``
-~~~~~~~~~~~~~~~~~~
-
-Matches on a date and time.  Used with ``DateTimeField`` by default.
+Matches on a date.  Used with :class:`~django.db.models.DateField` by default.
 
 
-``IsoDateTimeFilter``
-~~~~~~~~~~~~~~~~~~~~~
+.. class:: TimeFilter
 
-Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often
-used in APIs, and are employed by default by Django REST Framework.
+Matches on a time.  Used with :class:`~django.db.models.TimeField` by default.
+
+
+.. class:: DateTimeFilter
+
+Matches on a date and time.  Used with :class:`~django.db.models.DateTimeField` by default.
+
+
+.. class:: IsoDateTimeFilter
+
+Uses :class:`~django_filters.fields.IsoDateTimeField` to support filtering on ISO 8601
+formatted dates, as are often used in APIs, and are employed by default by Django REST Framework.
 
 Example::
 
@@ -310,25 +304,23 @@ Example::
             fields = ['published']
 
 
-``DurationFilter``
-~~~~~~~~~~~~~~~~~~
+.. class:: DurationFilter
 
-Matches on a duration.  Used with ``DurationField`` by default.
+Matches on a duration. Used with :class:`~django.db.models.DurationField` by default.
 
 Supports both Django ('%d %H:%M:%S.%f') and ISO 8601 formatted durations (but
 only the sections that are accepted by Python's timedelta, so no year, month,
 and week designators, e.g. 'P3DT10H22M').
 
 
-``ModelChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~
+.. class:: ModelChoiceFilter
 
-Similar to a ``ChoiceFilter`` except it works with related models, used for
+Similar to a :class:`~django_filters.filters.ChoiceFilter` except it works with related models, used for
 ``ForeignKey`` by default.
 
-If automatically instantiated, ``ModelChoiceFilter`` will use the default
-``QuerySet`` for the related field. If manually instantiated you **must**
-provide the ``queryset`` kwarg.
+If automatically instantiated, :class:`~django_filters.filters.ModelChoiceFilter` will use the default
+:class:`~django.db.models.query.QuerySet` for the related field. If manually instantiated you **must**
+provide the :class:`~django.db.models.query.QuerySet` kwarg.
 
 Example::
 
@@ -340,8 +332,8 @@ Example::
             model = Book
             fields = ['author']
 
-The ``queryset`` argument also supports callable behavior. If a callable is
-passed, it will be invoked with ``Filterset.request`` as its only argument.
+The :class:`~django.db.models.query.QuerySet` argument also supports callable behavior. If a callable is
+passed, it will be invoked with ``FilterSet.request`` as its only argument.
 This allows you to easily filter by properties on the request object without
 having to override the ``FilterSet.__init__``.
 
@@ -363,16 +355,17 @@ having to override the ``FilterSet.__init__``.
         ...
 
 
-``ModelMultipleChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: ModelMultipleChoiceFilter
 
-Similar to a ``MultipleChoiceFilter`` except it works with related models, used
-for ``ManyToManyField`` by default.
+Similar to a :class:`~django_filters.filters.MultipleChoiceFilter` except it works
+with related models, used for :class:`~django.db.models.ManyToManyField` by default.
 
-As with ``ModelChoiceFilter``, if automatically instantiated,
-``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
-field. If manually instantiated you **must** provide the ``queryset`` kwarg.
-Like ``ModelChoiceFilter``, the ``queryset`` argument has callable behavior.
+As with :class:`~django_filters.filters.ModelChoiceFilter`, if automatically instantiated,
+:class:`~django_filters.filters.ModelMultipleChoiceFilter` will use the default
+:class:`~django.db.models.query.QuerySet` for the related field. If manually instantiated
+you **must** provide the :class:`~django.db.models.query.QuerySet` kwarg. Like
+:class:`~django_filters.filters.ModelChoiceFilter`, the
+:class:`~django.db.models.query.QuerySet` argument has callable behavior.
 
 To use a custom field name for the lookup, you can use ``to_field_name``::
 
@@ -420,26 +413,25 @@ QuerySet, which then gets used as the model's manager::
         objects = CustomQuerySet.as_manager()
 
 
-``NumberFilter``
-~~~~~~~~~~~~~~~~
+.. class:: NumberFilter
 
-Filters based on a numerical value, used with ``IntegerField``, ``FloatField``,
-and ``DecimalField`` by default.
+Filters based on a numerical value, used with :class:`~django.db.models.IntegerField`,
+:class:`~django.db.models.FloatField`, and :class:`~django.db.models.DecimalField` by default.
 
 .. method:: NumberFilter.get_max_validator()
 
-    Return a ``MaxValueValidator`` instance that will be added to
-    ``field.validators``. By default uses a limit value of ``1e50``. Return
-    ``None`` to disable maximum value validation.
+    Return a :class:`~django.core.validators.MaxValueValidator` instance that will
+    be added to :attr:`django.forms.Field.validators`. By default uses a limit value
+    of ``1e50``. Return ``None`` to disable maximum value validation.
 
-``NumericRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~
+.. class:: NumericRangeFilter
 
 Filters where a value is between two numerical values, or greater than a minimum or less
 than a maximum where only one limit value is provided. This filter is designed to work
-with the Postgres Numerical Range Fields, including ``IntegerRangeField``,
-``BigIntegerRangeField`` and ``FloatRangeField`` (available since Django 1.8). The default
-widget used is the ``RangeField``.
+with the Postgres Numerical Range Fields, including :class:`~django.contrib.postgres.fields.IntegerRangeField`,
+:class:`~django.contrib.postgres.fields.BigIntegerRangeField` and
+:class:`~django.contrib.postgres.fields.FloatRangeField` (available since Django 1.8). The default
+widget used is the :class:`~django_filters.widgets.RangeWidget`.
 
 Regular field lookups are available in addition to several containment lookups, including
 ``overlap``, ``contains``, and ``contained_by``. More details in the Django `docs`__.
@@ -449,8 +441,7 @@ __ https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#queryin
 If the lower limit value is provided, the filter automatically defaults to ``startswith``
 as the lookup and ``endswith`` if only the upper limit value is provided.
 
-``RangeFilter``
-~~~~~~~~~~~~~~~
+.. class:: RangeFilter
 
 Filters where a value is between two numerical values, or greater than a minimum or less than a maximum where only one limit value is provided. ::
 
@@ -474,18 +465,20 @@ Filters where a value is between two numerical values, or greater than a minimum
     f = F({'price_max': '19'}, queryset=qs)
 
 
-``DateRangeFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: DateRangeFilter
 
 Filter similar to the admin changelist date one, it has a number of common
 selections for working with date fields.
 
-``DateFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField``. It also works with ``DateTimeField``, but takes into consideration only the date.
+.. class:: DateFromToRangeFilter
 
-Example of using the ``DateField`` field::
+Similar to a :class:`~django_filters.filters.RangeFilter` except it uses dates
+instead of numerical values. It can be used with :class:`~django.db.models.DateField`.
+It also works with :class:`~django.db.models.DateTimeField`, but takes into consideration
+only the date.
+
+Example of using the :class:`~django.db.models.DateField` field::
 
     class Comment(models.Model):
         date = models.DateField()
@@ -508,14 +501,14 @@ Example of using the ``DateField`` field::
     f = F({'date_before': '2016-02-01'})
 
 .. note::
-    When filtering ranges that occurs on DST transition dates ``DateFromToRangeFilter`` will use the first valid hour of the day for start datetime and the last valid hour of the day for end datetime.
-    This is OK for most applications, but if you want to customize this behavior you must extend ``DateFromToRangeFilter`` and make a custom field for it.
+    When filtering ranges that occurs on DST transition dates :class:`~django_filters.filters.DateFromToRangeFilter` will use the first valid hour of the day for start datetime and the last valid hour of the day for end datetime.
+    This is OK for most applications, but if you want to customize this behavior you must extend :class:`~django_filters.filters.DateFromToRangeFilter` and make a custom field for it.
 
 .. warning::
     If you're using Django prior to 1.9 you may hit ``AmbiguousTimeError`` or ``NonExistentTimeError`` when start/end date matches DST start/end respectively.
     This occurs because versions before 1.9 don't allow to change the DST behavior for making a datetime aware.
 
-Example of using the ``DateTimeField`` field::
+Example of using the :class:`~django.db.models.DateTimeField` field::
 
     class Article(models.Model):
         published = models.DateTimeField()
@@ -543,10 +536,10 @@ Example of using the ``DateTimeField`` field::
     f = F({'published_before': '2016-02-01'})
     assert len(f.qs) == 2
 
-``DateTimeFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: DateTimeFromToRangeFilter
 
-Similar to a ``RangeFilter`` except it uses datetime format values instead of numerical values. It can be used with ``DateTimeField``.
+Similar to a :class:`~django_filters.filters.RangeFilter` except it uses datetime
+format values instead of numerical values. It can be used with :class:`~django.db.models.DateTimeField`.
 
 Example::
 
@@ -576,10 +569,11 @@ Example::
     f = F({'published_before': '2016-01-01 10:00'})
     assert len(f.qs) == 2
 
-``IsoDateTimeFromToRangeFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: IsoDateTimeFromToRangeFilter
 
-Similar to a ``RangeFilter`` except it uses ISO 8601 formatted values instead of numerical values. It can be used with ``IsoDateTimeField``.
+Similar to a :class:`~django_filters.filters.RangeFilter` except it uses ISO 8601
+formatted values instead of numerical values. It can be used with
+:class:`~django_filters.fields.IsoDateTimeField`.
 
 Example::
 
@@ -609,10 +603,10 @@ Example::
     f = F({'published_before': '2016-01-01T10:00:00+0100'})
     assert len(f.qs) == 2
 
-``TimeRangeFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: TimeRangeFilter
 
-Similar to a ``RangeFilter`` except it uses time format values instead of numerical values. It can be used with ``TimeField``.
+Similar to a :class:`~django_filters.filters.RangeFilter` except it uses time
+format values instead of numerical values. It can be used with :class:`~django.db.models.TimeField`.
 
 Example::
 
@@ -636,26 +630,22 @@ Example::
     # Max-Only: Comments added before 10:00
     f = F({'time_before': '10:00'})
 
-``AllValuesFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: AllValuesFilter
 
-This is a ``ChoiceFilter`` whose choices are the current values in the
+This is a :class:`~django_filters.filters.ChoiceFilter` whose choices are the current values in the
 database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
-``AllValuesMultipleFilter``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: AllValuesMultipleFilter
 
-This is a ``MultipleChoiceFilter`` whose choices are the current values in the
+This is a :class:`~django_filters.filters.MultipleChoiceFilter` whose choices are the current values in the
 database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
 .. _lookup-choice-filter:
-
-``LookupChoiceFilter``
-~~~~~~~~~~~~~~~~~~~~~~
+.. class:: LookupChoiceFilter
 
 A combined filter that allows users to select the lookup expression from a dropdown.
 
@@ -678,9 +668,7 @@ ex::
     )
 
 .. _base-in-filter:
-
-``BaseInFilter``
-~~~~~~~~~~~~~~~~
+.. class:: BaseInFilter
 
 This is a base class used for creating IN lookup filters. It is expected that
 this filter class is used in conjunction with another filter class, as this
@@ -707,8 +695,7 @@ Example::
     f = F({'id__in': '1,3'})
     assert len(f.qs) == 2
 
-``BaseRangeFilter``
-~~~~~~~~~~~~~~~~~~~
+.. class:: BaseRangeFilter
 
 This is a base class used for creating RANGE lookup filters. It behaves
 identically to ``BaseInFilter`` with the exception that it expects only two
@@ -736,19 +723,18 @@ Example::
 
 
 .. _ordering-filter:
+.. class:: OrderingFilter
 
-``OrderingFilter``
-~~~~~~~~~~~~~~~~~~
-
-Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
-two additional arguments that are used to build the ordering choices.
+Enable queryset ordering. As an extension of :class:`~django_filters.filters.ChoiceFilter`
+it accepts two additional arguments that are used to build the ordering choices.
 
 * ``fields`` is a mapping of {model field name: parameter name}. The
   parameter names are exposed in the choices and mask/alias the field
-  names used in the ``order_by()`` call. Similar to field ``choices``,
-  ``fields`` accepts the 'list of two-tuples' syntax that retains order.
-  ``fields`` may also just be an iterable of strings. In this case, the
-  field names simply double as the exposed parameter names.
+  names used in the :meth:`~django.db.models.query.QuerySet.order_by` call.
+  Similar to field :attr:`~django.db.models.Field.choices`, ``fields``
+  accepts the 'list of two-tuples' syntax that retains order. ``fields``
+  may also just be an iterable of strings. In this case, the field names
+  simply double as the exposed parameter names.
 
 * ``field_labels`` is an optional argument that allows you to customize
   the display label for the corresponding parameter. It accepts a mapping
@@ -814,7 +800,7 @@ for APIs. ``SelectMultiple`` widgets are not compatible, given that they
 are not able to retain selection order.
 
 Adding Custom filter choices
-""""""""""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you wish to sort by non-model fields, you'll need to add custom handling to an
 ``OrderingFilter`` subclass. For example, if you want to sort by a computed

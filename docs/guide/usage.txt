@@ -29,7 +29,7 @@ The filter
 ----------
 
 We have a number of fields and we want to let our users filter based on the
-name, the price or the release_date.  We create a ``FilterSet`` for this::
+name, the price or the release_date.  We create a :class:`~django_filters.filterset.FilterSet` for this::
 
     import django_filters
 
@@ -41,8 +41,8 @@ name, the price or the release_date.  We create a ``FilterSet`` for this::
             fields = ['price', 'release_date']
 
 
-As you can see this uses a very similar API to Django's ``ModelForm``.  Just
-like with a ``ModelForm`` we can also override filters, or add new ones using a
+As you can see this uses a very similar API to Django's :class:`~django.forms.ModelForm`. Just
+like with a :class:`~django.forms.ModelForm` we can also override filters, or add new ones using a
 declarative syntax.
 
 Declaring filters
@@ -50,7 +50,8 @@ Declaring filters
 
 The declarative syntax provides you with the most flexibility when creating
 filters, however it is fairly verbose. We'll use the below example to outline
-the :ref:`core filter arguments <core-arguments>` on a ``FilterSet``::
+the :ref:`core filter arguments <core-arguments>` on a :class:`~django_filters.filterset.FilterSet`::
+
 
     class ProductFilter(django_filters.FilterSet):
         price = django_filters.NumberFilter()
@@ -72,18 +73,15 @@ There are two main arguments for filters:
 - ``field_name``: The name of the model field to filter on. You can traverse
   "relationship paths" using Django's ``__`` syntax to filter fields on a
   related model. ex, ``manufacturer__name``.
-- ``lookup_expr``: The `field lookup`_ to use when filtering. Django's ``__``
-  syntax can again be used in order to support lookup transforms.
-  ex, ``year__gte``.
+- ``lookup_expr``: The :ref:`field lookup <django:field-lookups>` to use when filtering.
+  Django's ``__`` syntax can again be used in order to support lookup transforms. ex, ``year__gte``.
 
 .. _`field lookup`: https://docs.djangoproject.com/en/stable/ref/models/querysets/#field-lookups
 
 Together, the field ``field_name`` and ``lookup_expr`` represent a complete Django
 lookup expression. A detailed explanation of lookup expressions is provided in
-Django's `lookup reference`_. django-filter supports expressions containing
-both transforms and a final lookup.
-
-.. _`lookup reference`: https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
+Django's :mod:`lookup reference <django.db.models.lookups>`. django-filter supports
+expressions containing both transforms and a final lookup.
 
 
 Generating filters with Meta.fields
@@ -139,7 +137,7 @@ related model::
 Overriding default filters
 """"""""""""""""""""""""""
 
-Like ``django.contrib.admin.ModelAdmin``, it is possible to override
+Like :class:`django.contrib.admin.ModelAdmin`, it is possible to override
 default filters for all the models fields of the same kind using
 ``filter_overrides`` on the ``Meta`` class::
 
@@ -170,10 +168,10 @@ default filters for all the models fields of the same kind using
 Request-based filtering
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``FilterSet`` may be initialized with an optional ``request`` argument. If
-a request object is passed, then you may access the request during filtering.
-This allows you to filter by properties on the request, such as the currently
-logged-in user or the ``Accepts-Languages`` header.
+The :class:`~django_filters.filterset.FilterSet` may be initialized with an
+optional ``request`` argument. If a request object is passed, then you may access
+the request during filtering. This allows you to filter by properties on the request,
+such as the currently logged-in user or the ``Accepts-Languages`` header.
 
 .. note::
 
@@ -209,10 +207,11 @@ those that are published and those that are owned by the logged-in user
 Filtering the related queryset for ``ModelChoiceFilter``
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The ``queryset`` argument for ``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter``
-supports callable behavior. If a callable is passed, it will be invoked with the
-``request`` as its only argument. This allows you to perform the same kinds of
-request-based filtering without resorting to overriding ``FilterSet.__init__``.
+The ``queryset`` argument for :class:`~django_filters.filters.ModelChoiceFilter` and
+:class:`~django_filters.filters.ModelMultipleChoiceFilter` supports callable behavior.
+If a callable is passed, it will be invoked with the ``request`` as its only argument.
+This allows you to perform the same kinds of request-based filtering without resorting
+to overriding ``FilterSet.__init__``.
 
 .. code-block:: python
 
@@ -277,7 +276,9 @@ We need a URL pattern to call the view::
 The template
 ------------
 
-And lastly we need a template::
+And lastly we need a template:
+
+.. code-block:: django
 
     {% extends "base.html" %}
 

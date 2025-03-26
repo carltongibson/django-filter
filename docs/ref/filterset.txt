@@ -2,7 +2,15 @@
 FilterSet Options
 =================
 
+.. module:: django_filters.filterset
+   :synopsis: FilterSet features and options.
+
+.. currentmodule:: django_filters.filterset
+
 This document provides a guide on using additional FilterSet features.
+
+
+.. class:: FilterSet
 
 Meta options
 ------------
@@ -21,12 +29,10 @@ Automatic filter generation with ``model``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``FilterSet`` is capable of automatically generating filters for a given
-``model``'s fields. Similar to Django's ``ModelForm``, filters are created
+``model``'s fields. Similar to Django's :class:`~django.forms.ModelForm`, filters are created
 based on the underlying model field's type. This option must be combined with
 either the ``fields`` or ``exclude`` option, which is the same requirement for
-Django's ``ModelForm`` class, detailed `here`__.
-
-__ https://docs.djangoproject.com/en/stable/topics/forms/modelforms/#selecting-the-fields-to-use
+Django's :class:`~django.forms.ModelForm` class, detailed :ref:`here <modelforms-selecting-fields>`.
 
 .. code-block:: python
 
@@ -68,13 +74,12 @@ the ``FilterSet``. The ``fields`` option accepts two syntaxes:
 The list syntax will create an ``exact`` lookup filter for each field included
 in ``fields``. The dictionary syntax will create a filter for each lookup
 expression declared for its corresponding model field. These expressions may
-include both transforms and lookups, as detailed in the `lookup reference`__.
-
-__ https://docs.djangoproject.com/en/stable/ref/models/lookups/#module-django.db.models.lookups
+include both transforms and lookups, as detailed in the
+:mod:`lookup reference <django.db.models.lookups>`.
 
 Note that it is **not** necessary to include declared filters in a ``fields``
-list - doing so will only affect the order in which fields appear on a FilterSet's form.  Including declarative aliases in a
-``fields`` dict will raise an error.
+list - doing so will only affect the order in which fields appear on a FilterSet's form.
+Including declarative aliases in a ``fields`` dict will raise an error.
 
 .. code-block:: python
 
@@ -116,7 +121,7 @@ Custom Forms using ``form``
 
 The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
 form class from which ``FilterSet.form`` will subclass.  This works similar to
-the ``form`` option on a ``ModelAdmin.``
+the ``form`` option on a :class:`~django.contrib.admin.ModelAdmin`.
 
 
 .. _filter_overrides:
@@ -149,10 +154,11 @@ This is a map of model fields to filter classes with options::
 
 
 
-A possible usecase would be creating a custom filter to be able to filter on ``FileFields``
-(``FileField`` filtering is hard to define in a generalised way, which is why there is no ``FileFilter``).
+A possible usecase would be creating a custom filter to be able to filter on a
+:class:`~django.db.models.FileField` (This is hard to define in a generalised way,
+which is why there is no ``FileFilter``).
 
-This example shows an override used to filter on a ``FileField``::
+This example shows an override used to filter on a :class:`~django.db.models.FileField`::
 
     class Questionnaire(models.Model):
         file = models.FileField(upload_to=questionnaire_path)
@@ -200,7 +206,7 @@ Overriding ``FilterSet`` methods
 --------------------------------
 
 When overriding classmethods, calling ``super(MyFilterSet, cls)`` may result
-in a ``NameError`` exception. This is due to the ``FilterSetMetaclass`` calling
+in a :exc:`NameError` exception. This is due to the ``FilterSetMetaclass`` calling
 these classmethods before the ``FilterSet`` class has been fully created.
 There are two recommmended workarounds:
 
@@ -219,8 +225,8 @@ There are two recommmended workarounds:
             model = Product
             fields = ['...']
 
-``filter_for_lookup()``
-~~~~~~~~~~~~~~~~~~~~~~~
+
+.. method:: FilterSet.filter_for_lookup
 
 Prior to version 0.13.0, filter generation did not take into account the
 ``lookup_expr`` used. This commonly caused malformed filters to be generated
@@ -255,6 +261,8 @@ filters for a model field, you can override ``filter_for_lookup()``. Ex::
 
 Using ``filterset_factory``
 ---------------------------
+
+.. function:: filterset_factory
 
 A ``FilterSet`` for a ``model`` can also be created by the
 ``filterset_factory``, which creates a ``FilterSet`` with the ``model`` set in

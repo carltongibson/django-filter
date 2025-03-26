@@ -2,14 +2,19 @@
 Widget Reference
 ================
 
+.. module:: django_filters.widgets
+   :synopsis: Provided form widgets and their arguments.
+
+.. currentmodule:: django_filters.widgets
+
+
 This is a reference document with a list of the provided widgets and their
 arguments.
 
 
 .. _link-widget:
 
-``LinkWidget``
-~~~~~~~~~~~~~~
+.. class:: LinkWidget
 
 This widget renders each option as a link, instead of an actual <input>.  It has
 one method that you can override for additional customizability.
@@ -24,13 +29,11 @@ placeholders:
 
 
 .. _boolean-widget:
-
-``BooleanWidget``
-~~~~~~~~~~~~~~~~~
+.. class:: BooleanWidget
 
 This widget converts its input into Python's True/False values. It will convert
 all case variations of ``True`` and ``False`` into the internal Python values.
-To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``:
+To use it, pass this into the ``widgets`` argument of the :class:`~django_filters.filters.BooleanFilter`:
 
 .. code-block:: python
 
@@ -38,9 +41,7 @@ To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``:
 
 
 .. _csv-widget:
-
-``CSVWidget``
-~~~~~~~~~~~~~
+.. class:: CSVWidget
 
 This widget expects a comma separated value and converts it into a list of
 string values. It is expected that the field class handle a list of values as
@@ -48,26 +49,23 @@ well as type conversion.
 
 
 .. _range-widget:
+.. class:: RangeWidget
 
-``RangeWidget``
-~~~~~~~~~~~~~~~
-
-This widget is used with ``RangeFilter`` and its subclasses. It generates two
-form input elements which generally act as start/end values in a range.
-Under the hood, it is Django's ``forms.TextInput`` widget and accepts
-the same arguments and values. To use it, pass it to ``widget`` argument of
-a ``RangeField``:
+This widget is used with :class:`~django_filters.filters.RangeFilter` and its
+subclasses. It generates two form input elements which generally act as start/end
+values in a range. Under the hood, it is Django's :class:`~django.forms.TextInput` widget and
+accepts the same arguments and values. To use it, pass it to ``widget`` argument of
+a :class:`~django_filters.filters.RangeFilter`:
 
 .. code-block:: python
 
   date_range = DateFromToRangeFilter(widget=RangeWidget(attrs={'placeholder': 'YYYY/MM/DD'}))
 
 
-``SuffixedMultiWidget``
-~~~~~~~~~~~~~~~~~~~~~~~
+.. class:: SuffixedMultiWidget
 
-Extends Django's builtin ``MultiWidget`` to append custom suffixes instead of
-indices. For example, take a range widget that accepts minimum and maximum
+Extends Django's builtin :class:`~django.forms.MultiWidget` to append custom suffixes
+instead of indices. For example, take a range widget that accepts minimum and maximum
 bounds. By default, the resulting query params would look like the following:
 
 .. code-block:: http
