@@ -29,6 +29,13 @@ from .filters import (
 )
 from .utils import get_all_model_fields, get_model_field, resolve_field, try_dbfield
 
+try:
+    from django.db.models import GeneratedField
+except ImportError:
+    DJANGO_50 = False
+else:
+    DJANGO_50 = True
+
 
 def remote_queryset(field):
     """
@@ -396,6 +403,13 @@ class BaseFilterSet:
     def filter_for_field(cls, field, field_name, lookup_expr=None):
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
+
+        # Handle GeneratedFields
+        if DJANGO_50 and isinstance(field, GeneratedField):
+            new_field = field.output_field
+            new_field.model = field.model
+            field = new_field
+
         field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {
