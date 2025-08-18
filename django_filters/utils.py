@@ -201,7 +201,7 @@ def resolve_field(model_field, lookup_expr):
     https://docs.djangoproject.com/en/stable/ref/models/lookups/
 
     """
-    query = model_field.model._default_manager.all().query
+    query = model_field.model._default_manager.none().query
     lhs = Expression(model_field)
     lookups = lookup_expr.split(LOOKUP_SEP)
 
