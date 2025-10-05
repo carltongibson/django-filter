@@ -1,3 +1,12 @@
+Version 25.2 (UNRELEASED)
+-------------------------
+
+* Added testing for Django 6.0.
+
+* Dropped support for Django <5.2 LTS
+
+* Dropped support for Python 3.9.
+
 Version 25.1 (2025-02-14)
 -------------------------
 
