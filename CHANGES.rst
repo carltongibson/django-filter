@@ -1,4 +1,4 @@
-Version 25.2 (UNRELEASED)
+Version 25.2 (2025-10-05)
 -------------------------
 
 * Added testing for Django 6.0.
