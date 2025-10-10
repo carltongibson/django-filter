@@ -463,9 +463,9 @@ class VerboseFieldNameTests(TestCase):
         verbose_name = verbose_field_name(User, "article_set")
         self.assertEqual(verbose_name, "[invalid name]")
 
-        # WRONG NAME! Returns ManyToOneRel with related_name == None.
+        # Returns ManyToOneRel with related_name == article.
         verbose_name = verbose_field_name(User, "article")
-        self.assertEqual(verbose_name, "[invalid name]")
+        self.assertEqual(verbose_name, "article")
 
 
 class VerboseLookupExprTests(TestCase):
