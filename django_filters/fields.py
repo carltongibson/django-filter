@@ -315,6 +315,14 @@ class ModelMultipleChoiceField(ChoiceIteratorMixin, forms.ModelMultipleChoiceFie
     iterator = ModelChoiceIterator
 
     def _check_values(self, value):
+        formatted_value = []
+        for i, v in enumerate(value):
+            if type(v) == str and ',' in v:
+                formatted_value += re.split(' *, *', v)
+            else:
+                formatted_value.append(v)
+        value = list(set(v for v in formatted_value if v))
+
         null = self.null_label is not None and value and self.null_value in value
         if null:  # remove the null value and any potential duplicates
             value = [v for v in value if v != self.null_value]
