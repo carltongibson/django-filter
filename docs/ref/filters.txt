@@ -184,6 +184,36 @@ This filter matches UUID values, used with :class:`~django.db.models.UUIDField` 
 This filter matches a boolean, either ``True`` or ``False``, used with
 :class:`~django.db.models.BooleanField` and ``NullBooleanField`` by default.
 
+.. class:: NullFilter
+
+This filter checks whether a field is ``NULL`` or not based on a boolean value.
+It uses the ``isnull`` lookup expression and is useful for filtering records
+with null/empty datetime fields (such as soft-delete timestamps).
+
+The filter accepts a boolean value:
+
+* ``true`` - matches records where the field IS NULL
+* ``false`` - matches records where the field IS NOT NULL
+
+Example usage::
+
+    class Article(models.Model):
+        title = models.CharField(max_length=100)
+        deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class ArticleFilter(django_filters.FilterSet):
+        is_deleted = NullFilter(field_name='deleted_at')
+
+        class Meta:
+            model = Article
+            fields = []
+
+    # Filter for deleted articles (deleted_at IS NULL)
+    f = ArticleFilter({'is_deleted': 'true'})
+
+    # Filter for active articles (deleted_at IS NOT NULL)
+    f = ArticleFilter({'is_deleted': 'false'})
+
 .. _choice-filter:
 .. class:: ChoiceFilter
 

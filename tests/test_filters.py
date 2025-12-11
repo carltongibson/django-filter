@@ -49,7 +49,11 @@ from django_filters.filters import (
     TypedMultipleChoiceFilter,
     UUIDFilter,
 )
+from django_filters.filters import NullFilter 
 from tests.models import Book, User
+from django_filters import FilterSet
+from django.db import models
+
 
 
 class ModuleImportTests(TestCase):
@@ -1727,3 +1731,44 @@ class OrderingFilterTests(TestCase):
         # regression test for #756 - the usual CSV help_text is not relevant to ordering filters.
         self.assertEqual(OrderingFilter().field.help_text, "")
         self.assertEqual(OrderingFilter(help_text="a").field.help_text, "a")
+
+"""
+Null filter tests
+"""
+
+
+class TempModel(models.Model):
+    title = models.CharField(max_length=100)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+
+class NullFilterTests(TestCase):
+
+    class TempFilter(FilterSet):
+        deleted = NullFilter(field_name="deleted_at")
+
+        class Meta:
+            model = TempModel
+            fields = []
+
+    def test_nullfilter_true(self):
+        item1 = TempModel.objects.create(title="A", deleted_at=None)
+        item2 = TempModel.objects.create(title="B", deleted_at="2025-01-01")
+
+        f = self.TempFilter({"deleted": "true"}, queryset=TempModel.objects.all())
+        qs = f.qs
+
+        self.assertEqual(qs.count(), 1)
+        self.assertIn(item1, qs)
+        self.assertNotIn(item2, qs)
+
+    def test_nullfilter_false(self):
+        item1 = TempModel.objects.create(title="A", deleted_at=None)
+        item2 = TempModel.objects.create(title="B", deleted_at="2025-01-01")
+
+        f = self.TempFilter({"deleted": "false"}, queryset=TempModel.objects.all())
+        qs = f.qs
+
+        self.assertEqual(qs.count(), 1)
+        self.assertIn(item2, qs)
+        self.assertNotIn(item1, qs)
