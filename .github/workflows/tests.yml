@@ -16,7 +16,7 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
@@ -38,7 +38,7 @@ jobs:
           coverage report --show-missing
           mv .coverage .coverage.${{ matrix.python-version }}
       - name: Store coverage file
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           include-hidden-files: true
           name: coverage-${{ matrix.python-version }}
@@ -63,9 +63,9 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         id: download
         with:
           pattern: coverage-*
@@ -79,7 +79,7 @@ jobs:
           MERGE_COVERAGE_FILES: true
 
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action
@@ -88,7 +88,7 @@ jobs:
   isort:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -109,7 +109,7 @@ jobs:
   warnings:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
