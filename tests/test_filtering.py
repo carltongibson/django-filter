@@ -50,7 +50,30 @@ from .models import (
     User,
 )
 from .utils import MockQuerySet
+import pytest
+from django_filters import filters
+from django_filters.filterset import FilterSet
+from tests.models import User
 
+class UserFilterTest(FilterSet):
+    is_active = filters.BooleanFilter(null_value="null")
+
+    class Meta:
+        model = User
+        fields = ["is_active"]
+
+
+@pytest.mark.django_db
+def test_none_value_treated_as_true():
+    User.objects.create(username="user1", is_active=True)
+    User.objects.create(username="user2", is_active=False)
+
+    f = UserFilterTest(
+        data={"is_active": None},
+        queryset=User.objects.all()
+    )
+
+    assert f.qs.count() == 2
 
 class CharFilterTests(TestCase):
     def test_filtering(self):
