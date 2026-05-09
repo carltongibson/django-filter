@@ -1,0 +1,15 @@
+# https://github.com/yesglot/yesglot.toml
+[yesglot]
+version = 1
+
+[project]
+id = "019e0a33-2e7d-7f33-b69b-84dc411144b7"
+technology = "django"
+tracked_branch = "main"
+
+[source_language]
+tag = "en"
+
+[[target_language]]
+tag = "ar"
+path = "django_filters/locale/ar/LC_MESSAGES/django.po"
