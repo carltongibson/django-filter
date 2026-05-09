@@ -15,9 +15,9 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
-"%100>=11 && n%100<=14)? 2 : 3);\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
+"(n%100>=11 && n%100<=14)? 2 : 3);\n"
 "X-Generator: Poedit 1.8.9\n"
 
 #: conf.py:16
@@ -90,7 +90,7 @@ msgstr "в диапазоне"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "is null"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"
@@ -122,7 +122,7 @@ msgstr "имеет любые ключи"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Выберите способ поиска."
 
 #: fields.py:198
 msgid "Range query expects two values."

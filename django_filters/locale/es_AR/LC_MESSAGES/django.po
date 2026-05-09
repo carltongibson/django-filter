@@ -44,95 +44,95 @@ msgstr "Hoy"
 
 #: conf.py:20
 msgid "week day"
-msgstr ""
+msgstr "día de la semana"
 
 #: conf.py:21
 msgid "hour"
-msgstr ""
+msgstr "hora"
 
 #: conf.py:22
 msgid "minute"
-msgstr ""
+msgstr "minuto"
 
 #: conf.py:23
 msgid "second"
-msgstr ""
+msgstr "segundo"
 
 #: conf.py:27 conf.py:28
 msgid "contains"
-msgstr ""
+msgstr "contiene"
 
 #: conf.py:29
 msgid "is in"
-msgstr ""
+msgstr "está en"
 
 #: conf.py:30
 msgid "is greater than"
-msgstr ""
+msgstr "es mayor que"
 
 #: conf.py:31
 msgid "is greater than or equal to"
-msgstr ""
+msgstr "es mayor o igual que"
 
 #: conf.py:32
 msgid "is less than"
-msgstr ""
+msgstr "es menor que"
 
 #: conf.py:33
 msgid "is less than or equal to"
-msgstr ""
+msgstr "es menor o igual que"
 
 #: conf.py:34 conf.py:35
 msgid "starts with"
-msgstr ""
+msgstr "empieza con"
 
 #: conf.py:36 conf.py:37
 msgid "ends with"
-msgstr ""
+msgstr "termina con"
 
 #: conf.py:38
 msgid "is in range"
-msgstr ""
+msgstr "está en el rango"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "es nulo"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"
-msgstr ""
+msgstr "coincide con regex"
 
 #: conf.py:42 conf.py:49
 msgid "search"
-msgstr ""
+msgstr "buscar"
 
 #: conf.py:44
 msgid "is contained by"
-msgstr ""
+msgstr "está contenido por"
 
 #: conf.py:45
 msgid "overlaps"
-msgstr ""
+msgstr "se solapa"
 
 #: conf.py:46
 msgid "has key"
-msgstr ""
+msgstr "tiene clave"
 
 #: conf.py:47
 msgid "has keys"
-msgstr ""
+msgstr "tiene claves"
 
 #: conf.py:48
 msgid "has any keys"
-msgstr ""
+msgstr "tiene alguna clave"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Selecciona una búsqueda."
 
 #: fields.py:198
 msgid "Range query expects two values."
-msgstr ""
+msgstr "La consulta de rango espera dos valores."
 
 #: filters.py:437
 msgid "Today"
@@ -140,7 +140,7 @@ msgstr "Hoy"
 
 #: filters.py:438
 msgid "Yesterday"
-msgstr ""
+msgstr "Ayer"
 
 #: filters.py:439
 msgid "Past 7 days"
@@ -156,30 +156,30 @@ msgstr "Este año"
 
 #: filters.py:543
 msgid "Multiple values may be separated by commas."
-msgstr ""
+msgstr "Los múltiples valores pueden separarse por comas."
 
 #: filters.py:721
 #, python-format
 msgid "%s (descending)"
-msgstr ""
+msgstr "%s (descendente)"
 
 #: filters.py:737
 msgid "Ordering"
-msgstr ""
+msgstr "Ordenamiento"
 
 #: rest_framework/filterset.py:33
 #: templates/django_filters/rest_framework/form.html:5
 msgid "Submit"
-msgstr ""
+msgstr "Enviar"
 
 #: templates/django_filters/rest_framework/crispy_form.html:4
 #: templates/django_filters/rest_framework/form.html:2
 msgid "Field filters"
-msgstr ""
+msgstr "Filtros de campo"
 
 #: utils.py:308
 msgid "exclude"
-msgstr ""
+msgstr "excluir"
 
 #: widgets.py:58
 msgid "All"
@@ -187,15 +187,15 @@ msgstr "Todos"
 
 #: widgets.py:162
 msgid "Unknown"
-msgstr ""
+msgstr "Desconocido"
 
 #: widgets.py:162
 msgid "Yes"
-msgstr ""
+msgstr "Sí"
 
 #: widgets.py:162
 msgid "No"
-msgstr ""
+msgstr "No"
 
 #~ msgid "This is an exclusion filter"
 #~ msgstr "Este es un filtro de exclusión"
