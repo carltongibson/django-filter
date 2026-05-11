@@ -19,7 +19,7 @@
 | django\_filters/utils.py                        |      147 |        1 |     99% |       242 |
 | django\_filters/views.py                        |       55 |        0 |    100% |           |
 | django\_filters/widgets.py                      |      160 |        0 |    100% |           |
-|                                       **TOTAL** | **1273** |   **13** | **99%** |           |
+| **TOTAL**                                       | **1273** |   **13** | **99%** |           |
 
 
 ## Setup coverage badge
