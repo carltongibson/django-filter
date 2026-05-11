@@ -120,7 +120,21 @@ class GenericClassBasedViewTests(GenericViewTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(titles, ["Snowcrash"])
+    
+    def test_get_queryset_works_without_explicit_model(self):
 
+        class TestView(FilterView):
+            filterset_class = filterset_factory(Book)
+            def get_queryset(self):
+                qs= super().get_queryset()
+                qs=qs.filter(title="Snowcrash")
+                return qs
+            
+        factory = RequestFactory()
+        request = factory.get(self.base_url)
+        view = TestView.as_view()
+        response = view(request)
+        assert response.context_data["object_list"].count() == 1
 
 class GenericFunctionalViewTests(GenericViewTestCase):
     base_url = "/books-legacy/"
