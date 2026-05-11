@@ -88,7 +88,7 @@ msgstr "είναι εντος του εύρους"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "είναι null"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"
@@ -120,7 +120,7 @@ msgstr "έχει οποιαδήποτε κλειδιά"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Επιλέξτε μια αναζήτηση."
 
 #: fields.py:198
 msgid "Range query expects two values."

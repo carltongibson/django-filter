@@ -88,7 +88,7 @@ msgstr "е в диапазона"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "е нула"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"

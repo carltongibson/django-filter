@@ -88,7 +88,7 @@ msgstr "ist im Bereich"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "ist null"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"
@@ -120,7 +120,7 @@ msgstr "hat beliebige Schlüssel"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Wähle eine Suche."
 
 #: fields.py:198
 msgid "Range query expects two values."
