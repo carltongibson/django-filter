@@ -123,8 +123,8 @@ class SuffixedMultiWidget(forms.MultiWidget):
         if value is None:
             return [None, None]
         return value
-
-
+    
+    
 class RangeWidget(SuffixedMultiWidget):
     template_name = "django_filters/widgets/multiwidget.html"
     suffixes = ["min", "max"]
@@ -138,9 +138,23 @@ class RangeWidget(SuffixedMultiWidget):
             return [value.start, value.stop]
         return [None, None]
 
-
-class DateRangeWidget(RangeWidget):
+    
+class DateInput(forms.DateInput):
+    input_type = 'date'
+    
+    
+class DateRangeWidget(SuffixedMultiWidget):
+    template_name = "django_filters/widgets/multiwidget.html"
     suffixes = ["after", "before"]
+
+    def __init__(self, attrs=None):
+        widgets = (DateInput, DateInput)
+        super().__init__(widgets=widgets, attrs=attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value.start, value.stop]
+        return [None, None]
 
 
 class LookupChoiceWidget(SuffixedMultiWidget):
