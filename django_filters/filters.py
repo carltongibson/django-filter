@@ -27,6 +27,7 @@ from .fields import (
     MultipleChoiceField,
     RangeField,
     TimeRangeField,
+    TypedChoiceField,
 )
 from .utils import get_model_field, label_for_filter
 
@@ -193,8 +194,8 @@ class ChoiceFilter(Filter):
         return qs.distinct() if self.distinct else qs
 
 
-class TypedChoiceFilter(Filter):
-    field_class = forms.TypedChoiceField
+class TypedChoiceFilter(ChoiceFilter):
+    field_class = TypedChoiceField
 
 
 class UUIDFilter(Filter):
