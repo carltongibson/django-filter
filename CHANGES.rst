@@ -1,3 +1,11 @@
+Version 26.1 (UNRELEASED)
+-------------------------
+
+* Added testing for Django 6.1.
+
+  DRF integration will require the upcoming DRF v3.18.
+  See https://github.com/encode/django-rest-framework/pull/9978
+
 Version 25.2 (2025-10-05)
 -------------------------
 
