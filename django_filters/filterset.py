@@ -8,6 +8,10 @@ from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.fields.related import ManyToManyRel, ManyToOneRel, OneToOneRel
 from django.http import QueryDict
+try:
+    from django.db.models import GeneratedField
+except ImportError:
+    GeneratedField = None
 
 from .conf import settings
 from .constants import ALL_FIELDS
@@ -396,6 +400,13 @@ class BaseFilterSet:
     def filter_for_field(cls, field, field_name, lookup_expr=None):
         if lookup_expr is None:
             lookup_expr = settings.DEFAULT_LOOKUP_EXPR
+
+        # Handle GeneratedField by extracting the underlying output_field
+        if GeneratedField is not None and isinstance(field, GeneratedField):
+            output_field = field.output_field
+            output_field.model = field.model
+            field = output_field
+
         field, lookup_type = resolve_field(field, lookup_expr)
 
         default = {

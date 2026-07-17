@@ -48,6 +48,10 @@ from .models import (
     Worker,
 )
 from .utils import MockQuerySet
+try:
+    from .models import Rectangle
+except ImportError:
+    Rectangle = None
 
 
 class HelperMethodsTests(TestCase):
@@ -207,6 +211,17 @@ class FilterSetFilterForFieldTests(TestCase):
         result = FilterSet.filter_for_field(f, "username")
         self.assertIsInstance(result, CharFilter)
         self.assertEqual(result.lookup_expr, "icontains")
+
+    def test_filter_found_for_generatedfield(self):
+        """Test that GeneratedField is properly handled by extracting output_field."""
+        if Rectangle is None:
+            self.skipTest("GeneratedField requires Django 5.0+")
+
+        f = Rectangle._meta.get_field("area")
+        result = FilterSet.filter_for_field(f, "area")
+        # GeneratedField with FloatField output should produce NumberFilter
+        self.assertIsInstance(result, NumberFilter)
+        self.assertEqual(result.field_name, "area")
 
     @unittest.skip("todo")
     def test_filter_overrides(self):

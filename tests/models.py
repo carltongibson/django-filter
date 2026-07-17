@@ -210,3 +210,23 @@ class SpacewalkRecord(models.Model):
 
     astronaut = models.CharField(max_length=100)
     duration = models.DurationField()
+
+
+# GeneratedField test model (Django 5.0+)
+try:
+    from django.db.models import GeneratedField
+    from django.db.models.functions import Round
+
+    class Rectangle(models.Model):
+        """Test model for GeneratedField support."""
+        width = models.FloatField()
+        height = models.FloatField()
+        area = GeneratedField(
+            expression=Round(models.F("width") * models.F("height"), precision=2),
+            output_field=models.FloatField(),
+            db_persist=True,
+        )
+
+except ImportError:
+    # GeneratedField not available (Django < 5.0)
+    Rectangle = None
