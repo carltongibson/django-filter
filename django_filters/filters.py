@@ -175,22 +175,31 @@ class CharFilter(Filter):
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
 
+    def __init__(self, *args, **kwargs):
+        
+        kwargs.pop("null_value", None)
+        super().__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        if value is None:
+            return qs
+        return super().filter(qs, value)
+
+
 
 class ChoiceFilter(Filter):
     field_class = ChoiceField
+
 
     def __init__(self, *args, **kwargs):
         self.null_value = kwargs.get("null_value", settings.NULL_CHOICE_VALUE)
         super().__init__(*args, **kwargs)
 
+    
     def filter(self, qs, value):
-        if value != self.null_value:
-            return super().filter(qs, value)
-
-        qs = self.get_method(qs)(
-            **{"%s__%s" % (self.field_name, self.lookup_expr): None}
-        )
-        return qs.distinct() if self.distinct else qs
+        if value == self.null_value:
+            return qs.filter(**{f"{self.field_name}__isnull": True})
+        return super().filter(qs, value)
 
 
 class TypedChoiceFilter(Filter):
@@ -372,9 +381,17 @@ class QuerySetRequestMixin:
 class ModelChoiceFilter(QuerySetRequestMixin, ChoiceFilter):
     field_class = ModelChoiceField
 
+    def filter(self, qs, value):
+        if value == self.null_value:
+          return qs.filter(**{f"{self.field_name}__isnull": True})
+        return super().filter(qs, value)
+    
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("empty_label", settings.EMPTY_CHOICE_LABEL)
         super().__init__(*args, **kwargs)
+
+    
 
 
 class ModelMultipleChoiceFilter(QuerySetRequestMixin, MultipleChoiceFilter):
