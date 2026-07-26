@@ -46,6 +46,7 @@ from django_filters.filters import (
     RangeFilter,
     TimeFilter,
     TimeRangeFilter,
+    TypedChoiceFilter,
     TypedMultipleChoiceFilter,
     UUIDFilter,
 )
@@ -341,6 +342,53 @@ class ChoiceFilterTests(TestCase):
         self.assertEqual(
             list(f.field.choices),
             [
+                ("a", "a"),
+            ],
+        )
+
+    def test_null_typedchoice(self):
+        # TypedChoiceFilter should support null_label/null_value, same as
+        # ChoiceFilter, since it inherits from it.
+        # default is to be disabled
+        f = TypedChoiceFilter(
+            choices=[("a", "a")],
+        )
+        self.assertEqual(
+            list(f.field.choices),
+            [
+                ("", "---------"),
+                ("a", "a"),
+            ],
+        )
+
+        # set label, allow blank label
+        f = TypedChoiceFilter(choices=[("a", "a")], null_label="")
+        self.assertEqual(
+            list(f.field.choices),
+            [
+                ("", "---------"),
+                ("null", ""),
+                ("a", "a"),
+            ],
+        )
+
+        # set null value
+        f = TypedChoiceFilter(choices=[("a", "a")], null_value="NULL", null_label="")
+        self.assertEqual(
+            list(f.field.choices),
+            [
+                ("", "---------"),
+                ("NULL", ""),
+                ("a", "a"),
+            ],
+        )
+
+        # explicitly disable
+        f = TypedChoiceFilter(choices=[("a", "a")], null_label=None)
+        self.assertEqual(
+            list(f.field.choices),
+            [
+                ("", "---------"),
                 ("a", "a"),
             ],
         )

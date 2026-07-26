@@ -293,6 +293,14 @@ class ChoiceField(ChoiceIteratorMixin, forms.ChoiceField):
         super().__init__(*args, **kwargs)
 
 
+class TypedChoiceField(ChoiceIteratorMixin, forms.TypedChoiceField):
+    iterator = ChoiceIterator
+
+    def __init__(self, *args, **kwargs):
+        self.empty_label = kwargs.pop("empty_label", settings.EMPTY_CHOICE_LABEL)
+        super().__init__(*args, **kwargs)
+
+
 class MultipleChoiceField(ChoiceIteratorMixin, forms.MultipleChoiceField):
     iterator = ChoiceIterator
 
