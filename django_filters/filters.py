@@ -69,6 +69,7 @@ __all__ = [
     "TypedChoiceFilter",
     "TypedMultipleChoiceFilter",
     "UUIDFilter",
+    "NullFilter",
 ]
 
 
@@ -174,6 +175,25 @@ class CharFilter(Filter):
 
 class BooleanFilter(Filter):
     field_class = forms.NullBooleanField
+
+
+class NullFilter(BooleanFilter):
+    """
+    Here the fitler checks wheather a field is null or not based on the boolean value provided.
+
+    usage: deleted=Nullfilter(field_name='deleted_at')
+
+    query params:
+        ?deleted=true -> feild is Null
+        ?deleted=false -> field is not Null
+    
+    """
+    def filter(self, qs, value):
+        if value is None:
+            return qs
+        
+        lookup=f"{self.field_name}__isnull"
+        return qs.filter(**{lookup: bool(value)})
 
 
 class ChoiceFilter(Filter):
