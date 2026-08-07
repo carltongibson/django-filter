@@ -371,7 +371,7 @@ To use a custom field name for the lookup, you can use ``to_field_name``::
 
     class FooFilter(BaseFilterSet):
         foo = django_filters.filters.ModelMultipleChoiceFilter(
-            field_name='attr__uuid',
+            field_name='attr',
             to_field_name='uuid',
             queryset=Foo.objects.all(),
         )
