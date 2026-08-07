@@ -6,6 +6,7 @@ from unittest import mock
 
 import django
 from django import forms
+from django.db.models import F
 from django.test import TestCase, override_settings
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -1573,6 +1574,18 @@ class OrderingFilterTests(TestCase):
         f = OrderingFilter(fields={"a": "b"})
         f.filter(qs, ["b", "-b"])
         qs.order_by.assert_called_once_with("a", "-a")
+
+    def test_filtering_with_query_expression(self):
+        qs = mock.Mock(spec=["order_by"])
+        f = OrderingFilter(fields=((F("a"), "a"),))
+        f.filter(qs, ["a"])
+        qs.order_by.assert_called_once_with(F("a"))
+
+    def test_filtering_with_query_expression_descending(self):
+        qs = mock.Mock(spec=["order_by"])
+        f = OrderingFilter(fields=((F("a"), "a"),))
+        f.filter(qs, ["-a"])
+        qs.order_by.assert_called_once_with(F("a").desc())
 
     def test_filtering_skipped_with_none_value(self):
         qs = mock.Mock(spec=["order_by"])

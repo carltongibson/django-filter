@@ -723,8 +723,10 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
       parameter names are exposed in the choices and mask/alias the field
       names used in the ``order_by()`` call. Similar to field ``choices``,
       ``fields`` accepts the 'list of two-tuples' syntax that retains order.
-      ``fields`` may also just be an iterable of strings. In this case, the
-      field names simply double as the exposed parameter names.
+      The two-tuples syntax additionally allows for specifying query
+      expressions like ``Coalesce("summary", "headline")`` instead of field
+      names. ``fields`` may also just be an iterable of strings. In this case,
+      the field names simply double as the exposed parameter names.
 
     * ``field_labels`` is an optional argument that allows you to customize
       the display label for the corresponding parameter. It accepts a mapping
@@ -767,7 +769,13 @@ class OrderingFilter(BaseCSVFilter, ChoiceFilter):
         param = param[1:] if descending else param
         field_name = self.param_map.get(param, param)
 
-        return "-%s" % field_name if descending else field_name
+        if not descending:
+            return field_name
+        elif isinstance(field_name, str):
+            return "-%s" % field_name
+        else:
+            # assume field_name is a query expression
+            return field_name.desc()
 
     def filter(self, qs, value):
         if value in EMPTY_VALUES:
