@@ -1,6 +1,14 @@
 from django import forms
 from django.db import models
+from django.db.models import F
 from django.utils.translation import gettext_lazy as _
+
+try:
+    from django.db.models import GeneratedField
+except ImportError:
+    DJANGO_50 = False
+else:
+    DJANGO_50 = True
 
 REGULAR = 0
 MANAGER = 1
@@ -210,3 +218,14 @@ class SpacewalkRecord(models.Model):
 
     astronaut = models.CharField(max_length=100)
     duration = models.DurationField()
+
+
+if DJANGO_50:
+    class Rectangle(models.Model):
+        base = models.FloatField()
+        height = models.FloatField()
+        area = GeneratedField(
+            expression=F("base") * F("height"),
+            output_field=models.FloatField(),
+            db_persist=True,
+        )
