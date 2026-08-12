@@ -1,0 +1,190 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Hojiakbar Barotov barotovhojiakbar.me@gmail.com, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-25 11:47+0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Hojiakbar Barotov barotovhojiakbar.me@gmail.com\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: Uzbek \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: conf.py:16
+msgid "date"
+msgstr "sana"
+
+#: conf.py:17
+msgid "year"
+msgstr "yil"
+
+#: conf.py:18
+msgid "month"
+msgstr "oy"
+
+#: conf.py:19
+msgid "day"
+msgstr "kun"
+
+#: conf.py:20
+msgid "week day"
+msgstr "hafta kuni"
+
+#: conf.py:21
+msgid "hour"
+msgstr "soat"
+
+#: conf.py:22
+msgid "minute"
+msgstr "daqiqa"
+
+#: conf.py:23
+msgid "second"
+msgstr "soniya"
+
+#: conf.py:27 conf.py:28
+msgid "contains"
+msgstr "o'z ichiga oladi"
+
+#: conf.py:29
+msgid "is in"
+msgstr "ichida"
+
+#: conf.py:30
+msgid "is greater than"
+msgstr "dan katta"
+
+#: conf.py:31
+msgid "is greater than or equal to"
+msgstr "dan katta yoki teng"
+
+#: conf.py:32
+msgid "is less than"
+msgstr "dan kichik"
+
+#: conf.py:33
+msgid "is less than or equal to"
+msgstr "dan kichik yoki teng"
+
+#: conf.py:34 conf.py:35
+msgid "starts with"
+msgstr "bilan boshlanadi"
+
+#: conf.py:36 conf.py:37
+msgid "ends with"
+msgstr "bilan tugaydi"
+
+#: conf.py:38
+msgid "is in range"
+msgstr "diapazonida"
+
+#: conf.py:39
+msgid "is null"
+msgstr "mavjud emas"
+
+#: conf.py:40 conf.py:41
+msgid "matches regex"
+msgstr "regex'ga mos tushadi"
+
+#: conf.py:42 conf.py:49
+msgid "search"
+msgstr "qidiruv"
+
+#: conf.py:44
+msgid "is contained by"
+msgstr "quyidagilardan iborat"
+
+#: conf.py:45
+msgid "overlaps"
+msgstr "qoplaydi"
+
+#: conf.py:46
+msgid "has key"
+msgstr "kaliti bor"
+
+#: conf.py:47
+msgid "has keys"
+msgstr "kalitlari bor"
+
+#: conf.py:48
+msgid "has any keys"
+msgstr "biron kaliti bor"
+
+#: fields.py:101
+msgid "Select a lookup."
+msgstr "Qidiruvni tanlang."
+
+#: fields.py:205
+msgid "Range query expects two values."
+msgstr "Diapazon so‘rovi ikkita qiymatni kutadi."
+
+#: filters.py:446
+msgid "Today"
+msgstr "Bugun"
+
+#: filters.py:447
+msgid "Yesterday"
+msgstr "Kecha"
+
+#: filters.py:448
+msgid "Past 7 days"
+msgstr "Oxirgi 7 kun"
+
+#: filters.py:449
+msgid "This month"
+msgstr "Bu oy"
+
+#: filters.py:450
+msgid "This year"
+msgstr "Bu yil"
+
+#: filters.py:566
+msgid "Multiple values may be separated by commas."
+msgstr ""
+
+#: filters.py:744
+#, python-format
+msgid "%s (descending)"
+msgstr "%s (pasayish tartibida)"
+
+#: filters.py:760
+msgid "Ordering"
+msgstr "Tartibi"
+
+#: rest_framework/filterset.py:33
+#: templates/django_filters/rest_framework/form.html:5
+msgid "Submit"
+msgstr "Topshirmoq"
+
+#: templates/django_filters/rest_framework/crispy_form.html:4
+#: templates/django_filters/rest_framework/form.html:2
+msgid "Field filters"
+msgstr "Maydon filtrlari"
+
+#: utils.py:319
+msgid "exclude"
+msgstr "chiqarib tashlash"
+
+#: widgets.py:58
+msgid "All"
+msgstr "Barchasi"
+
+#: widgets.py:162
+msgid "Unknown"
+msgstr "Noma'lum"
+
+#: widgets.py:162
+msgid "Yes"
+msgstr "Ha"
+
+#: widgets.py:162
+msgid "No"
+msgstr "Yo'q"
