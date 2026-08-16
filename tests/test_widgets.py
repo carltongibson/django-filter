@@ -615,3 +615,20 @@ class QueryArrayWidgetTests(TestCase):
 
         result = w.value_from_datadict({}, {}, "price")
         self.assertEqual(result, [])
+
+    def test_widget_value_from_datadict_preserves_order(self):
+        # OrderingFilter relies on this order for primary vs. secondary sort key.
+        w = QueryArrayWidget()
+
+        data = {"ordering": "price,-name,id"}
+        result = w.value_from_datadict(data, {}, "ordering")
+        self.assertEqual(result, ["price", "-name", "id"])
+
+        data = {"ordering[]": ["price", "-name", "id"]}
+        result = w.value_from_datadict(data, {}, "ordering")
+        self.assertEqual(result, ["price", "-name", "id"])
+
+        # duplicates are still removed, keeping the first occurrence's position
+        data = {"ordering[]": ["price", "-name", "price"]}
+        result = w.value_from_datadict(data, {}, "ordering")
+        self.assertEqual(result, ["price", "-name"])
