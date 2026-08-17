@@ -1474,6 +1474,26 @@ class M2MRelationshipTests(TestCase):
         f = F({"favorite_books": [self.b4.pk]}, queryset=qs)
         self.assertQuerySetEqual(f.qs, [], lambda o: o.username)
 
+    def test_m2m_relation_in_lookup(self):
+        # Regression test for https://github.com/carltongibson/django-filter/issues/1084
+        class F(FilterSet):
+            class Meta:
+                model = User
+                fields = {"favorite_books": ["in"]}
+
+        qs = User.objects.all().order_by("username")
+        f = F(
+            {"favorite_books__in": f"{self.b1.pk},{self.b2.pk}"},
+            queryset=qs,
+        )
+        self.assertQuerySetEqual(f.qs, ["aaron", "alex"], lambda o: o.username)
+
+        f = F({"favorite_books__in": f"{self.b3.pk}"}, queryset=qs)
+        self.assertQuerySetEqual(f.qs, ["aaron"], lambda o: o.username)
+
+        f = F({"favorite_books__in": f"{self.b4.pk}"}, queryset=qs)
+        self.assertQuerySetEqual(f.qs, [], lambda o: o.username)
+
     def test_reverse_m2m_relation(self):
         class F(FilterSet):
             class Meta:

@@ -269,6 +269,17 @@ class BaseCSVFieldTests(TestCase):
         with self.assertRaisesMessage(forms.ValidationError, msg):
             field.clean([""])
 
+    def test_clean_multiple_choice_field(self):
+        # Regression test for #1084.
+        class ChoiceCSVField(BaseCSVField, forms.MultipleChoiceField):
+            pass
+
+        field = ChoiceCSVField(required=False, choices=[("1", "1"), ("2", "2")])
+
+        self.assertEqual(field.clean(None), None)
+        self.assertEqual(field.clean([]), [])
+        self.assertEqual(field.clean(["1", "2"]), ["1", "2"])
+
     def test_derived_widget(self):
         with self.assertRaises(AssertionError) as excinfo:
             BaseCSVField(widget=RangeWidget())

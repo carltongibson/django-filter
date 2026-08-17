@@ -562,6 +562,9 @@ class BaseCSVFilter(Filter):
 
     base_field_class = BaseCSVField
 
+    # Bind explicitly - MRO could otherwise resolve to a mixed-in subclass's incompatible filter().
+    filter = Filter.filter
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("help_text", _("Multiple values may be separated by commas."))
         super().__init__(*args, **kwargs)

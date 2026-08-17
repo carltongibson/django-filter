@@ -1538,6 +1538,27 @@ class BaseInFilterTests(TestCase):
         f.filter(qs, [1, 2])
         qs.filter.assert_called_once_with(None__in=[1, 2])
 
+    def test_filtering_with_multiple_choice_filter(self):
+        # Regression test for #1084.
+        class ChoiceInFilter(BaseInFilter, MultipleChoiceFilter):
+            pass
+
+        qs = mock.Mock(spec=["filter", "distinct"])
+        qs.distinct.return_value = qs
+        f = ChoiceInFilter()
+        f.filter(qs, ["a", "b"])
+        qs.filter.assert_called_once_with(None__in=["a", "b"])
+
+    def test_filtering_with_model_multiple_choice_filter(self):
+        class ModelInFilter(BaseInFilter, ModelMultipleChoiceFilter):
+            pass
+
+        qs = mock.Mock(spec=["filter", "distinct"])
+        qs.distinct.return_value = qs
+        f = ModelInFilter()
+        f.filter(qs, [1, 2])
+        qs.filter.assert_called_once_with(None__in=[1, 2])
+
 
 class BaseRangeFilterTests(TestCase):
     def test_filtering(self):
