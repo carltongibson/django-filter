@@ -20,7 +20,7 @@ class FilterMixin:
 
     def get_filterset_class(self):
         """
-        Returns the filterset class to use in this view
+        Returns the filterset class to use in this view.
         """
         if self.filterset_class:
             return self.filterset_class
@@ -108,7 +108,7 @@ def object_filter(
     filter_class=None,
 ):
     class ECFilterView(FilterView):
-        """Handle the extra_context from the functional object_filter view"""
+        """Handle the extra_context from the functional object_filter view."""
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
