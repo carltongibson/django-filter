@@ -470,6 +470,33 @@ class MultipleChoiceFilterTests(TestCase):
             qs.filter.assert_called_once_with(mockQ1.__ior__.return_value)
             qs.filter.return_value.distinct.assert_called_once_with()
 
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR="icontains")
+    def test_filtering_with_lookup_expr_matching_default_lookup_expr(self):
+        # The predicate is handed to the ORM, where omitting the lookup means
+        # "exact" whatever FILTERS_DEFAULT_LOOKUP_EXPR happens to be.
+        qs = mock.Mock(spec=["filter"])
+        f = MultipleChoiceFilter(field_name="somefield", lookup_expr="icontains")
+
+        self.assertEqual(
+            f.get_filter_predicate("value"), {"somefield__icontains": "value"}
+        )
+
+        with mock.patch("django_filters.filters.Q") as mockQclass:
+            mockQ1, mockQ2 = mock.MagicMock(), mock.MagicMock()
+            mockQclass.side_effect = [mockQ1, mockQ2]
+
+            f.filter(qs, ["value"])
+
+            self.assertEqual(
+                mockQclass.call_args_list,
+                [mock.call(), mock.call(somefield__icontains="value")],
+            )
+
+    @override_settings(FILTERS_DEFAULT_LOOKUP_EXPR="icontains")
+    def test_filter_predicate_omits_only_exact(self):
+        f = MultipleChoiceFilter(field_name="somefield", lookup_expr="exact")
+        self.assertEqual(f.get_filter_predicate("value"), {"somefield": "value"})
+
     def test_filtering_on_required_skipped_when_len_of_value_is_len_of_field_choices(
         self,
     ):

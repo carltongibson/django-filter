@@ -275,7 +275,10 @@ class MultipleChoiceFilter(Filter):
 
     def get_filter_predicate(self, v):
         name = self.field_name
-        if name and self.lookup_expr != settings.DEFAULT_LOOKUP_EXPR:
+        # This name goes to the ORM, where omitting the lookup means "exact"
+        # regardless of FILTERS_DEFAULT_LOOKUP_EXPR, so the suffix can only be
+        # dropped for "exact" itself.
+        if name and self.lookup_expr != "exact":
             name = LOOKUP_SEP.join([name, self.lookup_expr])
         try:
             return {name: getattr(v, self.field.to_field_name)}
