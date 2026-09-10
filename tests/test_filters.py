@@ -162,9 +162,10 @@ class FilterTests(TestCase):
     def test_filtering_uses_distinct(self):
         qs = mock.Mock(spec=["filter", "distinct"])
         f = Filter(field_name="somefield", distinct=True)
-        f.filter(qs, "value")
-        result = qs.distinct.assert_called_once_with()
-        self.assertNotEqual(qs, result)
+        result = f.filter(qs, "value")
+        qs.distinct.assert_called_once_with()
+        qs.distinct.return_value.filter.assert_called_once_with(somefield__exact="value")
+        self.assertEqual(result, qs.distinct.return_value.filter.return_value)
 
 
 class CharFilterTests(TestCase):
