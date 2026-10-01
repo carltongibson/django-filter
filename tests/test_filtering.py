@@ -11,6 +11,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
 
+from django_filters.fields import ModelChoiceField, ModelMultipleChoiceField
 from django_filters.filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
@@ -494,6 +495,36 @@ class DurationFilterTests(TestCase):
 
 
 class ModelChoiceFilterTests(TestCase):
+    def test_custom_choice_labels(self):
+        alex = User.objects.create(username="alex")
+        jacob = User.objects.create(username="jacob")
+        article = Article.objects.create(author=alex, published=now())
+        Article.objects.create(author=jacob, published=now())
+
+        class UserChoiceField(ModelChoiceField):
+            def label_from_instance(self, obj):
+                return f"{obj.username} (#{obj.pk})"
+
+        class UserChoiceFilter(ModelChoiceFilter):
+            field_class = UserChoiceField
+
+        class F(FilterSet):
+            author = UserChoiceFilter(queryset=User.objects.order_by("pk"))
+
+            class Meta:
+                model = Article
+                fields = ["author"]
+
+        f = F({"author": str(alex.pk)})
+        choices = list(f.form.fields["author"].choices)
+        self.assertEqual(
+            choices[1:],
+            [(alex.pk, f"alex (#{alex.pk})"), (jacob.pk, f"jacob (#{jacob.pk})")],
+        )
+        self.assertTrue(f.is_valid())
+        self.assertQuerySetEqual(f.qs, [article], lambda obj: obj)
+        self.assertEqual(str(alex), "alex")
+
     def test_filtering(self):
         alex = User.objects.create(username="alex")
         jacob = User.objects.create(username="jacob")
@@ -584,6 +615,41 @@ class ModelMultipleChoiceFilterTests(TestCase):
         )
         self.alex.favorite_books.add(self.b1, self.b2)
         aaron.favorite_books.add(self.b1, self.b3)
+
+    def test_custom_choice_labels(self):
+        class BookChoiceField(ModelMultipleChoiceField):
+            def label_from_instance(self, obj):
+                return f"{obj.title} (#{obj.pk})"
+
+        class BookChoiceFilter(ModelMultipleChoiceFilter):
+            field_class = BookChoiceField
+
+        class F(FilterSet):
+            favorite_books = BookChoiceFilter(
+                queryset=Book.objects.order_by("pk"), null_label="No Favorites"
+            )
+
+            class Meta:
+                model = User
+                fields = ["favorite_books"]
+
+        f = F({"favorite_books": [str(self.b2.pk)]})
+        choices = list(f.form.fields["favorite_books"].choices)
+        self.assertEqual(choices[0], ("null", "No Favorites"))
+        self.assertEqual(
+            choices[1:],
+            [
+                (book.pk, f"{book.title} (#{book.pk})")
+                for book in [self.b1, self.b2, self.b3, self.b4]
+            ],
+        )
+        self.assertTrue(f.is_valid())
+        self.assertQuerySetEqual(f.qs, [self.alex], lambda obj: obj)
+        self.assertEqual(str(self.b2), "Rainbow Six")
+
+        f = F({"favorite_books": ["null"]})
+        self.assertTrue(f.is_valid())
+        self.assertQuerySetEqual(f.qs, ["jacob"], lambda obj: obj.username)
 
     def test_filtering(self):
         class F(FilterSet):

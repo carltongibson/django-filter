@@ -318,6 +318,8 @@ and week designators, e.g. 'P3DT10H22M').
 Similar to a :class:`~django_filters.filters.ChoiceFilter` except it works with related models, used for
 ``ForeignKey`` by default.
 
+To customize the displayed choices, see :ref:`customizing-model-choice-labels`.
+
 If automatically instantiated, :class:`~django_filters.filters.ModelChoiceFilter` will use the default
 :class:`~django.db.models.query.QuerySet` for the related field. If manually instantiated you **must**
 provide the :class:`~django.db.models.query.QuerySet` kwarg.
@@ -359,6 +361,8 @@ having to override the ``FilterSet.__init__``.
 
 Similar to a :class:`~django_filters.filters.MultipleChoiceFilter` except it works
 with related models, used for :class:`~django.db.models.ManyToManyField` by default.
+
+To customize the displayed choices, see :ref:`customizing-model-choice-labels`.
 
 As with :class:`~django_filters.filters.ModelChoiceFilter`, if automatically instantiated,
 :class:`~django_filters.filters.ModelMultipleChoiceFilter` will use the default
