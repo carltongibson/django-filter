@@ -1,3 +1,10 @@
+Version 26.2 (unreleased)
+-------------------------
+
+* Added testing against Python 3.15.
+
+* Dropped support for Python 3.10.
+
 Version 26.1 (2026-07-11)
 -------------------------
 
