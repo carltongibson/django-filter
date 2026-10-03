@@ -18,8 +18,8 @@
 | django\_filters/rest\_framework/filterset.py    |       22 |        0 |    100% |           |
 | django\_filters/utils.py                        |      147 |        1 |     99% |       242 |
 | django\_filters/views.py                        |       55 |        0 |    100% |           |
-| django\_filters/widgets.py                      |      160 |        0 |    100% |           |
-| **TOTAL**                                       | **1273** |   **13** | **99%** |           |
+| django\_filters/widgets.py                      |      161 |        0 |    100% |           |
+| **TOTAL**                                       | **1274** |   **13** | **99%** |           |
 
 
 ## Setup coverage badge
