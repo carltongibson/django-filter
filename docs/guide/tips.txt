@@ -101,6 +101,55 @@ uncategorized products and products for a set of categories:
 More info on constructing ``in`` and ``range`` csv :ref:`filters <base-in-filter>`.
 
 
+.. _customizing-model-choice-labels:
+
+Customizing model choice labels
+-------------------------------
+
+A ``FilterSet`` builds a Django form, and each filter supplies a form field.
+For ``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter``, that field uses
+the related model's ``__str__()`` method to label its choices by default.
+
+To customize these labels without changing the model, override
+``label_from_instance()`` on the form field and set the filter's ``field_class``
+to your subclass. For example, given a ``Book`` model with a ``title`` field
+and a ``User`` model with a ``favorite_books`` many-to-many relationship:
+
+.. code-block:: python
+
+    import django_filters
+    from django_filters.fields import ModelMultipleChoiceField
+
+    from .models import Book, User
+
+    class BookChoiceField(ModelMultipleChoiceField):
+        def label_from_instance(self, obj):
+            return f"{obj.title} (#{obj.pk})"
+
+    class BookChoiceFilter(django_filters.ModelMultipleChoiceFilter):
+        field_class = BookChoiceField
+
+    class UserFilter(django_filters.FilterSet):
+        favorite_books = BookChoiceFilter(queryset=Book.objects.all())
+
+        class Meta:
+            model = User
+            fields = ['favorite_books']
+
+Subclassing the field from ``django_filters.fields`` preserves django-filter's
+choice handling, including ``null_label``. The same approach works for a
+single-choice filter by subclassing ``django_filters.fields.ModelChoiceField``
+and ``django_filters.ModelChoiceFilter`` instead.
+
+This changes the labels in ``UserFilter().form``, not the submitted choice
+values or the model instances in ``UserFilter().qs``. The filter's ``label``
+argument labels the whole form field, rather than each choice.
+
+See Django's documentation on `model choice labels`__ for more details.
+
+__ https://docs.djangoproject.com/en/stable/ref/forms/fields/#modelchoicefield
+
+
 Filtering by empty values
 -------------------------
 
