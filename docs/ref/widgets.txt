@@ -25,8 +25,8 @@ placeholders:
    final ``<a>`` tag.
 2. ``query_string``: This is the query string for use in the ``href``
    option on the ``<a>`` element.
-3. ``label``: This is the text to be displayed to the user.
-
+3. ``label``: This is the text to be displayed to the user. Conditionally
+   escaped: apply ``mark_safe()`` to labels intended to contain HTML.
 
 .. _boolean-widget:
 .. class:: BooleanWidget

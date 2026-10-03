@@ -1,6 +1,7 @@
 from django.forms import NumberInput, Select, TextInput
 from django.http import QueryDict
 from django.test import TestCase
+from django.utils.safestring import mark_safe
 
 from django_filters.widgets import (
     BaseCSVWidget,
@@ -160,6 +161,21 @@ class LinkWidgetTests(TestCase):
                 <li><a class="selected" href="?price=">All</a></li>
                 <li><a href="?price=test-val1">test-label1</a></li>
                 <li><a href="?price=test-val2">test-label2</a></li>
+            </ul>""",
+        )
+
+    def test_widget_escapes_labels(self):
+        choices = (
+            ("test-val1", "<script>alert(1)</script>"),
+            ("test-val2", mark_safe("<b>test-label2</b>")),
+        )
+        w = LinkWidget(choices=choices)
+        self.assertHTMLEqual(
+            w.render("price", ""),
+            """
+            <ul>
+                <li><a href="?price=test-val1">&lt;script&gt;alert(1)&lt;/script&gt;</a></li>
+                <li><a href="?price=test-val2"><b>test-label2</b></a></li>
             </ul>""",
         )
 

@@ -8,6 +8,7 @@ from django.db.models.fields import BLANK_CHOICE_DASH
 from django.forms.utils import flatatt
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_str
+from django.utils.html import conditional_escape
 from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -66,7 +67,7 @@ class LinkWidget(forms.Widget):
         return self.option_string() % {
             "attrs": selected and ' class="selected"' or "",
             "query_string": url,
-            "label": force_str(option_label),
+            "label": conditional_escape(option_label),
         }
 
     def option_string(self):

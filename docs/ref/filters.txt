@@ -637,12 +637,21 @@ database.  So if in the DB for the given field you have values of 5, 7, and 9
 each of those is present as an option.  This is similar to the default behavior
 of the admin.
 
+.. note::
+
+    Choices are taken from all rows of the model, via its default manager,
+    regardless of the queryset being filtered, and the stored values are
+    used as the option labels as-is. Don't use this filter on fields whose
+    values should not be visible to every user of the filter form.
+
 .. class:: AllValuesMultipleFilter
 
-This is a :class:`~django_filters.filters.MultipleChoiceFilter` whose choices are the current values in the
-database.  So if in the DB for the given field you have values of 5, 7, and 9
-each of those is present as an option.  This is similar to the default behavior
-of the admin.
+This is a :class:`~django_filters.filters.MultipleChoiceFilter` whose choices
+are the current values in the database.  So if in the DB for the given field
+you have values of 5, 7, and 9 each of those is present as an option.  This is
+similar to the default behavior of the admin.
+
+See :class:`AllValuesFilter` for additional considerations that apply.
 
 .. _lookup-choice-filter:
 .. class:: LookupChoiceFilter

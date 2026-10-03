@@ -5,6 +5,16 @@ Version 26.2 (unreleased)
 
 * Dropped support for Python 3.10.
 
+* LinkWidget will now conditionally escape provided label text.
+
+  Filter choices are under developer control, and applications populating them
+  from user-supplied values, including via ``AllValuesFilter``, must filter
+  those appropriately, as always. Nonetheless, escaping labels by default
+  serves as defense-in-depth hardening. Apply ``mark_safe()`` to labels
+  intended to contain HTML.
+
+  Thanks to Sanjeev Kumar for the report.
+
 Version 26.1 (2026-07-11)
 -------------------------
 
