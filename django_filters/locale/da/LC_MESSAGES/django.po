@@ -10,8 +10,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.1\n"
 
 #: conf.py:16
 msgid "date"
@@ -83,7 +83,7 @@ msgstr "er i intervallet"
 
 #: conf.py:39
 msgid "is null"
-msgstr ""
+msgstr "er null"
 
 #: conf.py:40 conf.py:41
 msgid "matches regex"
@@ -115,7 +115,7 @@ msgstr "har hvilken som helst string"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Vælg et opslag."
 
 #: fields.py:198
 msgid "Range query expects two values."

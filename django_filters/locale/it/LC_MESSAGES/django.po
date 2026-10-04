@@ -121,7 +121,7 @@ msgstr "contiene qualsiasi chiave"
 
 #: fields.py:94
 msgid "Select a lookup."
-msgstr ""
+msgstr "Seleziona una ricerca."
 
 #: fields.py:198
 msgid "Range query expects two values."
