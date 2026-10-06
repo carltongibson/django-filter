@@ -5,6 +5,7 @@ from itertools import chain
 
 from django import forms
 from django.core.validators import MaxValueValidator
+from django.db import models
 from django.db.models import Q
 from django.db.models.constants import LOOKUP_SEP
 from django.forms.utils import pretty_name
@@ -523,6 +524,25 @@ class DateRangeFilter(ChoiceFilter):
 
 class DateFromToRangeFilter(RangeFilter):
     field_class = DateRangeField
+
+    def filter(self, qs, value):
+        model = getattr(self, "model", None)
+        field = get_model_field(model, self.field_name) if model else None
+
+        # DateField values are timezone-independent. Passing aware datetimes to
+        # Django can shift their dates when the active and default timezones differ.
+        # DateTimeField subclasses DateField and must retain the aware bounds.
+        if (
+            value
+            and isinstance(field, models.DateField)
+            and not isinstance(field, models.DateTimeField)
+        ):
+            value = slice(
+                value.start.date() if value.start is not None else None,
+                value.stop.date() if value.stop is not None else None,
+            )
+
+        return super().filter(qs, value)
 
 
 class DateTimeFromToRangeFilter(RangeFilter):

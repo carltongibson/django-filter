@@ -854,6 +854,31 @@ class DateFromToRangeFilterTests(TestCase):
         )
         self.assertEqual(len(results.qs), 3)
 
+    @override_settings(TIME_ZONE="UTC")
+    def test_filtering_date_field_ignores_active_timezone(self):
+        adam = User.objects.create(username="adam")
+        kwargs = {"text": "test", "author": adam, "time": "10:00"}
+        Comment.objects.create(date=datetime.date(2023, 12, 31), **kwargs)
+        expected = Comment.objects.create(date=datetime.date(2024, 1, 1), **kwargs)
+        Comment.objects.create(date=datetime.date(2024, 1, 2), **kwargs)
+
+        class F(FilterSet):
+            issued_on = DateFromToRangeFilter(field_name="date")
+
+            class Meta:
+                model = Comment
+                fields = ["date"]
+
+        data = {
+            "issued_on_after": "2024-01-01",
+            "issued_on_before": "2024-01-01",
+        }
+        for active_timezone in ("Asia/Tokyo", "America/Los_Angeles"):
+            with self.subTest(active_timezone=active_timezone):
+                with timezone.override(active_timezone):
+                    results = F(data=data)
+                    self.assertEqual(list(results.qs), [expected])
+
     def test_filtering_ignores_time(self):
         tz = timezone.get_current_timezone()
         Article.objects.create(
@@ -880,6 +905,38 @@ class DateFromToRangeFilterTests(TestCase):
             data={"published_after": "2016-01-02", "published_before": "2016-01-03"}
         )
         self.assertEqual(len(results.qs), 3)
+
+    @override_settings(TIME_ZONE="UTC")
+    def test_filtering_datetime_field_uses_active_timezone(self):
+        with timezone.override("Asia/Tokyo"):
+            tz = timezone.get_current_timezone()
+            Article.objects.create(
+                published=datetime.datetime(2023, 12, 31, 23, 59, tzinfo=tz)
+            )
+            first = Article.objects.create(
+                published=datetime.datetime(2024, 1, 1, 0, 0, tzinfo=tz)
+            )
+            last = Article.objects.create(
+                published=datetime.datetime(2024, 1, 1, 23, 59, tzinfo=tz)
+            )
+            Article.objects.create(
+                published=datetime.datetime(2024, 1, 2, 0, 0, tzinfo=tz)
+            )
+
+            class F(FilterSet):
+                published = DateFromToRangeFilter()
+
+                class Meta:
+                    model = Article
+                    fields = ["published"]
+
+            results = F(
+                data={
+                    "published_after": "2024-01-01",
+                    "published_before": "2024-01-01",
+                }
+            )
+            self.assertEqual(list(results.qs.order_by("pk")), [first, last])
 
     @unittest.skipUnless(django.VERSION < (5, 0), "is_dst removed in Django 5.0")
     @override_settings(TIME_ZONE="America/Sao_Paulo")
