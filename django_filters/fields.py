@@ -194,6 +194,11 @@ class BaseCSVField(forms.Field):
 
         if value is None:
             return None
+
+        if isinstance(self, (forms.MultipleChoiceField, forms.ModelMultipleChoiceField)):
+            # This field expects the whole list in one clean() call, not per-value.
+            return super(BaseCSVField, self).clean(value)
+
         return [super(BaseCSVField, self).clean(v) for v in value]
 
 
